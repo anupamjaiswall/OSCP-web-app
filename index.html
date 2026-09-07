@@ -312,6 +312,11 @@ body:not(.advancedMode) .advancedNav{display:none}
 </nav>
 <main class="main">
 <section id="simpleExamView" class="view active">
+<div id="preExamAutoUpdateWarning" role="alert" style="margin:0 0 16px;padding:18px 20px;border:3px solid var(--bad);border-radius:14px;background:#35181d;box-shadow:0 0 0 1px rgba(255,123,134,.22),0 14px 36px rgba(0,0,0,.35);text-align:center">
+  <div style="font-size:25px;font-weight:900;line-height:1.2;color:#ffdce0;letter-spacing:.2px">🚨 BEFORE THE OSCP EXAM: STOP THE AUTOMATIC CHECKLIST UPDATE CRON / DAILY AUTOMATION 🚨</div>
+  <div style="margin-top:9px;font-size:16px;font-weight:700;color:#ffb6bd">Freeze this checklist before the exam. Do not let the automatic updater change the app while you are testing.</div>
+  <div class="tiny" style="padding:8px 0 0;color:#e9b5ba">Use the verified local/offline copy during the exam, then re-enable automatic updates after the exam is finished.</div>
+</div>
  <div class="hero simpleHero"><div><h1>OSCP Exam Flow</h1><div class="muted">One repeatable loop. Collect evidence, test the smallest useful hypothesis, and move when the evidence stops improving.</div></div><div class="chips"><span class="chip">SIMPLE MODE</span><span class="chip">OFFLINE</span><span class="chip">Alt 1</span></div></div>
  <div class="card" style="margin-bottom:12px">
   <div class="simpleFlow">
