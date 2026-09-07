@@ -240,6 +240,9 @@ body:not(.advancedMode) .advancedNav{display:none}
 .examResetBackdrop.open{display:grid}.examResetDialog{width:min(820px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid #78434a;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.6);padding:18px}.examResetHead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.examResetHead h2{margin:0}.examResetGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.examResetStep{background:#0d1119;border:1px solid var(--line);border-radius:9px;padding:10px}.examResetStep b{display:block;margin-bottom:4px}.examResetTimer{font:800 32px/1 ui-monospace,Consolas,monospace;letter-spacing:1px;min-width:92px}.examResetRule{border-left:3px solid var(--warn);padding:9px 11px;background:#211c10;border-radius:7px;margin-top:10px}.examResetFooter{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.examResetHint{font-size:12px;color:var(--muted)}
 @media(max-width:700px){.examResetGrid{grid-template-columns:1fr}.examResetDialog{padding:14px}.examResetTimer{font-size:27px}}
 </style>
+<style id="examBankStyles">
+.examBankBackdrop{position:fixed;inset:0;z-index:1001;background:rgba(2,5,10,.84);display:none;place-items:center;padding:18px;backdrop-filter:blur(5px)}.examBankBackdrop.open{display:grid}.examBankDialog{width:min(760px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid #2f7a55;border-radius:14px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.6)}.examBankHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.examBankHead h2{margin:0}.examBankSteps{display:grid;gap:8px;margin:14px 0}.examBankStep{background:#0d1119;border:1px solid var(--line);border-radius:9px;padding:10px}.examBankStep b{color:var(--good)}.examBankDanger{border-left:3px solid var(--bad);background:#28171a;padding:9px 11px;border-radius:7px}.examBankActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+</style>
 </head>
 <body data-release="V19">
 <div class="top">
@@ -250,6 +253,7 @@ body:not(.advancedMode) .advancedNav{display:none}
     <button class="btn" id="navForwardBtn" type="button" title="Forward to next app view (Alt+Right)" aria-label="Forward">Forward</button>
   </div>
   <button class="btn bad" id="examStuckBtn" type="button" title="3-minute stuck reset (Alt+0)" aria-haspopup="dialog">↺ STUCK</button>
+  <button class="btn good" id="examBankBtn" type="button" title="Score-safe proof banking (Alt+B)" aria-haspopup="dialog">✓ BANK</button>
   <button class="btn" id="themeBtn" title="Toggle reference theme">◐</button>
 </div>
 <div class="layout">
@@ -12319,5 +12323,22 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   document.getElementById('examResetReference')?.addEventListener('click',()=>{close();const q=document.getElementById('globalSearch');if(!q)return;q.value='[STUCK:RESET]';try{switchView('searchView');renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}});
   window.OSCP_STUCK_RESET={open,start,reset};
 })();
+</script>
+<div id="examBankModal" class="examBankBackdrop" role="dialog" aria-modal="true" aria-labelledby="examBankTitle" aria-hidden="true">
+ <div class="examBankDialog">
+  <div class="examBankHead"><div><h2 id="examBankTitle">✓ Bank the Points</h2><div class="muted">Do this immediately when you obtain local.txt or proof.txt.</div></div><button class="btn" id="examBankClose" type="button">Close</button></div>
+  <div class="examBankSteps">
+   <div class="examBankStep"><b>1 · ORIGINAL LOCATION</b><br>Use an interactive shell on the target. Display the proof with <code>cat</code> (Linux) or <code>type</code> (Windows) from the file's original location.</div>
+   <div class="examBankStep"><b>2 · SCREENSHOT</b><br>In the same evidence sequence, show the target IP with <code>ip addr</code>/<code>ifconfig</code> or <code>ipconfig</code>, plus the proof-file contents. Do not use a text editor to display the proof.</div>
+   <div class="examBankStep"><b>3 · CONTROL PANEL</b><br>Submit the exact local.txt/proof.txt value in the Exam Control Panel before the exam ends. The panel does not confirm whether the value is correct.</div>
+   <div class="examBankStep"><b>4 · JOURNAL</b><br>Record target, privilege level, exact proof path, commands, screenshot filename, and the path that produced the shell.</div>
+  </div>
+  <div class="examBankDanger"><b>Zero-point guard:</b> Do not treat a shell as banked points until both the Control Panel submission and valid screenshot evidence are complete.</div>
+  <div class="examBankActions"><button class="btn" id="examBankTarget" type="button">Open Target</button><button class="btn primary" id="examBankEvidence" type="button">Open [EVIDENCE:PACKET]</button><button class="btn good" id="examBankDone" type="button">Banked ✓</button></div>
+  <div class="tiny">Shortcut: Alt+B · Esc closes</div>
+ </div>
+</div>
+<script id="examBankScript">
+(()=>{const m=document.getElementById('examBankModal'),b=document.getElementById('examBankBtn'),c=document.getElementById('examBankClose');if(!m||!b||!c)return;const open=()=>{m.classList.add('open');m.setAttribute('aria-hidden','false');c.focus()},close=()=>{m.classList.remove('open');m.setAttribute('aria-hidden','true');b.focus()};b.onclick=open;c.onclick=close;m.onclick=e=>{if(e.target===m)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&m.classList.contains('open')){e.preventDefault();close()}else if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='b'){e.preventDefault();open()}});document.getElementById('examBankTarget')?.addEventListener('click',()=>{close();try{switchView('workspaceView')}catch(e){}});document.getElementById('examBankEvidence')?.addEventListener('click',()=>{close();const q=document.getElementById('globalSearch');if(!q)return;q.value='[EVIDENCE:PACKET]';try{switchView('searchView');renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}});document.getElementById('examBankDone')?.addEventListener('click',()=>{close();try{toast('Proof banked — continue only after screenshot + control-panel submission')}catch(e){}});window.OSCP_PROOF_BANK={open,close}})();
 </script>
 </body></html>
