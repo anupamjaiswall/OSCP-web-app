@@ -235,6 +235,11 @@ body:not(.advancedMode) .advancedNav{display:none}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 
 </style>
+<style id="examStuckStyles">
+.examResetBackdrop{position:fixed;inset:0;z-index:1000;background:rgba(2,5,10,.82);display:none;place-items:center;padding:18px;backdrop-filter:blur(5px)}
+.examResetBackdrop.open{display:grid}.examResetDialog{width:min(820px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid #78434a;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.6);padding:18px}.examResetHead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.examResetHead h2{margin:0}.examResetGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.examResetStep{background:#0d1119;border:1px solid var(--line);border-radius:9px;padding:10px}.examResetStep b{display:block;margin-bottom:4px}.examResetTimer{font:800 32px/1 ui-monospace,Consolas,monospace;letter-spacing:1px;min-width:92px}.examResetRule{border-left:3px solid var(--warn);padding:9px 11px;background:#211c10;border-radius:7px;margin-top:10px}.examResetFooter{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}.examResetHint{font-size:12px;color:var(--muted)}
+@media(max-width:700px){.examResetGrid{grid-template-columns:1fr}.examResetDialog{padding:14px}.examResetTimer{font-size:27px}}
+</style>
 </head>
 <body data-release="V19">
 <div class="top">
@@ -244,6 +249,7 @@ body:not(.advancedMode) .advancedNav{display:none}
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
     <button class="btn" id="navForwardBtn" type="button" title="Forward to next app view (Alt+Right)" aria-label="Forward">Forward</button>
   </div>
+  <button class="btn bad" id="examStuckBtn" type="button" title="3-minute stuck reset (Alt+0)" aria-haspopup="dialog">↺ STUCK</button>
   <button class="btn" id="themeBtn" title="Toggle reference theme">◐</button>
 </div>
 <div class="layout">
@@ -12282,4 +12288,36 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
 })();
 </script>
 
+<div id="examResetModal" class="examResetBackdrop" role="dialog" aria-modal="true" aria-labelledby="examResetTitle" aria-hidden="true">
+  <div class="examResetDialog">
+    <div class="examResetHead"><div><h2 id="examResetTitle">↺ 3-Minute Stuck Reset</h2><div class="muted">Do not add tools. Re-anchor to evidence, choose one falsifiable next test, then rotate.</div></div><button class="btn" id="examResetClose" type="button" aria-label="Close stuck reset">Close</button></div>
+    <div class="examResetGrid">
+      <div class="examResetStep"><b>1 · BANK FIRST — 20s</b>If you have <code>local.txt</code> or <code>proof.txt</code>, capture/submit it now. Record the exact path and command before touching anything else.</div>
+      <div class="examResetStep"><b>2 · FACTS ONLY — 30s</b>Say the target, ports, access, creds, current user/privileges and last new evidence. Separate facts from assumptions.</div>
+      <div class="examResetStep"><b>3 · COVERAGE — 60s</b>Full TCP done? Every exposed service manually touched? Web vhosts/routes/backups? Creds fanned out? After shell: local listeners, files/config, sudo/SUID/caps or services/tasks/privileges.</div>
+      <div class="examResetStep"><b>4 · ONE TEST — 30s</b>Pick the cheapest test that can prove or kill the strongest hypothesis. Define success/failure before running it.</div>
+      <div class="examResetStep"><b>5 · READ OUTPUT — 20s</b>Read the result line-by-line. Do not launch the next tool until you can state what changed.</div>
+      <div class="examResetStep"><b>6 · ROTATE</b>No new evidence after the timer? Mark the path dead/parked, write why, then move to another service, hypothesis or machine.</div>
+    </div>
+    <div class="examResetRule"><b>Rule:</b> version ≠ vulnerability, tool output ≠ proof, shell ≠ banked points. Evidence must improve or you rotate.</div>
+    <div class="examResetFooter" style="margin-top:14px"><div class="row"><div id="examResetTimer" class="examResetTimer">15:00</div><button class="btn good" id="examResetStart" type="button">Start 15m</button><button class="btn" id="examResetTimerReset" type="button">Reset</button></div><div class="row"><button class="btn" id="examResetTarget" type="button">Open Target</button><button class="btn primary" id="examResetReference" type="button">Open [STUCK:RESET]</button></div></div>
+    <div class="examResetHint" style="margin-top:9px">Shortcut: <b>Alt+0</b>. Esc closes this panel. Timer survives closing the panel during this browser session.</div>
+  </div>
+</div>
+<script id="examStuckScript">
+(()=>{
+  const modal=document.getElementById('examResetModal'),openBtn=document.getElementById('examStuckBtn'),closeBtn=document.getElementById('examResetClose'); if(!modal||!openBtn||!closeBtn)return;
+  const timerEl=document.getElementById('examResetTimer'),startBtn=document.getElementById('examResetStart'),resetBtn=document.getElementById('examResetTimerReset'); let deadline=0,tick=0;
+  const fmt=n=>`${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
+  function paint(){const left=deadline?Math.max(0,Math.ceil((deadline-Date.now())/1000)):900;timerEl.textContent=fmt(left);if(deadline&&left===0){clearInterval(tick);tick=0;deadline=0;startBtn.textContent='Start 15m';timerEl.textContent='00:00';try{toast('15-minute rabbit-hole limit reached — rotate or justify one exact next test')}catch(e){}}}
+  function start(){if(deadline){deadline=0;clearInterval(tick);tick=0;startBtn.textContent='Start 15m';paint();return}deadline=Date.now()+900000;startBtn.textContent='Pause';tick=setInterval(paint,1000);paint()}
+  function reset(){deadline=0;clearInterval(tick);tick=0;startBtn.textContent='Start 15m';timerEl.textContent='15:00'}
+  function open(){modal.classList.add('open');modal.setAttribute('aria-hidden','false');closeBtn.focus()} function close(){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');openBtn.focus()}
+  openBtn.addEventListener('click',open);closeBtn.addEventListener('click',close);startBtn.addEventListener('click',start);resetBtn.addEventListener('click',reset);modal.addEventListener('click',e=>{if(e.target===modal)close()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open')){e.preventDefault();close();return}if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key)==='0'){e.preventDefault();open()}});
+  document.getElementById('examResetTarget')?.addEventListener('click',()=>{close();try{switchView('workspaceView')}catch(e){}});
+  document.getElementById('examResetReference')?.addEventListener('click',()=>{close();const q=document.getElementById('globalSearch');if(!q)return;q.value='[STUCK:RESET]';try{switchView('searchView');renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}});
+  window.OSCP_STUCK_RESET={open,start,reset};
+})();
+</script>
 </body></html>
