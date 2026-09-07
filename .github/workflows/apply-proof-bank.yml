@@ -2,7 +2,8 @@ name: Apply proof bank
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/apply-proof-bank.yml']
+    paths:
+      - '.github/workflows/apply-proof-bank.yml'
 permissions:
   contents: write
 jobs:
@@ -10,38 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch exam UI
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import base64
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          if 'id="examBankBtn"' in s:
-              raise SystemExit('proof bank already installed')
-          dec=lambda x: base64.b64decode(x).decode('utf-8')
-          button=dec('ICA8YnV0dG9uIGNsYXNzPSJidG4gZ29vZCIgaWQ9ImV4YW1CYW5rQnRuIiB0eXBlPSJidXR0b24iIHRpdGxlPSJTY29yZS1zYWZlIHByb29mIGJhbmtpbmcgKEFsdCtCKSIgYXJpYS1oYXNwb3B1cD0iZGlhbG9nIj7inJMgQkFOSzwvYnV0dG9uPgo=')
-          css=dec('PHN0eWxlIGlkPSJleGFtQmFua1N0eWxlcyI+Ci5leGFtQmFua0JhY2tkcm9we3Bvc2l0aW9uOmZpeGVkO2luc2V0OjA7ei1pbmRleDoxMDAxO2JhY2tncm91bmQ6cmdiYSgyLDUsMTAsLjg0KTtkaXNwbGF5Om5vbmU7cGxhY2UtaXRlbXM6Y2VudGVyO3BhZGRpbmc6MThweDtiYWNrZHJvcC1maWx0ZXI6Ymx1cig1cHgpfS5leGFtQmFua0JhY2tkcm9wLm9wZW57ZGlzcGxheTpncmlkfS5leGFtQmFua0RpYWxvZ3t3aWR0aDptaW4oNzYwcHgsMTAwJSk7bWF4LWhlaWdodDo5MnZoO292ZXJmbG93OmF1dG87YmFja2dyb3VuZDp2YXIoLS1wYW5lbCk7Ym9yZGVyOjFweCBzb2xpZCAjMmY3YTU1O2JvcmRlci1yYWRpdXM6MTRweDtwYWRkaW5nOjE4cHg7Ym94LXNoYWRvdzowIDI0cHggODBweCByZ2JhKDAsMCwwLC42KX0uZXhhbUJhbmtIZWFke2Rpc3BsYXk6ZmxleDtqdXN0aWZ5LWNvbnRlbnQ6c3BhY2UtYmV0d2VlbjtnYXA6MTJweDthbGlnbi1pdGVtczpmbGV4LXN0YXJ0fS5leGFtQmFua0hlYWQgaDJ7bWFyZ2luOjB9LmV4YW1CYW5rU3RlcHN7ZGlzcGxheTpncmlkO2dhcDo4cHg7bWFyZ2luOjE0cHggMH0uZXhhbUJhbmtTdGVwe2JhY2tncm91bmQ6IzBkMTExOTtib3JkZXI6MXB4IHNvbGlkIHZhcigtLWxpbmUpO2JvcmRlci1yYWRpdXM6OXB4O3BhZGRpbmc6MTBweH0uZXhhbUJhbmtTdGVwIGJ7Y29sb3I6dmFyKC0tZ29vZCl9LmV4YW1CYW5rRGFuZ2Vye2JvcmRlci1sZWZ0OjNweCBzb2xpZCB2YXIoLS1iYWQpO2JhY2tncm91bmQ6IzI4MTcxYTtwYWRkaW5nOjlweCAxMXB4O2JvcmRlci1yYWRpdXM6N3B4fS5leGFtQmFua0FjdGlvbnN7ZGlzcGxheTpmbGV4O2dhcDo4cHg7ZmxleC13cmFwOndyYXA7anVzdGlmeS1jb250ZW50OmZsZXgtZW5kO21hcmdpbi10b3A6MTJweH0KPC9zdHlsZT4=')
-          modal=dec('PGRpdiBpZD0iZXhhbUJhbmtNb2RhbCIgY2xhc3M9ImV4YW1CYW5rQmFja2Ryb3AiIHJvbGU9ImRpYWxvZyIgYXJpYS1tb2RhbD0idHJ1ZSIgYXJpYS1sYWJlbGxlZGJ5PSJleGFtQmFua1RpdGxlIiBhcmlhLWhpZGRlbj0idHJ1ZSI+CiA8ZGl2IGNsYXNzPSJleGFtQmFua0RpYWxvZyI+CiAgPGRpdiBjbGFzcz0iZXhhbUJhbmtIZWFkIj48ZGl2PjxoMiBpZD0iZXhhbUJhbmtUaXRsZSI+4pyTIEJhbmsgdGhlIFBvaW50czwvaDI+PGRpdiBjbGFzcz0ibXV0ZWQiPkRvIHRoaXMgaW1tZWRpYXRlbHkgd2hlbiB5b3Ugb2J0YWluIGxvY2FsLnR4dCBvciBwcm9vZi50eHQuPC9kaXY+PC9kaXY+PGJ1dHRvbiBjbGFzcz0iYnRuIiBpZD0iZXhhbUJhbmtDbG9zZSIgdHlwZT0iYnV0dG9uIj5DbG9zZTwvYnV0dG9uPjwvZGl2PgogIDxkaXYgY2xhc3M9ImV4YW1CYW5rU3RlcHMiPgogICA8ZGl2IGNsYXNzPSJleGFtQmFua1N0ZXAiPjxiPjEgwrcgT1JJR0lOQUwgTE9DQVRJT048L2I+PGJyPlVzZSBhbiBpbnRlcmFjdGl2ZSBzaGVsbCBvbiB0aGUgdGFyZ2V0LiBEaXNwbGF5IHRoZSBwcm9vZiB3aXRoIDxjb2RlPmNhdDwvY29kZT4gKExpbnV4KSBvciA8Y29kZT50eXBlPC9jb2RlPiAoV2luZG93cykgZnJvbSB0aGUgZmlsZSdzIG9yaWdpbmFsIGxvY2F0aW9uLjwvZGl2PgogICA8ZGl2IGNsYXNzPSJleGFtQmFua1N0ZXAiPjxiPjIgwrcgU0NSRUVOU0hPVDwvYj48YnI+SW4gdGhlIHNhbWUgZXZpZGVuY2Ugc2VxdWVuY2UsIHNob3cgdGhlIHRhcmdldCBJUCB3aXRoIDxjb2RlPmlwIGFkZHI8L2NvZGU+Lzxjb2RlPmlmY29uZmlnPC9jb2RlPiBvciA8Y29kZT5pcGNvbmZpZzwvY29kZT4sIHBsdXMgdGhlIHByb29mLWZpbGUgY29udGVudHMuIERvIG5vdCB1c2UgYSB0ZXh0IGVkaXRvciB0byBkaXNwbGF5IHRoZSBwcm9vZi48L2Rpdj4KICAgPGRpdiBjbGFzcz0iZXhhbUJhbmtTdGVwIj48Yj4zIMK3IENPTlRST0wgUEFORUw8L2I+PGJyPlN1Ym1pdCB0aGUgZXhhY3QgbG9jYWwudHh0L3Byb29mLnR4dCB2YWx1ZSBpbiB0aGUgRXhhbSBDb250cm9sIFBhbmVsIGJlZm9yZSB0aGUgZXhhbSBlbmRzLiBUaGUgcGFuZWwgZG9lcyBub3QgY29uZmlybSB3aGV0aGVyIHRoZSB2YWx1ZSBpcyBjb3JyZWN0LjwvZGl2PgogICA8ZGl2IGNsYXNzPSJleGFtQmFua1N0ZXAiPjxiPjQgwrcgSk9VUk5BTDwvYj48YnI+UmVjb3JkIHRhcmdldCwgcHJpdmlsZWdlIGxldmVsLCBleGFjdCBwcm9vZiBwYXRoLCBjb21tYW5kcywgc2NyZWVuc2hvdCBmaWxlbmFtZSwgYW5kIHRoZSBwYXRoIHRoYXQgcHJvZHVjZWQgdGhlIHNoZWxsLjwvZGl2PgogIDwvZGl2PgogIDxkaXYgY2xhc3M9ImV4YW1CYW5rRGFuZ2VyIj48Yj5aZXJvLXBvaW50IGd1YXJkOjwvYj4gRG8gbm90IHRyZWF0IGEgc2hlbGwgYXMgYmFua2VkIHBvaW50cyB1bnRpbCBib3RoIHRoZSBDb250cm9sIFBhbmVsIHN1Ym1pc3Npb24gYW5kIHZhbGlkIHNjcmVlbnNob3QgZXZpZGVuY2UgYXJlIGNvbXBsZXRlLjwvZGl2PgogIDxkaXYgY2xhc3M9ImV4YW1CYW5rQWN0aW9ucyI+PGJ1dHRvbiBjbGFzcz0iYnRuIiBpZD0iZXhhbUJhbmtUYXJnZXQiIHR5cGU9ImJ1dHRvbiI+T3BlbiBUYXJnZXQ8L2J1dHRvbj48YnV0dG9uIGNsYXNzPSJidG4gcHJpbWFyeSIgaWQ9ImV4YW1CYW5rRXZpZGVuY2UiIHR5cGU9ImJ1dHRvbiI+T3BlbiBbRVZJREVOQ0U6UEFDS0VUXTwvYnV0dG9uPjxidXR0b24gY2xhc3M9ImJ0biBnb29kIiBpZD0iZXhhbUJhbmtEb25lIiB0eXBlPSJidXR0b24iPkJhbmtlZCDinJM8L2J1dHRvbj48L2Rpdj4KICA8ZGl2IGNsYXNzPSJ0aW55Ij5TaG9ydGN1dDogQWx0K0IgwrcgRXNjIGNsb3NlczwvZGl2PgogPC9kaXY+CjwvZGl2Pg==')
-          js=dec('PHNjcmlwdCBpZD0iZXhhbUJhbmtTY3JpcHQiPgooKCk9Pntjb25zdCBtPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdleGFtQmFua01vZGFsJyksYj1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZXhhbUJhbmtCdG4nKSxjPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdleGFtQmFua0Nsb3NlJyk7aWYoIW18fCFifHwhYylyZXR1cm47Y29uc3Qgb3Blbj0oKT0+e20uY2xhc3NMaXN0LmFkZCgnb3BlbicpO20uc2V0QXR0cmlidXRlKCdhcmlhLWhpZGRlbicsJ2ZhbHNlJyk7Yy5mb2N1cygpfSxjbG9zZT0oKT0+e20uY2xhc3NMaXN0LnJlbW92ZSgnb3BlbicpO20uc2V0QXR0cmlidXRlKCdhcmlhLWhpZGRlbicsJ3RydWUnKTtiLmZvY3VzKCl9O2Iub25jbGljaz1vcGVuO2Mub25jbGljaz1jbG9zZTttLm9uY2xpY2s9ZT0+e2lmKGUudGFyZ2V0PT09bSljbG9zZSgpfTtkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdrZXlkb3duJyxlPT57aWYoZS5rZXk9PT0nRXNjYXBlJyYmbS5jbGFzc0xpc3QuY29udGFpbnMoJ29wZW4nKSl7ZS5wcmV2ZW50RGVmYXVsdCgpO2Nsb3NlKCl9ZWxzZSBpZihlLmFsdEtleSYmIWUuY3RybEtleSYmIWUubWV0YUtleSYmU3RyaW5nKGUua2V5KS50b0xvd2VyQ2FzZSgpPT09J2InKXtlLnByZXZlbnREZWZhdWx0KCk7b3BlbigpfX0pO2RvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdleGFtQmFua1RhcmdldCcpPy5hZGRFdmVudExpc3RlbmVyKCdjbGljaycsKCk9PntjbG9zZSgpO3RyeXtzd2l0Y2hWaWV3KCd3b3Jrc3BhY2VWaWV3Jyl9Y2F0Y2goZSl7fX0pO2RvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdleGFtQmFua0V2aWRlbmNlJyk/LmFkZEV2ZW50TGlzdGVuZXIoJ2NsaWNrJywoKT0+e2Nsb3NlKCk7Y29uc3QgcT1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZ2xvYmFsU2VhcmNoJyk7aWYoIXEpcmV0dXJuO3EudmFsdWU9J1tFVklERU5DRTpQQUNLRVRdJzt0cnl7c3dpdGNoVmlldygnc2VhcmNoVmlldycpO3JlbmRlclNlYXJjaChxLnZhbHVlKX1jYXRjaChlKXtxLmRpc3BhdGNoRXZlbnQobmV3IEV2ZW50KCdpbnB1dCcse2J1YmJsZXM6dHJ1ZX0pKX19KTtkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZXhhbUJhbmtEb25lJyk/LmFkZEV2ZW50TGlzdGVuZXIoJ2NsaWNrJywoKT0+e2Nsb3NlKCk7dHJ5e3RvYXN0KCdQcm9vZiBiYW5rZWQg4oCUIGNvbnRpbnVlIG9ubHkgYWZ0ZXIgc2NyZWVuc2hvdCArIGNvbnRyb2wtcGFuZWwgc3VibWlzc2lvbicpfWNhdGNoKGUpe319KTt3aW5kb3cuT1NDUF9QUk9PRl9CQU5LPXtvcGVuLGNsb3NlfX0pKCk7Cjwvc2NyaXB0Pg==')
-          anchor='  <button class="btn" id="themeBtn" title="Toggle reference theme">◐</button>'
-          if anchor not in s: raise SystemExit('top-bar anchor missing')
-          s=s.replace(anchor,button+anchor,1)
-          if '</head>' not in s or '</body>' not in s: raise SystemExit('document anchors missing')
-          s=s.replace('</head>',css+'\n</head>',1)
-          s=s.replace('</body>',modal+'\n'+js+'\n</body>',1)
-          p.write_text(s,encoding='utf-8')
-          PY
-          python3 - <<'PY'
-          from pathlib import Path
-          s=Path('index.html').read_text(encoding='utf-8')
-          for x in ['id="examBankBtn"','id="examBankModal"','window.OSCP_PROOF_BANK','[EVIDENCE:PACKET]','Exam Control Panel']:
-              assert x in s, x
-          assert s.count('id="examBankBtn"') == 1
-          assert s.count('id="examBankModal"') == 1
-          print('proof-bank smoke test passed')
-          PY
-      - name: Commit
+      - name: Apply and smoke-test proof bank
+        run: python3 .github/proof-bank-patch.py
+      - name: Commit app change
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
