@@ -31,6 +31,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html OSCP-Checklist-2026-Exam-Optimized.md OSCP-V20-Checklist-2026-Exam-Optimized.md OSCP-V20-EXPERT-QUICKCARD.md OSCP-V20-README.md
-          git rm .github/v20-toolbox-patch.py .github/workflows/apply-v20-toolbox.yml
+          git rm -f .github/v20-toolbox-patch.py .github/workflows/apply-v20-toolbox.yml
           git commit -m 'V20: add complete Windows AD fallback toolbox'
           git push
