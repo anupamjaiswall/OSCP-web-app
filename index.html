@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
-<title>OSCP V19 Exam-Only Operating System</title>
+<title>OSCP V20 Exam-Only Operating System</title>
 <style>
 :root{--bg:#0b0e14;--panel:#121722;--panel2:#171e2b;--text:#e9eef7;--muted:#96a2b4;--line:#293244;--accent:#71d3ff;--good:#72e3a6;--warn:#ffd166;--bad:#ff7b86;--chip:#202a3a;--shadow:0 16px 40px rgba(0,0,0,.25)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;font-variant-emoji:emoji}button,input,select,textarea{font:inherit}button{cursor:pointer}.brand,.navbtn,.quick,.playhead,.hero h1,.card h2,.card h3,summary,.chip,.btn{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif}
@@ -244,9 +244,9 @@ body:not(.advancedMode) .advancedNav{display:none}
 .examBankBackdrop{position:fixed;inset:0;z-index:1001;background:rgba(2,5,10,.84);display:none;place-items:center;padding:18px;backdrop-filter:blur(5px)}.examBankBackdrop.open{display:grid}.examBankDialog{width:min(760px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid #2f7a55;border-radius:14px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.6)}.examBankHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.examBankHead h2{margin:0}.examBankSteps{display:grid;gap:8px;margin:14px 0}.examBankStep{background:#0d1119;border:1px solid var(--line);border-radius:9px;padding:10px}.examBankStep b{color:var(--good)}.examBankDanger{border-left:3px solid var(--bad);background:#28171a;padding:9px 11px;border-radius:7px}.examBankActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
 </style>
 </head>
-<body data-release="V19">
+<body data-release="V20">
 <div class="top">
-  <div class="brand">🔐 OSCP V19 Exam OS</div><div class="badge">EXAM ONLY · OFFLINE · NO AI</div>
+  <div class="brand">🔐 OSCP V20 Exam OS</div><div class="badge">EXAM ONLY · OFFLINE · NO AI</div>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -308,7 +308,7 @@ body:not(.advancedMode) .advancedNav{display:none}
   <button class="navbtn" data-view="referenceView">Full Reference</button>
   <button class="navbtn" data-view="settingsView">⚙️ Settings</button>
   <div class="navsep"></div>
-  <div class="tiny">Embedded V19 exam reference<br>Self-contained HTML<br>No external assets</div>
+  <div class="tiny">Embedded V20 exam reference<br>Self-contained HTML<br>No external assets</div>
 </nav>
 <main class="main">
 <section id="simpleExamView" class="view active">
@@ -327,7 +327,7 @@ body:not(.advancedMode) .advancedNav{display:none}
   </div>
  </div>
  <div class="grid">
-  <div class="card span12 ruleLockCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>V19 exam rules lock</h2><div class="muted">Verified 06 Sep 2026 against the current OffSec Exam Guide, FAQ and AI policy. The live official pages always override this offline snapshot.</div></div><div class="row"><span id="ruleLockCount" class="ruleLockState">0/8 locked</span><button class="btn" id="ruleLockReset" type="button">Reset</button></div></div><div class="ruleLockGrid">
+  <div class="card span12 ruleLockCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>V20 exam rules lock</h2><div class="muted">Re-checked 08 Sep 2026 against the current OffSec Exam Guide and FAQ. The live official pages always override this offline snapshot.</div></div><div class="row"><span id="ruleLockCount" class="ruleLockState">0/8 locked</span><button class="btn" id="ruleLockReset" type="button">Reset</button></div></div><div class="ruleLockGrid">
    <label class="check"><input class="ruleLockCheck" data-rule="objectives" type="checkbox"> I read the control-panel objectives and point values for this exact attempt.</label>
    <label class="check"><input class="ruleLockCheck" data-rule="ai" type="checkbox"> AI/LLM/chatbot tools are closed for both the exam and reporting phase.</label>
    <label class="check"><input class="ruleLockCheck" data-rule="metasploit" type="checkbox"> Restricted Metasploit target is unused or one exact target is recorded; no Metasploit pivoting.</label>
@@ -682,6 +682,28 @@ state-changing AD abuse
 
 
 <section id="windowsStrategyView" class="view">
+
+<div class="card" id="v20AdFallbackToolbox" style="margin-bottom:14px;border-color:#355a78">
+  <div class="row" style="justify-content:space-between;align-items:flex-start">
+    <div><h2>V20 AD / Windows Fallback Toolbox</h2><div class="muted">Use only when the core path cannot answer the current question. Native/manual proof first; one alternate implementation second.</div></div>
+    <span class="chip">RULE-AWARE · SEARCHABLE</span>
+  </div>
+  <div class="simpleDecisionGrid" style="margin-top:12px">
+    <div class="decisionRow"><h3>RunasCs</h3><div>Known password → run one harmless command as that local/domain identity → <code>whoami /all</code> → prove actual capability.</div><pre>.\\RunasCs.exe user1 'Password1!' "cmd /c whoami /all" -d domain.local</pre></div>
+    <div class="decisionRow"><h3>SharpView</h3><div>PowerView unavailable/blocked → use one exact C# PowerView-style query; do not duplicate a full BloodHound/PowerView pass.</div><pre>.\\SharpView.exe Get-DomainController -Domain domain.local -Server dc.domain.local</pre></div>
+    <div class="decisionRow"><h3>windapsearch</h3><div>Focused LDAP fallback for users, groups, computers and SPNs.</div><pre>python3 windapsearch.py --dc-ip "$DC_IP" -u "$USER@$DOMAIN" -p "$PASS" -U\npython3 windapsearch.py --dc-ip "$DC_IP" -u "$USER@$DOMAIN" -p "$PASS" --user-spns</pre></div>
+    <div class="decisionRow"><h3>Certify</h3><div>Windows-side AD CS fallback; Certipy remains the primary Kali path.</div><pre>.\\Certify.exe enum-templates --filter-enabled --filter-vulnerable --current-user</pre></div>
+    <div class="decisionRow"><h3>sshuttle</h3><div>SSH foothold + one known internal subnet → routed fallback when it is simpler than creating another tunnel.</div><pre>sudo sshuttle -r "$SSH_USER@$PIVOT" 10.10.20.0/24</pre></div>
+    <div class="decisionRow"><h3>Native first</h3><div><code>whoami /all</code> · <code>net user /domain</code> · <code>net group "Domain Admins" /domain</code> · <code>nltest /domain_trusts</code> · <code>klist</code> · <code>dsquery</code> if installed.</div></div>
+  </div>
+  <details style="margin-top:12px"><summary><b>Rule-sensitive / secondary names</b></summary>
+    <p><b>Empire / Covenant:</b> currently listed by OffSec as allowed examples, but any feature performing a restricted action is still prohibited. Use only for a specific justified function, not blind automation.</p>
+    <p><b>PowerSploit:</b> PowerView and PowerUp are already covered; prefer the individual module you need.</p>
+    <p><b>Responder / Inveigh:</b> <strong style="color:var(--bad)">DO NOT use LLMNR/NBNS/mDNS poisoning or spoofing in the OSCP exam.</strong> Keep these names searchable as a rule reminder, not an attack recipe.</p>
+    <p><b>ADPEEAS / PingCastle:</b> secondary audit helpers only. Their findings are leads; manually prove the exact edge/permission before acting.</p>
+  </details>
+</div>
+
  <div class="hero"><div><h1>Windows / Active Directory Exam Desk</h1><div class="muted">Issued-domain-credential path, failure diagnosis, then a repeatable Windows post-shell workflow. The order and validation gates matter more than running more tools.</div></div><div class="row"><select id="winStrategyTarget"></select><button class="btn" id="winStrategyOpenRef">Full Windows reference →</button><button class="btn bad" id="winStrategyReset">Reset target checklist</button></div></div>
  <div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Issued domain credential — first 10 minutes</h2><div class="muted">Run in order, stop when a stronger signal appears, and save output. These are Kali-side commands for an issued, in-scope account—not a spray. Progress is stored per selected target.</div></div><div class="row"><span id="adFastDone" class="adEdgeRisk low">0/4</span><button class="btn" id="adFastReset" type="button">Reset four steps</button><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">Full decision card →</button></div></div>
   <div class="adFastGrid">
@@ -869,7 +891,15 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
 
 <section id="evidenceView" class="view"><div class="hero"><div><h1>Evidence Packet</h1><div class="muted">Use per host. Copy a report-ready template after checking the proof requirements.</div></div><button class="btn primary" id="copyEvidence">Copy template</button></div><div class="card"><div class="evidenceGrid" id="evidenceChecks"></div><h3>Per-host packet</h3><pre id="evidenceTemplate"></pre></div></section>
 
-<section id="referenceView" class="view"><div class="hero noPrint"><div><h1>Full V19 Reference</h1><div class="muted">Deep reference embedded locally. Search first; do not scroll linearly under pressure.</div></div><div class="row"><button class="btn" id="collapseDetails">Collapse all</button><button class="btn" id="expandDetails">Expand all</button></div></div><article class="reference" id="referenceRoot"><h1>🔐 ULTIMATE OSCP METHODOLOGY CHECKLIST — V19</h1>
+<section id="referenceView" class="view">
+
+<div class="card" id="v20ReferenceDelta" style="max-width:1180px;margin:0 auto 14px;border-color:#355a78">
+  <h2>V20 delta — AD / Windows fallback coverage</h2>
+  <p class="muted">Search terms: RunasCs · SharpView · windapsearch · Certify · sshuttle · Empire · Covenant · PowerSploit · Inveigh · ADPEEAS · PingCastle.</p>
+  <p><b>Hard rule:</b> Responder/Inveigh poisoning or spoofing is not an OSCP workflow. Native/manual proof remains first; these are fallbacks for a specific unresolved question.</p>
+  <button class="btn" onclick="switchView('windowsStrategyView')">Open Windows fallback toolbox →</button>
+</div>
+<div class="hero noPrint"><div><h1>Full V19 Reference</h1><div class="muted">Deep reference embedded locally. Search first; do not scroll linearly under pressure.</div></div><div class="row"><button class="btn" id="collapseDetails">Collapse all</button><button class="btn" id="expandDetails">Expand all</button></div></div><article class="reference" id="referenceRoot"><h1>🔐 ULTIMATE OSCP METHODOLOGY CHECKLIST — V19</h1>
 <blockquote>
 <p><strong>V19 layout:</strong> <strong>Layer 1 = Exam Cockpit</strong>, <strong>Layer 2 = Full Reference</strong>, plus a reliability/compliance layer.<br/>
 During the exam, start with the Cockpit and jump by search tags; do not scroll the full document linearly.</p>
