@@ -1,0 +1,23 @@
+name: Apply V20 Windows AD toolbox
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-v20-toolbox.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply V20 patch and smoke tests
+        run: python3 .github/v20-toolbox-patch.py
+      - name: Commit V20 release
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html OSCP-Checklist-2026-Exam-Optimized.md OSCP-V20-Checklist-2026-Exam-Optimized.md OSCP-V20-EXPERT-QUICKCARD.md OSCP-V20-README.md
+          git rm .github/v20-toolbox-patch.py .github/workflows/apply-v20-toolbox.yml
+          git commit -m 'V20: add complete Windows AD fallback toolbox'
+          git push
