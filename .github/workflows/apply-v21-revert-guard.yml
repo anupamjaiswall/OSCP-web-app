@@ -21,3 +21,4 @@ jobs:
           git rm -f .github/v21-revert-guard.py .github/workflows/apply-v21-revert-guard.yml
           git commit -m 'V21: add target revert safety guard'
           git push
+# rerun after smoke-test correction
