@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
-<title>OSCP V20 Exam-Only Operating System</title>
+<title>OSCP V21 Exam-Only Operating System</title>
 <style>
 :root{--bg:#0b0e14;--panel:#121722;--panel2:#171e2b;--text:#e9eef7;--muted:#96a2b4;--line:#293244;--accent:#71d3ff;--good:#72e3a6;--warn:#ffd166;--bad:#ff7b86;--chip:#202a3a;--shadow:0 16px 40px rgba(0,0,0,.25)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;font-variant-emoji:emoji}button,input,select,textarea{font:inherit}button{cursor:pointer}.brand,.navbtn,.quick,.playhead,.hero h1,.card h2,.card h3,summary,.chip,.btn{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif}
@@ -308,7 +308,7 @@ body:not(.advancedMode) .advancedNav{display:none}
   <button class="navbtn" data-view="referenceView">Full Reference</button>
   <button class="navbtn" data-view="settingsView">⚙️ Settings</button>
   <div class="navsep"></div>
-  <div class="tiny">Embedded V20 exam reference<br>Self-contained HTML<br>No external assets</div>
+  <div class="tiny">Embedded V21 exam reference<br>Self-contained HTML<br>No external assets</div>
 </nav>
 <main class="main">
 <section id="simpleExamView" class="view active">
@@ -327,7 +327,7 @@ body:not(.advancedMode) .advancedNav{display:none}
   </div>
  </div>
  <div class="grid">
-  <div class="card span12 ruleLockCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>V20 exam rules lock</h2><div class="muted">Re-checked 08 Sep 2026 against the current OffSec Exam Guide and FAQ. The live official pages always override this offline snapshot.</div></div><div class="row"><span id="ruleLockCount" class="ruleLockState">0/8 locked</span><button class="btn" id="ruleLockReset" type="button">Reset</button></div></div><div class="ruleLockGrid">
+  <div class="card span12 ruleLockCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>V21 exam rules lock</h2><div class="muted">Re-checked 08 Sep 2026 against the current OffSec Exam Guide and FAQ. The live official pages always override this offline snapshot.</div></div><div class="row"><span id="ruleLockCount" class="ruleLockState">0/8 locked</span><button class="btn" id="ruleLockReset" type="button">Reset</button></div></div><div class="ruleLockGrid">
    <label class="check"><input class="ruleLockCheck" data-rule="objectives" type="checkbox"> I read the control-panel objectives and point values for this exact attempt.</label>
    <label class="check"><input class="ruleLockCheck" data-rule="ai" type="checkbox"> AI/LLM/chatbot tools are closed for both the exam and reporting phase.</label>
    <label class="check"><input class="ruleLockCheck" data-rule="metasploit" type="checkbox"> Restricted Metasploit target is unused or one exact target is recorded; no Metasploit pivoting.</label>
@@ -372,7 +372,13 @@ body:not(.advancedMode) .advancedNav{display:none}
    <div class="decisionRow"><h3>Tool is failing</h3><div>Read the error and local help, make one native/manual request, then try one alternate implementation only.</div><button class="btn" onclick="switchView('compatView')">Fallback ladder →</button></div>
    <div class="decisionRow"><h3>Root / SYSTEM reached</h3><div>Stop exploitation. Capture proof + IP in the interactive shell, submit the flag, and finish report notes now.</div><button class="btn" onclick="switchView('reportsView')">Evidence gate →</button></div>
   </div></div>
-  <div class="card span6"><h2>Before exploit or target change</h2><div class="checks"><label class="check"><input type="checkbox"> access/build/config prerequisite proven</label><label class="check"><input type="checkbox"> original owner/mode/ACL/hash/state recorded</label><label class="check"><input type="checkbox"> exact privileged trigger known</label><label class="check"><input type="checkbox"> smallest change selected</label><label class="check"><input type="checkbox"> rollback command and re-entry path written</label><label class="check"><input type="checkbox"> proof/revalidation plan ready</label></div></div>
+  <div class="card span12" id="v21RevertGuard" style="padding:12px 16px;border-color:#7a6030">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div><b>⚠️ Before any target revert</b> <span class="muted">Bank earned proof first → save the re-entry path → record what will be lost → click Revert once → treat shells, tunnels, uploads and changes as stale until revalidated.</span></div>
+    <button class="btn" type="button" onclick="switchView('workspaceView')">Open target →</button>
+  </div>
+</div>
+<div class="card span6"><h2>Before exploit or target change</h2><div class="checks"><label class="check"><input type="checkbox"> access/build/config prerequisite proven</label><label class="check"><input type="checkbox"> original owner/mode/ACL/hash/state recorded</label><label class="check"><input type="checkbox"> exact privileged trigger known</label><label class="check"><input type="checkbox"> smallest change selected</label><label class="check"><input type="checkbox"> rollback command and re-entry path written</label><label class="check"><input type="checkbox"> proof/revalidation plan ready</label></div></div>
   <div class="card span6"><h2>Before leaving a shell</h2><div class="checks"><label class="check"><input type="checkbox"> shell stabilized and identity recorded</label><label class="check"><input type="checkbox"> local enumeration completed</label><label class="check"><input type="checkbox"> credentials reused across known services</label><label class="check"><input type="checkbox"> proof, IP, commands and changes captured</label></div></div>
  </div>
 </section>
