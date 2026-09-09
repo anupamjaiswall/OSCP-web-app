@@ -1,0 +1,23 @@
+name: Apply V21 revert guard
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-v21-revert-guard.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply focused V21 patch
+        run: python3 .github/v21-revert-guard.py
+      - name: Commit focused V21 release
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html OSCP-V21-README.md
+          git rm -f .github/v21-revert-guard.py .github/workflows/apply-v21-revert-guard.yml
+          git commit -m 'V21: add target revert safety guard'
+          git push
