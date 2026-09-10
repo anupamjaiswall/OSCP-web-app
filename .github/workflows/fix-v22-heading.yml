@@ -1,0 +1,35 @@
+name: Fix V22 release heading
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-v22-heading.yml'
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix and verify V22 heading
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('OSCP-V22-README.md')
+          s=p.read_text(encoding='utf-8')
+          old='# OSCP V21 — Revert Guard'
+          new='# OSCP V22 — Compact Proof Capture'
+          if not s.startswith(old): raise SystemExit('unexpected V22 README heading')
+          s=new+s[len(old):]
+          if s.count('## V22 release — compact proof capture')!=1: raise SystemExit('V22 delta missing/duplicated')
+          p.write_text(s,encoding='utf-8')
+          print('V22 release metadata verified')
+          PY
+      - name: Commit cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add OSCP-V22-README.md
+          git rm -f .github/workflows/fix-v22-heading.yml
+          git commit -m 'docs: correct V22 release heading'
+          git push
