@@ -32,7 +32,6 @@ jobs:
           if old not in s:
               raise SystemExit('buildCaptureCommand exact anchor missing')
           s=s.replace(old,new,1)
-          # Keep embedded quick-reference examples aligned with the builder where exact strings exist.
           replacements={
             'hostname; id; ip addr; pwd; cat /root/proof.txt':'hostname; id; ip addr | grep \'inet \'; pwd; cat /root/proof.txt',
             'echo "=== IP ===" &amp;&amp; ip a':'echo "=== IP ===" &amp;&amp; ip addr | grep \'inet \'',
@@ -41,9 +40,8 @@ jobs:
           for a,b in replacements.items():
               s=s.replace(a,b)
           s=s.replace('<title>OSCP V21 Exam-Only Operating System</title>','<title>OSCP V22 Exam-Only Operating System</title>',1)
-          # Structural/safety tests.
           checks=[
-            ("ipconfig | findstr /I \\\"IPv4\\\"",'cmd compact IP filter'),
+            ('ipconfig | findstr /I "IPv4"','cmd compact IP filter'),
             ("ipconfig | Select-String 'IPv4'",'PowerShell compact IP filter'),
             ("ip addr | grep 'inet '",'Linux compact IP filter'),
             ('type "${clean.replace','original-path Windows type preserved'),
@@ -57,7 +55,6 @@ jobs:
               if needle not in s: raise SystemExit('missing after patch: '+label)
           if s.count('function buildCaptureCommand(')!=1:
               raise SystemExit('unexpected buildCaptureCommand count')
-          # Ensure we did not add secret inputs or external dependencies.
           if 'captureFlagValue' in s or 'proofSecretValue' in s:
               raise SystemExit('unexpected proof-secret persistence field')
           p.write_text(s,encoding='utf-8')
