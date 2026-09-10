@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
-<title>OSCP V21 Exam-Only Operating System</title>
+<title>OSCP V22 Exam-Only Operating System</title>
 <style>
 :root{--bg:#0b0e14;--panel:#121722;--panel2:#171e2b;--text:#e9eef7;--muted:#96a2b4;--line:#293244;--accent:#71d3ff;--good:#72e3a6;--warn:#ffd166;--bad:#ff7b86;--chip:#202a3a;--shadow:0 16px 40px rgba(0,0,0,.25)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;font-variant-emoji:emoji}button,input,select,textarea{font:inherit}button{cursor:pointer}.brand,.navbtn,.quick,.playhead,.hero h1,.card h2,.card h3,summary,.chip,.btn{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif}
@@ -8753,17 +8753,17 @@ PRO TIPS:
 <p><code>[REPORT:PROOF] [EVIDENCE:PACKET]</code></p>
 <pre class="ref-code"><code class="language-bash"># ── LINUX PROOF SCREENSHOT ────────────────────────────────────
 # Single command that captures the required pair plus useful context:
-hostname; id; ip addr; pwd; cat /root/proof.txt
+hostname; id; ip addr | grep 'inet '; pwd; cat /root/proof.txt
 # OR (more readable):
 echo "=== HOSTNAME ===" &amp;&amp; hostname
 echo "=== USER ===" &amp;&amp; id &amp;&amp; whoami
-echo "=== IP ===" &amp;&amp; ip a
+echo "=== IP ===" &amp;&amp; ip addr | grep 'inet '
 echo "=== PROOF ===" &amp;&amp; cat /root/proof.txt
 
 # ── WINDOWS PROOF SCREENSHOT ──────────────────────────────────
 echo === HOSTNAME === &amp;&amp; hostname
 echo === USER === &amp;&amp; whoami
-echo === IP === &amp;&amp; ipconfig
+echo === IP === &amp;&amp; ipconfig | findstr /I "IPv4"
 echo === PROOF === &amp;&amp; type C:\Users\Administrator\Desktop\proof.txt
 
 # ── WHAT THE SCREENSHOT MUST SHOW ────────────────────────────
@@ -11480,9 +11480,9 @@ const CAPTURE_DEFAULTS={
 };
 function buildCaptureCommand(platform,path){
  const clean=String(path||'').replace(/[\r\n]/g,' ').trim();
- if(platform==='cmd')return`hostname & whoami & ipconfig & cd & type "${clean.replace(/"/g,'""')}"`;
- if(platform==='powershell')return`hostname; whoami; ipconfig; Get-Location; type '${clean.replace(/'/g,"''")}'`;
- return`hostname; id; ip addr; pwd; cat -- '${clean.replace(/'/g,"'\"'\"'")}'`;
+ if(platform==='cmd')return`hostname & whoami & ipconfig | findstr /I "IPv4" & cd & type "${clean.replace(/"/g,'""')}"`;
+ if(platform==='powershell')return`hostname; whoami; ipconfig | Select-String 'IPv4'; Get-Location; type '${clean.replace(/'/g,"''")}'`;
+ return`hostname; id; ip addr | grep 'inet '; pwd; cat -- '${clean.replace(/'/g,"'\"'\"'")}'`;
 }
 function captureFileName(target,kind){
  const raw=[target?.host,target?.ip].map(x=>String(x||'').trim()).filter(Boolean).join('-').toLowerCase()||'target';
