@@ -1,0 +1,81 @@
+name: Apply V22 compact proof capture
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-v22-proof-compact.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply focused proof-capture patch and verify
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old="""function buildCaptureCommand(platform,path){
+           const clean=String(path||'').replace(/[\\r\\n]/g,' ').trim();
+           if(platform==='cmd')return`hostname & whoami & ipconfig & cd & type \"${clean.replace(/\"/g,'\"\"')}\"`;
+           if(platform==='powershell')return`hostname; whoami; ipconfig; Get-Location; type '${clean.replace(/'/g,\"''\")}'`;
+           return`hostname; id; ip addr; pwd; cat -- '${clean.replace(/'/g,\"'\\\"'\\\"'\")}'`;
+          }"""
+          new="""function buildCaptureCommand(platform,path){
+           const clean=String(path||'').replace(/[\\r\\n]/g,' ').trim();
+           if(platform==='cmd')return`hostname & whoami & ipconfig | findstr /I \"IPv4\" & cd & type \"${clean.replace(/\"/g,'\"\"')}\"`;
+           if(platform==='powershell')return`hostname; whoami; ipconfig | Select-String 'IPv4'; Get-Location; type '${clean.replace(/'/g,\"''\")}'`;
+           return`hostname; id; ip addr | grep 'inet '; pwd; cat -- '${clean.replace(/'/g,\"'\\\"'\\\"'\")}'`;
+          }"""
+          if old not in s:
+              raise SystemExit('buildCaptureCommand exact anchor missing')
+          s=s.replace(old,new,1)
+          # Keep embedded quick-reference examples aligned with the builder where exact strings exist.
+          replacements={
+            'hostname; id; ip addr; pwd; cat /root/proof.txt':'hostname; id; ip addr | grep \'inet \'; pwd; cat /root/proof.txt',
+            'echo "=== IP ===" &amp;&amp; ip a':'echo "=== IP ===" &amp;&amp; ip addr | grep \'inet \'',
+            'echo === IP === &amp;&amp; ipconfig':'echo === IP === &amp;&amp; ipconfig | findstr /I "IPv4"'
+          }
+          for a,b in replacements.items():
+              s=s.replace(a,b)
+          s=s.replace('<title>OSCP V21 Exam-Only Operating System</title>','<title>OSCP V22 Exam-Only Operating System</title>',1)
+          # Structural/safety tests.
+          checks=[
+            ("ipconfig | findstr /I \\\"IPv4\\\"",'cmd compact IP filter'),
+            ("ipconfig | Select-String 'IPv4'",'PowerShell compact IP filter'),
+            ("ip addr | grep 'inet '",'Linux compact IP filter'),
+            ('type "${clean.replace','original-path Windows type preserved'),
+            ("cat -- '${clean.replace",'original-path Linux cat preserved'),
+            ('capturePathIssue','path validation preserved'),
+            ('copyCaptureCommand','copy control preserved'),
+            ('proofSubmissionSanity','proof submission sanity guard preserved'),
+            ('targetRevertSafetyGuard','revert guard preserved')
+          ]
+          for needle,label in checks:
+              if needle not in s: raise SystemExit('missing after patch: '+label)
+          if s.count('function buildCaptureCommand(')!=1:
+              raise SystemExit('unexpected buildCaptureCommand count')
+          # Ensure we did not add secret inputs or external dependencies.
+          if 'captureFlagValue' in s or 'proofSecretValue' in s:
+              raise SystemExit('unexpected proof-secret persistence field')
+          p.write_text(s,encoding='utf-8')
+
+          base=Path('OSCP-V21-README.md').read_text(encoding='utf-8')
+          readme=base.replace('# OSCP V21 — Exam-Only Operating System','# OSCP V22 — Exam-Only Operating System',1)
+          delta='''\n## V22 release — compact proof capture\n\n- Reworked the existing Evidence & Report proof-command builder so the network command emits only compact IPv4 lines before the original-path flag read.\n- Windows cmd now uses `ipconfig | findstr /I "IPv4"`; PowerShell uses `ipconfig | Select-String 'IPv4'`; Linux uses `ip addr | grep 'inet '`.\n- This directly reduces the chance that verbose interface output pushes the target IP or flag off the same screenshot while still deriving the address from an OffSec-approved command (`ipconfig` / `ip addr`).\n- Original-path `type` / `cat`, path validation, screenshot naming, submission sanity checks, and the revert safety guard are unchanged.\n- No new screen, stored secret, tool dependency, or reference section was added.\n- Relevant OffSec proof guidance was re-checked on **10 September 2026**; the live official Exam Guide remains authoritative.\n\n'''
+          marker='## Simple exam mode'
+          if marker not in readme: raise SystemExit('V21 README insertion anchor missing')
+          readme=readme.replace(marker,delta+marker,1)
+          Path('OSCP-V22-README.md').write_text(readme,encoding='utf-8')
+          print('V22 compact proof capture patch + smoke tests passed')
+          PY
+      - name: Commit V22
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html OSCP-V22-README.md
+          git rm -f .github/workflows/inspect-v22-proof.yml .github/workflows/apply-v22-proof-compact.yml
+          git commit -m 'V22: compact proof capture output'
+          git push
