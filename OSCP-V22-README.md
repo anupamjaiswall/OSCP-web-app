@@ -1,4 +1,4 @@
-# OSCP V21 — Revert Guard
+# OSCP V22 — Compact Proof Capture
 
 V21 is a focused exam-time safety release built on V20. It adds one compact revert guard to the Start flow so a revert is not triggered before earned proof and recovery state are protected.
 
