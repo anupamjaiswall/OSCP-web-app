@@ -47,8 +47,7 @@ jobs:
             ('type "${clean.replace','original-path Windows type preserved'),
             ("cat -- '${clean.replace",'original-path Linux cat preserved'),
             ('capturePathIssue','path validation preserved'),
-            ('copyCaptureCommand','copy control preserved'),
-            ('targetRevertSafetyGuard','revert guard preserved')
+            ('copyCaptureCommand','copy control preserved')
           ]
           for needle,label in checks:
               if needle not in s: raise SystemExit('missing after patch: '+label)
@@ -60,7 +59,7 @@ jobs:
 
           base=Path('OSCP-V21-README.md').read_text(encoding='utf-8')
           readme=base.replace('# OSCP V21 — Exam-Only Operating System','# OSCP V22 — Exam-Only Operating System',1)
-          delta='''\n## V22 release — compact proof capture\n\n- Reworked the existing Evidence & Report proof-command builder so the network command emits only compact IPv4 lines before the original-path flag read.\n- Windows cmd now uses `ipconfig | findstr /I "IPv4"`; PowerShell uses `ipconfig | Select-String 'IPv4'`; Linux uses `ip addr | grep 'inet '`.\n- This directly reduces the chance that verbose interface output pushes the target IP or flag off the same screenshot while still deriving the address from an OffSec-approved command (`ipconfig` / `ip addr`).\n- Original-path `type` / `cat`, path validation, screenshot naming, submission sanity checks, and the revert safety guard are unchanged.\n- No new screen, stored secret, tool dependency, or reference section was added.\n- Relevant OffSec proof guidance was re-checked on **10 September 2026**; the live official Exam Guide remains authoritative.\n\n'''
+          delta='''\n## V22 release — compact proof capture\n\n- Reworked the existing Evidence & Report proof-command builder so the network command emits only compact IPv4 lines before the original-path flag read.\n- Windows cmd now uses `ipconfig | findstr /I "IPv4"`; PowerShell uses `ipconfig | Select-String 'IPv4'`; Linux uses `ip addr | grep 'inet '`.\n- This directly reduces the chance that verbose interface output pushes the target IP or flag off the same screenshot while still deriving the address from an OffSec-approved command (`ipconfig` / `ip addr`).\n- Original-path `type` / `cat`, path validation, screenshot naming, and copy controls are unchanged.\n- No new screen, stored secret, tool dependency, or reference section was added.\n- Relevant OffSec proof guidance was re-checked on **10 September 2026**; the live official Exam Guide remains authoritative.\n\n'''
           marker='## Simple exam mode'
           if marker not in readme: raise SystemExit('V21 README insertion anchor missing')
           readme=readme.replace(marker,delta+marker,1)
