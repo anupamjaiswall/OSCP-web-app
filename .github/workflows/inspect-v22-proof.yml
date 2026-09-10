@@ -1,0 +1,32 @@
+name: Inspect V22 proof builder
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/inspect-v22-proof.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show proof-builder context
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          needles=['proof-command','Proof command','proofBuilder','ipconfig; type','ipconfig & type','ip addr; cat','ip addr; pwd; cat']
+          for n in needles:
+              print('\n###',n)
+              pos=0
+              found=0
+              while True:
+                  i=s.find(n,pos)
+                  if i<0: break
+                  found+=1
+                  print(s[max(0,i-500):min(len(s),i+900)].replace('\n','\\n'))
+                  pos=i+len(n)
+                  if found>=8: break
+              print('COUNT',found)
+          PY
