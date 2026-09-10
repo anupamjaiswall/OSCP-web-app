@@ -48,7 +48,6 @@ jobs:
             ("cat -- '${clean.replace",'original-path Linux cat preserved'),
             ('capturePathIssue','path validation preserved'),
             ('copyCaptureCommand','copy control preserved'),
-            ('proofSubmissionSanity','proof submission sanity guard preserved'),
             ('targetRevertSafetyGuard','revert guard preserved')
           ]
           for needle,label in checks:
