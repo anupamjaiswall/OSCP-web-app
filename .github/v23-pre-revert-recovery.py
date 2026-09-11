@@ -28,7 +28,7 @@ if index.count(old_guard) != 1:
 index = index.replace(old_guard, new_guard, 1)
 
 # Reuse the existing snapshot engine instead of adding a new state model.
-js_anchor = "$('#simpleSnapshotNow').onclick=()=>{snapshotNow('manual simple-mode recovery point');toast('Recovery point saved')};"
+js_anchor = "if($('#simpleSnapshotNow'))$('#simpleSnapshotNow').onclick=()=>{snapshotNow('simple start');toast('Secret-free recovery point created')};"
 js_insert = js_anchor + "\nconst v23PreRevertSnapshot=$('#v23PreRevertSnapshot');if(v23PreRevertSnapshot)v23PreRevertSnapshot.onclick=()=>{const t=activeTarget();snapshotNow(`pre-revert ${t?targetLabel(t):'current target'}`);toast('Pre-revert recovery point saved')};"
 if index.count(js_anchor) != 1:
     raise SystemExit(f'snapshot handler anchor count = {index.count(js_anchor)}; expected 1')
