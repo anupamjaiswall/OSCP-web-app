@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/apply-v23-pre-revert-recovery.yml'
+      - '.github/v23-pre-revert-recovery.py'
 permissions:
   contents: write
 jobs:
