@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
-<title>OSCP V23 Exam-Only Operating System</title>
+<title>OSCP Exam-Only Operating System</title>
 <style>
 :root{--bg:#0b0e14;--panel:#121722;--panel2:#171e2b;--text:#e9eef7;--muted:#96a2b4;--line:#293244;--accent:#71d3ff;--good:#72e3a6;--warn:#ffd166;--bad:#ff7b86;--chip:#202a3a;--shadow:0 16px 40px rgba(0,0,0,.25)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;font-variant-emoji:emoji}button,input,select,textarea{font:inherit}button{cursor:pointer}.brand,.navbtn,.quick,.playhead,.hero h1,.card h2,.card h3,summary,.chip,.btn{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif}
@@ -246,7 +246,7 @@ body:not(.advancedMode) .advancedNav{display:none}
 </head>
 <body data-release="V20">
 <div class="top">
-  <div class="brand">🔐 OSCP V20 Exam OS</div><div class="badge">EXAM ONLY · OFFLINE · NO AI</div>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">EXAM ONLY · OFFLINE · NO AI</div>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -359,7 +359,7 @@ body:not(.advancedMode) .advancedNav{display:none}
    <div class="decisionRow"><h3>A credential or hash</h3><div>Record its source, test it across appropriate known services, distinguish authentication from authorization, and respect lockout policy.</div><button class="btn" onclick="openRef('ref-8-password-attacks-credential-abuse')">Credential workflow →</button></div>
    <div class="decisionRow"><h3>A Linux shell</h3><div>Stabilize; sudo, SUID, capabilities, cron/systemd, services, secrets, containers and internal listeners. Kernel/CVE last.</div><button class="btn" onclick="openRef('ref-12-31-linux-practical-attack-trees-finding-validation-path')">Linux trees →</button></div>
    <div class="decisionRow"><h3>A Windows shell</h3><div>Identity/privileges, files/software, services, tasks, registry, credentials, DLL/path, local ports and custom apps. Kernel last.</div><button class="btn" onclick="switchView('windowsStrategyView')">Windows workflow →</button></div>
-   <div class="decisionRow"><h3>A domain credential</h3><div>Fix DNS/time, validate SMB/LDAP/WinRM/RDP, enumerate shares and Kerberos, collect BloodHound, check AD CS, then follow one proven edge.</div><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">First 10 minutes →</button></div>
+   <div class="decisionRow"><h3>A domain credential</h3><div>Fix DNS/time, validate SMB/LDAP/WinRM/RDP, enumerate shares and Kerberos, collect BloodHound (RustHound-CE is a collector option), check AD CS, then follow one proven edge.</div><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">First 10 minutes →</button></div>
    <div class="decisionRow"><h3>A new network or route</h3><div>Prove pivot-host reachability, create one tunnel/route, enumerate the internal surface, and repeat the same target loop.</div><button class="btn" onclick="openRef('ref-14-2-modern-pivot-tool-selection')">Pivot selector →</button></div>
    <div class="decisionRow"><h3>Root / SYSTEM / Administrator</h3><div>Stop. Capture the flag from its original location in an interactive shell with the target IP visible, submit it, then protect the report evidence.</div><button class="btn" onclick="openRef('ref-18-1-screenshot-requirements-never-fail-on-this')">Proof requirements →</button></div>
   </div></div>
@@ -446,7 +446,7 @@ identity/vhost → source/JS/routes/backups/.git → auth/inputs
 
 ACTIVE DIRECTORY
 credential → DNS/time/DC → SMB/LDAP/WinRM/RDP
-→ shares/users/groups/SPNs → BloodHound + AD CS
+→ shares/users/groups/SPNs → BloodHound (SharpHound / bloodhound-ce-python / RustHound-CE) + AD CS
 → exact ACL/delegation/certificate edge
 → READ → BACKUP → minimum change → validate → rollback
 → remote access → new identity/host → reuse + re-collect → pivot → repeat</pre></details>
@@ -1224,8 +1224,9 @@ BloodHound CE
   Current launcher: bloodhound-start
   "bloodhound" launcher is deprecated on current Kali
 
-BloodHound Linux collector
-  PRIMARY for CE: bloodhound-ce-python
+BloodHound CE collectors
+  PRIMARY from Kali: bloodhound-ce-python
+  ALTERNATIVE cross-platform: rusthound-ce (RustHound-CE)
   LEGACY ONLY: bloodhound-python
   Do not feed Legacy collector output into CE by assumption.
 
@@ -1250,6 +1251,7 @@ nxc --version 2&gt;/dev/null
 certipy -v 2&gt;/dev/null
 impacket-wmiexec -h 2&gt;/dev/null | head
 bloodhound-ce-python -h 2&gt;/dev/null | head
+rusthound-ce -h 2&gt;/dev/null | head
 ./proxy -version 2&gt;/dev/null || ./proxy -h 2&gt;/dev/null | head
 </code></pre>
 <p>If syntax differs:</p>
@@ -2533,7 +2535,7 @@ tmux new -s oscp
 <pre class="ref-code"><code class="language-bash"># Core commands — verify BEFORE exam day:
 command -v nmap autorecon gobuster feroxbuster ffuf nikto whatweb wpscan
 command -v hydra hashcat john nxc netexec impacket-psexec evil-winrm
-command -v bloodhound-ce-python bloodhound-start sharphound responder
+command -v bloodhound-ce-python rusthound-ce bloodhound-start sharphound responder
 command -v chisel socat msfconsole searchsploit smbclient ldapsearch snmpwalk
 command -v certipy burpsuite
 command -v git git-dumper
@@ -2545,6 +2547,7 @@ nxc --version 2&gt;/dev/null
 certipy -v 2&gt;/dev/null
 impacket-psexec -h 2&gt;/dev/null | head
 bloodhound-ce-python -h 2&gt;/dev/null | head
+rusthound-ce -h 2&gt;/dev/null | head
 
 # EXAM RULE REMINDERS:
 # - Burp Community/Free is an allowed example; Burp Pro/commercial offensive services are prohibited.
@@ -5296,6 +5299,9 @@ bloodhound-ce-python -u user -p 'pass' -d $DOMAIN -dc $DC -ns $DC_IP -c All --zi
 # bloodhound-python ...   # Collector for BloodHound Legacy, NOT the CE collector.
 # Do not mix Legacy and CE collectors/UI by assumption.
 
+# ✓ Cross-platform CE alternative — RustHound-CE:
+rusthound-ce -d "$DOMAIN" -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -i "$DC_IP" -z
+# Use installed rusthound-ce -h as syntax authority.
 # ✓ From Windows — SharpHound CE:
 SharpHound.exe -c All --outputdirectory C:\Users\Public\ --zipfilename loot.zip
 # If you need repeated session collection:
@@ -10431,7 +10437,7 @@ $('#vaultFiles').onchange=e=>addVaultFiles([...e.target.files]);
 const vaultDrop=$('#vaultDrop');['dragenter','dragover'].forEach(ev=>vaultDrop.addEventListener(ev,e=>{e.preventDefault();vaultDrop.classList.add('drag')}));['dragleave','drop'].forEach(ev=>vaultDrop.addEventListener(ev,e=>{e.preventDefault();vaultDrop.classList.remove('drag')}));vaultDrop.addEventListener('drop',e=>addVaultFiles([...e.dataTransfer.files]));
 function vaultManifestMarkdown(targetId=''){
  const items=evidenceVault.filter(x=>!targetId||x.targetId===targetId);
- return `# OSCP V19 Evidence Manifest\n\nGenerated: ${new Date().toISOString()}\n\n`+items.map(e=>`## ${e.name}\n- Target: ${targetLabel(targets.find(t=>t.id===e.targetId))}\n- Kind: ${e.kind}\n- Size: ${e.size} bytes\n- SHA-256: \`${e.sha256}\`\n- IP visible confirmed: ${e.ipVisible?'yes':'no'}\n- Proof visible confirmed: ${e.proofVisible?'yes':'no'}\n- Original-location context confirmed: ${e.originalLocation?'yes':'no'}\n- Note: ${e.note||''}\n`).join('\n');
+ return `# OSCP Evidence Manifest\n\nGenerated: ${new Date().toISOString()}\n\n`+items.map(e=>`## ${e.name}\n- Target: ${targetLabel(targets.find(t=>t.id===e.targetId))}\n- Kind: ${e.kind}\n- Size: ${e.size} bytes\n- SHA-256: \`${e.sha256}\`\n- IP visible confirmed: ${e.ipVisible?'yes':'no'}\n- Proof visible confirmed: ${e.proofVisible?'yes':'no'}\n- Original-location context confirmed: ${e.originalLocation?'yes':'no'}\n- Note: ${e.note||''}\n`).join('\n');
 }
 $('#exportVaultManifest').onclick=()=>downloadText('OSCP-V19-evidence-manifest.md',vaultManifestMarkdown(),'text/markdown');
 
@@ -11161,6 +11167,7 @@ const V16_TOOL_REF=[
  {keys:['nxc','netexec'],name:'NetExec / nxc',version:'1.5.1',verified:'2026-09-06',note:'Stable release. Do not use spider_plus on versions below 1.5.1; core V19 workflows do not require it.'},
  {keys:['bloodhound'],name:'BloodHound CE',version:'9.6.0',verified:'2026-09-06',note:'Current stable release; do not replace exam notes with the 9.7 release candidate. Use bloodhound-start on current Kali.'},
  {keys:['bloodhound-ce-python'],name:'BloodHound CE Python collector',version:'1.9.1',verified:'2026-08-31',note:'CE-specific collector; do not confuse with legacy bloodhound-python.'},
+{keys:['rusthound-ce'],name:'RustHound-CE',version:'local -V/-h',verified:'2026-09-12',note:'Cross-platform BloodHound CE collector; use as an alternative to SharpHound or bloodhound-ce-python when it fits the foothold.'},
  {keys:['certipy','certipy-ad'],name:'Certipy AD',version:'5.1.0',verified:'2026-09-06',note:'Current stable command family; installed certipy -h/-v remains authoritative.'},
  {keys:['ligolo-proxy','ligolo-agent'],name:'Ligolo-ng',version:'0.9.1',verified:'2026-08-25',note:'Prefer certificate fingerprint validation; ignore-cert is debug fallback.'},
  {keys:['impacket','impacket-psexec'],name:'Impacket',version:'0.13.1',verified:'2026-09-06',note:'Stable release. Use Kali impacket-* wrappers; GetUserSPNs -no-rc4 is an AES fallback and dpapidump is privileged/late-stage.'},
@@ -11217,7 +11224,7 @@ const TOOL_ARSENAL=[
  ta('ldapsearch','ldapsearch','Active Directory','core','Discover naming contexts or perform exact LDAP object/attribute queries.','ldapsearch -x -H ldap://$DC_IP -s base namingContexts\nldapsearch -x -H ldap://$DC_IP -D "$USER@$DOMAIN" -w "$PASS" -b "$BASE_DN" "(objectClass=user)" sAMAccountName','NetExec LDAP, ldeep or PowerView.'),
  ta('ldeep','ldeep','Active Directory','conditional','Credentialed LDAP enumeration needs readable, focused output.','ldeep ldap -u "$USER" -p "$PASS" -d "$DOMAIN" -s ldap://$DC_IP users','ldapsearch or NetExec LDAP; confirm the installed ldeep help because syntax can drift.'),
  ta('kerbrute','Kerbrute','Active Directory','sensitive','Validate a known user list or carefully test one password after policy review.','kerbrute userenum -d $DOMAIN users.txt --dc $DC_IP -o loot/valid-users.txt','GetNPUsers/LDAP/RPC enumeration.','Failed pre-authentication can lock accounts. Review policy, use small lists, and avoid uncontrolled spraying.'),
- ta('bloodhound','BloodHound CE + collector','Active Directory','core','Map relationships after obtaining domain credentials; re-collect after new identities.','bloodhound-ce-python -d $DOMAIN -u "$USER" -p "$PASS" -ns $DC_IP -c All --zip\nsudo bloodhound-start','SharpHound from Windows or ldapsearch/PowerView/manual ACL checks.','A graph edge is a hypothesis; validate the exact ACE, object, prerequisite and action.'),
+ ta('bloodhound','BloodHound CE + collector','Active Directory','core','Map relationships after obtaining domain credentials; re-collect after new identities.','bloodhound-ce-python -d $DOMAIN -u "$USER" -p "$PASS" -ns $DC_IP -c All --zip\nsudo bloodhound-start','RustHound-CE or SharpHound as collector alternatives; ldapsearch/PowerView/manual ACL checks for manual validation.','A graph edge is a hypothesis; validate the exact ACE, object, prerequisite and action.'),
  ta('certipy','Certipy-AD','Active Directory','conditional','AD CS is present or certificate services/templates are suspected.','certipy find -u "$USER@$DOMAIN" -p "$PASS" -dc-ip $DC_IP -enabled -vulnerable -stdout','certutil/PowerView/manual LDAP template and CA checks.','Prove enrollment rights and exact CA/template settings before any modifying/request action.'),
  ta('impacket-kerberos','Impacket Kerberos helpers','Active Directory','core','AS-REP, Kerberoast, tickets, S4U or ticket conversion with exact prerequisites.','impacket-GetNPUsers "$DOMAIN/" -dc-ip $DC_IP -usersfile users.txt -no-pass\nimpacket-GetUserSPNs "$DOMAIN/$USER:$PASS" -dc-ip $DC_IP -request','Rubeus from Windows; fix DNS/time/domain format before changing tools.'),
  ta('impacket-remote','Impacket remote access','Active Directory','core','Administrative-capable credentials need a documented remote shell method.','impacket-wmiexec "$DOMAIN/$USER:$PASS@$IP"','psexec, smbexec, atexec, evil-winrm or native PowerShell remoting.'),
@@ -11360,7 +11367,7 @@ function renderReverts(){
 $('#logRevert').onclick=()=>{const t=targets.find(x=>x.id===$('#revertTarget').value);if(!t)return;if((+revertState.bankUsed||0)>=24){alert('Current local 24-revert bank is exhausted. Log the one-time reset only if you actually reset it in the OffSec control panel.');return}if(!confirm(`Log a revert for ${targetLabel(t)}?\n\nA revert returns the target to original state and target-side changes are lost.`))return;if($('#revertCheckpoint').checked)snapshotNow(`pre-revert ${targetLabel(t)}`);const reason=$('#revertReason').value,note=$('#revertRestoreNote').value.trim();revertState.bankUsed=(+revertState.bankUsed||0)+1;t.revertEpoch++;t.needsReestablish=true;t.reestablishNote=note||'Re-establish prior foothold/tunnel/target-side changes.';revertState.ledger.push({kind:'revert',at:Date.now(),target:targetLabel(t),targetId:t.id,text:`Revert logged: ${reason}`,detail:t.reestablishNote});logEvent(t,'revert',`Revert epoch ${t.revertEpoch}: ${reason}`);saveTargets();saveReverts();$('#revertRestoreNote').value='';toast('Revert logged')};
 $('#logRevertReset').onclick=()=>{if(revertState.resetUsed){alert('One-time reset is already marked used.');return}if(!confirm('Only continue if you actually reset the OffSec revert limit.'))return;revertState.ledger.push({kind:'support',at:Date.now(),target:'global',text:`Revert-limit reset logged after ${revertState.bankUsed||0} use(s).`,detail:'Fresh local 24-revert bank started.'});revertState.resetUsed=true;revertState.bankUsed=0;saveReverts()};
 $('#logIncident').onclick=()=>{const t=targets.find(x=>x.id===$('#incidentTarget').value),s=$('#incidentSymptom').value.trim(),a=$('#incidentActions').value.trim();if(!s)return;revertState.ledger.push({kind:'incident',at:Date.now(),target:targetLabel(t),targetId:t?.id||'',text:s,detail:`${a}${$('#incidentProctor').checked?' · proctor/support contacted':''}`});if(t)logEvent(t,'incident',s);saveTargets();saveReverts();$('#incidentSymptom').value='';$('#incidentActions').value='';$('#incidentProctor').checked=false};
-function incidentMarkdown(){return`# OSCP V19 Revert / Technical Incident Ledger\n\nGenerated: ${new Date().toISOString()}\n\nCurrent bank: ${revertState.bankUsed||0}/24 used\nOne-time reset used: ${revertState.resetUsed?'yes':'no'}\n\n`+(revertState.ledger||[]).map(x=>`## ${new Date(x.at).toISOString()} — ${x.kind.toUpperCase()} — ${x.target||'global'}\n\n${x.text}\n\n${x.detail||''}\n`).join('\n')}
+function incidentMarkdown(){return`# OSCP Revert / Technical Incident Ledger\n\nGenerated: ${new Date().toISOString()}\n\nCurrent bank: ${revertState.bankUsed||0}/24 used\nOne-time reset used: ${revertState.resetUsed?'yes':'no'}\n\n`+(revertState.ledger||[]).map(x=>`## ${new Date(x.at).toISOString()} — ${x.kind.toUpperCase()} — ${x.target||'global'}\n\n${x.text}\n\n${x.detail||''}\n`).join('\n')}
 $('#exportIncidentLedger').onclick=()=>downloadText('OSCP-V19-revert-incident-ledger.md',incidentMarkdown(),'text/markdown');
 function renderOperatorReverts(){const r=$('#operatorReverts');if(!r)return;r.innerHTML=`Current bank: <b>${revertState.bankUsed||0}/24</b> · reset ${revertState.resetUsed?'used':'available'}<br><span class="tiny">${targets.filter(t=>t.needsReestablish).length} target(s) need re-establishment · ${(revertState.ledger||[]).filter(x=>x.kind==='incident').length} incident(s)</span><br><button class="btn" id="opRevertOpen">Ledger →</button>`;$('#opRevertOpen').onclick=()=>switchView('revertView')}
 

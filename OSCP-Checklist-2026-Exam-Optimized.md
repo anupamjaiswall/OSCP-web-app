@@ -1,7 +1,6 @@
 # 🔐 ULTIMATE OSCP METHODOLOGY CHECKLIST
 
-> **Release: V20 · 08 Sep 2026**  
-> Every published improvement increments the release number; V19 remains separately preserved and V20 inherits it.
+> **Current exam-time build — version history lives in Git commits.**
 >
 > **Exam-time-only OSCP/OSCP+ operating checklist — offline, version-aware,
 > evidence-driven, and designed for fast decisions under pressure.** Works in:
@@ -14,7 +13,7 @@
 
 ------------------------------------------------------------------------
 
-## V20 TODAY-LOCK — READ BEFORE TOUCHING A TARGET
+## TODAY-LOCK — READ BEFORE TOUCHING A TARGET
 
 Verified **08 Sep 2026** against the current OffSec OSCP+ Exam Guide, FAQ,
 AI policy, Candidate Handbook, and reporting requirements. The live official
@@ -70,7 +69,7 @@ key-credential handling and BadSuccessor reliability. `impacket-smbclient` now
 has improved DFS/listing behavior and recursive `rget`; download only files
 necessary for the objective.
 
-### V20 stable tool lock (re-checked 08 Sep 2026)
+### Stable tool lock (re-checked 08 Sep 2026)
 
 | Tool | Stable/reference version | Exam-time decision |
 |---|---:|---|
@@ -78,6 +77,7 @@ necessary for the objective.
 | NetExec | 1.5.1 | Do not use `spider_plus` on an older build; V19 core paths do not need that module |
 | BloodHound CE | 9.6.0 | Stable choice; 9.7.0 is still a release candidate, so do not switch the exam stack to it |
 | BloodHound CE Python collector | 1.9.1 | Use `bloodhound-ce-python` for CE, not the legacy collector by assumption |
+| RustHound-CE | local `-V` / `-h` | Cross-platform CE-compatible collector; alternative to SharpHound / `bloodhound-ce-python` when useful |
 | Certipy | 5.1.0 | Current stable command family; verify local `certipy -h` / `-v` |
 | Ligolo-ng | 0.9.1 | Use managed interface/session/route syntax and validate the certificate fingerprint |
 
@@ -86,11 +86,11 @@ app. It records presence, local help/version output and hashes. A mismatch is a
 prompt to read installed help—not permission to improvise an unverified command.
 
 
-## V20 AD / Windows Fallback Toolbox — Searchable, Compact, Rule-Aware
+## AD / Windows Fallback Toolbox — Searchable, Compact, Rule-Aware
 
-`[V20:AD-FALLBACKS]` `[TOOL:RUNASCS]` `[TOOL:SHARPVIEW]` `[TOOL:WINDAPSEARCH]` `[TOOL:CERTIFY]` `[TOOL:SSHUTTLE]` `[TOOL:EMPIRE]` `[TOOL:INVEIGH]`
+`[AD:FALLBACKS]` `[TOOL:RUNASCS]` `[TOOL:SHARPVIEW]` `[TOOL:WINDAPSEARCH]` `[TOOL:CERTIFY]` `[TOOL:SSHUTTLE]` `[TOOL:EMPIRE]` `[TOOL:INVEIGH]`
 
-V20 **inherits every V19 core AD path** (NetExec, Impacket, BloodHound/SharpHound,
+This build **includes the core AD path** (NetExec, Impacket, BloodHound/SharpHound,
 PowerView, Rubeus, Mimikatz, evil-winrm, Kerbrute, Certipy, Ligolo-ng/Chisel,
 Windows privilege escalation and native commands). This section exists only to
 close useful fallback gaps. Do **not** turn a tool list into a checklist you run
@@ -514,7 +514,7 @@ READ ORIGINAL → BACK UP / HASH → WRITE ROLLBACK → MINIMUM CHANGE
 | HTTP replay | Burp Community | Send one request to Repeater and change one input at a time | curl with saved headers/cookies |
 | SMB/auth | NetExec | `nxc smb $IP -u "$USER" -p "$PASS" --shares` | `smbclient`, `rpcclient`, `enum4linux-ng` |
 | LDAP | ldapsearch | `ldapsearch -x -H ldap://$DC_IP -s base namingContexts` | NetExec LDAP, PowerView, ldeep |
-| AD paths | BloodHound CE | Collect after every new identity; inspect outgoing control and sessions | PowerView/LDAP/manual ACE validation |
+| AD paths | BloodHound CE | Collect after every new identity; inspect outgoing control and sessions | RustHound-CE / SharpHound / `bloodhound-ce-python` collectors; PowerView/LDAP/manual ACE validation |
 | AD CS | Certipy | `certipy find -u "$USER@$DOMAIN" -p "$PASS" -dc-ip $DC_IP -enabled -vulnerable -stdout` | LDAP/PowerView/certutil; prove template, CA and enrollment prerequisites |
 | Kerberos/remote exec | Impacket | Use the single helper that matches the proven objective | Rubeus/native Windows tools; fix DNS/time/user format first |
 | WinRM shell | Evil-WinRM | `evil-winrm -i $IP -u "$USER" -p "$PASS"` | `nxc winrm`, PowerShell remoting, WMI/SMB methods if authorized |
@@ -4030,7 +4030,7 @@ shares + SYSVOL + scripts + user descriptions
         ↓
 Kerberoast / AS-REP opportunities
         ↓
-BloodHound collection
+BloodHound collection (SharpHound / `bloodhound-ce-python` / RustHound-CE)
         ↓
 OUTGOING CONTROL / ACL / GROUP / DELEGATION / LAPS / gMSA / AD CS
         ↓
@@ -4054,6 +4054,8 @@ nxc winrm <TARGETS> -u "$USER" -p "$PASS" -d "$DOMAIN"
 ```
 
 **BloodHound rule:** do not look only for "shortest path to Domain Admin". Inspect the current user's **outgoing object control**, group membership, writable objects, delegation relationships, session/admin relationships and certificate-related paths. Re-run/re-interpret the graph whenever you obtain a new identity.
+
+**Collector choice:** use `bloodhound-ce-python` from Kali, SharpHound from Windows, or **RustHound-CE** as a cross-platform CE-compatible alternative. Pick one collector that fits the foothold; do not waste exam time collecting the same graph three ways.
 
 **Pivot rule:** OffSec confirms that pivoting may be required in the AD set. Re-enumerate routes and reachable services after each foothold.
 
@@ -4266,6 +4268,10 @@ Rubeus.exe diamond /tgtdeleg /ticketuser:user /ticketuserid:500 /groups:512
 # From Kali (BloodHound CE collector; requires creds):
 bloodhound-ce-python -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -dc "$DC" -ns "$DC_IP" -c All --zip
 # Output: *.json or *.zip
+
+# Cross-platform CE alternative (RustHound-CE):
+rusthound-ce -d "$DOMAIN" -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -i "$DC_IP" -z
+# Installed `rusthound-ce -h` wins if syntax differs.
 
 # From Windows (SharpHound):
 SharpHound.exe -c All --outputdirectory C:\Users\Public\ --zipfilename loot.zip
