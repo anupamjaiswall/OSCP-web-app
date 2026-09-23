@@ -260,6 +260,13 @@ body:not(.advancedMode) .advancedNav{display:none}
 .scoreBig{font:900 34px/1 ui-monospace,Consolas,monospace}.firstPassQueue{min-height:150px;white-space:pre-wrap;word-break:break-word}
 @media(max-width:900px){.serviceRouterControls,.scoreRunway{grid-template-columns:1fr 1fr}.serviceQueue{grid-template-columns:1fr}}@media(max-width:560px){.serviceRouterControls,.scoreRunway{grid-template-columns:1fr}}
 </style>
+
+<style id="v21MethodTreeStyles">
+.methodTreeHero{border:1px solid #567b4f;background:linear-gradient(135deg,rgba(90,170,110,.10),var(--panel) 62%)}
+.methodTreeIntro{border-left:4px solid var(--accent);padding-left:12px}
+.methodTreeGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.methodTreeCard{min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px;display:grid;gap:10px}.methodTreeCard h2{margin:0}.treeMeta{display:flex;flex-wrap:wrap;gap:6px}.treeMeta .chip{font-size:11px}.treePre{margin:0;white-space:pre-wrap;word-break:break-word;min-height:540px}.treeActions{display:flex;gap:8px;flex-wrap:wrap}.treeList{margin:0;padding-left:18px}.treeList li{margin:4px 0}.treeLegend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.treeLegend .card{padding:12px}.treeLegend b{color:var(--accent)}
+@media(max-width:1100px){.methodTreeGrid,.treeLegend{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <div class="top">
@@ -279,6 +286,7 @@ body:not(.advancedMode) .advancedNav{display:none}
   <button class="navbtn" data-view="methodologyView">➜ Methodology</button>
   <button class="navbtn" data-view="toolArsenalView">🧰 Best Tools</button>
   <button class="navbtn" data-view="serviceRouterView">⚡ Service Router</button>
+  <button class="navbtn" data-view="methodTreesView">🌳 Method Trees</button>
   <button class="navbtn" data-view="windowsStrategyView">WIN Windows</button>
   <button class="navbtn" data-view="workspaceView">🎯 Target</button>
   <button class="navbtn" data-view="reportsView">📝 Evidence & Report</button>
@@ -707,6 +715,157 @@ state-changing AD abuse
   <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
   <div class="card span5"><h2>3 · 70-point runway</h2><div class="scoreRunway"><label>AD set<select id="scoreAD"><option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="40">40</option></select></label><label>Standalone 1<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 2<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 3<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label></div><div id="scoreSummary" class="scoreSummary warn"></div><p class="tiny">Planning aid only. The Exam Control Panel is authoritative for the exact objectives and points on your attempt.</p></div>
   <div class="card span12"><h2>Failure-proof loop</h2><div class="pointRail"><span>1. Read the exact error</span><span>2. Re-prove reachability</span><span>3. Re-prove identity/auth format</span><span>4. Use one manual/native truth check</span><span>5. Try one justified alternate</span><span>6. Record result and rotate</span></div><p class="muted">Examples: SMB tool says login failed → validate domain vs local scope and try <code>smbclient</code> or native auth once. HTTP scanner finds nothing → inspect redirects, vhost, source, methods and content manually. LDAP tool errors → verify DNS/FQDN, bind identity and time before changing tools.</p></div>
+ </div>
+</section>
+
+
+<section id="methodTreesView" class="view">
+ <div class="hero methodTreeHero"><div><h1>Windows / Linux / AD Method Trees <span class="chip">V21</span></h1><div class="muted">Fast branch logic for Linux post-shell, Windows post-shell, and domain-credential to domain-control workflow. Read top-to-bottom, take one proven branch, then re-enumerate.</div></div><div class="chips"><span class="chip">ALT+Y</span><span class="chip">OFFLINE</span><span class="chip">TREE FLOW</span><span class="chip">ROTATE WHEN STUCK</span></div></div>
+ <div class="grid">
+  <div class="card span12 methodTreeIntro"><b>How to use these trees:</b> do not follow every branch. Start at the top, answer the question with evidence, take only the matching branch, and stop as soon as one branch gives a stronger next step than the others. Every new shell, user, token, route, ticket or credential means <b>re-enumerate again</b>.</div>
+  <div class="span12 methodTreeGrid">
+   <div class="methodTreeCard">
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><h2>Linux methodology tree</h2><span class="chip">post-shell to root</span></div>
+    <div class="treeMeta"><span class="chip">shell baseline</span><span class="chip">sudo / suid / caps</span><span class="chip">cron / systemd</span><span class="chip">secrets / services</span></div>
+<pre class="treePre">[LINUX FLOW]
+Start
+└─► Got a shell?
+    ├─ No
+    │   ├─ Service-first enum → web / files / creds / source / config
+    │   ├─ SSH creds or key? → prove with ssh -vvv
+    │   └─ Rotate if no new evidence
+    └─ Yes
+        ├─ Baseline now
+        │   ├─ whoami ; id ; hostname ; uname -a
+        │   ├─ ip a ; ss -lntup ; ps aux --forest
+        │   ├─ pwd ; env ; history ; sudo -l
+        │   └─ save loot + note writable paths
+        ├─ Already root?
+        │   ├─ Yes → proof + secrets + internal routes + re-enum services
+        │   └─ No
+        ├─ Credential branch
+        │   ├─ keys / .env / configs / backups / history / DB creds
+        │   └─ try one justified reuse path
+        ├─ Permission branch
+        │   ├─ sudo -l → direct command / env / editor / pager escape
+        │   ├─ SUID → known GTFOBin or custom binary analysis
+        │   ├─ capabilities → getcap -r / 2>/dev/null
+        │   └─ groups → docker / lxd / disk / shadow / adm / journal
+        ├─ Execution branch
+        │   ├─ cron / timers / anacron
+        │   ├─ systemd service / timer / env file
+        │   ├─ internal services / local-only apps / sockets
+        │   └─ writable root-called scripts / files / mounts
+        ├─ Kernel / host branch
+        │   ├─ container / namespace / breakout clues?
+        │   └─ kernel only after userland paths look weak
+        └─ After each win
+            ├─ re-run id / sudo -l / listeners / secrets
+            └─ proof screenshot from original path</pre>
+    <ul class="treeList"><li>Prioritize <b>sudo</b>, <b>custom SUID</b>, <b>capabilities</b>, <b>cron/systemd</b>, credential reuse and internal services before kernel exploits.</li><li>If a route requires a write, prove the writable object, trigger and effective user first.</li><li>Search with <code>[LINUX:SUID]</code>, <code>[LINUX:CAPS]</code>, <code>[LINUX:CRON]</code> or <code>ref-c4</code>.</li></ul>
+    <div class="treeActions"><button class="btn" onclick="openRef('ref-c4-i-have-a-linux-shell-what-now')">Linux deep reference →</button><button class="btn" onclick="switchView('referenceView')">Full notes →</button></div>
+   </div>
+
+   <div class="methodTreeCard">
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><h2>Windows methodology tree</h2><span class="chip">post-shell to admin/SYSTEM</span></div>
+    <div class="treeMeta"><span class="chip">whoami /all first</span><span class="chip">token vs admin</span><span class="chip">services / tasks</span><span class="chip">secrets / software</span></div>
+<pre class="treePre">[WINDOWS FLOW]
+Start
+└─► Only creds, not shell?
+    ├─ Prove auth on one host
+    │   ├─ SMB / WinRM / RDP / MSSQL in exact local-vs-domain scope
+    │   └─ auth ≠ admin ≠ command execution ≠ interactive shell
+    └─ Got a shell
+        ├─ Baseline
+        │   ├─ whoami /all
+        │   ├─ hostname &amp; ipconfig /all
+        │   ├─ systeminfo ; tasklist /svc ; netstat -ano
+        │   └─ services / tasks / installed software
+        ├─ Already admin or SYSTEM?
+        │   ├─ Yes → proof + secrets + routes + local creds
+        │   └─ No
+        ├─ Token / privilege branch
+        │   ├─ SeImpersonate / SeAssignPrimaryToken?
+        │   ├─ SeBackup / SeRestore / SeTakeOwnership / SeLoadDriver?
+        │   └─ prove exact primitive and trigger, not privilege name only
+        ├─ Secret branch
+        │   ├─ unattended / sysprep / autologon / configs / source / DB strings
+        │   └─ can a secret become runas / WinRM / SMB / RDP / MSSQL?
+        ├─ Service / task branch
+        │   ├─ unquoted path / weak service perms / writable binary/config?
+        │   ├─ writable scheduled-task action/script?
+        │   └─ confirm trigger and execution identity
+        ├─ Software / filesystem
+        │   ├─ AlwaysInstallElevated?
+        │   ├─ writable app dirs / DLL search order / PATH issues?
+        │   └─ internal listeners or local apps?
+        ├─ Access branch
+        │   ├─ local admin? → prove with one remote/admin action
+        │   └─ dump only when rights are proven
+        ├─ Domain-aware branch
+        │   ├─ cached creds / tickets / group membership?
+        │   └─ if domain path strengthens → switch to AD tree
+        └─ After each win
+            ├─ re-run whoami /all + access validation
+            └─ proof screenshot from original path</pre>
+    <ul class="treeList"><li>Keep <b>authentication</b>, <b>admin</b>, <b>code execution</b> and <b>interactive shell</b> as separate facts.</li><li><b>SeImpersonate</b> matters only when token context and a compatible trigger are real.</li><li>Search with <code>[WIN:SEIMPERSONATE]</code>, <code>[WIN:SERVICE]</code>, <code>[WIN:TASKS]</code> or <code>ref-c5</code>.</li></ul>
+    <div class="treeActions"><button class="btn primary" onclick="switchView('windowsStrategyView')">Windows exam desk →</button><button class="btn" onclick="openRef('ref-c5-i-have-a-windows-shell-what-now')">Windows deep reference →</button></div>
+   </div>
+
+   <div class="methodTreeCard">
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><h2>AD methodology tree</h2><span class="chip">domain creds to domain progress</span></div>
+    <div class="treeMeta"><span class="chip">DNS/time first</span><span class="chip">BloodHound / Certipy</span><span class="chip">edge execution</span><span class="chip">re-collect after change</span></div>
+<pre class="treePre">[ACTIVE DIRECTORY FLOW]
+Start
+└─► What do you have?
+    ├─ No creds
+    │   ├─ names / emails / docs / SMB shares / web leaks
+    │   ├─ AS-REP only after usernames exist
+    │   └─ one credential or foothold starts the tree
+    └─ Have domain context or creds
+        ├─ Establish context
+        │   ├─ DOMAIN / DC / DC_IP / BASE_DN / FQDN
+        │   ├─ DNS works? time close? key ports open?
+        │   └─ correct bind scope/format?
+        ├─ Prove authentication
+        │   ├─ SMB + LDAP
+        │   └─ one manual/native truth check if wrapper disagrees
+        ├─ Identity expansion
+        │   ├─ shares / SYSVOL / NETLOGON / users / groups / computers
+        │   ├─ usernames → AS-REP where justified
+        │   ├─ SPNs → Kerberoast
+        │   └─ docs/config/GPP/secrets may give stronger creds
+        ├─ Graph environment
+        │   ├─ BloodHound CE
+        │   ├─ Certipy
+        │   └─ classify best edge:
+        │       ├─ credential path
+        │       ├─ ACL path
+        │       ├─ delegation path
+        │       └─ AD CS path
+        ├─ Execute one edge safely
+        │   ├─ exact source principal + target object + permission
+        │   ├─ prove read-only prerequisite
+        │   ├─ minimum change
+        │   ├─ validate resulting identity/access
+        │   └─ record rollback for mutations
+        ├─ Outcome
+        │   ├─ local admin? → shell host → re-enumerate host + domain
+        │   ├─ new user/hash/ticket/cert? → re-auth + re-collect
+        │   ├─ DA/DC path? → objective proof carefully
+        │   └─ weak edge? → rotate to shares/creds/member servers/web
+        └─ After every material change
+            ├─ re-collect graph/cert/rights
+            └─ re-check protocols with new identity</pre>
+    <ul class="treeList"><li>Do not mistake DNS/time/bind-format failures for bad credentials.</li><li>Do not treat a BloodHound edge label as an already-exploited path; prove prerequisites first.</li><li>Search with <code>[AD:KERBEROS]</code>, <code>[AD:BLOODHOUND]</code>, <code>[AD:ACL]</code>, <code>[AD:ADCS]</code> or <code>ref-c6</code>.</li></ul>
+    <div class="treeActions"><button class="btn primary" onclick="switchView('windowsStrategyView')">AD / Windows desk →</button><button class="btn" onclick="openRef('ref-c6-i-have-domain-credentials-what-now')">AD deep reference →</button></div>
+   </div>
+  </div>
+  <div class="span12 treeLegend">
+   <div class="card"><b>When stuck on Linux</b><div class="muted">Did I finish sudo, custom SUID/caps, cron/systemd, secrets, internal services and writable root-called files before kernel exploit?</div></div>
+   <div class="card"><b>When stuck on Windows</b><div class="muted">Am I confusing login with admin or shell? Did I read whoami /all, service/task permissions, secrets and software paths?</div></div>
+   <div class="card"><b>When stuck in AD</b><div class="muted">Is this DNS/time/bind format, or a real negative result? Is there a better identity, ticket, certificate, share or member-server route?</div></div>
+  </div>
  </div>
 </section>
 
@@ -12939,7 +13098,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   const SHORTCUTS={
     'x':'operatorView','c':'coverageView','d':'debtView','h':'hypothesisView','r':'correlationView',
     'a':'auditView','e':'vaultView','s':'sanityView','t':'regressionView','f':'freshnessView','k':'clockView',
-    'v':'revertView','u':'submissionView','p':'v16HighSignalView','w':'windowsStrategyView','q':'serviceRouterView',
+    'v':'revertView','u':'submissionView','p':'v16HighSignalView','w':'windowsStrategyView','q':'serviceRouterView','y':'methodTreesView',
     'i':'v15ReliabilityView','g':'guardView','j':'journalView','o':'analyzerView',
     '1':'simpleExamView','2':'workspaceView','3':'credentialsView','4':'reportsView','5':'referenceView','6':'toolArsenalView','m':'methodologyView',
     '7':'intakeView','8':'boardView','9':'commandsView'

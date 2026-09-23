@@ -89,6 +89,81 @@ AD 10 + all 3 standalone machines fully    = 70
 
 The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
 
+## V21 — WINDOWS / LINUX / AD METHOD TREES
+
+These are **decision trees, not checklists**. Use them to answer **what branch should I take next?** under exam pressure. Start at the top, follow only the branch supported by evidence, and re-enumerate after every new shell, user, token, route, ticket, or credential.
+
+### Linux methodology tree
+
+```text
+[LINUX FLOW]
+Start
+└─► Got a shell?
+    ├─ No → service-first enum → creds/source/config → rotate if no evidence
+    └─ Yes
+        ├─ Baseline → id / uname / listeners / processes / env / sudo -l
+        ├─ Already root? → proof + secrets + routes + re-enumerate
+        ├─ Credential branch → keys / .env / configs / backups / history / DB creds
+        ├─ Permission branch
+        │   ├─ sudo -l → exact permitted command / escape
+        │   ├─ SUID → GTFOBins or custom binary analysis
+        │   ├─ capabilities → getcap -r / 2>/dev/null
+        │   └─ groups → docker / lxd / disk / shadow / adm / journal
+        ├─ Execution branch
+        │   ├─ cron / timers / anacron
+        │   ├─ systemd services/timers/env files
+        │   ├─ internal services / local apps
+        │   └─ writable root-called scripts / files / mounts
+        ├─ Kernel branch only after userland paths look weak
+        └─ After each win → re-run identity / sudo / listeners / secrets
+```
+
+**Linux priority:** sudo → custom SUID → capabilities → cron/systemd → credential reuse/internal services → kernel last.
+
+### Windows methodology tree
+
+```text
+[WINDOWS FLOW]
+Start
+└─► Only creds?
+    ├─ Prove auth on one host in exact local/domain scope
+    └─ Remember: auth ≠ admin ≠ code execution ≠ interactive shell
+        ├─ Got shell → whoami /all + host/network/process/service/task baseline
+        ├─ Already admin/SYSTEM? → proof + secrets + routes
+        ├─ Token branch → SeImpersonate / backup/restore/ownership primitives
+        ├─ Secret branch → unattended/autologon/config/source/DB strings
+        ├─ Service/task branch → unquoted path / weak perms / writable action
+        ├─ Software/filesystem → AIE / DLL/PATH / writable app dirs / internal apps
+        ├─ Access branch → prove local admin before dumping
+        ├─ Domain-aware branch → cached creds/tickets/group membership → AD tree
+        └─ After each win → whoami /all + access validation again
+```
+
+**Windows priority:** keep authentication, admin, code execution and interactive shell as four separate facts.
+
+### AD methodology tree
+
+```text
+[ACTIVE DIRECTORY FLOW]
+Start
+└─► What do you have?
+    ├─ No creds → names/docs/shares/web leaks → usernames → justified AS-REP
+    └─ Domain context/creds
+        ├─ Establish DOMAIN / DC / DC_IP / BASE_DN / FQDN
+        ├─ Verify DNS + time + ports + bind/auth format
+        ├─ Prove SMB/LDAP auth; native truth check if wrapper disagrees
+        ├─ Expand → shares / SYSVOL / LDAP / SPNs / docs / GPP / secrets
+        ├─ Graph → BloodHound CE + Certipy
+        ├─ Classify → credential / ACL / delegation / AD CS
+        ├─ Execute one edge → prove prerequisite → minimum change → validate
+        ├─ New admin/user/hash/ticket/cert? → re-auth + re-collect
+        └─ No strong edge? → rotate to shares/creds/member servers/web
+```
+
+**AD priority:** do not mistake DNS/time/bind-format failures for bad credentials, and do not treat a BloodHound edge label as an already-exploited path.
+
+The offline app now has **Method Trees (Alt+Y)** with all three flows, stuck checks, and direct links to the Linux, Windows and AD deep-reference sections.
+
 ## CREDENTIAL MATERIAL ROUTER
 
 Never treat every secret as the same input. Record the source, principal,
