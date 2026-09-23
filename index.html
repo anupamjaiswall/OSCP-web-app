@@ -275,8 +275,61 @@ body:not(.advancedMode) .advancedNav{display:none}
 .reference .tagRefLink{color:#075c8c}.reference .tagRefLink:hover{color:#043f62;background:#eaf4fb}
 pre .tagRefLink,code .tagRefLink{font-family:inherit}
 </style>
+
+<style id="v23ReadabilityStyles">
+:root{--examText:15px;--examCode:14px;--examLine:1.62}
+body[data-read-size="0"]{--examText:14px;--examCode:13px;--examLine:1.52}
+body[data-read-size="1"]{--examText:15px;--examCode:14px;--examLine:1.62}
+body[data-read-size="2"]{--examText:16.5px;--examCode:15px;--examLine:1.7}
+.main :is(p,li,td,dd,.muted,.resultText,.decisionRow,.serviceAction,.manualTruth,.fallback){line-height:var(--examLine)}
+.main :is(p,li,td,dd,.resultText){font-size:var(--examText)}
+.main pre,.reference pre{font-size:var(--examCode);line-height:1.55}
+.card{scroll-margin-top:82px}.card h2,.card h3{line-height:1.25}
+.reference{line-height:var(--examLine)}.reference p,.reference li,.reference td,.reference dd{font-size:var(--examText);line-height:var(--examLine)}
+.reference details{margin:12px 0;padding:10px 13px}.reference summary{font-size:calc(var(--examText) + 1px);line-height:1.4;padding:4px 2px}
+.reference details[open]>summary{color:#075c8c;border-bottom:1px solid #e2e8f0;margin-bottom:9px;padding-bottom:8px}
+.reference tbody tr:nth-child(even){background:#f8fafc}.reference tbody tr:hover{background:#eef6fb}
+.reference table thead th{position:sticky;top:0;background:#eef2f7;z-index:2}
+.tagRefLink{border:1px solid rgba(106,171,218,.30);background:rgba(93,173,226,.08);padding:1px 4px;border-radius:5px;text-decoration:none}
+.tagRefLink:hover{border-color:#65b6eb;background:rgba(93,173,226,.16);text-decoration:none}
+body[data-read-density="compact"] .card{padding:12px}body[data-read-density="compact"] .grid{gap:10px}body[data-read-density="compact"]{--examLine:1.45}
+body[data-read-density="comfortable"] .card{padding:17px}body[data-read-density="comfortable"] .grid{gap:15px}
+#readabilityPanel{position:fixed;right:12px;top:58px;z-index:120;width:min(360px,calc(100vw - 24px));background:#111926;border:1px solid #3c4c61;border-radius:12px;box-shadow:0 18px 48px rgba(0,0,0,.42);padding:12px}
+#readabilityPanel[hidden]{display:none}.readerTitle{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.readerTitle b{font-size:16px}
+.readerGroup{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}.readerGroup:first-of-type{border-top:0;padding-top:0}.readerLabel{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800;margin-bottom:6px}
+.readerButtons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.readerButtons .btn.active{border-color:var(--accent);color:var(--text);background:#153044}
+#readProgressTrack{position:fixed;left:0;right:0;top:0;height:3px;background:transparent;z-index:150;pointer-events:none}#readProgressBar{height:100%;width:0;background:var(--accent);transition:width .08s linear}
+#backTopBtn{position:fixed;right:18px;bottom:18px;z-index:85;opacity:0;pointer-events:none;transform:translateY(8px);transition:.16s}
+#backTopBtn.show{opacity:1;pointer-events:auto;transform:none}
+#focusExitBtn{position:fixed;right:14px;top:70px;z-index:110;display:none}
+body.examFocus #focusExitBtn{display:block}
+body.examFocus .layout{grid-template-columns:1fr}body.examFocus .side{display:none!important}
+body.examFocus .main{width:min(1500px,100%);margin:0 auto;padding-left:24px;padding-right:24px}
+body.examFocus .top .brand,body.examFocus .top .badge,body.examFocus #historyNavControls,body.examFocus #examStuckBtn,body.examFocus #examBankBtn,body.examFocus #themeBtn{display:none!important}
+body.examFocus .top{justify-content:center}.examFocus .searchbar{max-width:920px}
+.methodTreeTabs{position:sticky;top:64px;z-index:20;display:flex;gap:7px;flex-wrap:wrap;align-items:center;background:rgba(11,14,20,.96);border:1px solid var(--line);border-radius:10px;padding:8px;margin:0 0 12px;backdrop-filter:blur(8px)}
+.methodTreeTabs .btn.active{border-color:var(--accent);background:#153044;color:var(--text)}
+.methodTreeTabs .tiny{margin-left:auto;padding:0 4px}
+.methodTreeCard.treeHidden{display:none}
+.methodTreeCard.treeSolo{grid-column:1/-1;max-width:1080px;width:100%;margin:0 auto}
+.methodTreeCard.treeSolo .treePre{min-height:0;font-size:var(--examCode);line-height:1.65}
+body.readGuideLines .treePre{background-image:linear-gradient(to bottom,transparent calc(1.65em - 1px),rgba(255,255,255,.035) calc(1.65em - 1px),rgba(255,255,255,.035) 1.65em);background-size:100% 1.65em}
+@media(max-width:900px){#readabilityBtn{font-size:11px;padding:6px 7px}.methodTreeTabs{top:105px}.methodTreeTabs .tiny{width:100%;margin-left:0}body.examFocus .main{padding-left:12px;padding-right:12px}}
+@media print{#readabilityPanel,#readProgressTrack,#backTopBtn,#focusExitBtn,.methodTreeTabs{display:none!important}}
+</style>
 </head>
 <body>
+
+<div id="readProgressTrack" aria-hidden="true"><div id="readProgressBar"></div></div>
+<div id="readabilityPanel" role="dialog" aria-label="Reading controls" hidden>
+  <div class="readerTitle"><b>Exam reading</b><button class="btn" id="readabilityClose" type="button" aria-label="Close reading controls">×</button></div>
+  <div class="readerGroup"><div class="readerLabel">Text size</div><div class="readerButtons"><button class="btn" data-read-size="0" type="button">Small</button><button class="btn" data-read-size="1" type="button">Normal</button><button class="btn" data-read-size="2" type="button">Large</button></div></div>
+  <div class="readerGroup"><div class="readerLabel">Spacing</div><div class="readerButtons"><button class="btn" data-read-density="compact" type="button">Compact</button><button class="btn" data-read-density="comfortable" type="button">Comfortable</button><button class="btn" id="readerGuideToggle" type="button">Tree guides</button></div></div>
+  <div class="readerGroup"><div class="readerLabel">Distraction control</div><div class="readerButtons"><button class="btn" id="focusModeBtn" type="button">Focus mode</button><button class="btn" id="readerResetBtn" type="button">Reset</button><button class="btn" id="readerSearchBtn" type="button">Search /</button></div><div class="tiny" style="padding:7px 2px 0">Alt+Z toggles Focus. Esc exits Focus. Press / anywhere outside a text field to search.</div></div>
+</div>
+<button class="btn primary" id="focusExitBtn" type="button">Exit Focus · Esc</button>
+<button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
+
 <div class="top">
   <div class="brand">🔐 OSCP Exam OS</div><div class="badge">EXAM ONLY · OFFLINE · NO AI</div>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
@@ -286,6 +339,7 @@ pre .tagRefLink,code .tagRefLink{font-family:inherit}
   </div>
   <button class="btn bad" id="examStuckBtn" type="button" title="3-minute stuck reset (Alt+0)" aria-haspopup="dialog">↺ STUCK</button>
   <button class="btn good" id="examBankBtn" type="button" title="Score-safe proof banking (Alt+B)" aria-haspopup="dialog">✓ BANK</button>
+  <button class="btn" id="readabilityBtn" type="button" title="Reading controls (Alt+Z toggles Focus)" aria-haspopup="dialog" aria-expanded="false">Aa Read</button>
   <button class="btn" id="themeBtn" title="Toggle reference theme">◐</button>
 </div>
 <div class="layout">
@@ -13404,6 +13458,140 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     }catch(_){}
   }
 
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+})();
+</script>
+
+<script id="v23ReadabilityScript">
+(()=>{
+  'use strict';
+  const STORE='oscp:reader:v23';
+  const defaults={size:'1',density:'comfortable',focus:false,guides:true,tree:'linux'};
+  let state={...defaults};
+
+  function load(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(STORE)||'{}');
+      state={...defaults,...saved};
+    }catch(_){state={...defaults};}
+  }
+  function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(_){}}
+  function $id(id){return document.getElementById(id)}
+  function apply(){
+    document.body.dataset.readSize=String(state.size);
+    document.body.dataset.readDensity=state.density;
+    document.body.classList.toggle('examFocus',!!state.focus);
+    document.body.classList.toggle('readGuideLines',!!state.guides);
+    document.querySelectorAll('[data-read-size]').forEach(b=>b.classList.toggle('active',b.dataset.readSize===String(state.size)));
+    document.querySelectorAll('[data-read-density]').forEach(b=>b.classList.toggle('active',b.dataset.readDensity===state.density));
+    $id('readerGuideToggle')?.classList.toggle('active',!!state.guides);
+    $id('focusModeBtn')?.classList.toggle('active',!!state.focus);
+    save();
+  }
+  function setPanel(open){
+    const p=$id('readabilityPanel'),b=$id('readabilityBtn');
+    if(!p||!b)return;
+    p.hidden=!open;b.setAttribute('aria-expanded',String(!!open));
+  }
+  function toggleFocus(force){
+    state.focus=typeof force==='boolean'?force:!state.focus;
+    apply();setPanel(false);
+    if(state.focus)setTimeout(()=>$id('globalSearch')?.blur(),0);
+  }
+  function focusSearch(){
+    setPanel(false);
+    const input=$id('globalSearch');
+    if(!input)return;
+    input.focus();input.select();
+  }
+  function updateProgress(){
+    const d=document.documentElement;
+    const max=Math.max(1,d.scrollHeight-innerHeight);
+    const pct=Math.max(0,Math.min(100,(scrollY/max)*100));
+    const bar=$id('readProgressBar');if(bar)bar.style.width=pct+'%';
+    $id('backTopBtn')?.classList.toggle('show',scrollY>700);
+  }
+
+  function setupTreeTabs(){
+    const view=$id('methodTreesView');
+    const grid=view?.querySelector('.methodTreeGrid');
+    if(!grid||grid.dataset.readerTabs==='1')return;
+    grid.dataset.readerTabs='1';
+    const cards=[...grid.querySelectorAll('.methodTreeCard')];
+    const kinds=['linux','windows','ad'];
+    cards.forEach((c,i)=>{c.dataset.treeKind=kinds[i]||('tree'+i);c.id=c.id||('method-tree-'+(kinds[i]||i));});
+    const tabs=document.createElement('div');
+    tabs.className='methodTreeTabs';
+    tabs.innerHTML='<button class="btn" type="button" data-tree-tab="linux">🐧 Linux</button><button class="btn" type="button" data-tree-tab="windows">▣ Windows</button><button class="btn" type="button" data-tree-tab="ad">🏰 AD</button><button class="btn" type="button" data-tree-tab="all">All 3</button><span class="tiny">One tree at a time = less exam-time scanning.</span>';
+    grid.parentNode.insertBefore(tabs,grid);
+    function show(kind){
+      state.tree=kind;save();
+      cards.forEach(c=>{
+        const all=kind==='all',hit=c.dataset.treeKind===kind;
+        c.classList.toggle('treeHidden',!all&&!hit);
+        c.classList.toggle('treeSolo',!all&&hit);
+      });
+      tabs.querySelectorAll('[data-tree-tab]').forEach(b=>b.classList.toggle('active',b.dataset.treeTab===kind));
+      if(kind!=='all'){
+        const card=cards.find(c=>c.dataset.treeKind===kind);
+        if(card&&view.classList.contains('active'))setTimeout(()=>card.scrollIntoView({block:'start',behavior:'smooth'}),20);
+      }
+    }
+    tabs.addEventListener('click',e=>{const b=e.target.closest('[data-tree-tab]');if(b)show(b.dataset.treeTab);});
+    show(['linux','windows','ad','all'].includes(state.tree)?state.tree:'linux');
+    window.OSCP_TREE_READER={show};
+  }
+
+  load();
+  function start(){
+    apply();setupTreeTabs();updateProgress();
+
+    $id('readabilityBtn')?.addEventListener('click',()=>setPanel($id('readabilityPanel')?.hidden!==false));
+    $id('readabilityClose')?.addEventListener('click',()=>setPanel(false));
+    document.querySelectorAll('[data-read-size]').forEach(b=>b.addEventListener('click',()=>{state.size=b.dataset.readSize;apply();}));
+    document.querySelectorAll('[data-read-density]').forEach(b=>b.addEventListener('click',()=>{state.density=b.dataset.readDensity;apply();}));
+    $id('readerGuideToggle')?.addEventListener('click',()=>{state.guides=!state.guides;apply();});
+    $id('focusModeBtn')?.addEventListener('click',()=>toggleFocus());
+    $id('focusExitBtn')?.addEventListener('click',()=>toggleFocus(false));
+    $id('readerResetBtn')?.addEventListener('click',()=>{state={...defaults};apply();setupTreeTabs();});
+    $id('readerSearchBtn')?.addEventListener('click',focusSearch);
+    $id('backTopBtn')?.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));
+    addEventListener('scroll',updateProgress,{passive:true});
+    addEventListener('resize',updateProgress,{passive:true});
+
+    document.addEventListener('click',e=>{
+      const p=$id('readabilityPanel'),btn=$id('readabilityBtn');
+      if(!p||p.hidden||p.contains(e.target)||btn?.contains(e.target))return;
+      setPanel(false);
+    });
+
+    document.addEventListener('keydown',e=>{
+      const tag=(e.target?.tagName||'').toLowerCase();
+      const editing=['input','textarea','select'].includes(tag)||e.target?.isContentEditable;
+      if(e.key==='Escape'){
+        if(state.focus){e.preventDefault();toggleFocus(false);return;}
+        if($id('readabilityPanel')?.hidden===false){e.preventDefault();setPanel(false);return;}
+      }
+      if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='z'){
+        e.preventDefault();e.stopImmediatePropagation();toggleFocus();return;
+      }
+      if(!editing&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key==='/'){
+        e.preventDefault();focusSearch();
+      }
+    },true);
+
+    try{
+      if(typeof V16_SELF_TESTS!=='undefined'){
+        V16_SELF_TESTS.push(
+          ['Exam readability controls',()=>[!!$id('readabilityBtn')&&!!$id('readabilityPanel'),'reader controls']],
+          ['Focus reading mode',()=>[typeof toggleFocus==='function'&&!!$id('focusExitBtn'),'focus mode']],
+          ['Method tree tabs',()=>[!!document.querySelector('.methodTreeTabs')&&!!window.OSCP_TREE_READER,'tree tabs']]
+        );
+      }
+    }catch(_){}
+    window.OSCP_READER={state,apply,toggleFocus,focusSearch,setupTreeTabs};
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
   else start();
 })();

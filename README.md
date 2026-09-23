@@ -89,6 +89,20 @@ AD 10 + all 3 standalone machines fully    = 70
 
 The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
 
+## V23 — HUMAN-FRIENDLY EXAM READING
+
+The offline app now has a dedicated exam-reading layer so the same deep notes are easier to consume under time pressure without deleting technical detail.
+
+- **Aa Read** opens persistent reading controls for Small / Normal / Large text and Compact / Comfortable spacing.
+- **Focus mode (Alt+Z)** hides the sidebar and nonessential chrome while keeping global search available. **Esc** exits Focus.
+- Press **/** outside an input to jump straight into global search.
+- The Windows / Linux / AD Method Trees now default to **one tree at a time** with Linux, Windows, AD and All tabs; the last choice is remembered.
+- Tree guide lines make long branch flows easier to track visually and can be disabled.
+- A thin reading-progress bar and context-sensitive **↑ Top** button reduce scroll disorientation in long references.
+- Tables get sticky headers, zebra rows and hover emphasis; open reference sections get clearer visual separation.
+- Clickable `[TAG:VALUE]` references are now rendered as stronger visual pills while keeping copied text unchanged.
+- All reading preferences are offline-only and stored in local browser storage.
+
 ## V22 — CLICKABLE REFERENCE TAGS
 
 All structured reference tags in the offline app are now clickable, including tags inside methodology trees and preformatted command/decision blocks. Examples: `[LINUX:SUDO]`, `[LINUX:SUID]`, `[WIN:SEIMPERSONATE]`, `[AD:ACL]`, `[PORT:445]`, and `[ERROR:KRB_SKEW]`.
