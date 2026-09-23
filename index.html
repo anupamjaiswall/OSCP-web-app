@@ -267,6 +267,14 @@ body:not(.advancedMode) .advancedNav{display:none}
 .methodTreeGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.methodTreeCard{min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px;display:grid;gap:10px}.methodTreeCard h2{margin:0}.treeMeta{display:flex;flex-wrap:wrap;gap:6px}.treeMeta .chip{font-size:11px}.treePre{margin:0;white-space:pre-wrap;word-break:break-word;min-height:540px}.treeActions{display:flex;gap:8px;flex-wrap:wrap}.treeList{margin:0;padding-left:18px}.treeList li{margin:4px 0}.treeLegend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.treeLegend .card{padding:12px}.treeLegend b{color:var(--accent)}
 @media(max-width:1100px){.methodTreeGrid,.treeLegend{grid-template-columns:1fr}}
 </style>
+
+<style id="v22BracketLinkStyles">
+.tagRefLink{color:#8fc7ff;text-decoration:underline dotted;text-underline-offset:2px;cursor:pointer;border-radius:3px;padding:0 1px;font:inherit;font-weight:750}
+.tagRefLink:hover{color:#c7e6ff;background:rgba(93,173,226,.13);text-decoration-style:solid}
+.tagRefLink:focus-visible{outline:2px solid var(--accent);outline-offset:2px;text-decoration:none}
+.reference .tagRefLink{color:#075c8c}.reference .tagRefLink:hover{color:#043f62;background:#eaf4fb}
+pre .tagRefLink,code .tagRefLink{font-family:inherit}
+</style>
 </head>
 <body>
 <div class="top">
@@ -13281,5 +13289,123 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
 </div>
 <script id="examBankScript">
 (()=>{const m=document.getElementById('examBankModal'),b=document.getElementById('examBankBtn'),c=document.getElementById('examBankClose');if(!m||!b||!c)return;const open=()=>{m.classList.add('open');m.setAttribute('aria-hidden','false');c.focus()},close=()=>{m.classList.remove('open');m.setAttribute('aria-hidden','true');b.focus()};b.onclick=open;c.onclick=close;m.onclick=e=>{if(e.target===m)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&m.classList.contains('open')){e.preventDefault();close()}else if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='b'){e.preventDefault();open()}});document.getElementById('examBankTarget')?.addEventListener('click',()=>{close();try{switchView('workspaceView')}catch(e){}});document.getElementById('examBankEvidence')?.addEventListener('click',()=>{close();const q=document.getElementById('globalSearch');if(!q)return;q.value='[EVIDENCE:PACKET]';try{switchView('searchView');renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}});document.getElementById('examBankVerify')?.addEventListener('click',()=>{close();try{switchView('reportsView');renderReport();toast('Verify the report/evidence gate — this dialog never marks points as banked')}catch(e){}});window.OSCP_PROOF_BANK={open,close}})();
+</script>
+
+<script id="v22BracketLinksScript">
+(()=>{
+  'use strict';
+  const TAG_RE=/\[(?:[A-Z][A-Z0-9_-]*)(?::[A-Z0-9_.-]+)+\]/g;
+  const SKIP='script,style,noscript,textarea,input,select,option,a,button,[contenteditable="true"],[data-tag],[data-open],[data-q]';
+
+  function canLink(node){
+    const p=node&&node.parentElement;
+    return !!p&&!p.closest(SKIP)&&TAG_RE.test(node.nodeValue||'');
+  }
+
+  function tagLink(tag){
+    const a=document.createElement('a');
+    a.href='#';
+    a.className='tagRefLink';
+    a.dataset.tagRef=tag;
+    a.textContent=tag;
+    a.title='Open reference for '+tag;
+    a.setAttribute('aria-label','Open reference for '+tag);
+    return a;
+  }
+
+  function linkText(node){
+    if(!node||node.nodeType!==Node.TEXT_NODE)return 0;
+    TAG_RE.lastIndex=0;
+    if(!canLink(node)){TAG_RE.lastIndex=0;return 0;}
+    const text=node.nodeValue||'';
+    TAG_RE.lastIndex=0;
+    let m,last=0,count=0;
+    const frag=document.createDocumentFragment();
+    while((m=TAG_RE.exec(text))){
+      if(m.index>last)frag.appendChild(document.createTextNode(text.slice(last,m.index)));
+      frag.appendChild(tagLink(m[0]));
+      last=m.index+m[0].length;
+      count++;
+    }
+    if(!count)return 0;
+    if(last<text.length)frag.appendChild(document.createTextNode(text.slice(last)));
+    node.parentNode.replaceChild(frag,node);
+    return count;
+  }
+
+  function linkify(root){
+    if(!root)return 0;
+    if(root.nodeType===Node.TEXT_NODE)return linkText(root);
+    if(![Node.ELEMENT_NODE,Node.DOCUMENT_NODE,Node.DOCUMENT_FRAGMENT_NODE].includes(root.nodeType))return 0;
+    if(root.nodeType===Node.ELEMENT_NODE&&root.matches(SKIP))return 0;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    while(walker.nextNode())nodes.push(walker.currentNode);
+    return nodes.reduce((n,x)=>n+linkText(x),0);
+  }
+
+  function exactTagMatches(tag){
+    try{
+      if(typeof SEARCH_ITEMS==='undefined'||!Array.isArray(SEARCH_ITEMS))return [];
+      const wanted=String(tag||'').toUpperCase();
+      return SEARCH_ITEMS.filter(item=>(item.tags||[]).some(t=>String(t).toUpperCase()===wanted));
+    }catch(_){return [];}
+  }
+
+  function goToTag(tag){
+    tag=String(tag||'').trim();
+    if(!tag)return;
+    const exact=exactTagMatches(tag);
+    if(exact.length===1&&exact[0].anchor&&document.getElementById(exact[0].anchor)){
+      openRef(exact[0].anchor);
+      return;
+    }
+    const input=document.getElementById('globalSearch');
+    if(input)input.value=tag;
+    if(typeof switchView==='function')switchView('searchView');
+    if(typeof renderSearch==='function')renderSearch(tag);
+  }
+
+  document.addEventListener('click',e=>{
+    const a=e.target&&e.target.closest?e.target.closest('.tagRefLink'):null;
+    if(!a)return;
+    e.preventDefault();
+    e.stopPropagation();
+    goToTag(a.dataset.tagRef||a.textContent);
+  });
+
+  document.addEventListener('keydown',e=>{
+    const a=e.target&&e.target.closest?e.target.closest('.tagRefLink'):null;
+    if(!a||e.key!==' ')return;
+    e.preventDefault();
+    goToTag(a.dataset.tagRef||a.textContent);
+  });
+
+  function start(){
+    const root=document.querySelector('.main')||document.body;
+    const linked=linkify(root);
+    const observer=new MutationObserver(records=>{
+      for(const record of records){
+        for(const node of record.addedNodes){
+          if(node.nodeType===Node.TEXT_NODE)linkText(node);
+          else if(node.nodeType===Node.ELEMENT_NODE)linkify(node);
+        }
+      }
+    });
+    observer.observe(root,{childList:true,subtree:true});
+    window.OSCP_TAG_LINKS={linkify,goToTag,exactTagMatches,initialLinked:linked};
+    try{
+      if(typeof V16_SELF_TESTS!=='undefined'){
+        V16_SELF_TESTS.push(['Clickable bracket reference tags',()=>[
+          !!document.querySelector('.tagRefLink')&&typeof window.OSCP_TAG_LINKS.goToTag==='function',
+          document.querySelectorAll('.tagRefLink').length+' linked tags'
+        ]]);
+      }
+    }catch(_){}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+})();
 </script>
 </body></html>

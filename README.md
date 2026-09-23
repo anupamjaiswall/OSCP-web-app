@@ -89,6 +89,16 @@ AD 10 + all 3 standalone machines fully    = 70
 
 The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
 
+## V22 — CLICKABLE REFERENCE TAGS
+
+All structured reference tags in the offline app are now clickable, including tags inside methodology trees and preformatted command/decision blocks. Examples: `[LINUX:SUDO]`, `[LINUX:SUID]`, `[WIN:SEIMPERSONATE]`, `[AD:ACL]`, `[PORT:445]`, and `[ERROR:KRB_SKEW]`.
+
+- A tag with one exact indexed destination opens that deep-reference section directly.
+- A tag with multiple possible destinations opens the app search filtered to the exact tag.
+- Dynamically rendered content is linkified too.
+- Copying a flow/code block still copies the original bracket text, not a URL.
+- Keyboard users can focus a tag and activate it with Enter or Space.
+
 ## V21 — WINDOWS / LINUX / AD METHOD TREES
 
 These are **decision trees, not checklists**. Use them to answer **what branch should I take next?** under exam pressure. Start at the top, follow only the branch supported by evidence, and re-enumerate after every new shell, user, token, route, ticket, or credential.
