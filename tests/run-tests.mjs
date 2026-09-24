@@ -53,6 +53,8 @@ test('report review flag does not contaminate exported report markdown',()=>{con
 
 test('target deletion snapshots first and repairs active-target state',()=>{const src=read('src/js/03-core-app.js');const p=src.indexOf("el.querySelector('.delTarget').onclick");const block=src.slice(p,p+900);ok(block.includes("snapshotNow('before target delete: '+label)"));ok(block.indexOf("snapshotNow('before target delete: '+label)")<block.indexOf('targets=targets.filter'));ok(block.includes("if(activeTargetId===id)activeTargetId=targets[0]?.id||''"));ok(block.includes('renderAllV7()'));ok(block.includes('recovery snapshot retained'))});
 
+test('browser smoke is a required CI gate',()=>{const ci=read('.github/workflows/ci.yml'),smoke=read('scripts/browser-smoke.mjs');ok(ci.includes('Headless browser boot and interaction gate'));ok(!ci.includes('continue-on-error: true'));ok(smoke.includes('checkZoom(125)'));ok(smoke.includes('checkZoom(150)'));ok(smoke.includes('uncaught browser exception(s)'))});
+
 test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
 test('browser Service Router delegates pure core',()=>ok(read('src/js/09-v20-service-router.js').includes('window.OSCP_SERVICE_CORE')));
 test('research-backed scan workflow stays two-pass',()=>{

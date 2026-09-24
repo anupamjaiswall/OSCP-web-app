@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.6.0 — 2026-09-24
+
+### Batch 6 — required browser regression gate
+- Promoted the headless Chrome smoke test from advisory to required CI.
+- Added 125% and 150% zoom checks for critical exam controls.
+- Kept typo-search, high-contrast, boot-health, and uncaught-exception checks in the required browser gate.
+- This directly guards against the class of browser-only regression that caused the earlier infinite-load failure.
+
+
 ## V34.5.0 — 2026-09-24
 
 ### Batch 5 — target deletion integrity

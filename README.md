@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.5 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.6 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,14 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.6 Batch 6 — required browser regression gate
+
+- Headless Chrome boot/interaction testing is now a required CI gate, not advisory.
+- CI verifies the offline app reaches a healthy boot state with core exam controls present.
+- The browser test exercises typo-tolerant search and high-contrast mode.
+- It additionally checks critical controls at 125% and 150% zoom.
+- Any uncaught browser exception now fails the build.
 
 ## V34.5 Batch 5 — target deletion integrity
 

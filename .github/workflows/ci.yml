@@ -1,4 +1,4 @@
-name: V34.5 build and validation
+name: V34.6 build and validation
 on:
   push:
     branches: [ main ]
@@ -15,8 +15,7 @@ jobs:
           node-version: 22
       - name: Build, test, audit, validate
         run: npm run check
-      - name: Headless browser diagnostic
-        continue-on-error: true
+      - name: Headless browser boot and interaction gate
         timeout-minutes: 1
         run: node scripts/browser-smoke.mjs
       - name: Ensure generated exam artifact is committed

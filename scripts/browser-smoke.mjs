@@ -128,8 +128,27 @@ try{
   if(!(behavior.matches>0))throw new Error('typo search produced no browser results');
   if(!behavior.contrastOn)throw new Error('high-contrast control did not apply');
 
+  async function checkZoom(percent){
+    const result=await withTimeout(send('Runtime.evaluate',{
+      expression:`(()=>{
+        document.documentElement.style.zoom='${percent}%';
+        const ids=['globalSearch','examBankBtn','examStuckBtn','simpleExamView'];
+        const bad=ids.filter(id=>{const e=document.getElementById(id);if(!e)return true;const r=e.getBoundingClientRect();return !Number.isFinite(r.width)||!Number.isFinite(r.height)||r.width<=0||r.height<=0});
+        const state={bad,scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth};
+        document.documentElement.style.zoom='';
+        return state;
+      })()`,
+      returnByValue:true
+    }),2500,'zoom '+percent+' evaluation');
+    const z=result?.result?.value||{};
+    if(z.bad?.length)throw new Error('critical UI collapsed at '+percent+'% zoom: '+z.bad.join(', '));
+    return z;
+  }
+  const zoom125=await checkZoom(125);
+  const zoom150=await checkZoom(150);
+
   if(exceptions.length)throw new Error('uncaught browser exception(s): '+exceptions.join(' | '));
-  console.log('Browser smoke passed:',JSON.stringify({state,behavior}));
+  console.log('Browser smoke passed:',JSON.stringify({state,behavior,zoom125,zoom150}));
 }catch(e){
   console.error('Browser smoke failed:',e.message);
   if(stderr)console.error('Chrome stderr tail:\n'+stderr);
