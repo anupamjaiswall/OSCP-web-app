@@ -61,15 +61,27 @@ async function main(){
     '--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio',
     '--disable-client-side-phishing-detection','--disable-features=OptimizationHints,MediaRouter,Translate,AutofillServerCommunication',
     '--no-first-run','--no-default-browser-check','--allow-file-access-from-files',
-    '--remote-debugging-address=127.0.0.1','--remote-debugging-port=9222',`--user-data-dir=${profile}`,'about:blank'
+    '--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'
   ];
   const child=spawn(findBrowser(),args,{stdio:['ignore','ignore','pipe']});
   let stderr='';
   child.stderr.on('data',d=>{stderr+=String(d);if(stderr.length>12000)stderr=stderr.slice(-12000)});
   try{
-    const base='http://127.0.0.1:9222';
-    const version=await waitFor(async()=>{try{return await (await fetch(base+'/json/version')).json()}catch(_){return false}},25000);
-    if(!version?.webSocketDebuggerUrl)throw new Error('Chrome DevTools endpoint did not start'+(stderr?' · '+stderr.slice(-1000):''));
+    const devtools=await waitFor(()=>{
+      try{
+        const active=path.join(profile,'DevToolsActivePort');
+        if(fs.existsSync(active)){
+          const lines=fs.readFileSync(active,'utf8').trim().split(/\r?\n/);
+          const port=Number(lines[0]);if(Number.isInteger(port)&&port>0)return{port,source:'DevToolsActivePort'};
+        }
+      }catch(_){}
+      const m=stderr.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//);
+      return m?{port:Number(m[1]),source:'stderr'}:false;
+    },40000,100);
+    if(!devtools?.port)throw new Error('Chrome DevTools endpoint did not start'+(stderr?' · '+stderr.slice(-1000):''));
+    const base='http://127.0.0.1:'+devtools.port;
+    const version=await waitFor(async()=>{try{return await (await fetch(base+'/json/version')).json()}catch(_){return false}},12000);
+    if(!version?.webSocketDebuggerUrl)throw new Error('Chrome DevTools JSON endpoint was not reachable on '+devtools.port+' ('+devtools.source+')'+(stderr?' · '+stderr.slice(-1000):''));
     const page=await waitFor(async()=>{
       const pages=await (await fetch(base+'/json/list')).json();
       return pages.find(p=>p.type==='page');
