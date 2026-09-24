@@ -1,0 +1,14 @@
+{
+  "files": [
+    "00-preface.html",
+    "01-cockpit.html",
+    "02-enumeration.html",
+    "03-web-access-credentials.html",
+    "04-active-directory.html",
+    "05-post-exploitation.html",
+    "06-privilege-escalation.html",
+    "07-pivot-transfer-execution.html",
+    "08-buffer-overflow.html",
+    "09-reporting-exam-references.html"
+  ]
+}

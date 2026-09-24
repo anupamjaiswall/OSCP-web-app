@@ -1,0 +1,40 @@
+
+:root{--examText:15px;--examCode:14px;--examLine:1.62}
+body[data-read-size="0"]{--examText:14px;--examCode:13px;--examLine:1.52}
+body[data-read-size="1"]{--examText:15px;--examCode:14px;--examLine:1.62}
+body[data-read-size="2"]{--examText:16.5px;--examCode:15px;--examLine:1.7}
+.main :is(p,li,td,dd,.muted,.resultText,.decisionRow,.serviceAction,.manualTruth,.fallback){line-height:var(--examLine)}
+.main :is(p,li,td,dd,.resultText){font-size:var(--examText)}
+.main pre,.reference pre{font-size:var(--examCode);line-height:1.55}
+.card{scroll-margin-top:82px}.card h2,.card h3{line-height:1.25}
+.reference{line-height:var(--examLine)}.reference p,.reference li,.reference td,.reference dd{font-size:var(--examText);line-height:var(--examLine)}
+.reference details{margin:12px 0;padding:10px 13px}.reference summary{font-size:calc(var(--examText) + 1px);line-height:1.4;padding:4px 2px}
+.reference details[open]>summary{color:#075c8c;border-bottom:1px solid #e2e8f0;margin-bottom:9px;padding-bottom:8px}
+.reference tbody tr:nth-child(even){background:#f8fafc}.reference tbody tr:hover{background:#eef6fb}
+.reference table thead th{position:sticky;top:0;background:#eef2f7;z-index:2}
+.tagRefLink{border:1px solid rgba(106,171,218,.30);background:rgba(93,173,226,.08);padding:1px 4px;border-radius:5px;text-decoration:none}
+.tagRefLink:hover{border-color:#65b6eb;background:rgba(93,173,226,.16);text-decoration:none}
+body[data-read-density="compact"] .card{padding:12px}body[data-read-density="compact"] .grid{gap:10px}body[data-read-density="compact"]{--examLine:1.45}
+body[data-read-density="comfortable"] .card{padding:17px}body[data-read-density="comfortable"] .grid{gap:15px}
+#readabilityPanel{position:fixed;right:12px;top:58px;z-index:120;width:min(360px,calc(100vw - 24px));background:#111926;border:1px solid #3c4c61;border-radius:12px;box-shadow:0 18px 48px rgba(0,0,0,.42);padding:12px}
+#readabilityPanel[hidden]{display:none}.readerTitle{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.readerTitle b{font-size:16px}
+.readerGroup{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}.readerGroup:first-of-type{border-top:0;padding-top:0}.readerLabel{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800;margin-bottom:6px}
+.readerButtons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.readerButtons .btn.active{border-color:var(--accent);color:var(--text);background:#153044}
+#readProgressTrack{position:fixed;left:0;right:0;top:0;height:3px;background:transparent;z-index:150;pointer-events:none}#readProgressBar{height:100%;width:0;background:var(--accent);transition:width .08s linear}
+#backTopBtn{position:fixed;right:18px;bottom:18px;z-index:85;opacity:0;pointer-events:none;transform:translateY(8px);transition:.16s}
+#backTopBtn.show{opacity:1;pointer-events:auto;transform:none}
+#focusExitBtn{position:fixed;right:14px;top:70px;z-index:110;display:none}
+body.examFocus #focusExitBtn{display:block}
+body.examFocus .layout{grid-template-columns:1fr}body.examFocus .side{display:none!important}
+body.examFocus .main{width:min(1500px,100%);margin:0 auto;padding-left:24px;padding-right:24px}
+body.examFocus .top .brand,body.examFocus .top .badge,body.examFocus #historyNavControls,body.examFocus #examStuckBtn,body.examFocus #examBankBtn,body.examFocus #themeBtn{display:none!important}
+body.examFocus .top{justify-content:center}.examFocus .searchbar{max-width:920px}
+.methodTreeTabs{position:sticky;top:64px;z-index:20;display:flex;gap:7px;flex-wrap:wrap;align-items:center;background:rgba(11,14,20,.96);border:1px solid var(--line);border-radius:10px;padding:8px;margin:0 0 12px;backdrop-filter:blur(8px)}
+.methodTreeTabs .btn.active{border-color:var(--accent);background:#153044;color:var(--text)}
+.methodTreeTabs .tiny{margin-left:auto;padding:0 4px}
+.methodTreeCard.treeHidden{display:none}
+.methodTreeCard.treeSolo{grid-column:1/-1;max-width:1080px;width:100%;margin:0 auto}
+.methodTreeCard.treeSolo .treePre{min-height:0;font-size:var(--examCode);line-height:1.65}
+body.readGuideLines .treePre{background-image:linear-gradient(to bottom,transparent calc(1.65em - 1px),rgba(255,255,255,.035) calc(1.65em - 1px),rgba(255,255,255,.035) 1.65em);background-size:100% 1.65em}
+@media(max-width:900px){#readabilityBtn{font-size:11px;padding:6px 7px}.methodTreeTabs{top:105px}.methodTreeTabs .tiny{width:100%;margin-left:0}body.examFocus .main{padding-left:12px;padding-right:12px}}
+@media print{#readabilityPanel,#readProgressTrack,#backTopBtn,#focusExitBtn,.methodTreeTabs{display:none!important}}

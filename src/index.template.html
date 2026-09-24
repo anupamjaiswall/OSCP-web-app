@@ -1,0 +1,1111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
+<title>OSCP Exam-Only Operating System</title>
+<meta name="theme-color" content="#0b0e14">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>/* @inject:style:00-base.css */</style>
+<style id="examStuckStyles">/* @inject:style:01-exam-stuck.css */</style>
+<style id="examBankStyles">/* @inject:style:02-exam-bank.css */</style>
+
+<style id="adUsernameGeneratorStyles">/* @inject:style:03-ad-username-generator.css */</style>
+<style id="v20ServiceRouterStyles">/* @inject:style:04-v20-service-router.css */</style>
+
+<style id="v21MethodTreeStyles">/* @inject:style:05-v21-method-tree.css */</style>
+
+<style id="v22BracketLinkStyles">/* @inject:style:06-v22-bracket-links.css */</style>
+
+<style id="v23ReadabilityStyles">/* @inject:style:07-v23-readability.css */</style>
+
+<style id="v24ExamNavigatorStyles">/* @inject:style:08-v24-exam-navigator.css */</style>
+
+<style id="v25ExamCommandLayerStyles">/* @inject:style:09-v25-command-layer.css */</style>
+
+<style id="v26ScratchArchitectureStyles">/* @inject:style:10-v26-scratch-architecture.css */</style>
+
+<style id="v27PasserResearchStyles">/* @inject:style:11-v27-passer-research.css */</style>
+
+<style id="v28CompetitiveCoreStyles">/* @inject:style:12-v28-competitive-core.css */</style>
+</head>
+<body>
+<a class="skipLink" href="#examMain">Skip to exam workspace</a>
+
+
+
+
+<div id="examIndexBackdrop" class="v26Backdrop" role="dialog" aria-modal="true" aria-labelledby="examIndexTitle">
+ <div class="v26Dialog examIndexDialog">
+  <div class="v26DialogHead"><div><h2 id="examIndexTitle">Exam notes index</h2><div class="muted">Generated from the live reference. No duplicate cheatsheet to maintain.</div></div><button class="btn" id="examIndexClose" type="button" aria-label="Close exam notes index">×</button></div>
+  <div class="examIndexControls"><div class="row examIndexTabs"><button class="btn active" data-index-tab="services" type="button">Services / ports</button><button class="btn" data-index-tab="phases" type="button">Phases</button><button class="btn" data-index-tab="recent" type="button">Recent / pinned</button></div><input id="examIndexFilter" autocomplete="off" spellcheck="false" placeholder="Filter: smb, 445, kerberos, sudo, evidence…"></div>
+  <div id="examIndexStats" class="tiny"></div><div id="examIndexResults" class="examIndexResults"></div>
+ </div>
+</div>
+<div id="workStateBackdrop" class="v26Backdrop" role="dialog" aria-modal="true" aria-labelledby="workStateTitle">
+ <div class="v26Dialog workStateDialog">
+  <div class="v26DialogHead"><div><h2 id="workStateTitle">Active work state</h2><div id="workStateContext" class="muted">No active target.</div></div><button class="btn" id="workStateClose" type="button" aria-label="Close active work state">×</button></div>
+  <div class="workStateGrid">
+   <label><span>Strongest evidence</span><textarea id="workEvidence" placeholder="Concrete observation only — what changed your model?"></textarea></label>
+   <label><span>Current hypothesis</span><textarea id="workHypothesis" placeholder="Because I observed X, I may be able to do Y."></textarea></label>
+   <label><span>Missing prerequisite / blocker</span><textarea id="workMissing" placeholder="Exact right, route, credential, build, config, trigger, or access still unproven."></textarea></label>
+   <label><span>Next decisive test</span><textarea id="workNextTest" placeholder="One test that can materially confirm or kill the hypothesis."></textarea></label>
+   <label class="workWide"><span>Return trigger</span><textarea id="workReturn" placeholder="Come back only when this exact evidence/prerequisite appears."></textarea></label>
+  </div>
+  <div class="attemptLedgerPanel">
+   <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3 style="margin:0">Tried / result ledger</h3><div class="muted">Record the branch, not every keystroke. Exact repeats are flagged before you add them.</div></div><span id="attemptStreak" class="attemptStreak">0 non-progress</span></div>
+   <div class="attemptEntryGrid"><input id="attemptAction" autocomplete="off" placeholder="What did you test? e.g. SMB auth as CORP\alice (secret omitted)"><select id="attemptOutcome"><option value="evidence">new evidence</option><option value="success">worked / path opened</option><option value="negative">decisive negative</option><option value="blocked">blocked / prerequisite missing</option></select><input id="attemptResult" autocomplete="off" placeholder="Exact result / error / what it proved"><button class="btn primary" id="attemptAdd" type="button">Log attempt</button></div>
+   <div id="attemptDuplicateHint" class="attemptDuplicateHint"></div><div id="attemptLedgerList" class="attemptLedgerList"></div>
+  </div>
+  <div class="workStateFooter"><div class="tiny" id="workStateSaved">Saved locally per target.</div><div class="row"><button class="btn" id="workCopyPacket" type="button">Copy rotation packet</button><button class="btn" id="workClearState" type="button">Clear state</button><button class="btn primary" id="workSaveClose" type="button">Save & close</button></div></div>
+ </div>
+</div>
+
+<div id="commandPaletteBackdrop" class="v26Backdrop commandPaletteBackdrop" role="dialog" aria-modal="true" aria-labelledby="commandPaletteTitle">
+ <div class="v26Dialog commandPaletteDialog">
+  <div class="v26DialogHead"><div><h2 id="commandPaletteTitle">Command palette</h2><div class="muted">Navigate by intent, not by remembering where a feature lives.</div></div><button class="btn" id="commandPaletteClose" type="button" aria-label="Close command palette">×</button></div>
+  <div class="paletteSearch"><span>⌘</span><input id="commandPaletteInput" autocomplete="off" spellcheck="false" placeholder="Try: linux shell, 445, AD CS, proof, credentials, pivot…"><kbd>Ctrl P</kbd></div>
+  <div id="commandPaletteResults" class="commandPaletteResults" role="listbox" aria-label="Commands"></div>
+  <div class="paletteFooter"><span>↑↓ move</span><span>Enter open</span><span>Esc close</span><span>Reference results are included</span></div>
+ </div>
+</div>
+<div id="quickNoteBackdrop" role="dialog" aria-modal="true" aria-labelledby="quickNoteTitle">
+ <div class="quickNoteDialog">
+  <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2 id="quickNoteTitle" style="margin:0">Quick exam note</h2><div class="muted">Local browser scratchpad for the thought you cannot afford to lose while rotating.</div></div><button class="btn" id="quickNoteClose" type="button" aria-label="Close quick note">×</button></div>
+  <textarea id="quickNoteText" spellcheck="false" placeholder="Example:
+Strongest evidence:
+Current hypothesis:
+Missing prerequisite:
+Next decisive test:
+Return trigger:"></textarea>
+  <div class="quickNoteMeta" id="quickNoteMeta">Saved locally in this browser.</div>
+  <div class="row"><button class="btn primary" id="quickNoteStamp" type="button">+ Timestamp / context</button><button class="btn" id="quickNoteCopy" type="button">Copy</button><button class="btn bad" id="quickNoteClear" type="button">Clear</button></div>
+ </div>
+</div>
+<div id="examHelpBackdrop" role="dialog" aria-modal="true" aria-labelledby="examHelpTitle">
+ <div class="examHelpDialog">
+  <div class="examHelpHead"><div><h2 id="examHelpTitle" style="margin:0">Exam navigation help</h2><div class="muted">The shortcuts worth remembering. Everything else can stay out of your head.</div></div><button class="btn" id="examHelpClose" type="button" aria-label="Close help">×</button></div>
+  <div class="examHelpGrid">
+   <div class="examHelpKey"><kbd>/</kbd><br><b>Search now</b><div class="muted">Focus global search from anywhere outside a text field.</div></div>
+   <div class="examHelpKey"><kbd>Enter</kbd><br><b>Open best match</b><div class="muted">While search is focused, open the first result or exact tag.</div></div>
+   <div class="examHelpKey"><kbd>Alt+Z</kbd><br><b>Focus mode</b><div class="muted">Hide navigation clutter. Esc exits.</div></div>
+   <div class="examHelpKey"><kbd>Alt+Q</kbd><br><b>Service Router</b><div class="muted">Ports → small prioritized enumeration queue.</div></div>
+   <div class="examHelpKey"><kbd>Alt+Y</kbd><br><b>Method Trees</b><div class="muted">Linux / Windows / AD branch flow.</div></div>
+   <div class="examHelpKey"><kbd>Alt+W</kbd><br><b>Windows / AD desk</b><div class="muted">Auth, material routing, edge execution and post-shell workflow.</div></div>
+   <div class="examHelpKey"><kbd>Alt+0</kbd><br><b>Stuck reset</b><div class="muted">Use when tool swapping replaces evidence.</div></div>
+   <div class="examHelpKey"><kbd>Alt+B</kbd><br><b>Bank proof</b><div class="muted">Protect points before continuing.</div></div>
+   <div class="examHelpKey"><kbd>Alt+← / Alt+→</kbd><br><b>Back / Forward</b><div class="muted">Return to previous app locations.</div></div>
+   <div class="examHelpKey"><kbd>Alt+1</kbd><br><b>Start</b><div class="muted">Return to the simple exam loop.</div></div>
+   <div class="examHelpKey"><kbd>Alt+M</kbd><br><b>Methodology</b><div class="muted">Open the complete exam methodology.</div></div>
+   <div class="examHelpKey"><kbd>Ctrl+P</kbd><br><b>Command palette</b><div class="muted">Open any workflow or deep reference by intent.</div></div><div class="examHelpKey"><kbd>Alt+I</kbd><br><b>Notes index</b><div class="muted">Browse the live notes by service/port or phase.</div></div>
+   <div class="examHelpKey"><kbd>Alt+H</kbd><br><b>Active work state</b><div class="muted">Evidence → hypothesis → blocker → next decisive test.</div></div>
+   <div class="examHelpKey"><kbd>Alt+N</kbd><br><b>Quick note</b><div class="muted">Capture evidence/hypothesis/next test before you rotate.</div></div><div class="examHelpKey"><kbd>?</kbd><br><b>This help</b><div class="muted">Open or close this shortcut guide.</div></div>
+  </div>
+  <div class="examHelpRule"><b>Fast operating rule:</b> observe → form one hypothesis → run one decisive test → record the result → continue only while evidence improves. Two decisive negatives or pure tool-swapping means park/rotate.</div>
+ </div>
+</div>
+<div id="readProgressTrack" aria-hidden="true"><div id="readProgressBar"></div></div>
+<div id="readabilityPanel" role="dialog" aria-label="Reading controls" hidden>
+  <div class="readerTitle"><b>Exam reading</b><button class="btn" id="readabilityClose" type="button" aria-label="Close reading controls">×</button></div>
+  <div class="readerGroup"><div class="readerLabel">Text size</div><div class="readerButtons"><button class="btn" data-read-size="0" type="button">Small</button><button class="btn" data-read-size="1" type="button">Normal</button><button class="btn" data-read-size="2" type="button">Large</button></div></div>
+  <div class="readerGroup"><div class="readerLabel">Spacing</div><div class="readerButtons"><button class="btn" data-read-density="compact" type="button">Compact</button><button class="btn" data-read-density="comfortable" type="button">Comfortable</button><button class="btn" id="readerGuideToggle" type="button">Tree guides</button></div></div>
+  <div class="readerGroup"><div class="readerLabel">Distraction control</div><div class="readerButtons"><button class="btn" id="focusModeBtn" type="button">Focus mode</button><button class="btn" id="readerResetBtn" type="button">Reset</button><button class="btn" id="readerSearchBtn" type="button">Search /</button></div><div class="tiny" style="padding:7px 2px 0">Alt+Z toggles Focus. Esc exits Focus. Press / anywhere outside a text field to search.</div></div>
+</div>
+<button class="btn primary" id="focusExitBtn" type="button">Exit Focus · Esc</button>
+<button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
+
+<div class="top">
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V30 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
+  <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
+  <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
+    <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
+    <button class="btn" id="navForwardBtn" type="button" title="Forward to next app view (Alt+Right)" aria-label="Forward">Forward</button>
+  </div>
+  <button class="btn bad" id="examStuckBtn" type="button" title="3-minute stuck reset (Alt+0)" aria-haspopup="dialog">↺ STUCK</button>
+  <button class="btn good" id="examBankBtn" type="button" title="Score-safe proof banking (Alt+B)" aria-haspopup="dialog">✓ BANK</button>
+  <button class="btn" id="readabilityBtn" type="button" title="Reading controls (Alt+Z toggles Focus)" aria-haspopup="dialog" aria-expanded="false">Aa Read</button>
+  <button class="btn" id="examHelpBtn" type="button" title="Exam navigation help (?)" aria-haspopup="dialog">?</button>
+  <button class="btn" id="themeBtn" title="Toggle reference theme">◐</button>
+</div>
+<div class="layout">
+<nav class="side" id="nav">
+  <div class="navSectionLabel">Exam core</div>
+  <button class="navbtn active" data-view="simpleExamView">🏠 Start</button>
+  <button class="navbtn" data-view="methodologyView">➜ Methodology</button>
+  <button class="navbtn" data-view="toolArsenalView">🧰 Best Tools</button>
+  <button class="navbtn" data-view="serviceRouterView">⚡ Service Router</button>
+  <button class="navbtn" data-view="methodTreesView">🌳 Method Trees</button>
+  <button class="navbtn" data-view="windowsStrategyView">WIN Windows</button>
+  <button class="navbtn" data-view="workspaceView">🎯 Target</button>
+  <button class="navbtn" data-view="reportsView">📝 Evidence & Report</button>
+  <button class="navbtn" data-view="referenceView">📚 Full Reference</button>
+  <button class="btn modeToggle" id="advancedToggle" type="button" aria-pressed="false">Show advanced</button>
+  <div class="navsep advancedNav"></div>
+  <button class="navbtn" data-view="dashboardView">Cockpit</button>
+  <button class="navbtn" data-view="operatorView">➜ Expert Operator</button>
+  <button class="navbtn" data-view="coverageView">✅ Coverage Audit</button>
+  <button class="navbtn" data-view="debtView">🔑 Credential Debt</button>
+  <button class="navbtn" data-view="hypothesisView">⚗ Hypothesis Workbench</button>
+  <button class="navbtn" data-view="correlationView">↔ Cross-Target Correlation</button>
+  <button class="navbtn" data-view="auditView">📄 Report Consistency</button>
+  <button class="navbtn" data-view="sanityView">⚠ Missed-Edge Detector</button>
+  <button class="navbtn" data-view="regressionView">⚗ Decision Regression</button>
+  <button class="navbtn" data-view="freshnessView">🕒 Freshness Watchdog</button>
+  <button class="navbtn" data-view="clockView">⏱️ Exam Clock</button>
+  <button class="navbtn" data-view="revertView">♻️ Revert & Incident Ledger</button>
+  <button class="navbtn" data-view="submissionView">📦 Submission Gate</button>
+  <button class="navbtn" data-view="compatView">⚙ Tool Compatibility</button>
+  <button class="navbtn" data-view="v16HighSignalView">⚡ High-Signal Engine</button>
+  <button class="navbtn" data-view="v15ReliabilityView">↔ Reliability Center</button>
+  <button class="navbtn" data-view="v15ChainView">🔗 Causal Chain</button>
+  <button class="navbtn" data-view="v15DisasterView">🚨 Disaster Mode</button>
+  <button class="navbtn" data-view="v15SelfTestView">✅ Functional Self-Test</button>
+  <button class="navbtn" data-view="searchView">🔎 Search</button>
+  <button class="navbtn" data-view="targetsView">🎯 Targets</button>
+  <button class="navbtn" data-view="intakeView">📥 Scan Intake</button>
+  <button class="navbtn" data-view="boardView">📊 Exam Board</button>
+  <button class="navbtn" data-view="commandsView">⌨️ Command Builder</button>
+  <button class="navbtn" data-view="analyzerView">★ Output Analyzer</button>
+  <button class="navbtn" data-view="vaultView">🗂️ Evidence Vault</button>
+  <button class="navbtn" data-view="guardView">🛡️ Scope & Rule Guard</button>
+  <button class="navbtn" data-view="journalView">📜 Command Journal</button>
+  <button class="navbtn" data-view="credentialsView">🔐 Credential Matrix</button>
+  <button class="navbtn" data-view="graphView">🕸️ Attack Graph</button>
+  <button class="navbtn" data-view="sessionView">💾 Session</button>
+  <button class="navbtn" data-view="playbooksView">🗺️ Playbooks</button>
+  <button class="navbtn" data-view="decoderView">👁️ Output Decoder</button>
+  <button class="navbtn" data-view="evidenceView">📸 Evidence</button>
+  <button class="navbtn" data-view="settingsView">⚙️ Settings</button>
+  <div class="navsep"></div>
+  <div class="tiny">Embedded current exam reference<br>Self-contained HTML<br>No external assets</div>
+</nav>
+<main class="main" id="examMain" tabindex="-1">
+<div id="activeWorkStrip" class="activeWorkStrip" aria-live="polite"></div>
+<section id="simpleExamView" class="view active">
+ <div class="hero simpleHero"><div><h1>OSCP Exam Flow</h1><div class="muted">One repeatable loop. Collect evidence, test the smallest useful hypothesis, and move when the evidence stops improving.</div></div><div class="chips"><span class="chip">SIMPLE MODE</span><span class="chip">OFFLINE</span><span class="chip">Alt 1</span></div></div>
+ <div class="card" style="margin-bottom:12px">
+  <div class="simpleFlow">
+   <div class="simpleStep"><b><span class="num">1</span>Discover</b>Full TCP scan, focused service scan, then justified UDP. Save raw output.</div>
+   <div class="simpleStep"><b><span class="num">2</span>Enumerate</b>Fingerprint each exposed service manually. Record access, version, config and credentials.</div>
+   <div class="simpleStep"><b><span class="num">3</span>Validate</b>Choose one primitive. Confirm every prerequisite before editing or running an exploit.</div>
+   <div class="simpleStep"><b><span class="num">4</span>Act</b>Exploit, stabilize, enumerate locally, escalate, capture proof, then re-enumerate with new access.</div>
+  </div>
+ </div>
+ <div class="grid">
+  <div class="card span12 v25StateRouter">
+   <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>What do I have right now?</h2><div class="muted">Choose the evidence you actually have. The app opens the smallest useful workflow instead of making you remember where it lives.</div></div><div class="row"><button class="btn" id="examIndexOpen" type="button">Index by service / phase</button><span class="chip">V25 · STATE ROUTER</span></div></div>
+   <div class="stateRouteGrid">
+    <button class="stateRoute" type="button" data-v25-route="ports"><b>Ports / scan only</b><span>Build a service-first queue</span></button>
+    <button class="stateRoute" type="button" data-v25-route="web"><b>Web application</b><span>Open web enumeration path</span></button>
+    <button class="stateRoute" type="button" data-v25-route="linux"><b>Linux shell</b><span>Post-shell → root tree</span></button>
+    <button class="stateRoute" type="button" data-v25-route="windows"><b>Windows shell</b><span>Post-shell → admin/SYSTEM tree</span></button>
+    <button class="stateRoute" type="button" data-v25-route="ad"><b>Domain credentials</b><span>AD evidence tree</span></button>
+    <button class="stateRoute" type="button" data-v25-route="credential"><b>Hash / ticket / cert / password</b><span>Classify material before reuse</span></button>
+    <button class="stateRoute" type="button" data-v25-route="pivot"><b>Internal subnet / pivot</b><span>Open routing decision flow</span></button>
+    <button class="stateRoute goodRoute" type="button" data-v25-route="proof"><b>Flag / privileged shell</b><span>Bank points before curiosity</span></button>
+   </div>
+  </div>
+  <div class="card span12 ruleLockCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Exam rules lock</h2><div class="muted">Re-checked 24 Sep 2026 against the current OffSec Exam Guide and FAQ. The live official pages always override this offline snapshot.</div></div><div class="row"><span id="ruleLockCount" class="ruleLockState">0/8 locked</span><button class="btn" id="ruleLockReset" type="button">Reset</button></div></div><div class="ruleLockGrid">
+   <label class="check"><input class="ruleLockCheck" data-rule="objectives" type="checkbox"> I read the control-panel objectives and point values for this exact attempt.</label>
+   <label class="check"><input class="ruleLockCheck" data-rule="ai" type="checkbox"> AI/LLM/chatbot tools are closed for both the exam and reporting phase.</label>
+   <label class="check"><input class="ruleLockCheck" data-rule="metasploit" type="checkbox"> Restricted Metasploit target is unused or one exact target is recorded; no Metasploit pivoting.</label>
+   <label class="check"><input class="ruleLockCheck" data-rule="proof" type="checkbox"> Proof plan is interactive shell + original flag path + target IP in one screenshot.</label>
+   <label class="check"><input class="ruleLockCheck" data-rule="submit" type="checkbox"> Every earned flag will be entered in the control panel before the attack window ends.</label>
+   <label class="check"><input class="ruleLockCheck" data-rule="downloads" type="checkbox"> Exam files are downloaded only when necessary to compromise; local copies are deleted after the objective.</label>
+   <label class="check"><input class="ruleLockCheck" data-rule="report" type="checkbox"> Report order, exact filename, PDF-only unencrypted .7z, 200 MB limit and MD5 check are understood.</label>
+   <label class="check"><input class="ruleLockCheck" data-rule="proctor" type="checkbox"> All exam/research activity stays on the proctored host; resource searching is fine but I will not seek/receive exam help; technical issues go to the proctor and every reset/revert is logged.</label>
+  </div></div>
+  <div class="card span12 simpleRiskCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Exam risk strip</h2><div class="muted">Cross-target obligations that are easy to lose when you switch machines. Point totals are your recorded estimate; the control panel is authoritative.</div></div><div class="row"><button class="btn" id="simpleRiskOpen">Open highest risk →</button><button class="btn" id="simpleSnapshotNow">Create recovery point</button></div></div><div id="simpleRiskStrip" class="simpleRiskStrip" aria-live="polite"><div class="riskMetric"><b>0</b>No targets yet</div></div></div>
+  <div class="card span12 pointProtect"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Bank the points — before anything else</h2><div class="muted">When a flag or privileged shell appears, closure outranks curiosity.</div></div><button class="btn good" onclick="switchView('reportsView')">Open evidence gate →</button></div>
+   <div id="simplePointProtectionStatus" class="pointStatus">No active target. Add the current exam target to make this gate state-aware.</div>
+   <div class="pointRail"><div><b>1 · Stay interactive</b>Keep the target shell open. A web shell or downloaded/copied flag is not valid proof.</div><div><b>2 · Read in place</b>Use <code>cat</code>/<code>type</code> on the original absolute flag path.</div><div><b>3 · One screenshot</b>Show full flag contents + target IP via <code>ip addr</code>, <code>ifconfig</code>, or <code>ipconfig</code>.</div><div id="proofSubmissionVerifyGuard"><b>4 · Submit + compare</b>Enter the exact value in the control panel before the attack window ends, then compare it character-for-character against the original shell output. <strong>The control panel does not validate whether the submitted proof is correct.</strong></div><div><b>5 · Make reproducible</b>Save unique screenshot name, exact commands, path, source URL and exploit changes.</div></div>
+  </div>
+  <div class="card span8"><h2>Start here</h2><div class="simpleLinks">
+   <button class="btn primary" onclick="switchView('methodologyView')"><b>Methodology</b><br><span class="tiny">The complete exam loop</span></button>
+   <button class="btn" onclick="switchView('toolArsenalView')"><b>Best tools</b><br><span class="tiny">28 recommended tools first</span></button>
+   <button class="btn" onclick="switchView('workspaceView')"><b>Current target</b><br><span class="tiny">Track progress and notes</span></button>
+   <button class="btn" onclick="switchView('windowsStrategyView')"><b>Windows / AD</b><br><span class="tiny">12-step strategy</span></button>
+   <button class="btn" onclick="switchView('reportsView')"><b>Evidence & report</b><br><span class="tiny">Capture while working</span></button>
+   <button class="btn" onclick="switchView('referenceView')"><b>Full reference</b><br><span class="tiny">Use only when needed</span></button>
+  </div></div>
+  <div class="card span4"><h2>Evidence rotation timer</h2><div class="timer" id="simpleTimerDisplay">00:00</div><div class="muted" id="simpleTimerMsg">Ready — start when testing one hypothesis</div><div class="progress" style="margin:12px 0"><div class="bar" id="simpleTimerBar"></div></div><p>Stay while tests produce new evidence. At the limit—or after two failed decisive tests—write the missing prerequisite, park the path, and rotate.</p><div class="row simpleTimerControls"><label>Limit <input id="simpleRotateMinutes" type="number" min="10" max="120" value="30" aria-label="Rotation limit in minutes"> min</label><button class="btn good" id="simpleTimerStart">Start</button><button class="btn" id="simpleTimerPause">Pause</button><button class="btn bad" id="simpleTimerReset">Reset</button></div></div>
+  <div class="card span12"><h2>I have this — what next?</h2><div class="simpleDecisionGrid">
+   <div class="decisionRow"><h3>Only an IP</h3><div>Full TCP scan, quick focused scan in parallel, then targeted UDP when the host role justifies it. Save raw output.</div><button class="btn" onclick="openRef('ref-3-1-nmap-workflow-fast-default-adaptive-rate')">Exact scan flow →</button></div>
+   <div class="decisionRow"><h3>A port or service</h3><div>Use the native client. Test anonymous/default/known credentials and record access, role, data and the next manual proof.</div><button class="btn" onclick="openRef('ref-4-service-enumeration-every-port')">Service playbooks →</button></div>
+   <div class="decisionRow"><h3>A web application</h3><div>Hostname/vhosts, source, headers, cookies, robots, sitemap, JavaScript, network calls, content, backups and exposed <code>.git</code> before exploit hunting.</div><button class="btn" onclick="openRef('ref-6-1-web-pentest-methodology-full-checklist')">Web methodology →</button></div>
+   <div class="decisionRow"><h3>A version banner</h3><div>Confirm access context, exact build/package, architecture, configuration, trigger and patch/backport status. Version alone is not a vulnerability.</div><button class="btn" onclick="openRef('ref-5-y-v16-cve-context-card')">CVE gate →</button></div>
+   <div class="decisionRow"><h3>A credential or hash</h3><div>Record its source, test it across appropriate known services, distinguish authentication from authorization, and respect lockout policy.</div><button class="btn" onclick="openRef('ref-8-password-attacks-credential-abuse')">Credential workflow →</button></div>
+   <div class="decisionRow"><h3>A Linux shell</h3><div>Stabilize; sudo, SUID, capabilities, cron/systemd, services, secrets, containers and internal listeners. Kernel/CVE last.</div><button class="btn" onclick="openRef('ref-12-31-linux-practical-attack-trees-finding-validation-path')">Linux trees →</button></div>
+   <div class="decisionRow"><h3>A Windows shell</h3><div>Identity/privileges, files/software, services, tasks, registry, credentials, DLL/path, local ports and custom apps. Kernel last.</div><button class="btn" onclick="switchView('windowsStrategyView')">Windows workflow →</button></div>
+   <div class="decisionRow"><h3>A domain credential</h3><div>Fix DNS/time, validate SMB/LDAP/WinRM/RDP, enumerate shares and Kerberos, collect BloodHound (RustHound-CE is a collector option), check AD CS, then follow one proven edge.</div><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">First 10 minutes →</button></div>
+   <div class="decisionRow"><h3>A new network or route</h3><div>Prove pivot-host reachability, create one tunnel/route, enumerate the internal surface, and repeat the same target loop.</div><button class="btn" onclick="openRef('ref-14-2-modern-pivot-tool-selection')">Pivot selector →</button></div>
+   <div class="decisionRow"><h3>Root / SYSTEM / Administrator</h3><div>Stop. Capture the flag from its original location in an interactive shell with the target IP visible, submit it, then protect the report evidence.</div><button class="btn" onclick="openRef('ref-18-1-screenshot-requirements-never-fail-on-this')">Proof requirements →</button></div>
+  </div></div>
+
+  <div class="card span12"><h2>Stuck right now — three-minute reset</h2><p class="muted">Stop random actions. Preserve the state, name the missing prerequisite, run one decisive check, then continue or rotate.</p><div class="simpleDecisionGrid">
+   <div class="decisionRow"><h3>No initial access</h3><div>Re-read every service result; revisit vhosts, source/JS, anonymous/default access, files/backups and credential reuse before another CVE.</div><button class="btn" onclick="openRef('ref-4-service-enumeration-every-port')">Service reset →</button></div>
+   <div class="decisionRow"><h3>Shell, no escalation</h3><div>Re-check identity and privileges. Rank writable privileged execution, credentials and internal-only services above kernel exploits.</div><button class="btn" onclick="openRef('ref-12-31-linux-practical-attack-trees-finding-validation-path')">Escalation trees →</button></div>
+   <div class="decisionRow"><h3>Credential fails</h3><div>Separate authentication from authorization; fix domain/user format, DNS/time and protocol. Check lockout risk before retrying.</div><button class="btn" onclick="openRef('ref-8-password-attacks-credential-abuse')">Credential reset →</button></div>
+   <div class="decisionRow"><h3>Pivot is broken</h3><div>Prove reachability from the pivot host, then verify tunnel session, route and connection direction.</div><button class="btn" onclick="openRef('ref-14-2-modern-pivot-tool-selection')">Pivot reset →</button></div>
+   <div class="decisionRow"><h3>Tool is failing</h3><div>Read the error and local help, make one native/manual request, then try one alternate implementation only.</div><button class="btn" onclick="switchView('compatView')">Fallback ladder →</button></div>
+   <div class="decisionRow"><h3>Root / SYSTEM reached</h3><div>Stop exploitation. Capture proof + IP in the interactive shell, submit the flag, and finish report notes now.</div><button class="btn" onclick="switchView('reportsView')">Evidence gate →</button></div>
+  </div></div>
+  <div class="card span12" id="v21RevertGuard" style="padding:12px 16px;border-color:#7a6030">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <div><b>⚠️ Before any target revert</b> <span class="muted">Bank earned proof first → save the re-entry path → record what will be lost → click Revert once → treat shells, tunnels, uploads and changes as stale until revalidated.</span></div>
+    <div class="row"><button class="btn good" id="v23PreRevertSnapshot" type="button">Save recovery point</button><button class="btn" type="button" onclick="switchView('workspaceView')">Open target →</button></div>
+  </div>
+  <div class="tiny" style="padding:6px 0 0">Recovery points omit dedicated secret fields and redact known journal/report secrets; target-side state still disappears after the OffSec revert.</div>
+</div>
+<div class="card span6"><h2>Before exploit or target change</h2><div class="checks"><label class="check"><input type="checkbox"> access/build/config prerequisite proven</label><label class="check"><input type="checkbox"> original owner/mode/ACL/hash/state recorded</label><label class="check"><input type="checkbox"> exact privileged trigger known</label><label class="check"><input type="checkbox"> smallest change selected</label><label class="check"><input type="checkbox"> rollback command and re-entry path written</label><label class="check"><input type="checkbox"> proof/revalidation plan ready</label></div></div>
+  <div class="card span6"><h2>Before leaving a shell</h2><div class="checks"><label class="check"><input type="checkbox"> shell stabilized and identity recorded</label><label class="check"><input type="checkbox"> local enumeration completed</label><label class="check"><input type="checkbox"> credentials reused across known services</label><label class="check"><input type="checkbox"> proof, IP, commands and changes captured</label></div></div>
+ </div>
+</section>
+
+<section id="methodologyView" class="view">
+ <div class="hero"><div><h1>Best OSCP Methodology</h1><div class="muted">Evidence first. The output of each step decides the next step.</div></div><div class="chips"><span class="chip">Alt M</span><span class="chip">REPEATABLE</span></div></div>
+ <div class="grid">
+  <div class="card span8"><div class="methodList">
+   <div class="methodItem"><h3>Prepare and scope</h3><div>Create one target folder, confirm VPN/route and target identity, start command logging, and write the expected evidence filenames.</div></div>
+   <div class="methodItem"><h3>Map the attack surface</h3><div>Run a full TCP scan first, then focused scripts/versioning on open ports. Add a targeted UDP check when the host or role justifies it. Save every raw result.</div></div>
+   <div class="methodItem"><h3>Enumerate by service</h3><div>For every port, answer: what is it, can I access it anonymously/default/with credentials, what data does it expose, and which manual test would prove impact?</div></div>
+   <div class="methodItem"><h3>Build one testable hypothesis</h3><div>Write the primitive in one sentence: “Because I observed X, I may be able to do Y.” Rank it by evidence, prerequisites, reliability, time and risk.</div></div>
+   <div class="methodItem"><h3>Validate prerequisites</h3><div>Confirm access context, architecture, exact build or package revision, required configuration, authentication level and safe trigger. A version string alone is not proof.</div></div>
+   <div class="methodItem"><h3>Exploit the smallest reliable path</h3><div>Before changing a file, ACL, service, task, template or policy, record its original state and rollback command. Use the least complex action that proves the primitive; save public exploit sources, modifications and the exact command.</div></div>
+   <div class="methodItem"><h3>Stabilize and enumerate locally</h3><div>Record identity, host, interfaces and privileges; upgrade the shell; enumerate services, scheduled tasks, permissions, secrets, histories and reachable networks.</div></div>
+   <div class="methodItem"><h3>Escalate or move laterally</h3><div>Validate one privilege or AD edge at a time. Back up mutable state. After every new credential or identity, test appropriate exposed in-scope protocols with lockout awareness, then re-collect the attack path.</div></div>
+   <div class="methodItem"><h3>Capture proof immediately</h3><div>Capture the proof from its original location with target IP and interactive identity visible. Preserve commands, output, exploit changes, screenshots and timestamps. Once closure is complete, write the next action and take a short break if fatigue is rising.</div></div>
+   <div class="methodItem"><h3>Re-enumerate and close</h3><div>New access changes the attack surface. Re-run the relevant checks, confirm no reporting gaps, save a session export, then move to the next target.</div></div>
+  </div></div>
+  <div class="span4">
+   <div class="killRule"><h2>Kill / park rule</h2><p><b>Continue</b> while tests add evidence or raise confidence.</p><p><b>Park</b> after 20–30 minutes or two failed tests with no new evidence. Record the missing prerequisite and the exact return condition.</p></div>
+   <div class="card" style="margin-top:12px"><h2>Priority order</h2><ol><li>Known credentials and reuse</li><li>Anonymous/default access</li><li>Readable files, source, backups and secrets</li><li>Misconfiguration with a proven primitive</li><li>Exact-version exploit with prerequisites</li><li>Long brute force or fragile exploit last</li></ol></div>
+   <div class="card" style="margin-top:12px"><h2>Fast links</h2><div class="row"><button class="btn" onclick="switchView('toolArsenalView')">Best tools</button><button class="btn" onclick="switchView('workspaceView')">Target</button><button class="btn" onclick="switchView('reportsView')">Report</button></div></div>
+  </div>
+  <div class="card span12"><h2>Operational playbooks</h2><p class="muted">Open only the branch you need. The Full Reference contains the exhaustive service-by-service commands.</p><div class="methodCommands">
+   <details><summary>First commands on every target</summary><pre>mkdir -p "$IP"/{scans,loot,exploits,evidence,notes}
+sudo nmap -Pn -n -p- --min-rate 1000 -oA "$IP/scans/tcp-all" "$IP"
+sudo nmap -Pn -n -sC -sV -p "$PORTS" -oA "$IP/scans/tcp-detail" "$IP"
+
+# If results look wrong:
+ip route; ip addr show tun0
+sudo tcpdump -ni tun0 host "$IP"
+# lower/remove --min-rate; validate a small port set</pre></details>
+   <details><summary>Every new credential</summary><pre># Start with one host/service already justified by the scan, graph or credential source.
+nxc smb "$TARGET" -u "$USER" -p "$PASS" -d "$DOMAIN"
+nxc winrm "$TARGET" -u "$USER" -p "$PASS" -d "$DOMAIN"
+nxc rdp "$TARGET" -u "$USER" -p "$PASS" -d "$DOMAIN"
+nxc ldap "$DC_IP" -u "$USER" -p "$PASS" -d "$DOMAIN"
+smbclient -L "//$TARGET/" -U "$DOMAIN/$USER"
+rpcclient -U "$DOMAIN/$USER" "$TARGET"
+evil-winrm -i "$TARGET" -u "$USER" -p "$PASS"
+ssh "$USER@$TARGET"
+
+Record authentication and authorization separately. Then use Credential Debt to expand only to observed, in-scope services. Check lockout policy before any multi-user validation.</pre></details>
+   <details><summary>Linux and Windows escalation trees</summary><pre class="attackTree">LINUX
+sudo -l
+├─ SUID/capabilities → known or custom binary → strings/strace/config/PATH/library
+├─ cron/systemd/service → privileged execution + writable target or search path
+├─ histories/config/keys/DB → credential reuse
+├─ groups/containers/mounts/NFS → prove exact prerequisite
+└─ exact package/kernel CVE LAST
+
+WINDOWS
+whoami /all
+├─ token privilege → compatible technique + service context
+├─ service/task → privileged account + writable target + restart/trigger
+├─ registry/autorun/DLL/path → exact setting + writable location + execution
+├─ files/history/DPAPI/config → credential reuse
+├─ local-only port/custom app → identify process/account and interact locally
+└─ driver/kernel CVE LAST</pre></details>
+   <details><summary>Web and Active Directory trees</summary><pre class="attackTree">WEB
+identity/vhost → source/JS/routes/backups/.git → auth/inputs
+→ prove file read/write, auth bypass, SSRF or code execution
+→ credential or shell → local enumeration
+
+ACTIVE DIRECTORY
+credential → DNS/time/DC → SMB/LDAP/WinRM/RDP
+→ shares/users/groups/SPNs → BloodHound (SharpHound / bloodhound-ce-python / RustHound-CE) + AD CS
+→ exact ACL/delegation/certificate edge
+→ READ → BACKUP → minimum change → validate → rollback
+→ remote access → new identity/host → reuse + re-collect → pivot → repeat</pre></details>
+  </div></div>
+  <div class="card span12"><h2>Tool failure ladder</h2><div class="flow"><span class="step">Read the error</span><span class="arrow">→</span><span class="step">Check version/help</span><span class="arrow">→</span><span class="step">Validate DNS/time/route/auth</span><span class="arrow">→</span><span class="step">Try one fallback</span><span class="arrow">→</span><span class="step">Manual proof</span></div><p class="muted">Tool failure does not disprove the hypothesis. Two implementations failing with the same prerequisite satisfied is evidence to re-rank it.</p></div>
+ </div>
+</section>
+
+<section id="dashboardView" class="view">
+<div id="v16StorageWarning" class="card" style="display:none;border-color:var(--warn);margin-bottom:12px"><b>⚠ Browser storage is unavailable.</b><div class="tiny">The console is running with temporary in-memory state. Keep an exported/encrypted session backup because closing this tab may lose state.</div></div>
+ <div class="hero"><div><h1>Exam Cockpit</h1><div class="muted">Observation → highest-signal next check → validate → exploit → evidence → re-enumerate. The app also verifies state freshness and reportability.</div></div><div class="chips"><span class="chip">EXAM MODE</span><span class="chip">Local-only</span><span class="chip">OFFLINE REFERENCE</span></div></div>
+ <div class="grid">
+  <div class="card span8"><h2>I have…</h2><div class="quickgrid" id="quickActions"></div></div>
+  <div class="card span4"><h2>Rotation</h2><div class="timer" id="timerDisplay">00:00</div><div class="muted" id="timerMsg">No timer running</div><div class="progress" style="margin:12px 0"><div class="bar" id="timerBar"></div></div><div class="row"><select id="timerTarget"><option value="">Target / surface</option></select><input id="rotateMinutes" type="number" min="10" max="120" value="30" style="width:76px"><button class="btn good" id="timerStart">Start</button><button class="btn" id="timerPause">Pause</button><button class="btn bad" id="timerReset">Reset</button></div></div>
+  <div class="card span6"><h2>20-second loop</h2><div class="flow"><span class="step">Observation</span><span class="arrow">→</span><span class="step">What does it prove?</span><span class="arrow">→</span><span class="step">Next check ≤5m?</span><span class="arrow">→</span><span class="step">New evidence?</span></div><p class="muted">If two critical exploit prerequisites are still unknown, enumerate instead of “trying it anyway.”</p></div>
+  <div class="card span6"><h2>Proof before moving on</h2><div class="checks"><label class="check"><input type="checkbox"> proof file from original location</label><label class="check"><input type="checkbox"> target IP visible</label><label class="check"><input type="checkbox"> interactive shell</label><label class="check"><input type="checkbox"> flag submitted</label><label class="check"><input type="checkbox"> exact commands recorded</label><label class="check"><input type="checkbox"> exploit modifications saved</label></div></div>
+  <div class="card span12"><h2>Active placeholders</h2><div class="chips" id="placeholderChips"></div><p class="muted">Commands in the full reference are rendered with your local placeholder values. Password is session-only by default.</p></div>
+  <div class="card span7"><h2>⭐ Pinned Reference</h2><div id="favoriteList"><div class="muted">Pin useful search results and they stay here.</div></div></div>
+  <div class="card span5"><h2>Keyboard-first</h2><div class="shortcutGrid"><div class="shortcut"><b>Ctrl K</b><br>Search</div><div class="shortcut"><b>Alt 1</b><br>Start</div><div class="shortcut"><b>Alt M</b><br>Method</div><div class="shortcut"><b>Alt 2</b><br>Workspace</div><div class="shortcut"><b>Alt 3</b><br>Credentials</div><div class="shortcut"><b>Alt 4</b><br>Reports</div><div class="shortcut"><b>Alt 5</b><br>Reference</div><div class="shortcut"><b>Alt 6</b><br>Tools</div><div class="shortcut"><b>Alt W</b><br>Windows</div><div class="shortcut"><b>Alt P</b><br>High-Signal</div><div class="shortcut"><b>Alt K</b><br>Clock</div><div class="shortcut"><b>Alt Left</b><br>Back</div><div class="shortcut"><b>Alt Right</b><br>Forward</div></div></div>
+  <div class="card span12"><h2>🎯 Active Target</h2><div id="activeTargetSummary" class="muted">No active target. Add/select one in Workspace.</div></div>
+  <div class="card span7"><h2>↩ Resume Active Target</h2><div id="cockpitResume" class="muted">No active target.</div></div>
+  <div class="card span5"><h2>SOS Recovery</h2><div id="cockpitRecovery" class="muted">Autosnapshot status unavailable.</div><button class="btn" id="cockpitSnapshotNow" style="margin-top:8px">Create restore point</button></div>
+  <div class="card span7"><h2>🛡️ Command Guard</h2><div id="cockpitGuard" class="muted">Configure scope to enable command linting.</div><button class="btn" id="openGuard" style="margin-top:8px">Open guard →</button></div>
+  <div class="card span12"><h2>➜ Expert Attention Queue</h2><div id="cockpitAttention" class="muted">No active operator queue yet.</div><button class="btn primary" id="openOperator" style="margin-top:8px">Open Expert Operator →</button></div>
+  <div class="card span5"><h2>📊 Exam Board</h2><div id="cockpitScore" class="muted">No scoring configured.</div><button class="btn" id="openBoard" style="margin-top:8px">Open board →</button></div>
+ </div>
+</section>
+
+<section id="searchView" class="view"><div class="hero"><div><h1>Instant Search</h1><div class="muted">Title/tag matches rank above body-text matches. Press Ctrl+K anywhere.</div></div></div><div id="searchStats" class="muted" style="margin-bottom:10px"></div><div class="searchResults" id="searchResults"></div></section>
+
+<section id="targetsView" class="view"><div class="hero"><div><h1>Target State Tracker</h1><div class="muted">Progress persists in this browser via localStorage. Secrets persist only if you explicitly enable it.</div></div><div class="row"><button class="btn primary" id="addTarget">+ Target</button><button class="btn" id="exportTargets">Export JSON (no secrets)</button><label class="btn">Import JSON<input type="file" id="importTargets" accept="application/json" hidden></label></div></div><div class="targetList" id="targetList"></div></section>
+
+
+
+
+<section id="operatorView" class="view">
+ <div class="hero"><div><h1>Expert Operator Mode</h1><div class="muted">One screen for the exam: bank points, test credentials, validate strong hypotheses, close enumeration gaps, then rotate. Deterministic and offline.</div></div><div class="row"><select id="operatorTarget"></select><button class="btn" id="operatorOpenWorkspace">Workspace →</button></div></div>
+ <div class="operatorGrid">
+  <div class="card op12"><div class="phaseStrip" id="operatorPhases"></div></div>
+  <div class="card op8"><div class="row" style="justify-content:space-between"><h2>🚨 Attention Queue</h2><span id="attentionCount" class="chip"></span></div><div id="attentionQueue"></div></div>
+  <div class="card op4"><h2>★ Never-break methodology</h2><div id="operatorRules"></div></div>
+  <div class="card op7"><h2>🎯 Current target resume</h2><div id="operatorResume"></div><h2 style="margin-top:14px">High-signal facts</h2><div id="operatorSignals" class="highSignal"></div></div>
+  <div class="card op5"><h2>🏁 Box closure</h2><div id="operatorClosure" class="closure"></div><div id="closureAdvice" class="muted" style="margin-top:9px"></div></div>
+  
+  
+  <div class="card op7"><h2>⚠ Missed edges / contradictions</h2><div id="operatorSanity" class="muted"></div></div>
+  <div class="card op5"><h2>🕒 Knowledge freshness</h2><div id="operatorFreshness" class="muted"></div></div>
+  <div class="card op7"><h2>♻️ Revert / incident state</h2><div id="operatorReverts" class="muted"></div></div>
+  <div class="card op5"><h2>⏱️ Exam clock</h2><div id="operatorClock" class="muted">Not configured.</div></div>
+  <div class="card op7"><h2>⚗ Best current hypotheses</h2><div id="operatorHypotheses" class="muted"></div></div>
+  <div class="card op5"><h2>🅿️ Park / Continue Gate</h2><div id="operatorParkGate" class="parkGate"></div></div>
+  <div class="card op12"><h2>💰 Points at risk</h2><div id="operatorPointsRisk" class="pointsRisk"></div></div>
+  <div class="card op12"><h2>⏱️ Rotation / fatigue discipline</h2><div class="row"><label>Evidence clock <input id="expertRotation" type="number" min="20" max="120" value="30" style="width:70px"> min</label><label>Long-break reminder <input id="expertBreak" type="number" min="60" max="360" value="120" style="width:70px"> min</label><button class="btn" id="saveExpertPrefs">Save</button><span id="operatorClockNote" class="muted"></span></div><div class="operatorRule"><strong>Rotate because evidence stopped changing, not because a stopwatch beeped.</strong> Stay only when you can name the exact prerequisite you are validating next.</div><div class="operatorRule"><strong>After a root/SYSTEM:</strong> evidence → submit → notes → short break → next target. Do not keep “exploring” a solved machine.</div></div>
+ </div>
+</section>
+
+<section id="coverageView" class="view">
+ <div class="hero"><div><h1>Service Coverage Audit</h1><div class="muted">Compares every imported open service with your command journal and manual coverage checks. Nmap service names are recognized even on non-standard ports; truly unknown ports stay visible as explicit coverage debt.</div></div><div class="row"><select id="coverageTarget"></select><button class="btn" id="coverageOpenOperator">Expert Operator →</button></div></div>
+ <div id="coverageSummary" class="card"></div><div id="coverageBody"></div>
+</section>
+
+<section id="debtView" class="view">
+ <div class="hero"><div><h1>Credential Debt Queue</h1><div class="muted">Every discovered credential creates work. This view shows valid/new credentials that still have relevant untested services across your targets.</div></div><button class="btn" id="debtOpenMatrix">Open Credential Matrix →</button></div>
+ <div class="card"><div id="debtStats" class="journalStats"></div></div><div class="debtWrap"><table class="debtTable"><thead><tr><th>Priority</th><th>Credential</th><th>Destination</th><th>Service</th><th>Why</th><th>Action</th></tr></thead><tbody id="debtBody"></tbody></table></div>
+</section>
+
+
+<section id="hypothesisView" class="view">
+ <div class="hero"><div><h1>Hypothesis Workbench</h1><div class="muted">A finding is not a plan. Current evidence is turned into ranked hypotheses with prerequisites, kill conditions and one next validation step.</div></div><div class="row"><select id="hypTarget"></select><button class="btn" id="hypOpenOperator">Expert Operator →</button></div></div>
+ <div class="card"><div class="row" style="justify-content:space-between"><div><b>Rule:</b> one hypothesis earns time only while evidence is changing or one precise prerequisite remains.</div><button class="btn" id="refreshHypotheses">Recompute</button></div></div>
+ <div id="hypothesisBody" class="hypGrid"></div>
+</section>
+
+<section id="correlationView" class="view">
+ <div class="hero"><div><h1>Cross-Target Correlation</h1><div class="muted">Experienced operators do not treat machines as isolated islands. Correlate credentials, usernames, products, versions, subnets and access states across the exam.</div></div><button class="btn" id="corrOpenDebt">Credential Debt →</button></div>
+ <div class="card"><div id="correlationStats" class="pointsRisk"></div></div>
+ <div id="correlationBody" class="corrGrid" style="margin-top:12px"></div>
+</section>
+
+<section id="auditView" class="view">
+ <div class="hero"><div><h1>Report / Bankability Consistency Audit</h1><div class="muted">Before mentally counting points, check target state, evidence, report, journal and known target identities for contradictions.</div></div><div class="row"><select id="auditTarget"></select><button class="btn primary" id="auditOpenReport">Open Report →</button></div></div>
+ <div class="auditGrid">
+  <div class="card opsSpan4"><h2>Bankability</h2><div id="auditScore" class="bankScore">0%</div><div id="auditScoreText" class="muted"></div></div>
+  <div class="card opsSpan8"><h2>Points-at-risk summary</h2><div id="auditRiskSummary" class="pointsRisk"></div></div>
+  <div class="card opsSpan12"><h2>Consistency findings</h2><div id="auditIssues"></div></div>
+  <div class="card opsSpan12"><h2>Known identities</h2><div id="auditKnownTargets" class="targetStrip"></div></div>
+ </div>
+</section>
+
+
+<section id="sanityView" class="view">
+ <div class="hero"><div><h1>Missed-Edge / Contradiction Detector</h1><div class="muted">The detector compares ports, role, signals, credential state, hypotheses, path, evidence and scoring. It looks for state that an experienced operator would call “that doesn’t add up.”</div></div><div class="row"><select id="sanityTarget"></select><button class="btn" id="sanityOpenWorkspace">Workspace →</button></div></div>
+ <div class="card"><div id="sanityMetrics" class="regSummary"></div></div>
+ <div id="sanityBody" class="sanityGrid" style="margin-top:12px"></div>
+</section>
+
+<section id="regressionView" class="view">
+ <div class="hero"><div><h1>Decision Regression Suite</h1><div class="muted">A built-in test harness exercises the current decision functions against OSCP-style states. If a future edit breaks the methodology priorities, this screen should show it.</div></div><button class="btn primary" id="runRegression">Run all tests</button></div>
+ <div class="card"><div id="regressionSummary" class="regSummary"></div></div>
+ <div class="card" style="margin-top:12px;overflow:auto"><table class="regressionTable"><thead><tr><th>#</th><th>Scenario</th><th>Expectation</th><th>Observed</th><th>Result</th></tr></thead><tbody id="regressionBody"></tbody></table></div>
+</section>
+
+<section id="freshnessView" class="view">
+ <div class="hero"><div><h1>Freshness Watchdog</h1><div class="muted">Offline notes become dangerous when old information still looks authoritative. The watchdog tracks rule/tool-note age and tells you what must be rechecked before exam day.</div></div><button class="btn" id="freshnessMarkRules">I rechecked official rules today</button></div>
+ <div class="sanityGrid">
+  <div class="sanityCard"><h2>OffSec rule snapshot</h2><div id="rulesFreshness"></div></div>
+  <div class="sanityCard"><h2>Tool syntax snapshots</h2><div id="toolFreshness"></div></div><div class="sanityCard"><h2>Installed-version drift</h2><div id="freshCompatMini" class="muted">Import optional inventory JSON to compare installed versions.</div><button class="btn" id="freshOpenCompat" style="margin-top:8px">Tool Compatibility →</button></div>
+  <div class="card opsSpan12"><h2>Pre-exam readiness gate</h2><div id="preExamGate" class="preExam"></div><div id="preExamSummary" class="muted" style="margin-top:10px"></div></div>
+  <div class="card opsSpan12"><h2>Authoritative sources to re-check</h2><div class="muted">Keep these as plain references; this offline app does not connect to them.</div><pre>OffSec OSCP+ Exam Guide:
+https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide
+
+OffSec OSCP+ Exam FAQ:
+https://help.offsec.com/hc/en-us/articles/4412170923924-OSCP-Exam-FAQ</pre></div>
+ </div>
+</section>
+
+
+<section id="clockView" class="view">
+ <div class="hero"><div><h1>Exam Clock</h1><div class="muted">Local planning aid. The proctor/control-panel clock is authoritative.</div></div><button class="btn" id="clockNowStart">Use current time as start</button></div>
+ <div class="revertGrid">
+  <div class="card opsSpan4"><h2>Configure</h2><div class="field"><label>Exam start (local browser time)</label><input id="examStart" type="datetime-local"></div><div class="row"><button class="btn primary" id="saveExamClock">Save</button><button class="btn bad" id="clearExamClock">Clear</button></div><p class="tiny">Official attack window: 23h45m. Report upload window: another 24h.</p></div>
+  <div class="card opsSpan8"><div class="row" style="justify-content:space-around;text-align:center"><div><div id="attackCountdown" class="clockHuge">--:--:--</div><div class="clockLabel">attack window remaining</div></div><div><div id="reportCountdown" class="clockHuge">--:--:--</div><div class="clockLabel">report deadline remaining</div></div></div><div id="clockPhase" class="muted" style="margin-top:12px"></div></div>
+  <div class="card opsSpan12"><h2>Hard deadlines</h2><div id="clockDeadlines" class="subGate"></div></div>
+ </div>
+</section>
+
+<section id="revertView" class="view">
+ <div class="hero"><div><h1>Revert & Technical-Incident Ledger</h1><div class="muted">OffSec currently gives a 24-revert limit and allows that limit to be reset once. Reverting returns the machine to original state and destroys target-side changes.</div></div><button class="btn" id="exportIncidentLedger">Export ledger</button></div>
+ <div class="revertGrid">
+  <div class="revertMetric"><b id="revertUsed">0</b><span class="tiny">used in current 24-revert bank</span></div>
+  <div class="revertMetric"><b id="revertRemaining">24</b><span class="tiny">remaining in current bank</span></div>
+  <div class="revertMetric"><b id="revertResetState">available</b><span class="tiny">one limit reset</span></div>
+  <div class="revertMetric"><b id="incidentCount">0</b><span class="tiny">technical incidents logged</span></div>
+  <div class="card opsSpan6"><h2>Log machine revert</h2><div class="row"><select id="revertTarget"></select><select id="revertReason"><option>suspected target state issue</option><option>clean re-test</option><option>service/exploit stopped behaving</option><option>support/proctor requested</option><option>other</option></select></div><div class="field"><label>What must be re-established?</label><textarea id="revertRestoreNote" placeholder="foothold, tunnel, uploaded tools, target-side changes…"></textarea></div><label class="check"><input id="revertCheckpoint" type="checkbox" checked> Create secret-field-free restore point before logging</label><button class="btn bad" id="logRevert">Log revert</button><p class="tiny">This does not press OffSec's revert button. It records the action you perform in the control panel.</p></div>
+  <div class="card opsSpan6"><h2>One-time limit reset</h2><p class="muted">Only log this if you actually reset the revert limit in the OffSec control panel.</p><button class="btn" id="logRevertReset">Log limit reset</button></div>
+  <div class="card opsSpan6"><h2>Technical incident</h2><div class="row"><select id="incidentTarget"></select><input id="incidentSymptom" placeholder="symptom / error"></div><div class="field"><label>Actions / support contact</label><textarea id="incidentActions" placeholder="known-good path, retry, revert, proctor/support contact…"></textarea></div><div class="row"><label class="check"><input id="incidentProctor"> Proctor/support contacted</label><button class="btn primary" id="logIncident">Log incident</button></div></div>
+  <div class="card opsSpan6"><h2>Post-revert re-establish queue</h2><div id="reestablishQueue" class="muted">None.</div></div>
+  <div class="card opsSpan12"><h2>Ledger</h2><div id="incidentLedger" class="ledger"></div></div>
+ </div>
+</section>
+
+<section id="submissionView" class="view">
+ <div class="hero"><div><h1>Final Report Submission Gate</h1><div class="muted">Mechanical final checks for the reporting phase.</div></div><button class="btn" id="subReset">Reset checklist</button></div>
+ <div class="revertGrid">
+  <div class="card opsSpan5"><h2>Identity / filenames</h2><div class="field"><label>OSID</label><input id="subOsid" placeholder="OS-XXXXX"></div><div id="expectedNames" class="unicodeDiff"></div><div class="field"><label>Final PDF</label><input id="subPdf" type="file" accept=".pdf,application/pdf"></div><div id="subPdfResult"></div><div class="field"><label>Final .7z</label><input id="subArchive" type="file" accept=".7z,application/x-7z-compressed"></div><div id="subArchiveResult"></div></div>
+  <div class="card opsSpan7"><h2>Submission checklist</h2><div id="submissionChecklist" class="subGate"></div><div id="submissionSummary" style="margin-top:12px"></div></div>
+  <div class="card opsSpan12"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Deterministic final submission check</h2><p class="muted">Use the exact case-sensitive OffSec filename format. The archive must contain only the final PDF, must not be password-protected, and must be ≤ 200 MB.</p></div><button class="btn" id="copySubmissionCommands" type="button">Copy final commands</button></div><pre id="submissionCommands">7z a OSCP-OS-XXXXX-Exam-Report.7z OSCP-OS-XXXXX-Exam-Report.pdf
+7z l OSCP-OS-XXXXX-Exam-Report.7z
+md5sum OSCP-OS-XXXXX-Exam-Report.7z
+# Upload from Kali → compare the upload-site MD5 → click Submit File → confirm acknowledgement email</pre></div>
+ </div>
+</section>
+
+<section id="compatView" class="view">
+ <div class="hero"><div><h1>Tool Compatibility & Fallback Ladders</h1><div class="muted">Compare optional imported Kali tool inventory with the embedded verified snapshot. Version drift means re-check local help/syntax, not automatically downgrade.</div></div><button class="btn" id="compatOpenSession">Import inventory →</button></div>
+ <div class="card"><h2>Installed vs embedded reference</h2><div style="overflow:auto"><table class="compatTable"><thead><tr><th>Tool</th><th>Reference</th><th>Installed</th><th>Status</th><th>Notes</th></tr></thead><tbody id="compatBody"></tbody></table></div></div>
+ <div class="card" style="margin-top:12px"><h2>Same hypothesis, alternate implementation</h2><p class="muted">If evidence is strong but one tool fails, try one alternate implementation/manual validation before killing the hypothesis.</p><div id="fallbackLadders" class="fallbackGrid"></div></div>
+</section>
+
+<section id="toolArsenalView" class="view">
+ <div class="hero"><div><h1>Best OSCP Tools</h1><div class="muted">The recommended set is shown first. Use the smallest tool that answers the current question; open the full arsenal only when the core set is insufficient.</div></div><div class="chips"><span class="chip">28 RECOMMENDED</span><span class="chip">OFFLINE</span><span class="chip">Alt 6</span></div></div>
+ <div class="card" style="margin-bottom:12px"><h2>Rule gate before syntax</h2><div class="row"><span class="v16Tier v16Core">CORE</span><span>normal manual use</span><span class="v16Tier v16Conditional">CONDITIONAL</span><span>only with evidence/prerequisites</span><span class="v16Tier v16Sensitive">RULE-SENSITIVE</span><span>verify the exact action</span></div><p class="muted">A listed tool is not blanket approval of every feature. Do not use automatic exploitation, mass vulnerability scanning, spoofing/poisoning, prohibited commercial tooling, AI/LLM assistance, or Metasploit outside its current one-target restriction. Re-check the official guide immediately before the exam.</p></div>
+ <div class="card">
+  <div class="toolFilters"><input id="toolSearch" placeholder="Search tool, trigger, command, fallback…" autocomplete="off"><select id="toolScope"><option value="best">Recommended tools</option><option value="all">Full exam-reference arsenal</option></select><select id="toolCategory"><option value="all">All categories</option></select><select id="toolTier"><option value="all">All trust tiers</option><option value="core">Core</option><option value="conditional">Conditional</option><option value="sensitive">Rule-sensitive</option><option value="last">Last resort</option></select><button class="btn" id="toolReset">Reset</button></div>
+  <div class="row" style="justify-content:space-between;margin-top:10px"><div id="toolCount" class="toolCount"></div><div class="tiny">Copy buttons use the same Unicode-safe clipboard helper as the command builder.</div></div>
+ </div>
+ <div id="toolGrid" class="toolGrid"></div>
+</section>
+
+
+<section id="v16HighSignalView" class="view">
+ <div class="hero"><div><h1>High-Signal Knowledge Engine</h1><div class="muted">The goal is not more commands. The goal is to surface the next evidence-producing action and suppress version-only rabbit holes.</div></div><div class="chips"><span class="chip">EXAM MODE</span><span class="chip">HIGH SIGNAL</span><span class="chip">OFFLINE</span><span class="chip">NO AI</span></div></div>
+ <div class="card" style="margin-bottom:12px"><h2>Trust tiers</h2><div class="row"><span class="v16Tier v16Core">✓ CORE</span><span class="v16Tier v16Conditional">● CONDITIONAL</span><span class="v16Tier v16Sensitive">△ RULE-SENSITIVE</span><span class="v16Tier v16Legacy">◇ LEGACY</span><span class="v16Tier v16Last">! LAST RESORT</span></div><p class="muted">A CVE/tool does not become high priority because it is famous or new. Exact access context + prerequisite + reliable next test determine priority.</p></div>
+ <div class="v16SignalGrid">
+  <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>First 10 minutes</h3><pre>anonymous/default access
+→ hostname/vhost/service role
+→ source/config/backup/secrets
+→ credentials + focused service validation
+→ confirmed primitive
+→ exact build/package + prerequisites
+→ safe validation
+→ exploit</pre><button class="btn v16Jump" onclick="openRef('ref-7-1-quick-win-priority-checklist')">Open methodology →</button></div>
+  <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>CVE context gate</h3><pre>ACCESS: LOCAL / REMOTE
+AUTH / PRIV required?
+EXACT build/package?
+CONFIG / module?
+TRIGGER?
+PATCH BACKPORT?
+PoC reliability?
+CRASH risk?</pre><button class="btn v16Jump" onclick="openRef('ref-5-y-v16-cve-context-card')">Open CVE gate →</button></div>
+  <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>Exact Linux package revision</h3><pre>dpkg-query / apt-cache policy
+rpm -q --qf
+uname -r
+vendor security tracker
+Do not trust upstream-looking version alone.</pre><button class="btn v16Jump" onclick="openRef('ref-5-z-v16-package-revision-cheatsheet')">Open commands →</button></div>
+  <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>Modern Impacket 0.13 AD helpers</h3><pre>dacledit
+owneredit
+GetLAPSPassword
+GetADComputers
+rbcd / ldapshell
+badsuccessor: search first</pre><button class="btn v16Jump" onclick="openRef('ref-9-6a-v16-impacket-013-ad-helpers')">Open AD helpers →</button></div>
+  <div class="v16SignalCard"><span class="v16Tier v16Conditional">● CONDITIONAL</span><h3>AD CS fast matrix + Certighost</h3><pre>ESC1/4/8/13/15/16/17
+→ exact permission/config
+Certighost
+→ Enterprise CA + Machine enrollment
+→ controlled machine principal
+→ CA can reach controlled host 445/389</pre><button class="btn v16Jump" onclick="openRef('ref-9-7a-v16-adcs-fast-matrix')">Open AD CS matrix →</button></div>
+  <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>Exposed .git → source-assisted path</h3><pre>/.git/HEAD
+→ recover repository
+→ git log --all
+→ inspect deleted/old files
+→ secrets/config/routes
+→ source-assisted validation</pre><button class="btn v16Jump" onclick="openRef('ref-6-1a-v16-exposed-git-recovery')">Open .git workflow →</button></div>
+  <div class="v16SignalCard"><span class="v16Tier v16Conditional">● CONDITIONAL</span><h3>High-yield Linux LPE pack</h3><pre>CVE-2025-32463 sudo chroot
+CVE-2025-32462 sudo host
+needrestart 2024 family
+CVE-2023-4911 glibc
+CVE-2025-6018/6019 PAM→udisks
+CVE-2024-6387 remote SSH = LAST RESORT</pre><button class="btn v16Jump" onclick="openRef('ref-12-2a-v16-high-yield-linux-lpe-pack')">Open LPE pack →</button></div>
+  <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>Public exploit intake</h3><pre>preserve original
+→ hash it
+→ make working copy
+→ record source URL
+→ inspect destructive ops
+→ modify minimally
+→ keep diff for report</pre><p class="tiny">No external helper is shipped: preserve the original, edit a working copy, and save a local diff.</p><button class="btn v16Jump" onclick="openRef('ref-5-w-v16-public-exploit-intake')">Open workflow →</button></div>
+  <div class="v16SignalCard"><span class="v16Tier v16Sensitive">△ RULE-SENSITIVE</span><h3>Destructive / fragile action guard</h3><pre>reboot / shutdown
+service stop/delete
+mkfs / disk writes
+kernel/driver exploit
+state-changing AD abuse
+→ checkpoint + rollback + prerequisite first</pre><p class="tiny">Command Guard adds explicit stability/destructive warnings.</p></div>
+
+  <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>Windows post-shell workflow</h3><pre>baseline → filesystem triage
+→ PrivEscCheck / WinPEAS (SAVE + READ)
+→ credentials → privileges
+→ services/tasks/registry
+→ local-only listeners/apps
+→ re-enumerate after new identity
+→ kernel/CVE LAST</pre><button class="btn" onclick="switchView('windowsStrategyView')">Open Windows Strategy →</button></div>
+ </div>
+</section>
+
+
+<section id="serviceRouterView" class="view">
+ <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V30</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
+ <div class="grid">
+  <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Strict port list or scan output</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445&#10;53/udp,161/udp,445/tcp&#10;or paste Nmap / grepable / XML / Masscan output"></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy queue</button><button class="btn" id="serviceRouterLoadTarget" type="button">Load active target</button><button class="btn" id="serviceRouterSaveTarget" type="button">Save to active target</button></div><div id="serviceParseSummary" class="serviceParseSummary muted">Parser waits for a strict port list or recognized scan format.</div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
+  <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
+  <div class="card span5"><h2>3 · 70-point runway</h2><div class="scoreRunway"><label>AD set<select id="scoreAD"><option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="40">40</option></select></label><label>Standalone 1<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 2<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 3<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label></div><div id="scoreSummary" class="scoreSummary warn"></div><p class="tiny">Planning aid only. The Exam Control Panel is authoritative for the exact objectives and points on your attempt.</p></div>
+  <div class="card span12"><h2>Failure-proof loop</h2><div class="pointRail"><span>1. Read the exact error</span><span>2. Re-prove reachability</span><span>3. Re-prove identity/auth format</span><span>4. Use one manual/native truth check</span><span>5. Try one justified alternate</span><span>6. Record result and rotate</span></div><p class="muted">Examples: SMB tool says login failed → validate domain vs local scope and try <code>smbclient</code> or native auth once. HTTP scanner finds nothing → inspect redirects, vhost, source, methods and content manually. LDAP tool errors → verify DNS/FQDN, bind identity and time before changing tools.</p></div>
+  <div class="card span12 outputTruthCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Tool output is evidence</h2><div class="muted">Recent pass reports repeatedly mention lost time from not reading the actual output. Before changing tools, preserve the exact line and classify what failed.</div></div><span class="chip">READ → CLASSIFY → ACT</span></div><div class="outputTruthGrid"><div><b>Scan not structured yet?</b><p>Import Nmap XML/text once and let the target workspace keep the service state.</p><button class="btn" type="button" onclick="switchView('intakeView')">Open Scan Intake →</button></div><div><b>Command/tool produced an error?</b><p>Paste the exact output into the deterministic analyzer before assuming the credential, exploit or service is wrong.</p><button class="btn primary" type="button" onclick="switchView('analyzerView')">Open Output Analyzer →</button></div><div><b>Need the service notes?</b><p>Use the generated service/phase index instead of scrolling the reference or changing wordlists/tools.</p><button class="btn" type="button" id="serviceIndexOpen">Open Service Index →</button></div></div></div>
+ </div>
+</section>
+
+
+<section id="methodTreesView" class="view">
+ <div class="hero methodTreeHero"><div><h1>Windows / Linux / AD Method Trees <span class="chip">V21</span></h1><div class="muted">Fast branch logic for Linux post-shell, Windows post-shell, and domain-credential to domain-control workflow. Read top-to-bottom, take one proven branch, then re-enumerate.</div></div><div class="chips"><span class="chip">ALT+Y</span><span class="chip">OFFLINE</span><span class="chip">TREE FLOW</span><span class="chip">ROTATE WHEN STUCK</span></div></div>
+ <div class="grid">
+  <div class="card span12 methodTreeIntro"><b>How to use these trees:</b> do not follow every branch. Start at the top, answer the question with evidence, take only the matching branch, and stop as soon as one branch gives a stronger next step than the others. Every new shell, user, token, route, ticket or credential means <b>re-enumerate again</b>.</div>
+  <div class="span12 methodTreeGrid">
+   <div class="methodTreeCard">
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><h2>Linux methodology tree</h2><span class="chip">post-shell to root</span></div>
+    <div class="treeMeta"><span class="chip">shell baseline</span><span class="chip">sudo / suid / caps</span><span class="chip">cron / systemd</span><span class="chip">secrets / services</span></div>
+<pre class="treePre">[LINUX FLOW]
+Start
+└─► Got a shell?
+    ├─ No
+    │   ├─ Service-first enum → web / files / creds / source / config
+    │   ├─ SSH creds or key? → prove with ssh -vvv
+    │   └─ Rotate if no new evidence
+    └─ Yes
+        ├─ Baseline now
+        │   ├─ whoami ; id ; hostname ; uname -a
+        │   ├─ ip a ; ss -lntup ; ps aux --forest
+        │   ├─ pwd ; env ; history ; sudo -l
+        │   └─ save loot + note writable paths
+        ├─ Already root?
+        │   ├─ Yes → proof + secrets + internal routes + re-enum services
+        │   └─ No
+        ├─ Credential branch
+        │   ├─ keys / .env / configs / backups / history / DB creds
+        │   └─ try one justified reuse path
+        ├─ Permission branch
+        │   ├─ sudo -l → direct command / env / editor / pager escape
+        │   ├─ SUID → known GTFOBin or custom binary analysis
+        │   ├─ capabilities → getcap -r / 2>/dev/null
+        │   └─ groups → docker / lxd / disk / shadow / adm / journal
+        ├─ Execution branch
+        │   ├─ cron / timers / anacron
+        │   ├─ systemd service / timer / env file
+        │   ├─ internal services / local-only apps / sockets
+        │   └─ writable root-called scripts / files / mounts
+        ├─ Kernel / host branch
+        │   ├─ container / namespace / breakout clues?
+        │   └─ kernel only after userland paths look weak
+        └─ After each win
+            ├─ re-run id / sudo -l / listeners / secrets
+            └─ proof screenshot from original path</pre>
+    <ul class="treeList"><li>Prioritize <b>sudo</b>, <b>custom SUID</b>, <b>capabilities</b>, <b>cron/systemd</b>, credential reuse and internal services before kernel exploits.</li><li>If a route requires a write, prove the writable object, trigger and effective user first.</li><li>Search with <code>[LINUX:SUID]</code>, <code>[LINUX:CAPS]</code>, <code>[LINUX:CRON]</code> or <code>ref-c4</code>.</li></ul>
+    <div class="treeActions"><button class="btn" onclick="openRef('ref-c4-i-have-a-linux-shell-what-now')">Linux deep reference →</button><button class="btn" onclick="switchView('referenceView')">Full notes →</button></div>
+   </div>
+
+   <div class="methodTreeCard">
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><h2>Windows methodology tree</h2><span class="chip">post-shell to admin/SYSTEM</span></div>
+    <div class="treeMeta"><span class="chip">whoami /all first</span><span class="chip">token vs admin</span><span class="chip">services / tasks</span><span class="chip">secrets / software</span></div>
+<pre class="treePre">[WINDOWS FLOW]
+Start
+└─► Only creds, not shell?
+    ├─ Prove auth on one host
+    │   ├─ SMB / WinRM / RDP / MSSQL in exact local-vs-domain scope
+    │   └─ auth ≠ admin ≠ command execution ≠ interactive shell
+    └─ Got a shell
+        ├─ Baseline
+        │   ├─ whoami /all
+        │   ├─ hostname &amp; ipconfig /all
+        │   ├─ systeminfo ; tasklist /svc ; netstat -ano
+        │   └─ services / tasks / installed software
+        ├─ Already admin or SYSTEM?
+        │   ├─ Yes → proof + secrets + routes + local creds
+        │   └─ No
+        ├─ Token / privilege branch
+        │   ├─ SeImpersonate / SeAssignPrimaryToken?
+        │   ├─ SeBackup / SeRestore / SeTakeOwnership / SeLoadDriver?
+        │   └─ prove exact primitive and trigger, not privilege name only
+        ├─ Secret branch
+        │   ├─ unattended / sysprep / autologon / configs / source / DB strings
+        │   └─ can a secret become runas / WinRM / SMB / RDP / MSSQL?
+        ├─ Service / task branch
+        │   ├─ unquoted path / weak service perms / writable binary/config?
+        │   ├─ writable scheduled-task action/script?
+        │   └─ confirm trigger and execution identity
+        ├─ Software / filesystem
+        │   ├─ AlwaysInstallElevated?
+        │   ├─ writable app dirs / DLL search order / PATH issues?
+        │   └─ internal listeners or local apps?
+        ├─ Access branch
+        │   ├─ local admin? → prove with one remote/admin action
+        │   └─ dump only when rights are proven
+        ├─ Domain-aware branch
+        │   ├─ cached creds / tickets / group membership?
+        │   └─ if domain path strengthens → switch to AD tree
+        └─ After each win
+            ├─ re-run whoami /all + access validation
+            └─ proof screenshot from original path</pre>
+    <ul class="treeList"><li>Keep <b>authentication</b>, <b>admin</b>, <b>code execution</b> and <b>interactive shell</b> as separate facts.</li><li><b>SeImpersonate</b> matters only when token context and a compatible trigger are real.</li><li>Search with <code>[WIN:SEIMPERSONATE]</code>, <code>[WIN:SERVICE]</code>, <code>[WIN:TASKS]</code> or <code>ref-c5</code>.</li></ul>
+    <div class="treeActions"><button class="btn primary" onclick="switchView('windowsStrategyView')">Windows exam desk →</button><button class="btn" onclick="openRef('ref-c5-i-have-a-windows-shell-what-now')">Windows deep reference →</button></div>
+   </div>
+
+   <div class="methodTreeCard">
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><h2>AD methodology tree</h2><span class="chip">domain creds to domain progress</span></div>
+    <div class="treeMeta"><span class="chip">DNS/time first</span><span class="chip">BloodHound / Certipy</span><span class="chip">edge execution</span><span class="chip">re-collect after change</span></div>
+<pre class="treePre">[ACTIVE DIRECTORY FLOW]
+Start
+└─► What do you have?
+    ├─ No creds
+    │   ├─ names / emails / docs / SMB shares / web leaks
+    │   ├─ AS-REP only after usernames exist
+    │   └─ one credential or foothold starts the tree
+    └─ Have domain context or creds
+        ├─ Establish context
+        │   ├─ DOMAIN / DC / DC_IP / BASE_DN / FQDN
+        │   ├─ DNS works? time close? key ports open?
+        │   └─ correct bind scope/format?
+        ├─ Prove authentication
+        │   ├─ SMB + LDAP
+        │   └─ one manual/native truth check if wrapper disagrees
+        ├─ Identity expansion
+        │   ├─ shares / SYSVOL / NETLOGON / users / groups / computers
+        │   ├─ usernames → AS-REP where justified
+        │   ├─ SPNs → Kerberoast
+        │   └─ docs/config/GPP/secrets may give stronger creds
+        ├─ Graph environment
+        │   ├─ BloodHound CE
+        │   ├─ Certipy
+        │   └─ classify best edge:
+        │       ├─ credential path
+        │       ├─ ACL path
+        │       ├─ delegation path
+        │       └─ AD CS path
+        ├─ Execute one edge safely
+        │   ├─ exact source principal + target object + permission
+        │   ├─ prove read-only prerequisite
+        │   ├─ minimum change
+        │   ├─ validate resulting identity/access
+        │   └─ record rollback for mutations
+        ├─ Outcome
+        │   ├─ local admin? → shell host → re-enumerate host + domain
+        │   ├─ new user/hash/ticket/cert? → re-auth + re-collect
+        │   ├─ DA/DC path? → objective proof carefully
+        │   └─ weak edge? → rotate to shares/creds/member servers/web
+        └─ After every material change
+            ├─ re-collect graph/cert/rights
+            └─ re-check protocols with new identity</pre>
+    <ul class="treeList"><li>Do not mistake DNS/time/bind-format failures for bad credentials.</li><li>Do not treat a BloodHound edge label as an already-exploited path; prove prerequisites first.</li><li>Search with <code>[AD:KERBEROS]</code>, <code>[AD:BLOODHOUND]</code>, <code>[AD:ACL]</code>, <code>[AD:ADCS]</code> or <code>ref-c6</code>.</li></ul>
+    <div class="treeActions"><button class="btn primary" onclick="switchView('windowsStrategyView')">AD / Windows desk →</button><button class="btn" onclick="openRef('ref-c6-i-have-domain-credentials-what-now')">AD deep reference →</button></div>
+   </div>
+  </div>
+  <div class="span12 treeLegend">
+   <div class="card"><b>When stuck on Linux</b><div class="muted">Did I finish sudo, custom SUID/caps, cron/systemd, secrets, internal services and writable root-called files before kernel exploit?</div></div>
+   <div class="card"><b>When stuck on Windows</b><div class="muted">Am I confusing login with admin or shell? Did I read whoami /all, service/task permissions, secrets and software paths?</div></div>
+   <div class="card"><b>When stuck in AD</b><div class="muted">Is this DNS/time/bind format, or a real negative result? Is there a better identity, ticket, certificate, share or member-server route?</div></div>
+  </div>
+ </div>
+</section>
+
+<section id="windowsStrategyView" class="view">
+
+<div class="card" id="v20AdFallbackToolbox" style="margin-bottom:14px;border-color:#355a78">
+  <div class="row" style="justify-content:space-between;align-items:flex-start">
+    <div><h2>AD / Windows Fallback Toolbox</h2><div class="muted">Use only when the core path cannot answer the current question. Native/manual proof first; one alternate implementation second.</div></div>
+    <span class="chip">RULE-AWARE · SEARCHABLE</span>
+  </div>
+  <div class="simpleDecisionGrid" style="margin-top:12px">
+    <div class="decisionRow"><h3>RunasCs</h3><div>Known password → run one harmless command as that local/domain identity → <code>whoami /all</code> → prove actual capability.</div><pre>.\\RunasCs.exe $AUTH_USER '$AUTH_PASS' "cmd /c whoami /all" -d $DOMAIN</pre></div>
+    <div class="decisionRow"><h3>SharpView</h3><div>PowerView unavailable/blocked → use one exact C# PowerView-style query; do not duplicate a full BloodHound/PowerView pass.</div><pre>.\\SharpView.exe Get-DomainController -Domain domain.local -Server dc.domain.local</pre></div>
+    <div class="decisionRow"><h3>windapsearch</h3><div>Focused LDAP fallback for users, groups, computers and SPNs.</div><pre>python3 windapsearch.py --dc-ip "$DC_IP" -u "$USER@$DOMAIN" -p "$PASS" -U\npython3 windapsearch.py --dc-ip "$DC_IP" -u "$USER@$DOMAIN" -p "$PASS" --user-spns</pre></div>
+    <div class="decisionRow"><h3>Certify</h3><div>Windows-side AD CS fallback; Certipy remains the primary Kali path.</div><pre>.\\Certify.exe enum-templates --filter-enabled --filter-vulnerable --current-user</pre></div>
+    <div class="decisionRow"><h3>sshuttle</h3><div>SSH foothold + one known internal subnet → routed fallback when it is simpler than creating another tunnel.</div><pre>sudo sshuttle -r "$SSH_USER@$PIVOT" 10.10.20.0/24</pre></div>
+    <div class="decisionRow"><h3>Native first</h3><div><code>whoami /all</code> · <code>net user /domain</code> · <code>net group "Domain Admins" /domain</code> · <code>nltest /domain_trusts</code> · <code>klist</code> · <code>dsquery</code> if installed.</div></div>
+  </div>
+  <details style="margin-top:12px"><summary><b>Rule-sensitive / secondary names</b></summary>
+    <p><b>Empire / Covenant:</b> currently listed by OffSec as allowed examples, but any feature performing a restricted action is still prohibited. Use only for a specific justified function, not blind automation.</p>
+    <p><b>PowerSploit:</b> PowerView and PowerUp are already covered; prefer the individual module you need.</p>
+    <p><b>Responder / Inveigh:</b> <strong style="color:var(--bad)">DO NOT use LLMNR/NBNS/mDNS poisoning or spoofing in the OSCP exam.</strong> Keep these names searchable as a rule reminder, not an attack recipe.</p>
+    <p><b>ADPEEAS / PingCastle:</b> secondary audit helpers only. Their findings are leads; manually prove the exact edge/permission before acting.</p>
+  </details>
+</div>
+
+ <div class="hero"><div><h1>Windows / Active Directory Exam Desk</h1><div class="muted">Issued-domain-credential path, failure diagnosis, then a repeatable Windows post-shell workflow. The order and validation gates matter more than running more tools.</div></div><div class="row"><select id="winStrategyTarget"></select><button class="btn" id="winStrategyOpenRef">Full Windows reference →</button><button class="btn bad" id="winStrategyReset">Reset target checklist</button></div></div>
+ <div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Issued domain credential — first 10 minutes</h2><div class="muted">Run in order, stop when a stronger signal appears, and save output. These are Kali-side commands for an issued, in-scope account—not a spray. Progress is stored per selected target.</div></div><div class="row"><span id="adFastDone" class="adEdgeRisk low">0/4</span><button class="btn" id="adFastReset" type="button">Reset four steps</button><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">Full decision card →</button></div></div>
+  <div class="adFastGrid">
+   <div class="adFastStep" data-step="context"><div class="row" style="justify-content:space-between"><label><input class="adFastCheck" data-step="context" type="checkbox"> <b>1 · Context, DNS, time, ports</b></label><button class="btn adFastCopy">Copy</button></div><pre>export DOMAIN='domain.local'
+export DC='dc01.domain.local'
+export DC_IP='10.10.10.10'
+export BASE_DN='DC=domain,DC=local'
+export AUTH_USER='issued.user'
+export AUTH_PASS='issued-password'
+getent hosts "$DC"
+dig @"$DC_IP" _ldap._tcp.dc._msdcs."$DOMAIN" SRV +short
+sudo ntpdate -q "$DC_IP" 2&gt;/dev/null || date -u
+nmap -Pn -n -p 53,88,135,139,389,445,464,593,636,3268,3269,3389,5985,5986 "$DC_IP" -oA ad-baseline</pre></div>
+   <div class="adFastStep" data-step="auth"><div class="row" style="justify-content:space-between"><label><input class="adFastCheck" data-step="auth" type="checkbox"> <b>2 · Prove authentication</b></label><button class="btn adFastCopy">Copy</button></div><pre>nxc smb "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+smbclient -L "//$DC_IP/" -U "$DOMAIN/$AUTH_USER"
+# Local account only: omit -d and use --local-auth.
+# Domain account: DOMAIN/user, user@domain, or -d DOMAIN.</pre></div>
+   <div class="adFastStep" data-step="visibility"><div class="row" style="justify-content:space-between"><label><input class="adFastCheck" data-step="visibility" type="checkbox"> <b>3 · Visibility and Kerberos</b></label><button class="btn adFastCopy">Copy</button></div><pre>nxc smb "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --shares
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --users
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --groups
+impacket-GetUserSPNs "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP" -request -outputfile kerberoast.txt  # password prompt; safe if password contains @/:
+# After saving confirmed usernames:
+impacket-GetNPUsers "$DOMAIN/" -dc-ip "$DC_IP" -request -no-pass -usersfile users.txt -outputfile asrep.txt</pre></div>
+   <div class="adFastStep" data-step="graph"><div class="row" style="justify-content:space-between"><label><input class="adFastCheck" data-step="graph" type="checkbox"> <b>4 · Graph and certificates</b></label><button class="btn adFastCopy">Copy</button></div><pre>bloodhound-ce-python -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -dc "$DC" -ns "$DC_IP" -c All --zip
+certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -vulnerable -stdout
+# Inspect current-principal outgoing control first.
+# Re-collect after every new identity or material change.</pre></div>
+  </div>
+ </div>
+ <div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>AD ten-case sanity map — exam-safe</h2><div class="muted">Recognition map, not a list to run blindly. Current evidence and exact prerequisites choose the next action; rule-sensitive techniques stay blocked or gated.</div></div><button class="btn" onclick="openRef('ref-9-0b-ad-ten-case-sanity-map')">Full map →</button></div><div class="adQuickChain"><b>Practical chain:</b> context/DNS/time → issued identity → roast/visibility → graph → exact edge → usable access → local privesc/credential discovery → re-collect → domain objective → evidence.</div><div class="adQuickMap">
+  <div class="adQuickItem"><span class="adQuickBadge block">BLOCKED ACTION</span><b>1 · LLMNR / NBT-NS poisoning</b><div class="tiny">Do not poison/spoof. Responder analyze mode or passive capture only.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-9-3-responder-analyze-mode-only')">Rule-safe reference →</button></div>
+  <div class="adQuickItem"><span class="adQuickBadge guard">GUARDED</span><b>2 · Password spraying</b><div class="tiny">Policy first; evidence-derived tiny set. Prefer one-host credential reuse and Credential Debt.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-8-password-attacks-credential-abuse')">Credential guard →</button></div>
+  <div class="adQuickItem"><span class="adQuickBadge core">CORE</span><b>3 · Kerberoasting</b><div class="tiny">SPN/service-account evidence → request ticket → crack offline only if justified.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-9-4a-rubeus-material-router')">Kerberos / Rubeus →</button></div>
+  <div class="adQuickItem"><span class="adQuickBadge core">CORE</span><b>4 · AS-REP roasting</b><div class="tiny">Confirmed usernames; no-preauth is the prerequisite, not merely PREAUTH_REQUIRED.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-9-4a-rubeus-material-router')">Kerberos / Rubeus →</button></div>
+  <div class="adQuickItem"><span class="adQuickBadge guard">RULE-SENSITIVE</span><b>5 · NTLM relay / coercion</b><div class="tiny">Not a default OSCP path. Never combine with prohibited spoofing/poisoning; re-check current rules first.</div></div>
+  <div class="adQuickItem"><span class="adQuickBadge core">CORE</span><b>6 · Pass-the-Hash</b><div class="tiny">NTLM material + a protocol that supports it. Prove auth and authorization separately.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-9-6c-v19-credential-material-router')">Material router →</button></div>
+  <div class="adQuickItem"><span class="adQuickBadge core">CORE</span><b>7 · ACL / ACE abuse</b><div class="tiny">BloodHound outgoing control → read prerequisite → backup → minimum change → verify → rollback.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-9-7-acl-dacl-abuse')">ACL workflow →</button></div>
+  <div class="adQuickItem"><span class="adQuickBadge guard">CONDITIONAL</span><b>8 · DCSync</b><div class="tiny">Replication rights must be proven. Collect one required account first, not the whole domain by default.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-9-6-domain-compromise-final-steps')">Final-edge workflow →</button></div>
+  <div class="adQuickItem"><span class="adQuickBadge core">CORE / CONDITIONAL</span><b>9 · AD CS</b><div class="tiny">CA + enabled template + effective enrollment/control prerequisites; follow the exact ESC path.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-9-7-ad-cs-esc1-esc17-decision-tree')">AD CS workflow →</button></div>
+  <div class="adQuickItem"><span class="adQuickBadge last">LATE / OPTIONAL</span><b>10 · Golden Ticket</b><div class="tiny">Requires KRBTGT material + domain SID. Usually unnecessary once the exam objective is already achieved.</div><button class="btn adQuickOpen" type="button" onclick="openRef('ref-9-6-domain-compromise-final-steps')">Late-stage reference →</button></div>
+ </div></div>
+
+ <div class="card credentialRouter" id="rubeusRouterCard" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Rubeus Windows-side Kerberos router</h2><div class="muted">Choose the material/context you actually have. The router never stores a password, hash, ticket or key; copied plans keep placeholders until you substitute them at execution time.</div></div><span class="chip">WINDOWS KERBEROS · MATERIAL-FIRST</span></div><div class="credentialRouteControls"><select id="rubeusRouteSelect" aria-label="Rubeus material/context"></select><button class="btn" id="rubeusRouteCopy" type="button">Copy plan</button><button class="btn" id="rubeusRouteOpenRef" type="button">Full Rubeus router →</button></div><div id="rubeusRoutePlan" class="credentialRouteGrid" aria-live="polite"></div></div>
+ <div class="card credentialRouter" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Credential material → safest next proof</h2><div class="muted">Classify what you actually have, prove it on one justified host, then expand only from evidence. This selector stores the material type per target—never the password, hash, ticket or key.</div></div><span class="chip">MATERIAL-FIRST · VERIFY INSTALLED HELP</span></div><div class="credentialRouteControls"><select id="credentialRouteSelect" aria-label="Credential material type"></select><button class="btn" id="credentialRouteCopy" type="button">Copy plan</button><button class="btn" id="credentialRouteOpenRef" type="button">Full material matrix →</button></div><div id="credentialRoutePlan" class="credentialRouteGrid" aria-live="polite"></div></div>
+ <div class="card accessLadder" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Authentication → usable access ladder</h2><div class="muted">Record only what you proved for one principal on this target. A successful login is not automatically readable data, command execution, an interactive shell, or admin.</div></div><span class="chip">ONE TARGET · ONE PRINCIPAL</span></div><div class="accessLadderControls"><input id="accessLadderPrincipal" maxlength="120" autocomplete="off" placeholder="Principal label only, e.g. CORP\\alice (never the secret)" aria-label="Current principal label"><button class="btn primary" id="accessLadderCopy" type="button">Copy safest next proof</button><button class="btn" id="accessLadderReset" type="button">Reset outcomes</button></div><div id="accessLadderSummary" class="accessLadderSummary" aria-live="polite">Select an exam target and record the principal label.</div><div id="accessLadderRows" class="accessLadderRows"></div><div class="accessLegend"><span>Transport ≠ authentication</span><span><code>[+]</code> ≠ admin</span><span>Command execution ≠ interactive proof shell</span><span>Revalidate after revert</span></div></div>
+ <div class="opsGrid" style="margin-bottom:12px">
+  <div class="card opsSpan6"><h2>Before executing a graph edge</h2><ol class="adEdgeGate"><li>Name the exact <b>source principal</b> you control.</li><li>Name the exact <b>target object</b> and permission/relationship.</li><li>Identify the required host, protocol, session and token context.</li><li>Prove prerequisites with a read/query before a write.</li><li>Record current state, backup and exact rollback for any mutation.</li><li>Perform the minimum change; validate the resulting identity/access.</li><li>Re-enumerate and re-collect—do not assume the graph updated.</li></ol><div class="winStrategyGate"><b>Context reset:</b> every new shell, remote protocol or logon method can produce a different token, group set, profile, network reachability and credential visibility. Run <code>whoami /all</code> and the relevant baseline again.</div></div>
+  <div class="card opsSpan6"><h2>AD / Windows failure decoder</h2><div class="muted">Paste the exact error or NetExec line. This offline matcher does not send or execute anything.</div><div class="field" style="margin-top:8px"><label for="adFailureInput">Tool output / error</label><textarea id="adFailureInput" spellcheck="false" style="min-height:155px" placeholder="Examples: KRB_AP_ERR_SKEW, STATUS_LOGON_FAILURE, STATUS_BAD_NETWORK_NAME, Pwn3d!, WinRMAuthorizationError…"></textarea></div><div class="row"><button class="btn primary" id="adFailureAnalyze">Classify</button><button class="btn" id="adFailureClear">Clear</button></div><div id="adFailureResult" class="adDecoderResult" aria-live="polite"><span class="adLane">WAITING</span><div>Paste the exact line; classify the failure before changing tools or credentials.</div></div></div>
+ </div>
+ <div class="card usernameGenCard" id="adUsernameGeneratorCard" style="margin-bottom:12px">
+  <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>AD username candidate generator</h2><div class="muted">Offline only. Paste real names recovered from in-scope pages, documents, email addresses, RPC/LDAP, or issued context; generate a small username hypothesis list, then validate usernames separately. Nothing here performs password testing or a network request.</div></div><span class="chip">OFFLINE · EVIDENCE-DERIVED · USERENUM ONLY</span></div>
+  <div class="usernameGenLayout">
+   <div>
+    <div class="field"><label>Evidence-derived real names — one per line</label><textarea id="adUsernameNames" autocomplete="off" spellcheck="false" placeholder="John Smith&#10;Smith, Alice&#10;José O'Neil"></textarea></div>
+    <div class="tiny">Supports <code>First Last</code> and <code>Last, First</code>. Titles/suffixes are ignored; accents/apostrophes/hyphens are normalized for candidate generation. Names are not stored by this feature.</div>
+    <div class="row" style="margin-top:8px"><label class="check"><input id="adUsernameClamp20" type="checkbox" checked> Clamp each candidate to 20 chars for a sAMAccountName hypothesis</label><button class="btn" id="adUsernameCore" type="button">Core patterns</button><button class="btn" id="adUsernameAll" type="button">All common patterns</button></div>
+    <div id="adUsernamePatterns" class="usernamePatternGrid" aria-label="Username pattern selection"></div>
+    <details><summary><b>Infer convention from one observed account</b></summary><div class="usernameInferGrid" style="margin-top:8px"><div class="field"><label>Known person's real name</label><input id="adUsernameInferName" autocomplete="off" placeholder="John Smith"></div><div class="field"><label>Observed username</label><input id="adUsernameInferUser" autocomplete="off" placeholder="jsmith or CORP\jsmith"></div><button class="btn" id="adUsernameInfer" type="button">Infer</button></div><div id="adUsernameInferResult" class="tiny" style="margin-top:6px"></div></details>
+   </div>
+   <div>
+    <div id="adUsernameStats" class="usernameGenStats"><div><b>0</b><br><span class="tiny">names</span></div><div><b>0</b><br><span class="tiny">patterns</span></div><div><b>0</b><br><span class="tiny">candidates</span></div><div><b>0</b><br><span class="tiny">deduped</span></div></div>
+    <pre id="adUsernameOutput" class="usernameGenOutput" aria-live="polite">Paste names, choose patterns, then Generate.</pre>
+    <div class="row"><button class="btn primary" id="adUsernameGenerate" type="button">Generate</button><button class="btn" id="adUsernameCopy" type="button">Copy users.txt</button><button class="btn" id="adUsernameDownload" type="button">Download users.txt</button><button class="btn" id="adUsernameKerbrute" type="button">Copy Kerbrute userenum</button><button class="btn" id="adUsernameOpenRef" type="button">Full notes →</button></div>
+    <div id="adUsernameNotice" class="usernameGenNotice">Start with the smallest plausible convention. Generated candidates are hypotheses, not confirmed users. Username enumeration is separate from password spraying.</div>
+   </div>
+  </div>
+ </div>
+
+ <div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>BloodHound edge → safe execution plan</h2><div class="muted">Choose the exact edge and target type. The planner shows the prerequisites, read-only proof, minimum action, verification and rollback—without executing anything.</div></div><div class="row"><select id="adEdgeSelect" aria-label="BloodHound edge"></select><button class="btn" id="adEdgeCopyPlan" type="button">Copy plan</button><button class="btn" id="adEdgeOpenRef" type="button">Full edge desk →</button></div></div><div class="tiny"><b>Uses the fast-path variables above, plus:</b> <code>EDGE_TARGET</code> (user/group/computer/domain), <code>CONTROLLED_PRINCIPAL</code>, <code>CONTROLLED_COMPUTER</code> (include trailing <code>$</code>), <code>COMPUTER_PASS</code>, <code>TARGET_HOST</code>, and—only after recording it—<code>ORIGINAL_OWNER</code>. Run installed <code>-h</code> when a wrapper differs.</div><div id="adEdgePlanner" class="adEdgePlanner" aria-live="polite"></div></div>
+ <div class="card" style="margin-bottom:12px"><div class="winStrategyBar"><div><div id="winStrategyDone" class="winStrategyMetric">0/0</div><div class="winStrategyLabel">steps checked</div></div><div><div id="winStrategyPct" class="winStrategyMetric">0%</div><div class="winStrategyLabel">first-pass coverage</div></div><div id="winStrategyTargetHint" class="muted"></div></div></div>
+ <div class="card" style="margin-bottom:12px"><h2>Operator rule</h2><div class="flow"><span class="step">Get shell</span><span class="arrow">→</span><span class="step">Baseline</span><span class="arrow">→</span><span class="step">Save + READ output</span><span class="arrow">→</span><span class="step">Validate manually</span><span class="arrow">→</span><span class="step">Exploit one proven path</span><span class="arrow">→</span><span class="step">Re-enumerate</span></div><p class="muted">WinPEAS/PrivEscCheck findings are hypotheses. A colored line is not a vulnerability until privileged context + controllable object + trigger/prerequisite are confirmed.</p></div>
+ <div id="winStrategyBody" class="winStrategyGrid"></div>
+ <div class="opsGrid" style="margin-top:12px">
+  <div class="card opsSpan6"><h2>How to read automated output</h2><ol><li>Save it to a file.</li><li>Read credentials/secrets first.</li><li>Read token privileges.</li><li>Read services and scheduled tasks.</li><li>Read installer/autorun/registry findings.</li><li>Read non-default software and internal listeners.</li><li>Only then look at patch/kernel suggestions.</li></ol><div class="tiny">Do not rerun WinPEAS because you forgot what it printed. Preserve the output and annotate the exact lines that changed your hypothesis.</div></div>
+  <div class="card opsSpan6"><h2>Stuck / rotate gate</h2><div class="winStrategyGate">Did you inspect non-default <code>C:\</code> folders, <code>C:\Users</code>, Program Files and ProgramData?</div><div class="winStrategyGate">Did you read PowerShell history and app/service config files—not just run a password grep?</div><div class="winStrategyGate">Did you manually validate service/task/file ACLs from automated output?</div><div class="winStrategyGate">Did you map local-only listeners to their owning process and test the service locally?</div><div class="winStrategyGate">Did your user/context change? If yes, restart the Windows post-shell loop.</div><div class="winStrategyGate">No new evidence for ~20–30 min and no precise cheap prerequisite left? Rotate.</div></div>
+ </div>
+ <div class="card" style="margin-top:12px"><div class="tiny"><b>Source strategy:</b> Got Root?, “OSCP Windows Enumeration Checklist: My Complete Privilege Escalation Workflow for Every Box” (June 2026), plus current SpecterOps, Impacket, Certipy and BloodyAD documentation for the edge planner. This integration is paraphrased and reorganized; The current OffSec-rule guard and evidence-first methodology override any conflicting older habit.</div></div>
+</section>
+
+<section id="intakeView" class="view">
+ <div class="hero"><div><h1>Scan Intake</h1><div class="muted">Import Nmap XML, grepable output, normal output, or a plain IP list. Everything is parsed locally in your browser.</div></div></div>
+ <div class="opsGrid">
+  <div class="card opsSpan7">
+   <h2>Import scan</h2>
+   <div class="intakeDrop" id="scanDrop"><b>Drop Nmap output here</b><br><span class="muted">XML is best. Also supports -oG, normal text, and plain IP/host lists.</span><br><br><label class="btn primary">Choose files<input type="file" id="scanFiles" multiple accept=".xml,.nmap,.gnmap,.txt,text/xml,text/plain" hidden></label></div>
+   <div class="field"><label>Or paste output</label><textarea id="scanPaste" style="min-height:180px" placeholder="Paste Nmap XML / normal / grepable output or IP list…"></textarea></div>
+   <div class="row"><button class="btn primary" id="parsePastedScan">Parse pasted data</button><button class="btn" id="clearScanPreview">Clear preview</button></div>
+  </div>
+  <div class="card opsSpan5"><h2>Import behavior</h2>
+   <label class="check"><input id="scanMerge" type="checkbox" checked> Merge with existing targets by IP</label>
+   <label class="check"><input id="scanAutoSignals" type="checkbox" checked> Infer role/signals from open ports</label>
+   <label class="check"><input id="scanAddTimeline" type="checkbox" checked> Add scan-import timeline entry</label>
+   <p class="muted">Nothing is executed. The app only parses files you explicitly select.</p>
+   <div id="scanStats" class="intakeStats"></div>
+  </div>
+  <div class="card opsSpan12"><div class="row" style="justify-content:space-between"><h2>Preview</h2><button class="btn good" id="importScanTargets" disabled>Import preview into workspaces</button></div><div id="scanPreview" class="muted">No scan parsed.</div></div>
+ </div>
+</section>
+
+<section id="boardView" class="view">
+ <div class="hero"><div><h1>Exam Board</h1><div class="muted">Resume-and-rotation board. Current OSCP+ passing threshold is fixed at 70/100; enter target/objective points only from your Exam Control Panel.</div></div><div class="row"><span class="chip">Official pass threshold: <b>70/100</b></span></div></div>
+ <div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-around"><div><div class="scoreNum" id="boardAwarded">0</div><div class="opsMetricLabel">awarded</div></div><div><div class="scoreNum" id="boardPossible">0</div><div class="opsMetricLabel">possible</div></div><div><div class="scoreNum" id="boardRemaining">0</div><div class="opsMetricLabel">to configured target</div></div></div><div class="scoreBar" style="margin-top:12px"><div id="boardScoreBar"></div></div></div>
+ <div id="boardSanity" class="card muted" style="margin-bottom:12px"></div><div class="board" id="examBoard"></div>
+</section>
+
+<section id="commandsView" class="view">
+ <div class="hero"><div><h1>Context Command Builder</h1><div class="muted">Generate commands from the selected target, service and credential. Guard + Copy blocks unresolved placeholders, out-of-scope destinations and prohibited patterns before they reach your clipboard. It never executes commands.</div></div><button class="btn primary" id="copyBuiltCommands">Guard + Copy</button></div>
+ <div class="opsGrid">
+  <div class="card opsSpan12"><div class="row"><select id="cmdTarget"></select><select id="cmdCredential"><option value="">No credential</option></select><select id="cmdService"></select><input id="cmdExtra" placeholder="Optional domain/base-DN/vhost override"></div></div>
+  <div class="card opsSpan12"><div class="cmdGrid"><div class="cmdList" id="commandTemplates"></div><div><div class="row" style="justify-content:space-between"><h2 id="cmdTitle">Commands</h2><span class="autoBadge">LOCAL GENERATOR</span></div><pre id="builtCommands" class="cmdOutput"></pre><div id="cmdCaution" class="muted"></div><div id="cmdGuardInline" style="margin-top:10px"></div></div></div></div>
+ </div>
+</section>
+
+
+<section id="analyzerView" class="view">
+ <div class="hero"><div><h1>Deterministic Output Analyzer</h1><div class="muted">Paste terminal/tool output. The analyzer recognizes explicit patterns and previews findings/signals before applying anything. No AI and no command execution.</div></div><div class="row"><select id="analyzerTarget"></select><button class="btn primary" id="applyAllDetections" disabled>Apply selected detections</button></div></div>
+ <div class="analyzerGrid">
+  <div class="card"><div class="outputToolbar"><select id="analyzerHint"><option value="auto">Auto-detect</option><option value="windows">Windows</option><option value="linux">Linux</option><option value="ad">AD / auth</option><option value="web">Web</option></select><button class="btn" id="analyzeOutput">Analyze</button><button class="btn" id="clearAnalyzer">Clear</button></div><div class="field"><label>Paste output</label><textarea id="analyzerInput" style="min-height:520px" spellcheck="false" placeholder="Examples: whoami /priv, sudo -l, id, getcap output, NetExec output, Kerberos errors, HTTP response…"></textarea></div><div class="tiny">For Nmap output, use Scan Intake so ports/services are imported structurally.</div></div>
+  <div class="card"><div class="row" style="justify-content:space-between"><h2>Detected signals</h2><span id="analyzerStats" class="ruleCount">Nothing analyzed.</span></div><div id="analyzerResults" class="muted">Paste output and click Analyze.</div></div>
+ </div>
+</section>
+
+<section id="vaultView" class="view">
+ <div class="hero"><div><h1>Evidence Vault Manifest</h1><div class="muted">Register screenshots/logs locally. The app stores filename, metadata and SHA-256 only — never the file bytes.</div></div><div class="row"><select id="vaultTarget"></select><button class="btn" id="exportVaultManifest">Export manifest</button></div></div>
+ <div class="opsGrid">
+  <div class="card opsSpan7"><h2>Add evidence</h2><div id="vaultDrop" class="vaultDrop"><b>Drop evidence files here</b><br><span class="muted">or</span><br><br><label class="btn primary">Choose files<input type="file" id="vaultFiles" multiple hidden></label></div><div class="row" style="margin-top:10px"><select id="vaultKind"><option>enumeration</option><option>foothold</option><option>local-proof</option><option>privesc</option><option>proof</option><option>pivot</option><option>report</option><option>other</option></select><input id="vaultNote" placeholder="Optional note applied to newly added files"></div></div>
+  <div class="card opsSpan5"><h2>Manifest rules</h2><p class="muted">Hashing uses browser WebCrypto SHA-256. Files remain wherever you saved them on disk; the app cannot reopen them later unless you choose them again.</p><div id="vaultStats"></div></div>
+  <div class="card opsSpan12"><div class="vaultWrap"><table class="vaultTable"><thead><tr><th>File</th><th>Target</th><th>Kind</th><th>Size</th><th>SHA-256</th><th>IP visible</th><th>Proof visible</th><th>Original location</th><th>Note</th><th></th></tr></thead><tbody id="vaultBody"></tbody></table></div></div>
+ </div>
+</section>
+
+
+<section id="guardView" class="view">
+ <div class="hero"><div><h1>Scope & Rule Guard</h1><div class="muted">Lint commands before you run them: scope, unresolved placeholders, callback mismatches and rule-sensitive actions. The app never executes commands.</div></div><div class="row"><button class="btn" id="scopeFromTargets">Add current target IPs</button><button class="btn primary" id="lintGuardCommand">Lint command</button></div></div>
+ <div class="guardGrid"><div>
+  <div class="card"><h2>Scope configuration</h2><div class="field"><label>Allowed IPs / CIDRs / hostnames — one per line</label><textarea id="scopeEntries" class="scopeList" placeholder="192.168.45.0/24&#10;10.10.10.25&#10;dc01.corp.local&#10;*.corp.local"></textarea></div><div class="row"><label class="check"><input id="guardRequireScope" type="checkbox" checked> Warn on explicit destinations outside this list</label><label class="check"><input id="guardPlaceholder" type="checkbox" checked> Warn on unresolved placeholders</label></div><div class="field"><label>Expected LHOST / callback IP</label><input id="guardLhost" placeholder="192.168.45.200"></div><div class="field"><label>Metasploit restricted-functionality target</label><select id="guardMsfTarget"><option value="">Not selected / not using restricted Metasploit</option></select></div><button class="btn good" id="saveGuardConfig">Save guard</button><div class="row" style="margin-top:10px"><button class="btn" id="sanitizeGuardCommand">Sanitize smart quotes / Unicode</button><button class="btn" id="copySanitizedCommand">Copy sanitized</button></div><div id="unicodeSanitizeResult" class="tiny" style="margin-top:8px"></div></div>
+  <div class="card" style="margin-top:12px"><h2>Current rule snapshot</h2><div class="ruleSnapshot"><b>Verified against OffSec OSCP+ Exam Guide / FAQ: 24 Sep 2026</b><div class="tiny" style="margin-top:5px">Official guide always overrides this offline snapshot.</div><hr><div>❌ spoofing / poisoning</div><div>❌ automatic exploitation such as SQLmap / SQLninja</div><div>❌ mass vulnerability scanners</div><div>❌ AI/LLM chatbots during exam/reporting</div><div>❌ prohibited commercial offensive tools/services</div><div>⚠️ Metasploit restricted modules/Meterpreter: one selected target; no Metasploit pivoting</div><div>⚠️ Responder: tool can be used, poisoning/spoofing cannot</div><div>✅ PowerShell Core / PSSession is an accepted interactive shell</div><div>✅ Nmap/NSE and allowed tools when their exact action is allowed</div><div>⚠️ Do not download exam-environment files/apps/source unless necessary to compromise a target; delete such local copies after the objective.</div></div></div>
+ </div><div>
+  <div class="card"><h2>Command linter</h2><textarea id="guardCommand" class="commandLint" spellcheck="false" placeholder="Paste one or more commands here…"></textarea><div id="guardResults" class="muted">No command checked.</div></div>
+  <div class="card" style="margin-top:12px"><h2>Resolved scope</h2><div id="scopeResolved" class="muted">No scope configured.</div></div>
+ </div></div>
+</section>
+
+<section id="journalView" class="view">
+ <div class="hero"><div><h1>Command Journal</h1><div class="muted">Import terminal transcripts/history and preserve the exact commands you actually ran. Preview first; nothing is executed.</div></div><div class="row"><select id="journalTarget"></select><button class="btn" id="exportJournal">Export journal .md</button></div></div>
+ <div class="opsGrid">
+  <div class="card opsSpan6"><h2>Import transcript/history</h2><div class="row"><select id="journalParser"><option value="auto">Auto</option><option value="shell">Bash/Zsh prompt</option><option value="powershell">PowerShell/cmd</option><option value="history">History file</option></select><label class="btn primary">Choose transcript<input id="journalFiles" type="file" multiple accept=".txt,.log,.history,text/plain" hidden></label></div><div class="field"><label>Or paste transcript</label><textarea id="journalPaste" style="min-height:290px" spellcheck="false" placeholder="Paste terminal transcript / history here…"></textarea></div><div class="row"><button class="btn primary" id="parseJournalPaste">Extract commands</button><button class="btn" id="clearJournalPreview">Clear preview</button></div></div>
+  <div class="card opsSpan6"><div class="row" style="justify-content:space-between"><h2>Import preview</h2><button class="btn good" id="applyJournalPreview" disabled>Add selected to journal</button></div><div id="journalPreviewStats" class="journalStats"></div><div id="journalPreview" class="journalPreview muted">Nothing parsed.</div></div>
+  <div class="card opsSpan12"><div class="row" style="justify-content:space-between"><h2>Target journal</h2><div class="row"><input id="journalFilter" placeholder="filter commands"><button class="btn" id="copyJournalCommands">Copy commands</button></div></div><div class="journalWrap"><table class="journalTable"><thead><tr><th>Time</th><th>Category</th><th>Command</th><th>Guard</th><th>Report</th><th>Note</th><th></th></tr></thead><tbody id="journalBody"></tbody></table></div></div>
+ </div>
+</section>
+
+<section id="workspaceView" class="view">
+ <div class="hero"><div><h1>Per-Target Workspace</h1><div class="muted">One target, one state: signals → findings → attack path → evidence → next actions.</div></div>
+ <div class="row"><select id="workspaceTarget"></select><button class="btn primary" id="workspaceAddTarget">+ Target</button></div></div>
+ <div id="workspaceTabs" class="opsTabs"></div><div id="workspaceEmpty" class="card muted">Add a target to begin.</div>
+ <div id="workspaceBody" style="display:none"><div class="opsGrid">
+   <div class="card opsSpan4"><h2>Target state</h2><div class="row"><select id="wsRole"><option>unknown</option><option>linux</option><option>windows</option><option>web</option><option>ad-member</option><option>dc</option><option>pivot</option></select><select id="wsStage"><option>enumeration</option><option>validation</option><option>foothold</option><option>privesc</option><option>lateral</option><option>evidence</option><option>complete</option></select></div><div class="row" style="margin-top:8px"><input id="wsIP" placeholder="IP"><input id="wsHost" placeholder="hostname"></div><div class="field"><label>Overall technique confidence</label><select id="wsConfidence"><option value="unconfirmed">UNCONFIRMED</option><option value="prereq">PREREQ MET</option><option value="high">HIGH SIGNAL</option><option value="exploited">EXPLOITED</option><option value="dead">DEAD END</option></select></div><div id="wsMetrics" class="row" style="justify-content:space-around;margin-top:12px"></div></div>
+   
+   <div class="card opsSpan8"><h2>↩ Resume / Park Packet</h2><div id="workspaceResume" class="resumeCard"></div></div>
+   <div class="card opsSpan4"><h2>Open services</h2><div id="workspaceServices" class="muted">No imported service data.</div></div>
+   <div class="card opsSpan12"><h2>✅ Expert coverage / closure</h2><div id="workspaceExpertBar" class="muted"></div></div>
+<div class="card opsSpan12 attemptWorkspaceCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>🧪 Tried / Result Ledger</h2><div class="muted">Do not spend exam time rediscovering the same dead branch.</div></div><button class="btn" id="workspaceAttemptOpen" type="button">Open ledger →</button></div><div id="workspaceAttemptLedger" class="attemptWorkspaceList muted">No attempts logged for this target.</div></div>
+<div class="card opsSpan8"><h2>Deterministic next-action engine</h2><div class="muted">Generated only from the state/signals you mark below. No AI.</div><div id="nextActionEngine"></div></div>
+   <div class="card opsSpan12"><h2>Signals / observations</h2><div class="signalGrid" id="signalGrid"></div></div>
+   <div class="card opsSpan7"><h2>Findings & confidence</h2><div class="row"><input id="findingTitle" placeholder="e.g. SeImpersonate Enabled / custom SUID"><input id="findingTag" placeholder="[WIN:SEIMPERSONATE]"><select id="findingConfidence"><option value="unconfirmed">UNCONFIRMED</option><option value="prereq">PREREQ MET</option><option value="high">HIGH SIGNAL</option><option value="exploited">EXPLOITED</option><option value="dead">DEAD END</option></select><button class="btn primary" id="addFinding">Add</button></div><div id="findingsList" style="margin-top:8px"></div></div>
+   <div class="card opsSpan5"><h2>Next 3 actions</h2><input class="wsNext" data-i="0" placeholder="1."><input class="wsNext" data-i="1" placeholder="2."><input class="wsNext" data-i="2" placeholder="3."><div class="field"><label>Workspace notes</label><textarea id="wsNotes" placeholder="Interesting ports, files, groups, internal listeners, hypotheses…"></textarea></div></div>
+   <div class="card opsSpan7"><h2>Attack path steps</h2><div class="row"><select id="pathType"><option>enum</option><option>credential</option><option>foothold</option><option>privesc</option><option>lateral</option><option>proof</option><option>dead-end</option></select><input id="pathLabel" placeholder="e.g. backup.zip → reused SSH credential"><button class="btn primary" id="addPath">Add step</button></div><div id="pathList" style="margin-top:8px"></div></div>
+   <div class="card opsSpan7"><h2>Activity Timeline</h2><div id="workspaceTimeline" class="timeline"></div></div>
+   <div class="card opsSpan5"><h2>Quick log</h2><div class="row"><select id="quickLogType"><option>note</option><option>enum</option><option>credential</option><option>foothold</option><option>privesc</option><option>pivot</option><option>evidence</option><option>dead-end</option></select><input id="quickLogText" placeholder="What changed?"><button class="btn primary" id="quickLogAdd">Log</button></div><div class="tiny" style="margin-top:8px">Major workspace actions are logged automatically; use this for manual milestones.</div></div>
+   <div class="card opsSpan5"><h2>Evidence gate</h2><div id="workspaceGate" class="gate"></div><div id="gateSummary" class="muted" style="margin-top:8px"></div><button class="btn" id="openReportForTarget" style="margin-top:10px">Open report workspace →</button></div>
+ </div></div>
+</section>
+
+<section id="credentialsView" class="view">
+ <div class="hero"><div><h1>Credential Matrix</h1><div class="muted">Track each credential against each service on the selected destination target. Click a status cell to cycle it.</div></div><div class="row"><select id="credTarget"></select><button class="btn primary" id="showAddCred">+ Credential</button></div></div>
+ <div class="card" id="addCredCard" style="display:none;margin-bottom:12px"><div class="row"><input id="credUser" placeholder="DOMAIN\user or user"><select id="credType"><option>password</option><option>NTLM</option><option>SSH key</option><option>ccache</option><option>token</option><option>certificate</option></select><input id="credSecret" type="password" autocomplete="off" spellcheck="false" placeholder="secret / hash / key note"><select id="credScope"><option>domain</option><option>local</option><option>application</option></select><select id="credSource"></select><button class="btn good" id="addCredential">Save</button></div><div class="tiny">Secrets are session-only by default; persist only if you explicitly enable secret persistence.</div></div>
+ <div class="credWrap"><table class="credTable"><thead><tr id="credHead"></tr></thead><tbody id="credBody"></tbody></table></div><div id="credMatrixHint" class="muted" style="margin-top:10px"></div>
+</section>
+
+<section id="graphView" class="view">
+ <div class="hero"><div><h1>Attack-Path Graph</h1><div class="muted">Visualize the recorded chain so you can resume a machine without reconstructing the story from memory.</div></div><select id="graphTarget"></select></div>
+ <div class="graphShell"><svg id="attackGraph" xmlns="http://www.w3.org/2000/svg"></svg></div><div class="card" style="margin-top:12px"><h2>Path transcript</h2><div id="graphTranscript" class="muted"></div></div>
+</section>
+
+<section id="reportsView" class="view">
+<div class="card" id="proofSubmissionVerifyCard" style="margin-bottom:14px;border-color:var(--warn)">
+ <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Proof submission sanity check</h2><div class="muted">OffSec does not tell you whether a submitted proof value is correct. Before treating points as banked, compare the control-panel value character-for-character with the value shown by <code>cat</code>/<code>type</code> in the original-path interactive shell screenshot.</div></div><span class="chip">NO SECRET STORED HERE</span></div>
+ <div class="checks" style="margin-bottom:0"><label class="check"><input type="checkbox"> screenshot shows full proof + target IP together</label><label class="check"><input type="checkbox"> submitted value visually re-checked against shell output</label></div>
+</div>
+ <div class="hero"><div><h1>Evidence Validator & Report Export</h1><div class="muted">Target is not report-ready until the evidence gate is satisfied.</div></div><div class="row"><select id="reportTarget"></select><button class="btn good" id="downloadReport">Export target .md</button><button class="btn" id="downloadAllReports">Export all .md</button></div></div>
+ <div class="opsGrid"><div class="card opsSpan12 pointProtect"><h2>Official proof-capture command</h2><p class="muted">Run this in the interactive target shell. Confirm the path is the flag's original location, then keep the target IP and full flag contents visible together in one screenshot. PowerShell Core / PSSession counts as interactive; a web shell, downloaded file, or copied flag does not.</p><div class="captureBuilder"><select id="capturePlatform" aria-label="Target shell platform"><option value="linux">Linux shell</option><option value="cmd">Windows cmd</option><option value="powershell">Windows PowerShell</option></select><select id="captureKind" aria-label="Flag kind"><option value="proof">proof.txt</option><option value="local">local.txt</option></select><input id="capturePath" aria-label="Original flag path"><button class="btn primary" id="copyCaptureCommand">Copy command</button></div><div id="capturePathWarning" class="capturePathWarning" role="status"></div><pre id="captureCommand" class="captureCommand"></pre><div class="captureFileLine"><span>Suggested unique screenshot: <code id="captureFilename">target-proof-original-path.png</code></span><button class="btn" id="copyCaptureFilename">Copy filename</button></div><div class="tiny">Required screenshot pair: target IP via <code>ip addr</code>/<code>ifconfig</code>/<code>ipconfig</code> + flag contents read with <code>cat</code>/<code>type</code>. Hostname, identity and current directory are useful extra context.</div></div>
+ <div class="card opsSpan12"><h2>Final package order</h2><div class="pointRail submissionRail"><span>1. Make every target/IP unambiguous</span><span>2. Put machines in the report order you want graded</span><span>3. Visually inspect the final PDF</span><span>4. On Kali, create the exact-name unencrypted <code>.7z</code></span><span>5. Confirm only the exact-name PDF is inside and size is ≤ 200 MB</span><span>6. Upload within 24 hours, compare MD5, then click <b>Submit File</b></span></div><p class="tiny">The upload is not complete until the final submission action succeeds and you retain the confirmation. The official guide controls if any requirement changes.</p><button class="btn" type="button" onclick="switchView('submissionView')">Open full submission gate →</button></div>
+ <div class="card opsSpan5"><h2>Report metadata</h2><div class="field"><label>Finding / foothold title</label><input id="rTitle"></div><div class="field"><label>Foothold vector</label><textarea id="rFoothold"></textarea></div><div class="field"><label>Privilege-escalation vector</label><textarea id="rPrivesc"></textarea></div><div class="field"><label>Exact commands / reproducibility notes</label><textarea id="rCommands" style="min-height:180px"></textarea></div><div class="field"><label>Evidence / screenshots</label><textarea id="rScreens"></textarea></div><div class="field"><label>Remediation note</label><textarea id="rRemediation"></textarea></div></div>
+ <div class="card opsSpan12"><h2>🗂️ Evidence Manifest</h2><div id="reportEvidenceManifest" class="muted">No evidence files registered for this target.</div></div>
+ 
+ <div class="card opsSpan12"><h2>📄 Consistency Status</h2><div id="reportConsistencySummary" class="muted">Not audited yet.</div></div>
+ <div class="card opsSpan12"><h2>📜 Command Journal Appendix</h2><div id="reportJournalSummary" class="muted">No journal commands for this target.</div></div>
+ <div class="card opsSpan7"><h2>Evidence gate</h2><div id="reportGate" class="gate"></div><div id="reportGateSummary" style="margin:10px 0"></div><h2>Generated Markdown</h2><textarea id="reportPreview" class="reportBox" spellcheck="false"></textarea><div class="row"><button class="btn primary" id="generateReport">Regenerate</button><button class="btn" id="copyReport">Copy</button></div></div></div>
+</section>
+
+
+<section id="sessionView" class="view">
+ <div class="hero"><div><h1>Session Snapshot & Recovery</h1><div class="muted">Back up the whole exam state to one JSON file. Optional tool-inventory import is available for version drift checks.</div></div></div>
+ <div class="opsGrid"><div class="card opsSpan6"><h2>Full session snapshot</h2><div class="privacy"><b>Plain JSON is always secret-free.</b><div class="tiny">If you need to preserve passwords, hashes, keys or tickets, use the encrypted backup below. This prevents an accidental plaintext secret export.</div></div><div class="row" style="margin-top:10px"><button class="btn good" id="exportSession">Export secret-free session</button><label class="btn">Import session<input type="file" id="importSession" accept="application/json" hidden></label></div><div id="sessionStats" class="muted" style="margin-top:10px"></div><p class="tiny">Dedicated secret fields are omitted and known session secrets are redacted from journal/report text. Unknown secrets manually typed into arbitrary free-text may still exist—review before sharing.</p></div>
+ <div class="card opsSpan6"><h2>Optional tool inventory</h2><p class="tiny">No helper is required or bundled. If you already have a compatible inventory JSON, import it here; otherwise installed <code>-h/--help</code> and version output are the syntax authority.</p><label class="btn">Import inventory JSON<input type="file" id="importPreflight" accept="application/json" hidden></label><div id="preflightSummary" class="muted" style="margin-top:10px">No preflight imported.</div><div style="overflow:auto"><table class="preflightTable"><thead><tr><th>Tool</th><th>Class</th><th>Status</th><th>Version / path</th></tr></thead><tbody id="preflightBody"></tbody></table></div></div>
+ 
+ <div class="card opsSpan6"><h2>🔐 Encrypted Session Backup</h2><div class="encBox">
+  <div class="field"><label>Passphrase</label><input id="encPassphrase" type="password" autocomplete="new-password" placeholder="Use a strong passphrase you will remember"></div>
+  <label class="check"><input id="encIncludeSecrets" type="checkbox"> Include current session secrets inside encrypted backup</label>
+  <div class="row" style="margin-top:10px"><button class="btn good" id="exportEncrypted">Export encrypted backup</button><label class="btn">Import encrypted<input type="file" id="importEncrypted" accept=".json,application/json" hidden></label></div>
+  <p class="tiny">AES-256-GCM + PBKDF2-SHA256. Encryption/decryption occurs only in this browser. Losing the passphrase means the backup cannot be recovered.</p>
+ </div></div>
+ <div class="card opsSpan6"><h2>🕘 Autosnapshots</h2><div class="row"><button class="btn primary" id="manualSnapshot">Create now</button><span class="muted">Secret-field-free restore points, max 8; known journal/report secrets are redacted.</span></div><div id="snapshotList"></div></div>
+ <div class="card opsSpan12"><h2>⚕ Session Health</h2><div id="sessionHealth" class="health"></div></div>
+<div class="card opsSpan12"><h2>Browser-resident state</h2><div id="storageSummary"></div><div class="row" style="margin-top:10px"><button class="btn bad" id="clearV7Ops">Clear operations state</button></div></div></div>
+</section>
+
+<section id="playbooksView" class="view"><div class="hero"><div><h1>Machine Archetype Playbooks</h1><div class="muted">Pattern recognition: follow the likely chain, but let evidence override the archetype.</div></div></div><div class="grid" id="playbooks"></div></section>
+
+<section id="decoderView" class="view"><div class="hero"><div><h1>Output Recognition</h1><div class="muted">Train your eyes to recognize high-signal output and the next validation step.</div></div><input id="decoderSearch" placeholder="Filter clues…"></div><div class="decoderGrid" id="decoderGrid"></div></section>
+
+
+<section id="evidenceView" class="view"><div class="hero"><div><h1>Evidence Packet</h1><div class="muted">Use per host. Copy a report-ready template after checking the proof requirements.</div></div><button class="btn primary" id="copyEvidence">Copy template</button></div><div class="card"><div class="evidenceGrid" id="evidenceChecks"></div><h3>Per-host packet</h3><pre id="evidenceTemplate"></pre></div></section>
+
+<section id="referenceView" class="view">
+
+<div class="card" id="v20ReferenceDelta" style="max-width:1180px;margin:0 auto 14px;border-color:#355a78">
+  <h2>AD / Windows fallback coverage</h2>
+  <p class="muted">Search terms: RunasCs · SharpView · windapsearch · Certify · sshuttle · Empire · Covenant · PowerSploit · Inveigh · ADPEEAS · PingCastle.</p>
+  <p><b>Hard rule:</b> Responder/Inveigh poisoning or spoofing is not an OSCP workflow. Native/manual proof remains first; these are fallbacks for a specific unresolved question.</p>
+  <button class="btn" onclick="switchView('windowsStrategyView')">Open Windows fallback toolbox →</button>
+</div>
+<div class="hero noPrint"><div><h1>Full Reference</h1><div class="muted">Deep reference embedded locally. Search first; do not scroll linearly under pressure.</div></div><div class="row"><button class="btn" id="collapseDetails">Collapse all</button><button class="btn" id="expandDetails">Expand all</button></div></div><article class="reference" id="referenceRoot"><!-- @inject:reference --></article></section>
+
+
+<section id="v15ReliabilityView" class="view">
+ <div class="hero"><div><h1>Reliability Center</h1><div class="muted">State integrity, revert freshness, explainable decisions, attention debt, backup testing and report reproducibility — all local/offline.</div></div><div class="chips"><span class="chip">EXAM MODE</span><span class="chip">FAILURE-RESISTANT</span><span class="chip">HIGH-SIGNAL</span><span class="chip">NO AI</span></div></div>
+ <div class="v15Grid">
+  <div class="card v15Span7"><div class="row" style="justify-content:space-between"><h2>⚕ State Integrity Doctor</h2><div class="row"><button class="btn" id="v15RefreshIntegrity">Refresh</button><button class="btn" id="v15PreviewRepair">Preview safe repair</button><button class="btn good" id="v15ApplyRepair">Apply safe repair</button></div></div><div id="v15IntegritySummary" class="muted"></div><div id="v15IntegrityList"></div><button class="btn" id="v15ExportDiagnostic">Export diagnostic</button></div>
+  <div class="card v15Span5"><h2>♻️ Revert-aware live state</h2><div id="v15StaleState"></div><button class="btn good" id="v15MarkRevalidated">Mark active target revalidated</button><p class="tiny">Banked proof/evidence remains historical evidence. Live shells, tunnels, target-side modifications and pre-revert assumptions must be revalidated.</p></div>
+  <div class="card v15Span7"><h2>🎯 Explainable next actions</h2><div id="v15ScoredActions"></div></div>
+  <div class="card v15Span5"><h2>📉 Attention Debt</h2><div class="v15Debt" id="v15DebtMetrics"></div><div id="v15DebtAdvice" class="muted" style="margin-top:10px"></div></div>
+  <div class="card v15Span6"><h2>SOS Backup Integrity Check</h2><p class="muted">Tests a session/encrypted backup in temporary memory. It does not restore or replace your current state.</p><div class="field"><label>Backup file</label><input id="v15BackupTestFile" type="file" accept=".json,application/json"></div><div class="field"><label>Passphrase (only for encrypted backup)</label><input id="v15BackupTestPass" type="password" autocomplete="off"></div><button class="btn primary" id="v15RunBackupTest">Test backup without restoring</button><div id="v15BackupTestResult" style="margin-top:10px"></div></div>
+  <div class="card v15Span6"><h2>📑 Report Reproduction Gate</h2><div id="v15ReproGate"></div><p class="tiny">Goal: a technically competent reader should be able to reproduce the chain from your recorded context, commands and evidence.</p></div>
+  <div class="card v15Span12"><h2>📸 Actual Evidence File Reconciliation</h2><p>The browser vault intentionally stores metadata/hashes, not copies of screenshots. This repository does not ship an external evidence-audit helper, so reconcile the real evidence directory directly before reporting:</p><pre>find ~/oscp/evidence -type f -printf '%P\n' | sort | tee ~/oscp/evidence-files.txt
+find ~/oscp/evidence -type f -exec sha256sum {} + | sort -k2 | tee ~/oscp/evidence-sha256.txt
+find ~/oscp/evidence -type f -printf '%f\n' | sort | uniq -d</pre><div class="tiny">Check for missing screenshots, duplicate filenames and target-name confusion; visually verify every proof screenshot before finalizing the report.</div></div>
+ </div>
+</section>
+
+<section id="v15ChainView" class="view">
+ <div class="hero"><div><h1>Causal Attack-Path Validator</h1><div class="muted">Force every serious path to explain the causal chain from observation to banked evidence.</div></div><div class="row"><select id="v15ChainTarget"></select><button class="btn" id="v15SeedChain">Seed from current state</button></div></div>
+ <div class="v15Grid">
+  <div class="card v15Span7">
+   <div class="v15ChainRow"><label>1. Observation</label><textarea id="v15ChainObservation" placeholder="What concrete output/fact started the path?"></textarea></div>
+   <div class="v15ChainRow"><label>2. Prerequisite</label><textarea id="v15ChainPrerequisite" placeholder="What must be true for this path to work?"></textarea></div>
+   <div class="v15ChainRow"><label>3. Validation</label><textarea id="v15ChainValidation" placeholder="What command/test proved the prerequisite?"></textarea></div>
+   <div class="v15ChainRow"><label>4. Primitive</label><textarea id="v15ChainPrimitive" placeholder="What controlled capability did you gain: file write, command exec, token, ACL, etc.?"></textarea></div>
+   <div class="v15ChainRow"><label>5. Resulting identity/access</label><textarea id="v15ChainIdentity" placeholder="Exact resulting user/privilege/host/access."></textarea></div>
+   <div class="v15ChainRow"><label>6. Evidence / closure</label><textarea id="v15ChainEvidence" placeholder="Screenshot/flag/report evidence and control-panel submission."></textarea></div>
+   <label class="check"><input id="v15ChainBanked" type="checkbox"> Points/evidence are actually banked</label>
+   <div class="row" style="margin-top:10px"><button class="btn primary" id="v15SaveChain">Save chain</button><button class="btn" id="v15OpenReport">Open report workspace</button></div>
+  </div>
+  <div class="card v15Span5"><h2>Chain status</h2><div id="v15ChainStatus"></div><h2 style="margin-top:14px">Derived reproduction checks</h2><div id="v15ChainRepro"></div></div>
+ </div>
+</section>
+
+<section id="v15DisasterView" class="view">
+ <div class="hero"><div><h1>Emergency / Disaster Recovery Mode</h1><div class="muted">When something breaks, isolate the layer before changing the attack theory.</div></div><span class="chip">DETERMINISTIC RUNBOOKS</span></div>
+ <div class="v15Grid"><div class="card v15Span5"><div class="v15Disaster" id="v15DisasterButtons"></div></div><div class="card v15Span7"><h2 id="v15RunbookTitle">Choose the failure mode</h2><div class="v15Runbook" id="v15Runbook">VPN / Kerberos / target state / tool / console / evidence-report recovery procedures are available here.</div></div></div>
+</section>
+
+<section id="v15SelfTestView" class="view">
+ <div class="hero"><div><h1>Functional Self-Test</h1><div class="muted">Runs deterministic tests against app state logic without touching your real exam targets.</div></div><button class="btn primary" id="runV16SelfTests">Run self-test</button></div>
+ <div class="card"><div id="v15TestSummary" class="row"></div><div style="overflow:auto"><table class="v15Tests"><thead><tr><th>#</th><th>Test</th><th>Observed</th><th>Status</th></tr></thead><tbody id="v15TestBody"><tr><td colspan="4" class="muted">Not run yet.</td></tr></tbody></table></div></div>
+</section>
+
+<section id="settingsView" class="view"><div class="hero"><div><h1>Local Settings & Placeholder Replacement</h1><div class="muted">Values never leave this file. Persistent fields are stored in browser localStorage.</div></div></div><div class="card"><div class="privacy"><strong>Privacy:</strong> this page contains no network calls or third-party assets. Placeholder replacement never injects secrets into the reference. Credential secrets stay session-only unless “Persist secrets” is explicitly enabled.</div><div class="settingsGrid" id="settingsGrid" style="margin-top:14px"></div><div class="row" style="margin-top:12px"><label><input id="persistSecrets" type="checkbox"> Persist target credentials in localStorage (plain text on this device)</label></div><div class="row" style="margin-top:12px"><button class="btn primary" id="saveSettings">Apply placeholders</button><button class="btn bad" id="clearLocal">Clear all local data</button></div></div><div class="card" style="margin-top:14px"><h2>Exam-safe operating reminder</h2><pre>NO AI/LLM during exam/reporting
+NO SQLmap/automatic exploitation
+NO spoofing/poisoning
+NO mass vulnerability scanners
+Metasploit restricted functionality: one selected target; no Metasploit pivoting
+Re-check official OffSec rules immediately before exam day.</pre></div></section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script id="coreUtilsScript">/* @inject:script:00-core-utils.js */</script>
+<script>/* @inject:script:01-storage-guard.js */</script>
+<script>/* @inject:script:02-state-migration.js */</script>
+<script>/* @inject:script:03-core-app.js */</script>
+
+<script>/* @inject:script:04-command-stability.js */</script>
+
+
+<script>/* @inject:script:05-windows-strategy.js */</script>
+
+<script>/* @inject:script:06-handoff-access-truth.js */</script>
+
+
+<script>/* @inject:script:07-navigation-reliability.js */</script>
+
+<script id="adUsernameGeneratorScript">/* @inject:script:08-ad-username-generator.js */</script>
+
+<script id="v20ServiceRouterScript">/* @inject:script:09-v20-service-router.js */</script>
+<div id="examResetModal" class="examResetBackdrop" role="dialog" aria-modal="true" aria-labelledby="examResetTitle" aria-hidden="true">
+  <div class="examResetDialog">
+    <div class="examResetHead"><div><h2 id="examResetTitle">↺ 3-Minute Reset · 15-Minute Cap</h2><div class="muted">Spend ~3 minutes re-anchoring to evidence, then allow at most one 15-minute evidence-producing retry before you rotate.</div></div><button class="btn" id="examResetClose" type="button" aria-label="Close stuck reset">Close</button></div>
+    <div class="examResetGrid">
+      <div class="examResetStep"><b>1 · BANK FIRST — 20s</b>If you have <code>local.txt</code> or <code>proof.txt</code>, capture/submit it now. Record the exact path and command before touching anything else.</div>
+      <div class="examResetStep"><b>2 · FACTS ONLY — 30s</b>Say the target, ports, access, creds, current user/privileges and last new evidence. Separate facts from assumptions.</div>
+      <div class="examResetStep"><b>3 · COVERAGE + LEDGER — 60s</b>Full TCP done? Every exposed service manually touched? Read the Tried / Result ledger: are you repeating a dead branch under a different tool name? Web vhosts/routes/backups? Recovered credentials classified against relevant services? After shell: local listeners, files/config, sudo/SUID/caps or services/tasks/privileges.</div>
+      <div class="examResetStep"><b>4 · ONE TEST — 30s</b>Pick the cheapest test that can prove or kill the strongest hypothesis. Define success/failure before running it.</div>
+      <div class="examResetStep"><b>5 · READ OUTPUT — 20s</b>Read the result line-by-line. Do not launch the next tool until you can state what changed.</div>
+      <div class="examResetStep"><b>6 · ROTATE</b>No new evidence after the timer? Mark the path dead/parked, write why, then move to another service, hypothesis or machine.</div>
+    </div>
+    <div class="examResetRule"><b>Rule:</b> version ≠ vulnerability, tool output ≠ proof, shell ≠ banked points. Evidence must improve or you rotate.</div>
+    <div class="examResetFooter" style="margin-top:14px"><div class="row"><div id="examResetTimer" class="examResetTimer">15:00</div><button class="btn good" id="examResetStart" type="button">Start 15m</button><button class="btn" id="examResetTimerReset" type="button">Reset</button></div><div class="row"><button class="btn" id="examResetTarget" type="button">Open Target</button><button class="btn primary" id="examResetReference" type="button">Open [STUCK:RESET]</button></div></div>
+    <div class="examResetHint" style="margin-top:9px">Shortcut: <b>Alt+0</b>. Esc closes this panel. Timer survives closing the panel during this browser session.</div>
+  </div>
+</div>
+<script id="examStuckScript">/* @inject:script:10-exam-stuck.js */</script>
+<div id="examBankModal" class="examBankBackdrop" role="dialog" aria-modal="true" aria-labelledby="examBankTitle" aria-hidden="true">
+ <div class="examBankDialog">
+  <div class="examBankHead"><div><h2 id="examBankTitle">✓ Bank the Points</h2><div class="muted">Do this immediately when you obtain local.txt or proof.txt.</div></div><button class="btn" id="examBankClose" type="button">Close</button></div>
+  <div class="examBankSteps">
+   <div class="examBankStep"><b>1 · ORIGINAL LOCATION</b><br>Use an interactive shell on the target. Display the proof with <code>cat</code> (Linux) or <code>type</code> (Windows) from the file's original location.</div>
+   <div class="examBankStep"><b>2 · SCREENSHOT</b><br>In the same evidence sequence, show the target IP with <code>ip addr</code>/<code>ifconfig</code> or <code>ipconfig</code>, plus the proof-file contents. Do not use a text editor to display the proof.</div>
+   <div class="examBankStep"><b>3 · CONTROL PANEL</b><br>Submit the exact local.txt/proof.txt value in the Exam Control Panel before the exam ends. The panel does not confirm whether the value is correct.</div>
+   <div class="examBankStep"><b>4 · JOURNAL</b><br>Record target, privilege level, exact proof path, commands, screenshot filename, and the path that produced the shell.</div>
+  </div>
+  <div class="examBankDanger"><b>Zero-point guard:</b> Do not treat a shell as banked points until both the Control Panel submission and valid screenshot evidence are complete.</div>
+  <div class="examBankActions"><button class="btn" id="examBankTarget" type="button">Open Target</button><button class="btn primary" id="examBankEvidence" type="button">Open [EVIDENCE:PACKET]</button><button class="btn good" id="examBankVerify" type="button">Verify evidence gate →</button></div>
+  <div class="tiny">Shortcut: Alt+B · Esc closes</div>
+ </div>
+</div>
+<script id="examBankScript">/* @inject:script:11-exam-bank.js */</script>
+
+<script id="v22BracketLinksScript">/* @inject:script:12-v22-bracket-links.js */</script>
+
+<script id="v23ReadabilityScript">/* @inject:script:13-v23-readability.js */</script>
+
+<script id="v24ExamNavigatorScript">/* @inject:script:14-v24-exam-navigator.js */</script>
+
+<script id="v25ExamCommandLayerScript">/* @inject:script:15-v25-command-layer.js */</script>
+
+<script id="v26ScratchArchitectureScript">/* @inject:script:16-v26-scratch-architecture.js */</script>
+
+<script id="v27PasserResearchLayerScript">/* @inject:script:17-v27-passer-research.js */</script>
+
+<script id="v28CompetitiveCoreScript">/* @inject:script:18-v28-competitive-core.js */</script>
+</body></html>

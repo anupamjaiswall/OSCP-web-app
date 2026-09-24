@@ -1,0 +1,941 @@
+<h2 id="ref-c0-the-20-second-operating-loop">C0. THE 20-SECOND OPERATING LOOP</h2>
+<pre class="ref-code"><code class="language-text">OBSERVATION
+    ↓
+What does it PROVE?
+    ↓
+What is the highest-signal NEXT CHECK?
+    ↓
+Can I validate it in ≤5 minutes?
+    ├─ YES → validate
+    └─ NO  → park it and enumerate another surface
+    ↓
+New access / credential / route / privilege?
+    ├─ YES → RE-ENUMERATE EVERYTHING RELEVANT
+    └─ NO  → rotate
+</code></pre>
+<h3 id="ref-signal-priority">Signal priority</h3>
+<pre class="ref-code"><code class="language-text">HIGH
+  working credential
+  writable privileged object
+  exploitable AD edge
+  privileged scheduled execution
+  internal service with auth bypass/known creds
+  exact vulnerable configuration
+      → pursue immediately
+
+MEDIUM
+  exact version + plausible PoC
+  backup/config/source disclosure
+  unusual internal listener
+  interesting group/privilege with unclear path
+      → validate quickly
+
+LOW
+  scanner-only CVE hit
+  exploit missing prerequisites
+  generic "old version"
+  repeated fuzzing with no evidence
+  exotic CTF idea unsupported by observations
+      → park
+</code></pre>
+<hr/>
+<h2 id="ref-c0-5-v5-reliability-filter">C0.5 RELIABILITY FILTER</h2>
+<pre class="ref-code"><code class="language-text">BEFORE RUNNING A TECHNIQUE:
+  1. prerequisite proven?
+  2. exact build/config known?
+  3. privileged trigger reachable?
+  4. action exam-compatible?
+  5. expected success signal known?
+
+YES → execute
+NO  → enumerate/validate first
+</code></pre>
+<p>Fast labels:</p>
+<pre class="ref-code"><code class="language-text">✓ = try early when prerequisite matches
+△ = fallback / needs stronger validation
+! = last resort
+⚠️ = OffSec restriction applies
+❌ = do not use on the exam
+</code></pre>
+<p>Search <code>[FALSE-POSITIVE]</code> before spending &gt;10 minutes on a weak hypothesis.</p>
+<hr/>
+<h2 id="ref-c1-port-first-action-index">C1. PORT → FIRST ACTION INDEX</h2>
+<table class="ref-table">
+<thead>
+<tr>
+<th>Port / clue</th>
+<th>Search tag</th>
+<th>First 2–4 actions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>21 FTP</td>
+<td><code>[PORT:21]</code></td>
+<td>anonymous → recursive list/download → writable dir → exact version</td>
+</tr>
+<tr>
+<td>22 SSH</td>
+<td><code>[PORT:22]</code></td>
+<td>banner → known creds/key → username reuse → key/config/history</td>
+</tr>
+<tr>
+<td>25/465/587 SMTP</td>
+<td><code>[PORT:25]</code></td>
+<td>banner → user enum → relay → mail/app clues</td>
+</tr>
+<tr>
+<td>53 DNS</td>
+<td><code>[PORT:53]</code></td>
+<td>AXFR → records → hostnames → vhosts → AD DNS</td>
+</tr>
+<tr>
+<td>HTTP/HTTPS on any port (common: 80/443/8000/8080/8443)</td>
+<td><code>[WEB:ENUM]</code></td>
+<td>source/headers → robots/sitemap → dirs/files → vhosts → auth/params/uploads</td>
+</tr>
+<tr>
+<td>88 Kerberos</td>
+<td><code>[AD:KERBEROS]</code></td>
+<td>domain/DC/DNS/time → users → AS-REP/SPNs → graph</td>
+</tr>
+<tr>
+<td>111/2049 RPC/NFS</td>
+<td><code>[LINUX:NFS]</code></td>
+<td>rpcinfo → showmount → mount → permissions → no_root_squash</td>
+</tr>
+<tr>
+<td>135/139/445 SMB/RPC</td>
+<td><code>[PORT:445]</code></td>
+<td>null/guest → shares → users → files → credential validation</td>
+</tr>
+<tr>
+<td>161 UDP SNMP</td>
+<td><code>[PORT:161]</code></td>
+<td>communities → users/processes/software/routes</td>
+</tr>
+<tr>
+<td>389/636/3268/3269 LDAP</td>
+<td><code>[AD:LDAP]</code></td>
+<td>naming context → users/groups/computers → relationships</td>
+</tr>
+<tr>
+<td>1433 MSSQL</td>
+<td><code>[PORT:1433]</code></td>
+<td>creds → DB context → impersonation/linked servers → command context</td>
+</tr>
+<tr>
+<td>1521 Oracle</td>
+<td><code>[PORT:1521]</code></td>
+<td>SID/service enum → creds → DB privilege/context</td>
+</tr>
+<tr>
+<td>3306 MySQL</td>
+<td><code>[PORT:3306]</code></td>
+<td>creds → databases → secrets → local privilege implications</td>
+</tr>
+<tr>
+<td>3389 RDP</td>
+<td><code>[PORT:3389]</code></td>
+<td>validate creds → local/domain context → saved creds/session</td>
+</tr>
+<tr>
+<td>5985/5986 WinRM</td>
+<td><code>[PORT:5985]</code></td>
+<td>validate creds → Evil-WinRM → local enum</td>
+</tr>
+<tr>
+<td>6379 Redis</td>
+<td><code>[PORT:6379]</code></td>
+<td>auth? → keys/data → config/write capability</td>
+</tr>
+<tr>
+<td>27017 MongoDB</td>
+<td><code>[PORT:27017]</code></td>
+<td>auth? → DBs/collections → app secrets</td>
+</tr>
+<tr>
+<td>5900+ VNC</td>
+<td><code>[PORT:5900]</code></td>
+<td>auth/version → known creds → desktop context</td>
+</tr>
+<tr>
+<td>Unknown service</td>
+<td><code>[SERVICE:UNKNOWN]</code></td>
+<td>banner → TLS cert → HTTP probe → manual protocol → exact product/version</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ref-if-windows-like-ports-appear-together">If Windows-like ports appear together</h3>
+<pre class="ref-code"><code class="language-text">88 + 389 + 445 + 53
+       ↓
+Likely AD / possibly DC
+       ↓
+STOP treating each service as unrelated
+       ↓
+[AD:FLOW]
+</code></pre>
+<hr/>
+<h2 id="ref-c2-web-5-minute-triage">C2. WEB — 5-MINUTE TRIAGE</h2>
+<p>Search: <code>[WEB:ENUM]</code></p>
+<pre class="ref-code"><code class="language-text">1. Correct hostname?
+2. View source.
+3. Headers + cookies + framework.
+4. robots.txt / sitemap.xml.
+5. Content discovery.
+6. Vhost discovery.
+7. Login/default creds.
+8. Parameters/API endpoints.
+9. Upload functionality.
+10. Backup/config/source files.
+</code></pre>
+<h3 id="ref-symptom-branch">Symptom → branch</h3>
+<table class="ref-table">
+<thead>
+<tr>
+<th>Observation</th>
+<th>Jump</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>parameter changes DB-like behavior</td>
+<td><code>[WEB:SQLI]</code></td>
+</tr>
+<tr>
+<td>file/path parameter</td>
+<td><code>[WEB:LFI]</code></td>
+</tr>
+<tr>
+<td>upload form</td>
+<td><code>[WEB:UPLOAD]</code></td>
+</tr>
+<tr>
+<td>command-like backend feature</td>
+<td><code>[WEB:CMDI]</code></td>
+</tr>
+<tr>
+<td>URL fetch/import/webhook</td>
+<td><code>[WEB:SSRF]</code></td>
+</tr>
+<tr>
+<td>template/render preview</td>
+<td><code>[WEB:SSTI]</code></td>
+</tr>
+<tr>
+<td>weak login/reset/session behavior</td>
+<td><code>[WEB:AUTH]</code></td>
+</tr>
+<tr>
+<td>WordPress/Joomla/Drupal/etc.</td>
+<td><code>[WEB:CMS]</code></td>
+</tr>
+<tr>
+<td>XML input</td>
+<td><code>[WEB:XXE]</code></td>
+</tr>
+<tr>
+<td>object IDs / user-owned records</td>
+<td><code>[WEB:IDOR]</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="ref-403-reset">403 reset</h3>
+<p>Search: <code>[ERROR:403]</code></p>
+<pre class="ref-code"><code class="language-text">403
+ ↓
+correct host/vhost?
+ ↓
+authenticated vs unauthenticated?
+ ↓
+path normalization / alternate path?
+ ↓
+different method?
+ ↓
+parent/child route exposed?
+ ↓
+reverse proxy/backend difference?
+</code></pre>
+<p>Do not spend 30 minutes blindly changing headers with no new signal.</p>
+<hr/>
+<h2 id="ref-c3-i-have-a-credential-what-now">C3. I HAVE A CREDENTIAL — WHAT NOW?</h2>
+<p>Search: <code>[CREDS:FANOUT]</code></p>
+<pre class="ref-code"><code class="language-text">PASSWORD
+  ↓
+Is it local or domain?
+  ↓
+SMB
+WinRM
+RDP
+MSSQL
+LDAP/Kerberos
+SSH
+Web application
+  ↓
+new privilege / shell / share / host?
+  ↓
+RE-ENUMERATE
+</code></pre>
+<h3 id="ref-quick-validation">Quick validation</h3>
+<pre class="ref-code"><code class="language-bash"># SMB
+nxc smb $IP -u user -p "$AUTH_PASS"
+nxc smb $IP -u user -p "$AUTH_PASS" --shares
+
+# WinRM
+nxc winrm $IP -u user -p "$AUTH_PASS"
+
+# RDP
+nxc rdp $IP -u user -p "$AUTH_PASS"
+
+# MSSQL
+nxc mssql $IP -u user -p "$AUTH_PASS"
+</code></pre>
+<pre class="ref-code"><code class="language-bash"># SSH
+ssh user@$IP
+</code></pre>
+<h3 id="ref-hash">Hash</h3>
+<pre class="ref-code"><code class="language-bash">nxc smb $IP -u Administrator -H NTLM_HASH --local-auth
+</code></pre>
+<h3 id="ref-what-to-record">What to record</h3>
+<pre class="ref-code"><code class="language-text">USER:
+SECRET TYPE:
+SECRET:
+SOURCE HOST:
+SOURCE PATH/COMMAND:
+LOCAL OR DOMAIN:
+VALID ON:
+ACCESS GAINED:
+</code></pre>
+<hr/>
+<h2 id="ref-c4-i-have-a-linux-shell-what-now">C4. I HAVE A LINUX SHELL — WHAT NOW?</h2>
+<p>Search: <code>[LINUX:TREE]</code></p>
+<h3 id="ref-first-90-seconds">First 90 seconds</h3>
+<pre class="ref-code"><code class="language-bash">id
+whoami
+hostname
+uname -a
+cat /etc/os-release
+ip a
+ip route
+cat /etc/hosts
+cat /etc/resolv.conf
+ss -lntup 2&gt;/dev/null || netstat -antup 2&gt;/dev/null
+sudo -l 2&gt;/dev/null
+find / -perm -4000 -type f 2&gt;/dev/null
+getcap -r / 2&gt;/dev/null
+ps auxww
+mount
+findmnt
+env
+</code></pre>
+<h3 id="ref-attack-order">Attack order</h3>
+<pre class="ref-code"><code class="language-text">sudo
+ ↓
+SUID/SGID
+ ↓
+capabilities
+ ↓
+writable privileged files/dirs
+ ↓
+cron/systemd
+ ↓
+services
+ ↓
+PATH/library/module/plugin
+ ↓
+credentials/history/config
+ ↓
+Docker/LXC/NFS
+ ↓
+custom application
+ ↓
+kernel/package CVE LAST
+</code></pre>
+<h3 id="ref-output-recognition">Output recognition</h3>
+<pre class="ref-code"><code class="language-text">sudo -l → NOPASSWD binary
+    → [LINUX:SUDO]
+
+unknown SUID binary
+    → [LINUX:SUID]
+    → strings → strace/ltrace → dependency → writable? → trigger
+
+cap_* on unusual binary
+    → [LINUX:CAPABILITIES]
+
+root script/timer/service + writable dependency
+    → [LINUX:SYSTEMD] or [LINUX:CRON]
+
+docker/lxd group
+    → [LINUX:CONTAINER]
+
+no_root_squash
+    → [LINUX:NFS]
+</code></pre>
+<h3 id="ref-custom-suid-micro-tree">Custom SUID micro-tree</h3>
+<pre class="ref-code"><code class="language-text">CUSTOM SUID
+   ↓
+file / ldd / strings
+   ↓
+Does it call external command?
+   ├─ YES → absolute path?
+   │          ├─ NO → PATH hijack candidate
+   │          └─ YES → target writable?
+   ↓
+Does it load config/library/plugin?
+   ├─ YES → attacker-writable?
+   ↓
+strace/ltrace confirms dependency?
+   ↓
+Can privileged execution be triggered safely?
+   ↓
+validate → exploit → prove root
+</code></pre>
+<hr/>
+<h2 id="ref-c5-i-have-a-windows-shell-what-now">C5. I HAVE A WINDOWS SHELL — WHAT NOW?</h2>
+<p>Search: <code>[WIN:TREE]</code></p>
+<h3 id="ref-first-90-seconds-2">First 90 seconds</h3>
+<pre class="ref-code"><code class="language-cmd">whoami /all
+whoami /priv
+whoami /groups
+hostname
+systeminfo
+ipconfig /all
+route print
+netstat -ano
+tasklist /svc
+schtasks /query /fo LIST /v
+net user
+net localgroup administrators
+</code></pre>
+<h3 id="ref-attack-order-2">Attack order</h3>
+<pre class="ref-code"><code class="language-text">token privileges
+ ↓
+services
+ ↓
+scheduled tasks
+ ↓
+writable files/directories
+ ↓
+registry/autoruns
+ ↓
+DLL/EXE/PATH
+ ↓
+named pipes/IPC
+ ↓
+DPAPI/credential stores
+ ↓
+LAPS/local admin secrets
+ ↓
+backup/restore/debug privileges
+ ↓
+drivers/kernel LAST
+</code></pre>
+<h3 id="ref-output-recognition-2">Output recognition</h3>
+<pre class="ref-code"><code class="language-text">SeImpersonatePrivilege Enabled
+    → [WIN:SEIMPERSONATE]
+
+SYSTEM service + writable executable/dir
+    → [WIN:SERVICE]
+
+SYSTEM scheduled task + writable script/binary
+    → [WIN:TASK]
+
+SeBackupPrivilege
+    → [WIN:BACKUP]
+
+interesting DPAPI / saved credentials
+    → [WIN:DPAPI]
+
+readable LAPS material / delegated access
+    → [WIN:LAPS]
+</code></pre>
+<h3 id="ref-service-micro-tree">Service micro-tree</h3>
+<pre class="ref-code"><code class="language-text">SERVICE
+  ↓
+Runs as SYSTEM/high privilege?
+  ↓
+Can I change service config?
+  ├─ YES → controlled executable path
+  ↓
+Binary writable?
+  ├─ YES → replacement path
+  ↓Parent dir writable?
+  ├─ YES → replacement/hijack candidate
+  ↓
+Unquoted path?
+  ├─ YES → candidate path writable?
+  ↓
+DLL dependency/load failure?
+  ├─ YES → [WIN:DLL]
+  ↓
+Can I start/restart/trigger?
+  ↓
+validate before changing anything
+</code></pre>
+<hr/>
+<h2 id="ref-c6-i-have-domain-credentials-what-now">C6. I HAVE DOMAIN CREDENTIALS — WHAT NOW?</h2>
+<p>Search: <code>[AD:FLOW]</code></p>
+<pre class="ref-code"><code class="language-text">DOMAIN CREDS
+   ↓
+DC + DNS + DOMAIN + TIME correct?
+   ↓
+SMB / shares / admin validation
+   ↓
+LDAP users/groups/computers
+   ↓
+Kerberos AS-REP / SPNs
+   ↓
+BloodHound
+   ↓
+ACL / delegation / AD CS
+   ↓
+shell / lateral movement
+   ↓
+new host
+   ↓
+local privesc + RE-ENUMERATE AD
+</code></pre>
+<h3 id="ref-fast-commands">Fast commands</h3>
+<pre class="ref-code"><code class="language-bash">nxc smb $DC -u user -p "$AUTH_PASS"
+nxc smb $DC -u user -p "$AUTH_PASS" --shares
+</code></pre>
+<p>Then jump to:</p>
+<pre class="ref-code"><code class="language-text">[AD:KERBEROS]
+[AD:BLOODHOUND]
+[AD:ACL]
+[AD:ADCS]
+[AD:LATERAL]
+</code></pre>
+<h3 id="ref-ad-output-recognition">AD output recognition</h3>
+<pre class="ref-code"><code class="language-text">BloodHound GenericAll / GenericWrite
+  → [AD:ACL]
+
+WriteDacl / WriteOwner
+  → [AD:ACL]
+
+certificate template weakness
+  → [AD:ADCS]
+
+SPN on service account
+  → [AD:KERBEROS]
+
+user without preauth
+  → [AD:KERBEROS]
+
+new machine / new subnet
+  → [PIVOT:FLOW]
+</code></pre>
+<hr/>
+<h2 id="ref-c7-seimpersonate-30-second-branch">C7. SEIMPERSONATE — 30-SECOND BRANCH</h2>
+<p>Search: <code>[WIN:SEIMPERSONATE]</code></p>
+<pre class="ref-code"><code class="language-text">SeImpersonate / SeAssignPrimaryToken
+             ↓
+Exact Windows build?
+             ↓
+Service account/context?
+             ↓
+Required RPC/service primitive available?
+             ↓
+Which technique is compatible?
+             ↓
+test with harmless identity command
+             ↓
+SYSTEM?
+</code></pre>
+<p>Never reduce this to:</p>
+<pre class="ref-code"><code class="language-text">SeImpersonate = run random Potato
+</code></pre>
+<p>The exact OS/context/prerequisites still matter.</p>
+<hr/>
+<h2 id="ref-c8-pivot-fast-choice">C8. PIVOT — FAST CHOICE</h2>
+<p>Search: <code>[PIVOT:FLOW]</code></p>
+<pre class="ref-code"><code class="language-text">I need a subnet routed like local traffic
+    → [PIVOT:LIGOLO]
+
+HTTP-friendly tunnel / SOCKS / port forward
+    → [PIVOT:CHISEL]
+
+SSH already available
+    → [PIVOT:SSH]
+
+single quick TCP relay
+    → [PIVOT:SOCAT]
+</code></pre>
+<h3 id="ref-before-blaming-the-tunnel">Before blaming the tunnel</h3>
+<p>Search: <code>[ERROR:PIVOT]</code></p>
+<pre class="ref-code"><code class="language-text">1. Can pivot host reach destination itself?
+2. Correct destination subnet?
+3. Tunnel session alive?
+4. Route/forward actually created?
+5. DNS resolution happening on the correct side?
+6. Tool using expected proxy/interface/path?
+</code></pre>
+<hr/>
+<h2 id="ref-c9-shell-stabilization">C9. SHELL STABILIZATION</h2>
+<p>Search: <code>[SHELL:STABLE]</code></p>
+<h3 id="ref-linux">Linux</h3>
+<pre class="ref-code"><code class="language-bash">python3 -c 'import pty; pty.spawn("/bin/bash")'
+</code></pre>
+<p>Then for a classic netcat shell:</p>
+<pre class="ref-code"><code class="language-text">Ctrl+Z
+stty raw -echo; fg
+Enter
+export TERM=xterm
+stty rows 40 columns 120
+</code></pre>
+<p>Fallbacks:</p>
+<pre class="ref-code"><code class="language-bash">python -c 'import pty; pty.spawn("/bin/bash")'
+script -qc /bin/bash /dev/null
+/bin/bash -i
+</code></pre>
+<p>Recovery:</p>
+<pre class="ref-code"><code class="language-bash">reset
+stty sane
+</code></pre>
+<h3 id="ref-windows">Windows</h3>
+<pre class="ref-code"><code class="language-text">basic cmd
+  ↓
+PowerShell available?
+  ↓
+better transfer/enum
+  ↓
+WinRM creds?
+  ↓
+prefer stable Evil-WinRM session
+</code></pre>
+<hr/>
+<h2 id="ref-c10-common-error-decoder">C10. COMMON ERROR DECODER</h2>
+<h3 id="ref-kerberos">Kerberos</h3>
+<p>Search: <code>[ERROR:KRB_SKEW]</code></p>
+<pre class="ref-code"><code class="language-text">KRB_AP_ERR_SKEW
+  → time mismatch
+
+Cannot contact KDC
+  → DNS/routing/hostname/88 first
+
+KDC_ERR_PREAUTH_FAILED
+  → secret/principal mismatch
+
+KDC_ERR_C_PRINCIPAL_UNKNOWN
+  → user/domain/principal naming issue
+</code></pre>
+<p>Checks:</p>
+<pre class="ref-code"><code class="language-bash">getent hosts $DC
+nc -vz $DC 88
+date
+</code></pre>
+<h3 id="ref-smb">SMB</h3>
+<p>Search: <code>[ERROR:SMB]</code></p>
+<pre class="ref-code"><code class="language-text">STATUS_LOGON_FAILURE
+  → auth material/domain format
+
+STATUS_ACCESS_DENIED
+  → auth may work; authorization does not
+
+BAD_NETWORK_NAME
+  → wrong share
+</code></pre>
+<h3 id="ref-winrm">WinRM</h3>
+<p>Search: <code>[ERROR:WINRM]</code></p>
+<pre class="ref-code"><code class="language-text">SMB creds work, WinRM does not
+  → verify 5985/5986 + authorization for remote management
+</code></pre>
+<h3 id="ref-reverse-shell">Reverse shell</h3>
+<p>Search: <code>[ERROR:SHELL]</code></p>
+<pre class="ref-code"><code class="language-text">no connection
+  → LHOST/interface/routing/firewall
+
+connect then close
+  → process exits / payload mismatch / AV / unstable shell
+
+weird terminal
+  → stabilize before changing exploit
+</code></pre>
+<hr/>
+<h2 id="ref-c11-exploit-go-no-go">C11. EXPLOIT GO / NO-GO</h2>
+<p>Search: <code>[EXPLOIT:GATE]</code></p>
+<pre class="ref-code"><code class="language-text">exact product/version?
+      ↓
+exact OS/build/arch?
+      ↓
+affected component/config present?
+      ↓
+required privilege/access present?
+      ↓
+required service/module/feature present?
+      ↓
+PoC matches this variant?
+      ↓
+expected success/failure signal known?
+      ↓
+acceptable disruption risk?
+      ↓
+RUN
+</code></pre>
+<h3 id="ref-park-the-exploit-if">Park the exploit if:</h3>
+<pre class="ref-code"><code class="language-text">2+ critical prerequisites are still UNKNOWN
+</code></pre>
+<p>Especially for kernel/driver exploits.</p>
+<hr/>
+<h2 id="ref-c12-evidence-before-moving-on">C12. EVIDENCE — BEFORE MOVING ON</h2>
+<p>Search: <code>[EVIDENCE:PACKET]</code></p>
+<pre class="ref-code"><code class="language-text">[ ] IP/hostname recorded
+[ ] exact vulnerability/misconfiguration recorded
+[ ] exact command sequence recorded
+[ ] exploit modifications saved
+[ ] credentials + source recorded
+[ ] local.txt read from original location
+[ ] local flag submitted
+[ ] local proof screenshot valid
+[ ] root/SYSTEM path documented
+[ ] proof.txt read from original location
+[ ] proof flag submitted
+[ ] proof screenshot valid
+[ ] pivot/routes recorded
+[ ] report steps reproducible
+</code></pre>
+<h3 id="ref-screenshot-names">Screenshot names</h3>
+<pre class="ref-code"><code class="language-text">01-enum.png
+02-validation.png
+03-foothold.png
+04-local-proof.png
+05-privesc-validation.png
+06-root-system.png
+07-proof.png
+</code></pre>
+<hr/>
+<h2 id="ref-c13-stuck-reset-3-minutes-max">C13. STUCK RESET — 3 MINUTES MAX</h2>
+<p>Search: <code>[STUCK:RESET]</code></p>
+<pre class="ref-code"><code class="language-text">WHAT DO I KNOW?
+  ports
+  exact versions
+  creds
+  privileges
+  files
+  routes
+  graph edges
+
+WHAT AM I ASSUMING?
+  "this CVE should work"
+  "there is only one vhost"
+  "credential is local only"
+  "WinPEAS would show everything"
+  "service is unreachable"
+
+WHAT DID I MISS?
+  full TCP
+  useful UDP
+  DNS/vhosts
+  source/backups/config
+  credential reuse
+  internal listeners
+  post-shell re-enumeration
+  DNS/time in AD
+  writable privileged dependency
+
+WRITE ONLY NEXT 3 ACTIONS.
+</code></pre>
+<p>If none of the next three actions can produce <strong>new evidence</strong>, rotate targets/surfaces.</p>
+<hr/>
+<h2 id="ref-c14-output-recognition-cheat-table">C14. OUTPUT RECOGNITION CHEAT TABLE</h2>
+<table class="ref-table">
+<thead>
+<tr>
+<th>Output / clue</th>
+<th>Meaning</th>
+<th>Jump</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NOPASSWD</code> sudo entry</td>
+<td>direct privileged execution candidate</td>
+<td><code>[LINUX:SUDO]</code></td>
+</tr>
+<tr>
+<td>unknown SUID</td>
+<td>custom privileged app needs dependency tracing</td>
+<td><code>[LINUX:SUID]</code></td>
+</tr>
+<tr>
+<td><code>cap_setuid</code>, <code>cap_dac_*</code>, unusual cap</td>
+<td>capability path may exist</td>
+<td><code>[LINUX:CAPABILITIES]</code></td>
+</tr>
+<tr>
+<td>root timer/cron calling writable file</td>
+<td>privileged scheduled execution</td>
+<td><code>[LINUX:CRON]</code> / <code>[LINUX:SYSTEMD]</code></td>
+</tr>
+<tr>
+<td>Docker/LXD group</td>
+<td>host resource control may imply privesc</td>
+<td><code>[LINUX:CONTAINER]</code></td>
+</tr>
+<tr>
+<td><code>SeImpersonatePrivilege Enabled</code></td>
+<td>token impersonation path candidate</td>
+<td><code>[WIN:SEIMPERSONATE]</code></td>
+</tr>
+<tr>
+<td>SYSTEM service + weak ACL</td>
+<td>service privesc candidate</td>
+<td><code>[WIN:SERVICE]</code></td>
+</tr>
+<tr>
+<td>SYSTEM task + writable target</td>
+<td>scheduled-task privesc</td>
+<td><code>[WIN:TASK]</code></td>
+</tr>
+<tr>
+<td><code>SeBackupPrivilege</code></td>
+<td>protected file-read path</td>
+<td><code>[WIN:BACKUP]</code></td>
+</tr>
+<tr>
+<td>saved Windows credentials/DPAPI</td>
+<td>credential recovery path</td>
+<td><code>[WIN:DPAPI]</code></td>
+</tr>
+<tr>
+<td><code>Pwn3d!</code>/admin-capable SMB result</td>
+<td>remote admin/execution potential</td>
+<td><code>[AD:LATERAL]</code></td>
+</tr>
+<tr>
+<td>AS-REP roastable user</td>
+<td>offline Kerberos credential path</td>
+<td><code>[AD:KERBEROS]</code></td>
+</tr>
+<tr>
+<td>SPN account</td>
+<td>Kerberoast candidate</td>
+<td><code>[AD:KERBEROS]</code></td>
+</tr>
+<tr>
+<td>BloodHound <code>GenericAll</code></td>
+<td>controllable AD object</td>
+<td><code>[AD:ACL]</code></td>
+</tr>
+<tr>
+<td>AD CS template issue</td>
+<td>certificate privilege path</td>
+<td><code>[AD:ADCS]</code></td>
+</tr>
+<tr>
+<td>TLS cert reveals hostname</td>
+<td>add host + enumerate vhost</td>
+<td><code>[WEB:ENUM]</code></td>
+</tr>
+<tr>
+<td>internal-only listener</td>
+<td>pivot/local access opportunity</td>
+<td><code>[PIVOT:FLOW]</code></td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="ref-c15-search-tag-index">C15. SEARCH TAG INDEX</h2>
+<h3 id="ref-services">Services</h3>
+<pre class="ref-code"><code class="language-text">[PORT:21]      FTP
+[PORT:22]      SSH
+[PORT:25]      SMTP
+[PORT:53]      DNS
+[WEB:ENUM]     HTTP/HTTPS
+[PORT:445]     SMB
+[AD:LDAP]      LDAP
+[LINUX:NFS]    NFS
+[PORT:111]     RPC
+[PORT:161]     SNMP
+[PORT:3306]    MySQL
+[PORT:1433]    MSSQL
+[PORT:3389]    RDP
+[PORT:5985]    WinRM
+[PORT:6379]    Redis
+[PORT:1521]    Oracle
+[PORT:27017]   MongoDB
+[PORT:5900]    VNC
+</code></pre>
+<h3 id="ref-web">Web</h3>
+<pre class="ref-code"><code class="language-text">[WEB:SQLI]
+[WEB:LFI]
+[WEB:UPLOAD]
+[WEB:CMDI]
+[WEB:SSRF]
+[WEB:SSTI]
+[WEB:AUTH]
+[WEB:CMS]
+[WEB:XXE]
+[WEB:IDOR]
+[WEB:XSS]
+</code></pre>
+<h3 id="ref-linux-2">Linux</h3>
+<pre class="ref-code"><code class="language-text">[LINUX:TREE]
+[LINUX:SUDO]
+[LINUX:SUID]
+[LINUX:WRITABLE]
+[LINUX:CRON]
+[LINUX:PATH]
+[LINUX:CAPABILITIES]
+[LINUX:SYSTEMD]
+[LINUX:NFS]
+[LINUX:CREDS]
+[LINUX:PROCESSES]
+[LINUX:POLKIT]
+[LINUX:SNAP]
+[LINUX:CONTAINER]
+[LINUX:TOCTOU]
+[LINUX:PLUGIN]
+[LINUX:KERNEL]
+</code></pre>
+<h3 id="ref-windows-2">Windows</h3>
+<pre class="ref-code"><code class="language-text">[WIN:TREE]
+[WIN:SERVICE]
+[WIN:TASK]
+[WIN:SEIMPERSONATE]
+[WIN:PIPE]
+[WIN:DPAPI]
+[WIN:PRIV]
+[WIN:LAPS]
+[WIN:DLL]
+[WIN:REGISTRY]
+[WIN:BACKUP]
+[WIN:KERNEL]
+</code></pre>
+<h3 id="ref-active-directory">Active Directory</h3>
+<pre class="ref-code"><code class="language-text">[AD:FLOW]
+[AD:LDAP]
+[AD:KERBEROS]
+[AD:BLOODHOUND]
+[AD:ADCS]
+[AD:ACL]
+[AD:LATERAL]
+</code></pre>
+<h3 id="ref-workflow-troubleshooting">Workflow / troubleshooting</h3>
+<pre class="ref-code"><code class="language-text">[CREDS:FANOUT]
+[SHELL:STABLE]
+[PIVOT:FLOW]
+[PIVOT:LIGOLO]
+[PIVOT:CHISEL]
+[PIVOT:SSH]
+[PIVOT:SOCAT]
+[ERROR:KRB_SKEW]
+[ERROR:SMB]
+[ERROR:WINRM]
+[ERROR:403]
+[ERROR:SHELL]
+[ERROR:PIVOT]
+[EXPLOIT:GATE]
+[EVIDENCE:PACKET]
+[STUCK:RESET]
+[TRANSFER:WINDOWS]
+[TRANSFER:LINUX]
+[REPORT:PROOF]
+[TIME:ROTATE]
+</code></pre>
+<hr/>
+<h1>📚 LAYER 2 — FULL REFERENCE STARTS BELOW</h1>
+<blockquote>
+<p><strong>Rule:</strong> do not read Layer 2 sequentially during the exam.<br/>
+Search a tag or exact observation, use the relevant deep section, then return to the Cockpit.</p>
+</blockquote>

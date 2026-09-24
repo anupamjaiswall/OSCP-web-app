@@ -472,7 +472,7 @@ Return trigger:"></textarea>
 <button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
 
 <div class="top">
-  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V29 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V30 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -928,7 +928,7 @@ state-changing AD abuse
 
 
 <section id="serviceRouterView" class="view">
- <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V29</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
+ <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V30</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
  <div class="grid">
   <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Strict port list or scan output</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445&#10;53/udp,161/udp,445/tcp&#10;or paste Nmap / grepable / XML / Masscan output"></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy queue</button><button class="btn" id="serviceRouterLoadTarget" type="button">Load active target</button><button class="btn" id="serviceRouterSaveTarget" type="button">Save to active target</button></div><div id="serviceParseSummary" class="serviceParseSummary muted">Parser waits for a strict port list or recognized scan format.</div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
   <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
@@ -10215,6 +10215,63 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 </main>
 </div>
 <div class="toast" id="toast"></div>
+<script id="coreUtilsScript">/* V30 shared pure utilities. Keep this file DOM-free so CI can execute it in Node. */
+(function(root){
+  'use strict';
+  function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g,c=>({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+  function clampExamPoints(value){
+    const n=Number(value);
+    return Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):0;
+  }
+  function examScore(adPoints,standalonePoints,passTarget=70){
+    const ad=clampExamPoints(adPoints);
+    const standalone=(Array.isArray(standalonePoints)?standalonePoints:[]).map(clampExamPoints);
+    const total=clampExamPoints(ad+standalone.reduce((a,b)=>a+b,0));
+    const target=clampExamPoints(passTarget);
+    return {ad,standalone,total,target,need:Math.max(0,target-total),passed:total>=target};
+  }
+  function evidenceClaims(target){
+    const e=target?.evidence||{},st=target?.status||{};
+    const local=!!(st.foothold||st.local||e.footholdRecorded||e.localRead||e.localSubmitted||e.localScreenshot);
+    const proof=!!(st.privesc||st.proof||e.privescRecorded||e.proofRead||e.proofSubmitted||e.proofScreenshot||e.reproducible);
+    return {local,proof};
+  }
+  function requiredEvidence(target){
+    const c=evidenceClaims(target);
+    const req=[['enumRecorded','Enumeration recorded'],['commandsRecorded','Exact commands recorded']];
+    if(c.local) req.push(
+      ['footholdRecorded','Foothold/vector recorded'],
+      ['localRead','local.txt read at original location'],
+      ['localSubmitted','local flag submitted'],
+      ['localScreenshot','Local screenshot has proof + IP']
+    );
+    if(c.proof) req.push(
+      ['privescRecorded','PrivEsc reasoning recorded'],
+      ['proofRead','proof.txt read at original location'],
+      ['proofSubmitted','proof flag submitted'],
+      ['proofScreenshot','Proof screenshot has proof + IP'],
+      ['reproducible','Steps reproducible without memory']
+    );
+    return req;
+  }
+  function evidenceMissing(target){
+    const t=target||{},missing=[];
+    if(!t.ip) missing.push('Target IP');
+    const c=evidenceClaims(t);
+    if(!c.local&&!c.proof) missing.push('No point-bearing objective marked as obtained');
+    requiredEvidence(t).forEach(([key,label])=>{if(!t.evidence?.[key])missing.push(label)});
+    if(!t.report?.title) missing.push('Report title/finding');
+    if(!t.report?.commands) missing.push('Exact commands/reproducibility notes');
+    return missing;
+  }
+  root.OSCP_UTILS=Object.freeze({
+    escapeHtml,clampExamPoints,examScore,evidenceClaims,requiredEvidence,evidenceMissing
+  });
+})(typeof window!=='undefined'?window:globalThis);</script>
 <script>
 /* V19 FIX: storage compatibility guard.
    Some browser/file contexts deny localStorage entirely. In that case keep the
@@ -10352,7 +10409,7 @@ $('#globalSearch').addEventListener('input',e=>{if(e.target.value.trim()){switch
 
 function norm(s){return (s||'').toLowerCase().replace(/[^a-z0-9:_\-\[\]\. ]+/g,' ')}
 function fuzzyScore(item,q){q=norm(q).trim();if(!q)return 0;const title=norm(item.title),tags=norm((item.tags||[]).join(' ')),body=norm(item.text);let score=0;if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;const toks=q.split(/\s+/).filter(Boolean);for(const t of toks){if(tags.includes(t))score+=25;if(title.includes(t))score+=18;if(body.includes(t))score+=5;}return score}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
 function validRecordId(v){return typeof v==='string'&&/^[A-Za-z0-9._:-]{1,160}$/.test(v)}
 function plainRecord(v){return !!v&&typeof v==='object'&&!Array.isArray(v)}
 function renderSearch(q){q=q||'';let scored=SEARCH_ITEMS.map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><span class="score">score ${x.score}</span></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});}
@@ -10548,19 +10605,9 @@ function renderGraph(){
  nodes.forEach((n,i)=>{const x=x0+i*(w+gap),dead=n.result==='dead-end',done=['success','validated'].includes(n.result);if(i){const px=x0+(i-1)*(w+gap)+w;s+=`<line x1="${px}" y1="${y+35}" x2="${x-9}" y2="${y+35}" class="graphEdge"/>`}s+=`<rect x="${x}" y="${y}" rx="10" ry="10" width="${w}" height="70" class="graphNode ${dead?'dead':done?'done':''}"/>`;const label=String(n.label||'').slice(0,25),line2=String(n.label||'').slice(25,50);s+=`<text x="${x+12}" y="${y+27}" class="graphText">${esc(label)}</text>${line2?`<text x="${x+12}" y="${y+45}" class="graphText">${esc(line2)}</text>`:''}<text x="${x+12}" y="${y+61}" class="graphText" style="fill:#8ea0b5;font-size:10px">${esc(n.type||'')} · ${esc(n.result||'')}</text>`});svg.innerHTML=s;$('#graphTranscript').innerHTML=t.path.length?t.path.map((p,i)=>`<div>${i+1}. <b>${esc(p.type)}</b> → ${esc(p.label)} <span class="chip">${esc(p.result)}</span></div>`).join(''):'No recorded path yet. Add steps in Workspace.'
 }
 
-function evidenceClaims(t){
- const e=t?.evidence||{},st=t?.status||{};
- const local=!!(st.foothold||st.local||e.footholdRecorded||e.localRead||e.localSubmitted||e.localScreenshot);
- const proof=!!(st.privesc||st.proof||e.privescRecorded||e.proofRead||e.proofSubmitted||e.proofScreenshot||e.reproducible);
- return{local,proof};
-}
-function requiredEvidence(t){
- const c=evidenceClaims(t),req=[['enumRecorded','Enumeration recorded'],['commandsRecorded','Exact commands recorded']];
- if(c.local)req.push(['footholdRecorded','Foothold/vector recorded'],['localRead','local.txt read at original location'],['localSubmitted','local flag submitted'],['localScreenshot','Local screenshot has proof + IP']);
- if(c.proof)req.push(['privescRecorded','PrivEsc reasoning recorded'],['proofRead','proof.txt read at original location'],['proofSubmitted','proof flag submitted'],['proofScreenshot','Proof screenshot has proof + IP'],['reproducible','Steps reproducible without memory']);
- return req;
-}
-function evidenceMissing(t){const missing=[];if(!t.ip)missing.push('Target IP');const c=evidenceClaims(t);if(!c.local&&!c.proof)missing.push('No point-bearing objective marked as obtained');requiredEvidence(t).forEach(([k,l])=>{if(!t.evidence?.[k])missing.push(l)});if(!t.report?.title)missing.push('Report title/finding');if(!t.report?.commands)missing.push('Exact commands/reproducibility notes');return missing}
+function evidenceClaims(t){return window.OSCP_UTILS.evidenceClaims(t)}
+function requiredEvidence(t){return window.OSCP_UTILS.requiredEvidence(t)}
+function evidenceMissing(t){return window.OSCP_UTILS.evidenceMissing(t)}
 function renderGate(root,t){if(!root||!t)return;const required=new Set(requiredEvidence(t).map(([k])=>k));root.innerHTML=V7_EVIDENCE.map(([k,l])=>`<label class="gateItem ${t.evidence?.[k]?'ok':'miss'}"><input type="checkbox" data-ev="${k}" ${t.evidence?.[k]?'checked':''}> ${esc(l)}${required.has(k)?' <span class="tiny">(required for claimed access)</span>':''}</label>`).join('');root.querySelectorAll('[data-ev]').forEach(x=>x.onchange=()=>{t.evidence[x.dataset.ev]=x.checked;saveTargets();renderWorkspace();renderReport()})}
 function syncReportFields(t){if(!t)return;[['rTitle','title'],['rFoothold','foothold'],['rPrivesc','privesc'],['rCommands','commands'],['rScreens','screens'],['rRemediation','remediation']].forEach(([id,k])=>{$('#'+id).value=t.report[k]||''})}
 function reportMarkdown(t){const creds=credentials.filter(c=>c.sourceTarget===t.id).map(c=>`- ${c.user} (${c.type}, ${c.scope}) — source: ${targetLabel(t)}`).join('\n')||'- None recorded from this target';const finds=t.findings.map(f=>`- **${f.title}** — ${confLabel(f.confidence)} ${f.tag||''}`).join('\n')||'- None recorded';const path=t.path.map((p,i)=>`${i+1}. **${p.type}** — ${p.label} (${p.result})`).join('\n')||'1. Not recorded';const miss=evidenceMissing(t);return`# ${t.report.title||targetLabel(t)+' — OSCP Target'}\n\n## Target\n\n- **IP:** ${t.ip||''}\n- **Hostname:** ${t.host||''}\n- **Role:** ${t.role}\n- **Stage:** ${t.stage}\n\n## Enumeration / Key Findings\n\n${finds}\n\n## Foothold\n\n${t.report.foothold||'TODO'}\n\n## Privilege Escalation\n\n${t.report.privesc||'TODO'}\n\n## Attack Path\n\n${path}\n\n## Exact Commands / Reproduction\n\n\`\`\`text\n${t.report.commands||'TODO'}\n\`\`\`\n\n## Credential Material Discovered\n\n${creds}\n\n## Evidence / Screenshots\n\n${t.report.screens||'TODO'}\n\n## Remediation Notes\n\n${t.report.remediation||'TODO'}\n\n## Evidence Gate\n\n${V7_EVIDENCE.map(([k,l])=>`- [${t.evidence?.[k]?'x':' '}] ${l}`).join('\n')}\n\n${miss.length?`> **NOT REPORT-READY:** ${miss.join('; ')}`:'> **Evidence gate satisfied for currently claimed objectives.**'}\n`}
@@ -10835,7 +10882,7 @@ const v8AddPath=$('#addPath').onclick;
 $('#addPath').onclick=()=>{const before=activeTarget()?.path?.length||0;v8AddPath();const t=activeTarget();if(t&&t.path.length>before){const p=t.path.at(-1);logEvent(t,p.type,`Attack path: ${p.label}`);saveTargets();renderTimeline(t)}};
 
 /* Board */
-function clampExamPoints(v){v=Number(v);return Number.isFinite(v)?Math.max(0,Math.min(100,Math.round(v))):0}
+function clampExamPoints(v){return window.OSCP_UTILS.clampExamPoints(v)}
 function renderBoard(){
  boardConfig.passTarget=OSCP_PASS_TARGET;
  targets.forEach(t=>{t.pointsPossible=clampExamPoints(t.pointsPossible);t.pointsAwarded=Math.min(clampExamPoints(t.pointsAwarded),t.pointsPossible||100)});
@@ -13488,7 +13535,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   return{endpoints,mode,recognized:endpoints.length>0}
  }
  function parsePorts(text){return[...new Set(parseServices(text).endpoints.map(e=>e.port))].sort((a,b)=>a-b)}
- function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
  function search(q){const g=$('globalSearch');if(!g)return;g.value=q;try{switchView('searchView');renderSearch(q)}catch(e){g.dispatchEvent(new Event('input',{bubbles:true}))}}
  function matchCatalog(x,e){return x.ports.includes(e.port)&&(!Array.isArray(x.protocols)||x.protocols.includes(e.proto))}
  function classify(input){
@@ -13547,7 +13594,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   try{if(typeof logEvent==='function')logEvent(t,'enum','Service Router saved '+parsed.endpoints.length+' parsed endpoint(s)');if(typeof saveTargets==='function')saveTargets();if(typeof renderWorkspace==='function')renderWorkspace()}catch(_){}
   if(typeof toast==='function')toast('Merged '+parsed.endpoints.length+' endpoint(s) into active target')
  }
- function score(){const ad=Number($('scoreAD')?.value||0),ss=[...document.querySelectorAll('.scoreStandalone')].map(x=>Number(x.value||0)),total=ad+ss.reduce((a,b)=>a+b,0),need=Math.max(0,70-total),el=$('scoreSummary');if(!el)return;el.className='scoreSummary '+(total>=70?'good':'warn');let next='Bank every earned flag/evidence now.';if(total<70){const o=[];ss.forEach((v,i)=>{if(v===0)o.push(`S${i+1} local +10`);if(v===10)o.push(`S${i+1} privesc +10`)});if(ad<40)o.push(`AD remaining up to +${40-ad}`);next=o.length?`Nearest remaining point units: ${o.join(' · ')}`:'Re-check the Exam Control Panel objectives.'}el.innerHTML=`<div class="scoreBig">${total}/100</div><div><b>${total>=70?'Pass threshold reached in this planner':need+' more points to 70'}</b></div><div class="tiny" style="margin-top:6px">${esc(next)}</div>`}
+ function score(){const ad=Number($('scoreAD')?.value||0),ss=[...document.querySelectorAll('.scoreStandalone')].map(x=>Number(x.value||0)),scoreState=window.OSCP_UTILS.examScore(ad,ss,70),total=scoreState.total,need=scoreState.need,el=$('scoreSummary');if(!el)return;el.className='scoreSummary '+(total>=70?'good':'warn');let next='Bank every earned flag/evidence now.';if(total<70){const o=[];ss.forEach((v,i)=>{if(v===0)o.push(`S${i+1} local +10`);if(v===10)o.push(`S${i+1} privesc +10`)});if(ad<40)o.push(`AD remaining up to +${40-ad}`);next=o.length?`Nearest remaining point units: ${o.join(' · ')}`:'Re-check the Exam Control Panel objectives.'}el.innerHTML=`<div class="scoreBig">${total}/100</div><div><b>${total>=70?'Pass threshold reached in this planner':need+' more points to 70'}</b></div><div class="tiny" style="margin-top:6px">${esc(next)}</div>`}
  $('serviceRouterBuild')?.addEventListener('click',render);$('serviceRouterInput')?.addEventListener('input',()=>{clearTimeout(window.__oscpServiceTimer);window.__oscpServiceTimer=setTimeout(render,180)});$('serviceRouterCopy')?.addEventListener('click',async()=>{render();const txt=$('serviceFirstPassQueue')?.textContent||'';try{await navigator.clipboard.writeText(txt);toast('First-pass queue copied')}catch(e){}});$('serviceRouterLoadTarget')?.addEventListener('click',loadActiveTargetPorts);$('serviceRouterSaveTarget')?.addEventListener('click',saveParsedToTarget);$('scoreAD')?.addEventListener('change',score);document.querySelectorAll('.scoreStandalone').forEach(x=>x.addEventListener('change',score));score();window.OSCP_SERVICE_ROUTER={parsePorts,parseServices,classify,render,score,loadActiveTargetPorts,saveParsedToTarget};try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['Service router parses Nmap TCP/UDP',()=>{const r=parseServices('22/tcp open ssh\\n53/udp open domain\\n161/udp open|filtered snmp');return[r.endpoints.length===3&&r.endpoints.some(x=>x.port===53&&x.proto==='udp'),'count='+r.endpoints.length]}],['Service router ignores unrelated numbers',()=>{const p=parsePorts('Nmap scan report for 10.10.10.123\\nHost is up (0.021s latency).\\n22/tcp open ssh OpenSSH 8.9p1');return[p.length===1&&p[0]===22,p.join(',')]}],['Service router explicit list stays strict',()=>{const p=parsePorts('22,80,445');return[p.join(',')==='22,80,445',p.join(',')]}],['Service router arbitrary numeric prose is not ports',()=>{const p=parsePorts('target 10.10.10.10 latency 21 ms version 8.9');return[p.length===0,p.join(',')||'none']}],['Service router prioritizes SMB before SSH',()=>{const r=classify([22,445]).map(x=>x.name);return[r[0]==='RPC/SMB',r.join(' > ')]}],['Service router does not map unknown port to a CVE',()=>{const r=classify([31337]);return[r.length===0,'unknown remains manual-identification path']}])}catch(e){}
 })();
 </script>
@@ -14391,7 +14438,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  const FATIGUE_STORE='oscp:fatigue:v27';
  let tab='services',tagIndex=new Map(),fatigue={started:0,limit:90},fatigueTick=null;
  const $id=id=>document.getElementById(id);
- function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+ function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
  function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9:_\-.\[\] ]+/g,' ').trim()}
 
  function buildTagIndex(){
@@ -14534,7 +14581,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function save(){try{localStorage.setItem(STORE,JSON.stringify(all));return true}catch(_){return false}}
  function entries(){return Array.isArray(all[key()])?all[key()]:[]}
  function norm(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim()}
- function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+ function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
  function outcomeLabel(v){return({evidence:'new evidence',success:'worked',negative:'negative',blocked:'blocked'})[v]||v}
  function nonProgressStreak(){
    let n=0;for(const e of [...entries()].reverse()){if(e.outcome==='negative'||e.outcome==='blocked')n++;else break}return n

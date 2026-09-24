@@ -1,0 +1,569 @@
+<h1>🔐 ULTIMATE OSCP METHODOLOGY CHECKLIST</h1>
+<blockquote>
+<p><strong>Exam layout:</strong> <strong>Layer 1 = Exam Cockpit</strong>, <strong>Layer 2 = Full Reference</strong>, plus a reliability/compliance layer.<br/>
+During the exam, start with the Cockpit and jump by search tags; do not scroll the full document linearly.</p>
+</blockquote>
+<blockquote>
+<p><strong>Exam-time-only OSCP/OSCP+ operating checklist — offline, version-aware and evidence-driven.</strong><br/>Designed for fast decisions under pressure. Exam rules last checked against OffSec's official docs: <strong>24 Sep 2026</strong><br/><strong>EXAM-ONLY:</strong> study plans, quizzes, simulations, prohibited-tool workflows and training commands are intentionally excluded.</p>
+</blockquote>
+<hr/>
+<details id="ref-v19-target-handoff-access-truth-layer">
+<summary>↩ TARGET HANDOFF + ACCESS TRUTH LAYER</summary>
+<p><strong>Why:</strong> target rotation fails when the return condition exists only in memory; Windows/AD decisions fail when authentication is mistaken for authorization, command execution, an interactive shell or admin.</p>
+<h3>Six-line resume / park packet</h3>
+<ol>
+<li><strong>Current access / identity:</strong> exact user, host and channel; say when admin is not proven.</li>
+<li><strong>Strongest evidence:</strong> one concrete observation that changed the target model.</li>
+<li><strong>Exact hypothesis:</strong> because I observed X, I may be able to do Y.</li>
+<li><strong>Missing prerequisite:</strong> the one right, route, build, configuration or trigger still required.</li>
+<li><strong>Next decisive command:</strong> one command that confirms or rejects the hypothesis.</li>
+<li><strong>Re-entry / recovery:</strong> the exact shell, tunnel, listener, route or foothold needed to return.</li>
+</ol>
+<p>Complete all six fields before parking. The Target view pauses the evidence timer when it parks a target. Use credential labels or environment-variable names only; common password/hash/ticket/private-key patterns are blocked from this packet. After a revert, treat the packet and recorded protocol outcomes as stale until live access is re-established.</p>
+<h3>Authentication-to-access ladder</h3>
+<table><thead><tr><th>Outcome</th><th>What it proves</th><th>Next</th></tr></thead><tbody>
+<tr><td>Not tested</td><td>Nothing</td><td>One exact-host request</td></tr>
+<tr><td>Transport / service fails</td><td>Route, port, hostname, TLS or service issue</td><td>Fix transport before judging credentials</td></tr>
+<tr><td>Authentication rejected</td><td>This exact attempt was rejected</td><td>Check identity scope/format, DNS/time and lockout; retry once</td></tr>
+<tr><td>Authenticated only</td><td>The protocol accepted the identity</td><td>Prove one read/query/session action; do not claim admin</td></tr>
+<tr><td>Resource / data access</td><td>A specific object, share, query or database is readable</td><td>Record exact object/path/rights and follow its evidence</td></tr>
+<tr><td>Command execution</td><td>A command ran in one remote context</td><td>Record the token; obtain an interactive session when required</td></tr>
+<tr><td>Interactive shell / session</td><td>A usable live session exists</td><td>Baseline identity/groups/routes/listeners; admin is separate</td></tr>
+<tr><td>Privileged / admin control</td><td>Effective privileged control was proved</td><td>Bank original-path proof and report evidence immediately</td></tr></tbody></table>
+<p><strong>NetExec interpretation:</strong> <code>[+]</code> is accepted authentication, not automatic admin. Upstream documents <code>Pwn3d!</code> per protocol—SMB/WMI generally indicate local-administrator capability, while WinRM/RDP indicate at least execution. Validate the actual token and exact action. Command execution is not automatically an interactive proof shell.</p>
+<pre class="ref-code"><code class="language-bash"># One target + one current principal. Use installed -h/--help as syntax authority.
+nxc smb "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc winrm "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc rdp "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc mssql "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc wmi "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+
+# Accepted auth only starts the next proof.
+nxc smb "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --shares
+nxc ldap "$DC_IP" -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" --users
+evil-winrm -i "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS"
+xfreerdp /v:"$TARGET" /u:"$AUTH_USER" /d:"$DOMAIN" /p:"$AUTH_PASS" /cert:ignore +clipboard
+impacket-mssqlclient "$DOMAIN/$AUTH_USER@$TARGET" -windows-auth  # password prompt
+impacket-wmiexec "$DOMAIN/$AUTH_USER@$TARGET" "whoami /all"  # password prompt
+</code></pre>
+<p>Never convert this ladder into an indiscriminate spray. Prefer services already observed as exposed and let each result choose the next exact test.</p>
+</details>
+<details id="ref-read-this-first-2026-oscp-exam-operating-system">
+<summary>★ READ THIS FIRST — 2026 OSCP+ EXAM OPERATING SYSTEM</summary>
+<pre class="ref-code"><code class="language-text">EXAM STRUCTURE (OffSec guide checked 24 Sep 2026)
+
+3 stand-alone machines = 60 pts total
+  └─ each machine: 10 initial access + 10 privilege escalation
+
+1 AD set / 3 machines = 40 pts total
+  ├─ machine #1 = 10
+  ├─ machine #2 = 10
+  └─ machine #3 = 20
+
+PASS = 70 / 100
+NO BONUS POINTS
+
+OFFICIAL 70-POINT COMBINATIONS:
+  40 AD + 3× local.txt                         = 70
+  40 AD + 2× local.txt + 1× proof.txt          = 70
+  20 AD + 3× local.txt + 2× proof.txt          = 70
+  10 AD + 3 fully completed standalones        = 70
+
+TIME:
+  23h45m attack window
+  + 24h report-upload window
+</code></pre>
+<h3>The 10 Rules That Matter Under Pressure</h3>
+<ol>
+<li><strong>Enumeration is progress only when you read the output.</strong> Do not launch ten tools and ignore their findings.</li>
+<li><strong>Do not commit to a fixed "AD first" or "standalone first" strategy.</strong> After the initial sweep, attack the path with the strongest evidence.</li>
+<li><strong>Use a 20–30 minute evidence clock.</strong> If you have no new port, credential, file, privilege, hypothesis, or validated vulnerability, rotate.</li>
+<li><strong>Every credential is a new attack surface.</strong> Test it against all appropriate in-scope services immediately.</li>
+<li><strong>Every new shell is a new enumeration phase.</strong> Re-run users, privileges, services, internal ports, routes, credentials, scheduled jobs and AD relationships.</li>
+<li><strong>Bank points immediately.</strong> Capture the official proof screenshot and submit the flag in the control panel as soon as you earn it.</li>
+<li><strong>A passing score is not useful if the evidence is invalid.</strong> Documentation is part of exploitation.</li>
+<li><strong>Break tunnel vision.</strong> Recent 2026 passers repeatedly report that short breaks exposed paths they missed while staring at the same machine.</li>
+<li><strong>Prefer a validated simple path over an exotic CVE.</strong> Exact versions, configuration and prerequisites matter.</li>
+<li><strong>Your notes must work without AI.</strong> AI/LLM chatbots are prohibited during both the exam and the reporting phase.</li>
+</ol>
+<h3>Attack Priority — Dynamic, Not Dogmatic</h3>
+<pre class="ref-code"><code class="language-text">INITIAL ENUMERATION OF ALL TARGETS
+              ↓
+      WHICH TARGET HAS THE
+       STRONGEST SIGNAL?
+      /        |         \
+ AD path   standalone   obvious
+ visible     foothold     privesc
+      \        |         /
+        ATTACK 20–30 MIN
+              ↓
+        NEW EVIDENCE?
+         /         \
+       YES          NO
+       ↓            ↓
+    CONTINUE       ROTATE
+       ↓
+  BANK POINTS + EVIDENCE
+       ↓
+  REASSESS PASS COMBINATIONS
+</code></pre>
+<h3>What Counts as "New Evidence"?</h3>
+<pre class="ref-code"><code class="language-text">new credential
+new reachable host/port
+new virtual host
+new writable file/service/task
+new BloodHound edge
+new group/ACL/delegation right
+new internal-only listener
+confirmed vulnerable version/config
+working file-read / command execution primitive
+new privilege / token / capability
+new application source/config/backup
+</code></pre>
+<p>If none of those changed for 20–30 minutes, you are probably repeating a hypothesis rather than progressing.</p>
+</details>
+<details id="ref-bank-points-90-second-closure-gate">
+<summary>💰 Bank the points — 90-second closure gate</summary>
+<p><code>[DECISION:PROOF] [EXAM:EVIDENCE]</code></p>
+<p>Do this <strong>before another exploit, shell exit, revert or break</strong> whenever you obtain <code>local.txt</code> or <code>proof.txt</code>.</p>
+<ol>
+<li>Stay in an <strong>interactive target shell</strong>. PowerShell Core / PSSession counts.</li>
+<li>Read the flag with <code>cat</code> or <code>type</code> from its <strong>original absolute path</strong>; do not use a downloaded, copied or web-shell-displayed flag as proof.</li>
+<li>Keep the full flag and target IP from <code>ip addr</code>, <code>ifconfig</code> or <code>ipconfig</code> together in one readable screenshot.</li>
+<li>Submit the exact value in the exam control panel <strong>before the attack window ends</strong>. The panel does not validate correctness, so compare it yourself.</li>
+<li>Save the screenshot as <code>&lt;host-or-IP&gt;-&lt;local-or-proof&gt;-original-path.png</code>; record the exact path, commands, output, public-exploit URL and every code change while the shell is still available.</li>
+<li>Mark closure complete and write the next action. If fatigue is rising, take a 5–10 minute break now—never before the point is banked.</li>
+</ol>
+<pre class="ref-code"><code class="language-text">INTERACTIVE SHELL → ORIGINAL PATH → IP + FLAG IN ONE SCREENSHOT
+                  → CONTROL-PANEL SUBMISSION → REPRODUCIBLE NOTES
+                  → ONLY THEN MOVE / REVERT / BREAK</code></pre>
+<p><strong>At an estimated 70+ points:</strong> stop new exploitation long enough to audit every counted target, flag submission and evidence packet.</p>
+</details>
+<details id="ref-technical-incident-revert-gate">
+<summary>🛟 Technical-incident / revert gate</summary>
+<p><code>[EXAM:INCIDENT] [STATE:STALE]</code></p>
+<ul>
+<li>Before calling a target broken, verify VPN interface, route, DNS/time where relevant, packet flow, exact target and one minimal known-good request.</li>
+<li>The current guide provides a <strong>24-revert bank</strong> and allows that bank to be reset once. Record what must be rebuilt, click revert once and wait.</li>
+<li>A revert destroys target-side changes. Treat prior shells, tunnels, uploads, services/tasks and temporary sessions as stale until revalidated.</li>
+<li>For infrastructure problems, record timestamps and symptoms and contact the proctor immediately; support cannot provide objective hints.</li>
+</ul>
+</details>
+<details id="ref-mutation-rollback-gate">
+<summary>🧯 Before changing target state — mutation / rollback gate</summary>
+<p><code>[STATE:MUTATION] [REQ:SAFE_RECOVERY] [REQ:TRIGGER]</code></p>
+<ol>
+<li><strong>Prove control and trigger:</strong> exact principal, permission, privileged consumer and execution/read event.</li>
+<li><strong>Capture the original state:</strong> path/object, owner, mode/ACL, hash, content, service/task configuration or attribute value.</li>
+<li><strong>Protect access and evidence:</strong> bank earned flags, keep the shell and write the re-entry path; create a secret-field-free recovery snapshot.</li>
+<li><strong>Make the smallest reversible change</strong> that proves the primitive.</li>
+<li><strong>Write rollback before execution:</strong> restore command, backup path, privilege and trigger/restart sequence.</li>
+<li><strong>Validate and record:</strong> command, result, resulting identity and changed object; restore when practical and revalidate after a revert.</li>
+</ol>
+<pre class="ref-code"><code class="language-text">READ ORIGINAL → BACK UP / HASH → WRITE ROLLBACK → MINIMUM CHANGE
+              → TRIGGER ONCE → VERIFY → RECORD → RESTORE / REVALIDATE</code></pre>
+</details>
+<details id="ref-2026-exam-rules-read-before-using-any-tool">
+<summary>🚫 2026 EXAM RULES — READ BEFORE USING ANY TOOL</summary>
+<blockquote>
+<p><strong>This block overrides older habits in the rest of the notes.</strong>
+Checked against the OffSec OSCP+ Exam Guide and FAQ on 24 Sep 2026.</p>
+</blockquote>
+<h3>Prohibited on the OSCP+ exam</h3>
+<pre class="ref-code"><code class="language-text">SQLmap / SQLninja and similar automatic exploitation tools
+Mass vulnerability scanners (Nessus, OpenVAS, Nexpose, etc.)
+IP / ARP / DNS / NBNS spoofing
+Responder LLMNR/NBT-NS poisoning or other spoofing
+Commercial offensive tools/services such as Burp Pro / Metasploit Pro
+AI/LLM chatbots during the exam
+AI/LLM chatbots during the reporting phase
+</code></pre>
+<h3>Metasploit restriction — important</h3>
+<pre class="ref-code"><code class="language-text">Auxiliary modules  ┐
+Exploit modules    ├─ ONE target machine total
+Post modules       │
+Meterpreter        ┘
+
+"check" also counts toward the selected target restriction.
+Once you use restricted Metasploit functionality on Target A,
+do NOT use it on Target B.
+
+Metasploit may NOT be used for pivoting.
+
+Allowed against all targets:
+  msfvenom
+  exploit/multi/handler
+
+Meterpreter itself remains limited to the one selected target.
+</code></pre>
+<h3>Responder</h3>
+<p>The <strong>Responder tool itself is listed as allowed</strong>, but <strong>poisoning and spoofing are not allowed</strong>. Therefore, use <strong>analyze mode only</strong> and do not perform LLMNR/NBT-NS poisoning or spoofing.</p>
+<h3>Allowed/open-book behavior</h3>
+<ul>
+<li>Nmap/NSE, Nikto, Burp <strong>Free/Community</strong>, DirBuster and normal manual tools are allowed when they do not perform a restricted action.</li>
+<li>BloodHound Legacy/CE, SharpHound, PowerView, Rubeus, evil-winrm, Mimikatz, Impacket and PrintSpoofer are listed by OffSec as allowed examples.</li>
+<li>Online notes/resources are allowed, but do <strong>not</strong> ask another person/community for exam help.</li>
+<li>PowerShell Core / PSSession is accepted as an interactive shell.</li>
+<li>Do not download exam-environment files, applications or source locally unless it is necessary to compromise a target; delete any such local copy after completing the objective.</li>
+<li>Online guessing is not a default enumeration step: check scope, lockout/rate-limit risk and known usernames first; use an evidence-based shortlist and stop when the signal does not improve.</li>
+<li>Make every report target/IP unambiguous and verify section order against the control panel; OffSec states that machines are graded and valued in the order documented.</li>
+<li>Create the final <code>.7z</code> on Kali, visually review the PDF, compare the upload MD5, and click the final <strong>Submit File</strong> button.</li>
+<li>All exam activity should be performed on the proctored host.</li>
+<li>Always re-check the official guide on exam day because tool rules can change.</li>
+</ul>
+<p>Official references:</p>
+<ul>
+<li>https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide</li>
+<li>https://help.offsec.com/hc/en-us/articles/4412170923924-OSCP-Exam-FAQ</li>
+</ul>
+</details>
+<details id="ref-v5-trust-reliability-layer-read-the-labels">
+<summary>⚗ TRUST / RELIABILITY LAYER — READ THE LABELS</summary>
+<p><code>[TRUST] [V5:TRUST] [EXAM:2026-09-23]</code> <em>(the V5 tag is retained for old bookmarks/searches)</em></p>
+<blockquote>
+<p><strong>Last rule verification:</strong> 24 Sep 2026.<br/>
+The official OffSec Exam Guide/FAQ always override this checklist if the rules change.</p>
+</blockquote>
+<h3>Label legend</h3>
+<pre class="ref-code"><code class="language-text">✅ EXAM-COMPATIBLE
+   The action is consistent with the currently published OSCP+ rules.
+   This is about the ACTION, not a blanket approval of every feature in a tool.
+
+⚠️ EXAM-RESTRICTED
+   Allowed only under a specific OffSec restriction or only when the action itself
+   does not cross into a prohibited feature.
+
+❌ EXAM-PROHIBITED
+   Do not perform this action during the exam.
+
+✓ FIRST CHOICE
+   Prefer this path first when prerequisites match.
+
+△ FALLBACK
+   Useful alternative, legacy target compatibility, or tool-dependent path.
+
+! LAST RESORT
+   High-risk, fragile, disruptive, or low-confidence until exact prerequisites match.
+</code></pre>
+<h3>Prerequisite markers</h3>
+<pre class="ref-code"><code class="language-text">[REQ:LOCAL_SHELL]       local command execution already obtained
+[REQ:DOMAIN_CREDS]      valid AD credentials
+[REQ:WRITE_ACCESS]      exact target file/dir/object is writable
+[REQ:TRIGGER]           privileged action can be invoked or naturally occurs
+[REQ:RESTART]           service/task can be restarted/triggered where needed
+[REQ:EXACT_BUILD]       exact OS/product/package/build confirmed
+[REQ:NETWORK_PATH]      route/DNS/port path verified
+[REQ:PRIVILEGE]         named token/capability/right is actually enabled
+[REQ:CONFIG]            vulnerable configuration is confirmed, not inferred
+[REQ:SAFE_RECOVERY]     failure/crash can be recovered without losing the exam path
+</code></pre>
+<h3>Most important exam-rule distinction</h3>
+<pre class="ref-code"><code class="language-text">TOOL NAME ≠ AUTOMATICALLY ALLOWED OR PROHIBITED
+
+Ask:
+"What ACTION is this feature performing?"
+
+Example:
+Responder is listed by OffSec as an allowed tool.
+Responder poisoning/spoofing is explicitly NOT allowed.
+
+BloodHound / SharpHound / Impacket / PrintSpoofer are listed as allowed examples.
+A prohibited feature or action remains prohibited even if launched from an allowed tool.
+</code></pre>
+<h3>Current rules that this file treats as hard constraints</h3>
+<pre class="ref-code"><code class="language-text">❌ AI/LLM chatbot use during the active exam
+❌ AI/LLM chatbot use during the reporting phase
+❌ SQLmap / SQLninja / similar automatic exploitation
+❌ mass vulnerability scanners
+❌ IP / ARP / DNS / NBNS spoofing
+❌ Responder poisoning/spoofing
+❌ commercial offensive tools/services such as Burp Pro or Metasploit Pro
+
+⚠️ Metasploit Auxiliary / Exploit / Post + Meterpreter:
+   one selected target machine only
+   "check" also commits the selected target
+   Metasploit cannot be used for pivoting
+
+✅ msfvenom and exploit/multi/handler:
+   may be used against all targets under the published guide,
+   except Meterpreter payload usage remains restricted to the one selected target
+</code></pre>
+<h3>Proof/evidence hard constraints</h3>
+<pre class="ref-code"><code class="language-text">[ ] Read local.txt / proof.txt from ORIGINAL LOCATION
+[ ] Use an INTERACTIVE shell
+[ ] PowerShell Core / PSSession counts as interactive
+[ ] Linux full points: root shell
+[ ] Windows full points: SYSTEM / Administrator / admin-privileged user
+[ ] Screenshot contains proof-file contents AND target IP
+[ ] Show IP with ipconfig / ifconfig / ip addr
+[ ] Submit local.txt/proof.txt to control panel BEFORE exam ends
+[ ] Report must reproduce every attack step
+</code></pre>
+<h3>2026 tool snapshot</h3>
+<pre class="ref-code"><code class="language-text">NetExec / nxc
+  Kali package observed: 1.5.1
+  Current binaries: netexec, nxc, nxcdb
+
+BloodHound CE
+  Upstream stable checked 24 Sep 2026: 9.7.1
+  Kali rolling package checked 24 Sep 2026: 9.7.0~rc4
+  Packaging can lag/differ from upstream; installed local help/workflow wins
+  Exam-time rule: do NOT upgrade a known-good stack on exam day just to chase versions
+  Initial setup: sudo bloodhound-setup
+  Current launcher: bloodhound-start
+  "bloodhound" launcher is deprecated on current Kali
+
+BloodHound CE collectors
+  PRIMARY from Kali: bloodhound-ce-python
+  ALTERNATIVE cross-platform: rusthound-ce (RustHound-CE)
+  LEGACY ONLY: bloodhound-python
+  Do not feed Legacy collector output into CE by assumption.
+
+Impacket
+  Kali convention: impacket-&lt;tool&gt;
+  e.g. impacket-GetNPUsers, impacket-GetUserSPNs, impacket-getTGT,
+       impacket-secretsdump, impacket-wmiexec
+
+Certipy
+  Current command family: certipy find / req / auth / shadow / template / ...
+  Verify your installed build with: certipy -v
+
+Ligolo-ng
+  v0.9.1 snapshot: interface_create / tunnel_start / interface_add_route remain supported
+  v0.8+ also includes autoroute; explicit managed routes remain the predictable recovery path
+  Prefer certificate fingerprint validation with self-signed TLS.
+  -ignore-cert is an emergency debug fallback, not the preferred default.
+</code></pre>
+<h3>Exam-day version rule</h3>
+<pre class="ref-code"><code class="language-bash"># YOUR INSTALLED VERSION WINS OVER A CHEATSHEET.
+nxc --version 2&gt;/dev/null
+certipy -v 2&gt;/dev/null
+impacket-wmiexec -h 2&gt;/dev/null | head
+bloodhound-ce-python -h 2&gt;/dev/null | head
+rusthound-ce -h 2&gt;/dev/null | head
+./proxy -version 2&gt;/dev/null || ./proxy -h 2&gt;/dev/null | head
+</code></pre>
+<p>If syntax differs:</p>
+<pre class="ref-code"><code class="language-text">STOP → read local --help → adjust syntax → update your personal copy.
+</code></pre>
+<p>Primary/current references:</p>
+<ul>
+<li>https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide</li>
+<li>https://help.offsec.com/hc/en-us/articles/4412170923924-OSCP-Exam-FAQ</li>
+<li>https://www.kali.org/tools/netexec/</li>
+<li>https://www.kali.org/tools/bloodhound/</li>
+<li>https://www.kali.org/blog/kali-linux-2025-2-release/</li>
+<li>https://www.kali.org/tools/impacket/</li>
+<li>https://docs.ligolo.ng/Quickstart/</li>
+<li>https://github.com/ly4k/Certipy/wiki/08-%E2%80%90-Command-Reference</li>
+</ul>
+</details>
+<details id="ref-v5-false-positive-rabbit-hole-database">
+<summary>🕳️ FALSE-POSITIVE / RABBIT-HOLE DATABASE</summary>
+<p><code>[FALSE-POSITIVE] [V5:FALSE-POSITIVE] [STUCK:VALIDATE]</code> <em>(the V5 tag is retained for old bookmarks/searches)</em></p>
+<table class="ref-table">
+<thead>
+<tr>
+<th>Finding</th>
+<th>Common wrong conclusion</th>
+<th>Validate before pursuing</th>
+<th>Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kernel/package version looks vulnerable</td>
+<td>“PoC will work”</td>
+<td>distro backport, exact revision, arch, feature/module, mitigation, PoC prerequisites</td>
+<td>! until validated</td>
+</tr>
+<tr>
+<td>Public CVE scanner match</td>
+<td>“target is exploitable”</td>
+<td>exact build + vulnerable configuration + access prerequisite</td>
+<td>!</td>
+</tr>
+<tr>
+<td>Standard SUID binary</td>
+<td>“GTFOBins = root”</td>
+<td>exact binary, SUID bit, allowed args, privilege-dropping behavior</td>
+<td>△</td>
+</tr>
+<tr>
+<td>Custom SUID binary</td>
+<td>“unknown = exploitable”</td>
+<td><code>strings</code>, <code>ldd</code>, <code>strace/ltrace</code>, file/config/library/PATH dependencies</td>
+<td>✓ to investigate</td>
+</tr>
+<tr>
+<td>Writable PATH directory</td>
+<td>“PATH hijack works”</td>
+<td>privileged process uses attacker-controlled PATH <strong>and</strong> calls relative executable</td>
+<td>△</td>
+</tr>
+<tr>
+<td>Writable library directory</td>
+<td>“drop .so = root”</td>
+<td>privileged process really loads that library/path; architecture/name match</td>
+<td>△</td>
+</tr>
+<tr>
+<td>Root cron/systemd unit exists</td>
+<td>“scheduled privesc”</td>
+<td>executed target/config/parent actually writable; trigger/time known</td>
+<td>✓ if writable</td>
+</tr>
+<tr>
+<td>Docker installed</td>
+<td>“Docker = root”</td>
+<td>group membership/socket access/privileged container/host mounts</td>
+<td>△</td>
+</tr>
+<tr>
+<td>NFS export exists</td>
+<td>“NFS = root”</td>
+<td>write access + trust model + <code>no_root_squash</code>/UID behavior</td>
+<td>△</td>
+</tr>
+<tr>
+<td>Unquoted Windows service path</td>
+<td>“instant SYSTEM”</td>
+<td>privileged service + candidate path writable + restart/trigger possible</td>
+<td>△</td>
+</tr>
+<tr>
+<td>Writable Windows service binary</td>
+<td>“replace it now”</td>
+<td>service account privileged + exact ACL + trigger/restart + restore plan</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><code>SeImpersonatePrivilege</code> enabled</td>
+<td>“random Potato = SYSTEM”</td>
+<td>exact build, account/service context, RPC/service primitive, compatible technique</td>
+<td>✓ investigate</td>
+</tr>
+<tr>
+<td><code>SeBackupPrivilege</code> present</td>
+<td>“I am SYSTEM”</td>
+<td>privilege enabled + protected file-read path actually usable</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Missing DLL shown by Procmon</td>
+<td>“DLL hijack works”</td>
+<td>privileged process + search order + writable load location + architecture</td>
+<td>△</td>
+</tr>
+<tr>
+<td>LAPS deployed</td>
+<td>“I can read admin password”</td>
+<td>current principal has actual read permission on relevant attribute</td>
+<td>△</td>
+</tr>
+<tr>
+<td>AD CS installed</td>
+<td>“ESC path exists”</td>
+<td>vulnerable template/CA config + enrollment/control rights + auth EKU/mapping</td>
+<td>△</td>
+</tr>
+<tr>
+<td>BloodHound path exists</td>
+<td>“one click to DA”</td>
+<td>every edge’s exact permission, object, prerequisite and reachable host</td>
+<td>✓ to validate</td>
+</tr>
+<tr>
+<td>SMB authentication succeeds</td>
+<td>“remote admin”</td>
+<td>share rights/admin status/remote execution authorization separately</td>
+<td>△</td>
+</tr>
+<tr>
+<td>NetExec reports failure</td>
+<td>“credentials are bad”</td>
+<td>retry exact protocol with native/Impacket fallback; inspect domain format and policy</td>
+<td>△</td>
+</tr>
+<tr>
+<td>SMB works, WinRM fails</td>
+<td>“password is wrong”</td>
+<td>5985/5986 reachability + Remote Management Users/admin authorization + auth policy</td>
+<td>△</td>
+</tr>
+<tr>
+<td>MSSQL automation gives strange result</td>
+<td>“SQL service unusable”</td>
+<td>verify manually with <code>impacket-mssqlclient</code> and exact domain/login case/context</td>
+<td>△</td>
+</tr>
+<tr>
+<td>403 response</td>
+<td>“endpoint is dead”</td>
+<td>correct vhost, auth context, path/method/normalization/backend differences</td>
+<td>△</td>
+</tr>
+<tr>
+<td>Internal listener</td>
+<td>“cannot reach it”</td>
+<td>local access, route, pivot and DNS from the side where connection originates</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>CVE-2026-43433 Binder</td>
+<td>“standalone root LPE”</td>
+<td>upstream/NVD context: not a standalone path without another Binder bug</td>
+<td>!</td>
+</tr>
+<tr>
+<td>Snap confinement CVE</td>
+<td>“sandbox bypass = host root”</td>
+<td>distinguish sandbox escape/boundary impact from direct host-root LPE</td>
+<td>!/△</td>
+</tr>
+</tbody>
+</table>
+<h3>Five questions before spending &gt;10 minutes on any privilege-escalation idea</h3>
+<pre class="ref-code"><code class="language-text">1. What exact privileged security boundary am I crossing?
+2. Which exact object/permission/configuration gives me control?
+3. Can I prove the prerequisite with one command?
+4. Can I trigger the privileged behavior?
+5. What output proves success or disproves the hypothesis?
+</code></pre>
+<p>If you cannot answer <strong>3 of 5</strong>, enumerate more before exploiting.</p>
+</details>
+<details id="ref-table-of-contents">
+<summary>📋 TABLE OF CONTENTS</summary>
+<pre class="ref-code"><code> 1.  Pre-Engagement Setup
+ 2.  Reconnaissance &amp; Host Discovery
+ 3.  Nmap &amp; Port Scanning
+ 4.  Service Enumeration — All Ports
+ 5.  Vulnerability Identification
+ 6.  Web Application Attacks
+ 7.  Exploitation — Initial Access
+ 8.  Password Attacks &amp; Credential Abuse
+ 9.  Active Directory — Full Attack Chain
+10.  Post-Exploitation — Linux
+11.  Post-Exploitation — Windows
+12.  Privilege Escalation — Linux (Every Vector)
+13.  Privilege Escalation — Windows (Every Vector)
+14.  Lateral Movement &amp; Pivoting
+15.  File Transfers — Every Method
+16.  Antivirus Evasion &amp; Defense Bypass
+17.  Buffer Overflow — Windows x86 (Complete)
+18.  Reporting &amp; Documentation
+19.  Quick Reference Card
+20.  Exam Day Checklist
+🔥  Most Missed Tricks
+</code></pre>
+</details>
+<hr/>
+<h1>🛫 OSCP EXAM COCKPIT</h1>
+<blockquote>
+<p><strong>Layer 1: use this first.</strong><br/>
+This section is deliberately short compared with the full reference.<br/>
+Use it to decide <strong>what to do next</strong>, then jump to a tagged deep-reference section only when required.</p>
+<p><strong>Search convention:</strong> <code>Ctrl+F</code> a tag such as <code>[PORT:445]</code>, <code>[LINUX:SUID]</code>, <code>[WIN:SEIMPERSONATE]</code>, <code>[AD:KERBEROS]</code>, or <code>[ERROR:KRB_SKEW]</code>.</p>
+</blockquote>
+<hr/>

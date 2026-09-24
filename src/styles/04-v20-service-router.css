@@ -1,0 +1,11 @@
+
+.serviceRouterHero{border:1px solid #477493;background:linear-gradient(135deg,rgba(65,150,200,.09),var(--panel) 60%)}
+.serviceRouterControls{display:grid;grid-template-columns:minmax(280px,1.5fr) auto auto;gap:8px;align-items:end}.serviceRouterControls textarea{min-height:86px;width:100%;resize:vertical}
+.serviceQueue{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}.serviceCard{border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:11px;display:grid;gap:7px}
+.serviceCard h3{margin:0;display:flex;justify-content:space-between;gap:8px;align-items:center}.serviceCard .ports{font:700 12px/1.3 ui-monospace,Consolas,monospace;color:var(--accent)}
+.serviceCard .serviceAction{border-left:3px solid var(--accent);padding-left:9px}.serviceCard .manualTruth{border-left:3px solid var(--good);padding-left:9px}.serviceCard .fallback{border-left:3px solid var(--warn);padding-left:9px}.serviceCard .row{margin-top:auto}
+.serviceRoleHint{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#0d1119;margin-top:8px}.serviceRoleHint b{color:var(--accent)}
+.scoreRunway{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}.scoreRunway label{display:grid;gap:5px}
+.scoreSummary{border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:10px;padding:12px;margin-top:10px;background:var(--panel2)}.scoreSummary.good{border-left-color:var(--good)}.scoreSummary.warn{border-left-color:var(--warn)}
+.scoreBig{font:900 34px/1 ui-monospace,Consolas,monospace}.firstPassQueue{min-height:150px;white-space:pre-wrap;word-break:break-word}
+@media(max-width:900px){.serviceRouterControls,.scoreRunway{grid-template-columns:1fr 1fr}.serviceQueue{grid-template-columns:1fr}}@media(max-width:560px){.serviceRouterControls,.scoreRunway{grid-template-columns:1fr}}

@@ -1,0 +1,5 @@
+
+.methodTreeHero{border:1px solid #567b4f;background:linear-gradient(135deg,rgba(90,170,110,.10),var(--panel) 62%)}
+.methodTreeIntro{border-left:4px solid var(--accent);padding-left:12px}
+.methodTreeGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.methodTreeCard{min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px;display:grid;gap:10px}.methodTreeCard h2{margin:0}.treeMeta{display:flex;flex-wrap:wrap;gap:6px}.treeMeta .chip{font-size:11px}.treePre{margin:0;white-space:pre-wrap;word-break:break-word;min-height:540px}.treeActions{display:flex;gap:8px;flex-wrap:wrap}.treeList{margin:0;padding-left:18px}.treeList li{margin:4px 0}.treeLegend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.treeLegend .card{padding:12px}.treeLegend b{color:var(--accent)}
+@media(max-width:1100px){.methodTreeGrid,.treeLegend{grid-template-columns:1fr}}

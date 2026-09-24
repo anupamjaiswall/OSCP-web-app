@@ -1,0 +1,14 @@
+{
+  "name": "oscp-exam-os",
+  "version": "30.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline-first OSCP exam methodology and decision-support web app.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/run-tests.mjs",
+    "validate": "node scripts/validate.mjs",
+    "check": "npm run build && npm test && npm run validate"
+  },
+  "engines": {"node": ">=20"}
+}

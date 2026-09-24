@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const read=p=>fs.readFileSync(path.join(root,p),'utf8');
+let passed=0;
+const ok=(v,m='assertion failed')=>{if(!v)throw new Error(m)};
+const eq=(a,b)=>{if(JSON.stringify(a)!==JSON.stringify(b))throw new Error('expected '+JSON.stringify(b)+' got '+JSON.stringify(a))};
+function test(n,fn){fn();passed++;console.log('✓ '+n)}
+const sandbox={window:{}};vm.createContext(sandbox);vm.runInContext(read('src/js/00-core-utils.js'),sandbox);
+const u=sandbox.window.OSCP_UTILS;
+test('escapeHtml',()=>eq(u.escapeHtml(`<a x='y'>&"`),'&lt;a x=&#39;y&#39;&gt;&amp;&quot;'));
+test('clampExamPoints',()=>eq([u.clampExamPoints(-2),u.clampExamPoints(69.6),u.clampExamPoints(120),u.clampExamPoints('x')],[0,70,100,0]));
+test('70-point threshold',()=>{const a=u.examScore(40,[10,10,10],70),b=u.examScore(0,[20,20,20],70);ok(a.passed&&a.total===70&&a.need===0);ok(!b.passed&&b.need===10)});
+test('complete local evidence',()=>eq(u.evidenceMissing({ip:'10.10.10.10',status:{foothold:true},evidence:{enumRecorded:true,commandsRecorded:true,footholdRecorded:true,localRead:true,localSubmitted:true,localScreenshot:true},report:{title:'Initial access',commands:'exact commands'}}),[]));
+test('proof evidence requirements',()=>{const m=u.evidenceMissing({ip:'10.10.10.10',status:{privesc:true},evidence:{enumRecorded:true,commandsRecorded:true},report:{title:'Root',commands:'steps'}});for(const x of ['PrivEsc reasoning recorded','proof.txt read at original location','proof flag submitted','Proof screenshot has proof + IP','Steps reproducible without memory'])ok(m.includes(x),x)});
+test('empty target gate',()=>{const m=u.evidenceMissing({});ok(m.includes('Target IP'));ok(m.includes('No point-bearing objective marked as obtained'));ok(m.includes('Report title/finding'))});
+test('generated artifact',()=>{const h=read('index.html');ok(!/@inject:/.test(h));ok(h.includes('V30 · EXAM ONLY · OFFLINE · NO AI'))});
+test('service router parser self-tests retained',()=>{const s=read('src/js/09-v20-service-router.js');for(const x of ['Service router parses Nmap TCP/UDP','Service router explicit list stays strict','Service router arbitrary numeric prose is not ports'])ok(s.includes(x),x)});
+console.log('\n'+passed+' tests passed');

