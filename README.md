@@ -1,6 +1,6 @@
 # 🔐 ULTIMATE OSCP METHODOLOGY CHECKLIST
 
-> **Current exam-time build — V28 · version history lives in Git commits.**
+> **Current exam-time build — V29 · version history lives in Git commits.**
 >
 > **Exam-time-only OSCP/OSCP+ operating checklist — offline, version-aware,
 > evidence-driven, and designed for fast decisions under pressure.** Works in:
@@ -3418,7 +3418,7 @@ echo BASE64 | base64 -d | bash
 
 ``` bash
 # ── BASIC DETECTION ───────────────────────────────────────────
-# Start listener: nc -nvlp 80
+# Start listener: rlwrap -cAr nc -nvlp 80
 url=http://LHOST/test
 url=http://LHOST:80/test
 # If you get connection → SSRF confirmed
@@ -8765,9 +8765,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
 ``` bash
 # Start listener BEFORE running exploit:
-nc -nvlp YOUR_LPORT
-# Or:
-rlwrap nc -nvlp YOUR_LPORT    # For arrow keys in shell
+rlwrap -cAr nc -nvlp YOUR_LPORT
+# -cAr gives history and better line editing in the interactive shell
 ```
 
 
@@ -8868,7 +8867,7 @@ rlwrap nc -nvlp YOUR_LPORT    # For arrow keys in shell
       - Verify ESP address fresh each run — may differ by small amount
       - 16 NOP bytes before shellcode is standard; increase if issues
       - Generate shellcode with -f python for cleaner copy-paste
-      - Use rlwrap nc -nvlp PORT for better shell interaction
+      - Use rlwrap -cAr nc -nvlp PORT for better shell interaction
 
 
 </details>

