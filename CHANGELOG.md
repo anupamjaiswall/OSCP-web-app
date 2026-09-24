@@ -1,5 +1,16 @@
 # Changelog
 
+## V34.2.0 — 2026-09-24
+
+### Batch 2 — regression and security gates
+- Added dynamic-code execution rejection for eval/new Function.
+- Expanded offline CSP validation.
+- Added a 1.5 MB generated index budget.
+- Added truncated scan/noise parser fixtures.
+- Added structured reference-ID and critical-anchor regressions.
+- No runtime UI/storage behavior changed in this batch.
+
+
 ## V34.1.0 — 2026-09-24
 
 ### Batch 1 — search, readability, and browser boot safety

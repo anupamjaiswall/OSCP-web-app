@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.1 Batch 1 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.2 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,16 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.2 Batch 2 — regression and security gates
+
+This batch changes validation/tests only; it adds no runtime behavior.
+
+- Rejects `eval()` and `new Function()` in shipped JS modules.
+- Validates the full offline CSP baseline, not only `connect-src`.
+- Enforces a 1.5 MB generated-artifact budget.
+- Adds malformed/truncated scan fixtures and numeric-noise regressions.
+- Locks in critical Linux/Windows/AD reference anchors and structured content IDs.
 
 ## V34.1 Batch 1 — safe retrieval/readability upgrades
 

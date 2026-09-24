@@ -38,6 +38,11 @@ test('typo-tolerant search ignores unrelated short noise',()=>eq(s.fuzzyScore({t
 test('readability high contrast stays user-triggered',()=>{const src=read('src/js/13-v23-readability.js');ok(src.includes('readerContrastToggle'));ok(src.includes('state.contrast=!state.contrast'));ok(!src.includes('setInterval('))});
 test('batch 1 adds no background runtime loop',()=>{const src=read('src/js/00-search-core.js');ok(!src.includes('setInterval('));ok(!src.includes("addEventListener('storage'"));ok(!src.includes("addEventListener('error'"))});
 
+test('Service Router degrades safely on truncated scan output',()=>{const x=r.parseServices('Nmap scan report for 10.10.10.10\n22/tcp open ssh OpenSSH 9.2\n80/tcp op');eq(x.endpoints.map(e=>e.port),[22])});
+test('Service Router ignores VPN and latency prose',()=>eq(r.parsePorts('Host 10.10.10.10 via tun0 latency 31 ms retry 2'),[]));
+test('every reference fragment exposes structured IDs',()=>{const m=JSON.parse(read('src/content/manifest.json'));for(const file of m.files)ok(/<(?:h2|details)\b[^>]*id=/.test(read('src/content/'+file)),file+' lacks structured IDs')});
+test('critical exam reference anchors remain present',()=>{const all=JSON.parse(read('src/content/manifest.json')).files.map(file=>read('src/content/'+file)).join('\n');for(const id of ['ref-read-this-first-2026-oscp-exam-operating-system','ref-9-6-ad-attack-path-methodology-build-the-graph-don-t-just-run-tools','ref-9-7-ad-cs-esc1-esc17-decision-tree'])ok(all.includes('id="'+id+'"'),id)});
+
 test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
 test('browser Service Router delegates pure core',()=>ok(read('src/js/09-v20-service-router.js').includes('window.OSCP_SERVICE_CORE')));
 test('research-backed scan workflow stays two-pass',()=>{
