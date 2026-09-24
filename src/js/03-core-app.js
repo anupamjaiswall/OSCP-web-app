@@ -146,7 +146,15 @@ function applyPlaceholders(){ $$('#referenceRoot pre code').forEach(code=>{if(co
 
 function applySecretPersistence(want){persistSecrets=!!want;safeStoreSet(STORE+'persistSecrets',persistSecrets?'1':'0');saveTargets();if(typeof saveOps==='function')saveOps();return persistSecrets}
 $('#saveSettings').onclick=saveSettings;$('#persistSecrets').onchange=e=>{const want=!!e.target.checked;if(want&&!confirm('Persist secrets in this browser?\n\nThis stores target/credential secret fields as plaintext in localStorage on this profile. Prefer session-only secrets plus an encrypted backup unless you explicitly accept that risk.')){e.target.checked=false;return}applySecretPersistence(want);toast(want?'Secret persistence enabled — plaintext localStorage risk accepted':'Secret persistence disabled — saved target and credential secret fields scrubbed')};
-/* clearLocal is bound once by the current destructive-action safety layer later. */
+function resetSettingsOnly(){
+ if(!confirm('Reset placeholder/settings only? Targets, credentials, evidence, reports and recovery snapshots will be kept. Secret persistence will be disabled.'))return;
+ settings={...defaultSettings};settings.PASSWORD='';
+ applySecretPersistence(false);
+ const persistent={...settings};delete persistent.PASSWORD;safeStoreSet(STORE+'settings',JSON.stringify(persistent));
+ renderSettings();renderPlaceholders();applyPlaceholders();renderEvidenceTemplate();
+ toast('Settings reset — exam data kept');
+}
+$('#resetSettingsOnly').onclick=resetSettingsOnly;
 
 const statusKeys=[['tcp','Full TCP'],['udp','Useful UDP'],['web','Web/vhost'],['creds','Creds tested'],['foothold','Foothold'],['local','local.txt'],['privesc','PrivEsc'],['proof','proof.txt']];
 function newTarget(){return{id:crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random(),ip:'',host:'',role:'unknown',notes:'',next:['','',''],status:{},creds:'',updated:Date.now()}}
