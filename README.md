@@ -5,7 +5,7 @@
 > **Exam-time-only OSCP/OSCP+ operating checklist — offline, version-aware,
 > evidence-driven, and designed for fast decisions under pressure.** Works in:
 > **Obsidian** ✅ | **GitHub** ✅ | **VS Code Preview** ✅ | **Typora** ✅
-> Exam rules last checked against OffSec's official docs: **23 Sep 2026**
+> Exam rules last checked against OffSec's official docs: **24 Sep 2026**
 >
 > **EXAM-ONLY CONTRACT:** This file intentionally excludes study plans, quizzes, simulations,
 > prohibited-tool workflows, and training commands. Search the Decision Desk first; open the
@@ -15,7 +15,7 @@
 
 ## TODAY-LOCK — READ BEFORE TOUCHING A TARGET
 
-Verified **23 Sep 2026** against the current OffSec OSCP+ Exam Guide, FAQ,
+Verified **24 Sep 2026** against the current OffSec OSCP+ Exam Guide, FAQ,
 AI policy, Candidate Handbook, and reporting requirements. The live official
 pages and the exam control panel always override this offline snapshot.
 
@@ -88,6 +88,36 @@ AD 10 + all 3 standalone machines fully    = 70
 ```
 
 The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
+
+## V24 — EXAM NAVIGATOR + FATIGUE-RESISTANT NOTES
+
+The app now treats **navigation as part of methodology**. The goal is to reduce memory load late in the exam, when knowing a technique is less useful if finding it takes five minutes.
+
+### Five-step evidence loop
+
+```text
+OBSERVE
+  ↓
+ONE HYPOTHESIS
+  ↓
+ONE DECISIVE TEST
+  ↓
+RECORD WHAT IT PROVED / DISPROVED
+  ↓
+CONTINUE ONLY IF EVIDENCE IMPROVES
+  └─ otherwise PARK / ROTATE
+```
+
+**Stop conditions:** two decisive negative tests, repeating the same enumeration with different wrappers, changing tools without a new hypothesis, or being unable to name the missing prerequisite.
+
+### Navigation upgrades
+
+- **Sticky reference navigator:** previous / section picker / next / pin while reading the deep reference.
+- **Recent history:** the last clicked tags and opened reference sections appear inside **Aa Read**.
+- **Pinned reference in Aa Read:** existing pinned search results are now available without returning to the Cockpit.
+- **Search keyboard flow:** `/` focuses search, **Enter** opens the best result, and **↑/↓** move through results.
+- **Global `?` help:** one shortcut sheet for the exam-facing controls.
+- The visible OffSec rules snapshot was re-checked on **24 Sep 2026**. Legacy date tags are intentionally retained where changing them would break old saved searches/bookmarks.
 
 ## V23 — HUMAN-FRIENDLY EXAM READING
 
@@ -474,7 +504,7 @@ OffSec guide/FAQ and exam control-panel objectives remain authoritative.
 <summary>🧠 READ THIS FIRST — 2026 OSCP+ EXAM OPERATING SYSTEM</summary>
 
 ```text
-EXAM STRUCTURE (OffSec guide checked 23 Sep 2026)
+EXAM STRUCTURE (OffSec guide checked 24 Sep 2026)
 
 3 stand-alone machines = 60 pts total
   └─ each machine: 10 initial access + 10 privilege escalation
@@ -924,7 +954,7 @@ read exact error
 <summary>🚫 2026 EXAM RULES — READ BEFORE USING ANY TOOL</summary>
 
 > **This block overrides older habits in the rest of the notes.**
-> Checked against the OffSec OSCP+ Exam Guide, FAQ and AI policy on 23 Sep 2026.
+> Checked against the OffSec OSCP+ Exam Guide, FAQ and AI policy on 24 Sep 2026.
 
 ### Prohibited on the OSCP+ exam
 
@@ -9752,7 +9782,7 @@ X-Remote-Addr: 127.0.0.1
 - OSCP Candidate Handbook (updated 31 Jul 2026): https://help.offsec.com/hc/en-us/articles/40393367449108-OSCP-Candidate-Handbook
 - OSCP Reporting Requirements (updated 06 Aug 2026): https://help.offsec.com/hc/en-us/articles/360046787731-OSCP-Reporting-Requirements
 
-**Rule snapshot checked 23 Sep 2026. Re-check these official pages immediately before your exam.** If these notes conflict with the current guide, policy, control-panel instructions or proctor direction, those current sources win.
+**Rule snapshot checked 24 Sep 2026. Re-check these official pages immediately before your exam.** If these notes conflict with the current guide, policy, control-panel instructions or proctor direction, those current sources win.
 
 ### Vulnerability Intelligence
 
@@ -9777,7 +9807,7 @@ X-Remote-Addr: 127.0.0.1
 -   NetExec certificate auth: https://github.com/Pennyw0rth/NetExec-Wiki/blob/main/getting-started/using-certificates.md
 -   Microsoft PowerShell remoting security (authentication and authorization context): https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/winrm-security?view=powershell-7.6
 -   Certipy releases (5.1.0 stable snapshot): https://github.com/ly4k/Certipy/releases
--   BloodHound/Kali package state (checked 23 Sep 2026): https://pkg.kali.org/pkg/bloodhound/news/
+-   BloodHound/Kali package state (checked 24 Sep 2026): https://pkg.kali.org/pkg/bloodhound/news/
 -   Impacket 0.13.1 release/changelog: https://github.com/fortra/impacket/releases/tag/impacket_0_13_1
 -   PayloadsAllTheThings:
     https://github.com/swisskyrepo/PayloadsAllTheThings

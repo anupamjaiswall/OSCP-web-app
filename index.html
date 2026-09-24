@@ -317,9 +317,49 @@ body.readGuideLines .treePre{background-image:linear-gradient(to bottom,transpar
 @media(max-width:900px){#readabilityBtn{font-size:11px;padding:6px 7px}.methodTreeTabs{top:105px}.methodTreeTabs .tiny{width:100%;margin-left:0}body.examFocus .main{padding-left:12px;padding-right:12px}}
 @media print{#readabilityPanel,#readProgressTrack,#backTopBtn,#focusExitBtn,.methodTreeTabs{display:none!important}}
 </style>
+
+<style id="v24ExamNavigatorStyles">
+#examHelpBackdrop{position:fixed;inset:0;z-index:1400;background:rgba(2,5,10,.84);display:none;place-items:center;padding:18px;backdrop-filter:blur(5px)}
+#examHelpBackdrop.open{display:grid}.examHelpDialog{width:min(840px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid #466079;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:16px}
+.examHelpHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.examHelpGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.examHelpKey{border:1px solid var(--line);border-radius:9px;background:var(--panel2);padding:9px}.examHelpKey kbd{display:inline-block;border:1px solid #52647a;background:#0d1119;border-radius:5px;padding:2px 6px;margin-bottom:5px;font:700 12px ui-monospace,SFMono-Regular,Consolas,monospace}
+.examHelpRule{border-left:4px solid var(--accent);background:#0d1119;border-radius:8px;padding:10px;margin-top:12px}
+#refNavigator{position:sticky;top:63px;z-index:35;max-width:1180px;margin:0 auto 10px;background:rgba(13,17,25,.97);border:1px solid #3a4a5e;border-radius:10px;padding:8px;display:grid;grid-template-columns:auto minmax(240px,1fr) auto auto auto;gap:7px;align-items:center;backdrop-filter:blur(10px)}
+#refNavigator select{min-width:0;width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px}
+#refNavigator .refPos{font:700 11px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--muted);white-space:nowrap}
+#refNavigator .btn.active{border-color:var(--accent);background:#153044}
+.readerQuickList{display:flex;flex-wrap:wrap;gap:6px}.readerQuickList .btn{font-size:11px;padding:5px 7px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.readerQuickEmpty{font-size:12px;color:var(--muted)}.readerQuickGroup{border-top:1px solid var(--line);padding-top:9px;margin-top:9px}.readerQuickTitle{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px;font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:800}
+.searchKeyboardHint{font-size:12px;color:var(--muted);margin:-4px 0 10px}.result.keyboardPick{outline:2px solid var(--accent);outline-offset:2px}
+body.examFocus #refNavigator{top:63px}
+@media(max-width:900px){.examHelpGrid{grid-template-columns:1fr 1fr}#refNavigator{top:105px;grid-template-columns:auto minmax(0,1fr) auto}.refNavSecondary{display:none}#examHelpBtn{font-size:11px;padding:6px 8px}}
+@media(max-width:560px){.examHelpGrid{grid-template-columns:1fr}#refNavigator{grid-template-columns:auto minmax(0,1fr) auto;padding:6px}#refNavigator .refPos{display:none}}
+@media print{#examHelpBackdrop,#refNavigator{display:none!important}}
+</style>
 </head>
 <body>
 
+
+<div id="examHelpBackdrop" role="dialog" aria-modal="true" aria-labelledby="examHelpTitle">
+ <div class="examHelpDialog">
+  <div class="examHelpHead"><div><h2 id="examHelpTitle" style="margin:0">Exam navigation help</h2><div class="muted">The shortcuts worth remembering. Everything else can stay out of your head.</div></div><button class="btn" id="examHelpClose" type="button" aria-label="Close help">×</button></div>
+  <div class="examHelpGrid">
+   <div class="examHelpKey"><kbd>/</kbd><br><b>Search now</b><div class="muted">Focus global search from anywhere outside a text field.</div></div>
+   <div class="examHelpKey"><kbd>Enter</kbd><br><b>Open best match</b><div class="muted">While search is focused, open the first result or exact tag.</div></div>
+   <div class="examHelpKey"><kbd>Alt+Z</kbd><br><b>Focus mode</b><div class="muted">Hide navigation clutter. Esc exits.</div></div>
+   <div class="examHelpKey"><kbd>Alt+Q</kbd><br><b>Service Router</b><div class="muted">Ports → small prioritized enumeration queue.</div></div>
+   <div class="examHelpKey"><kbd>Alt+Y</kbd><br><b>Method Trees</b><div class="muted">Linux / Windows / AD branch flow.</div></div>
+   <div class="examHelpKey"><kbd>Alt+W</kbd><br><b>Windows / AD desk</b><div class="muted">Auth, material routing, edge execution and post-shell workflow.</div></div>
+   <div class="examHelpKey"><kbd>Alt+0</kbd><br><b>Stuck reset</b><div class="muted">Use when tool swapping replaces evidence.</div></div>
+   <div class="examHelpKey"><kbd>Alt+B</kbd><br><b>Bank proof</b><div class="muted">Protect points before continuing.</div></div>
+   <div class="examHelpKey"><kbd>Alt+← / Alt+→</kbd><br><b>Back / Forward</b><div class="muted">Return to previous app locations.</div></div>
+   <div class="examHelpKey"><kbd>Alt+1</kbd><br><b>Start</b><div class="muted">Return to the simple exam loop.</div></div>
+   <div class="examHelpKey"><kbd>Alt+M</kbd><br><b>Methodology</b><div class="muted">Open the complete exam methodology.</div></div>
+   <div class="examHelpKey"><kbd>?</kbd><br><b>This help</b><div class="muted">Open or close this shortcut guide.</div></div>
+  </div>
+  <div class="examHelpRule"><b>Fast operating rule:</b> observe → form one hypothesis → run one decisive test → record the result → continue only while evidence improves. Two decisive negatives or pure tool-swapping means park/rotate.</div>
+ </div>
+</div>
 <div id="readProgressTrack" aria-hidden="true"><div id="readProgressBar"></div></div>
 <div id="readabilityPanel" role="dialog" aria-label="Reading controls" hidden>
   <div class="readerTitle"><b>Exam reading</b><button class="btn" id="readabilityClose" type="button" aria-label="Close reading controls">×</button></div>
@@ -340,6 +380,7 @@ body.readGuideLines .treePre{background-image:linear-gradient(to bottom,transpar
   <button class="btn bad" id="examStuckBtn" type="button" title="3-minute stuck reset (Alt+0)" aria-haspopup="dialog">↺ STUCK</button>
   <button class="btn good" id="examBankBtn" type="button" title="Score-safe proof banking (Alt+B)" aria-haspopup="dialog">✓ BANK</button>
   <button class="btn" id="readabilityBtn" type="button" title="Reading controls (Alt+Z toggles Focus)" aria-haspopup="dialog" aria-expanded="false">Aa Read</button>
+  <button class="btn" id="examHelpBtn" type="button" title="Exam navigation help (?)" aria-haspopup="dialog">?</button>
   <button class="btn" id="themeBtn" title="Toggle reference theme">◐</button>
 </div>
 <div class="layout">
@@ -405,7 +446,7 @@ body.readGuideLines .treePre{background-image:linear-gradient(to bottom,transpar
   </div>
  </div>
  <div class="grid">
-  <div class="card span12 ruleLockCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Exam rules lock</h2><div class="muted">Re-checked 23 Sep 2026 against the current OffSec Exam Guide and FAQ. The live official pages always override this offline snapshot.</div></div><div class="row"><span id="ruleLockCount" class="ruleLockState">0/8 locked</span><button class="btn" id="ruleLockReset" type="button">Reset</button></div></div><div class="ruleLockGrid">
+  <div class="card span12 ruleLockCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Exam rules lock</h2><div class="muted">Re-checked 24 Sep 2026 against the current OffSec Exam Guide and FAQ. The live official pages always override this offline snapshot.</div></div><div class="row"><span id="ruleLockCount" class="ruleLockState">0/8 locked</span><button class="btn" id="ruleLockReset" type="button">Reset</button></div></div><div class="ruleLockGrid">
    <label class="check"><input class="ruleLockCheck" data-rule="objectives" type="checkbox"> I read the control-panel objectives and point values for this exact attempt.</label>
    <label class="check"><input class="ruleLockCheck" data-rule="ai" type="checkbox"> AI/LLM/chatbot tools are closed for both the exam and reporting phase.</label>
    <label class="check"><input class="ruleLockCheck" data-rule="metasploit" type="checkbox"> Restricted Metasploit target is unused or one exact target is recorded; no Metasploit pivoting.</label>
@@ -1091,7 +1132,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  <div class="hero"><div><h1>Scope & Rule Guard</h1><div class="muted">Lint commands before you run them: scope, unresolved placeholders, callback mismatches and rule-sensitive actions. The app never executes commands.</div></div><div class="row"><button class="btn" id="scopeFromTargets">Add current target IPs</button><button class="btn primary" id="lintGuardCommand">Lint command</button></div></div>
  <div class="guardGrid"><div>
   <div class="card"><h2>Scope configuration</h2><div class="field"><label>Allowed IPs / CIDRs / hostnames — one per line</label><textarea id="scopeEntries" class="scopeList" placeholder="192.168.45.0/24&#10;10.10.10.25&#10;dc01.corp.local&#10;*.corp.local"></textarea></div><div class="row"><label class="check"><input id="guardRequireScope" type="checkbox" checked> Warn on explicit destinations outside this list</label><label class="check"><input id="guardPlaceholder" type="checkbox" checked> Warn on unresolved placeholders</label></div><div class="field"><label>Expected LHOST / callback IP</label><input id="guardLhost" placeholder="192.168.45.200"></div><div class="field"><label>Metasploit restricted-functionality target</label><select id="guardMsfTarget"><option value="">Not selected / not using restricted Metasploit</option></select></div><button class="btn good" id="saveGuardConfig">Save guard</button><div class="row" style="margin-top:10px"><button class="btn" id="sanitizeGuardCommand">Sanitize smart quotes / Unicode</button><button class="btn" id="copySanitizedCommand">Copy sanitized</button></div><div id="unicodeSanitizeResult" class="tiny" style="margin-top:8px"></div></div>
-  <div class="card" style="margin-top:12px"><h2>Current rule snapshot</h2><div class="ruleSnapshot"><b>Verified against OffSec OSCP+ Exam Guide / FAQ: 23 Sep 2026</b><div class="tiny" style="margin-top:5px">Official guide always overrides this offline snapshot.</div><hr><div>❌ spoofing / poisoning</div><div>❌ automatic exploitation such as SQLmap / SQLninja</div><div>❌ mass vulnerability scanners</div><div>❌ AI/LLM chatbots during exam/reporting</div><div>❌ prohibited commercial offensive tools/services</div><div>⚠️ Metasploit restricted modules/Meterpreter: one selected target; no Metasploit pivoting</div><div>⚠️ Responder: tool can be used, poisoning/spoofing cannot</div><div>✅ PowerShell Core / PSSession is an accepted interactive shell</div><div>✅ Nmap/NSE and allowed tools when their exact action is allowed</div><div>⚠️ Do not download exam-environment files/apps/source unless necessary to compromise a target; delete such local copies after the objective.</div></div></div>
+  <div class="card" style="margin-top:12px"><h2>Current rule snapshot</h2><div class="ruleSnapshot"><b>Verified against OffSec OSCP+ Exam Guide / FAQ: 24 Sep 2026</b><div class="tiny" style="margin-top:5px">Official guide always overrides this offline snapshot.</div><hr><div>❌ spoofing / poisoning</div><div>❌ automatic exploitation such as SQLmap / SQLninja</div><div>❌ mass vulnerability scanners</div><div>❌ AI/LLM chatbots during exam/reporting</div><div>❌ prohibited commercial offensive tools/services</div><div>⚠️ Metasploit restricted modules/Meterpreter: one selected target; no Metasploit pivoting</div><div>⚠️ Responder: tool can be used, poisoning/spoofing cannot</div><div>✅ PowerShell Core / PSSession is an accepted interactive shell</div><div>✅ Nmap/NSE and allowed tools when their exact action is allowed</div><div>⚠️ Do not download exam-environment files/apps/source unless necessary to compromise a target; delete such local copies after the objective.</div></div></div>
  </div><div>
   <div class="card"><h2>Command linter</h2><textarea id="guardCommand" class="commandLint" spellcheck="false" placeholder="Paste one or more commands here…"></textarea><div id="guardResults" class="muted">No command checked.</div></div>
   <div class="card" style="margin-top:12px"><h2>Resolved scope</h2><div id="scopeResolved" class="muted">No scope configured.</div></div>
@@ -1193,7 +1234,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
 During the exam, start with the Cockpit and jump by search tags; do not scroll the full document linearly.</p>
 </blockquote>
 <blockquote>
-<p><strong>Exam-time-only OSCP/OSCP+ operating checklist — offline, version-aware and evidence-driven.</strong><br/>Designed for fast decisions under pressure. Exam rules last checked against OffSec's official docs: <strong>23 Sep 2026</strong><br/><strong>EXAM-ONLY:</strong> study plans, quizzes, simulations, prohibited-tool workflows and training commands are intentionally excluded.</p>
+<p><strong>Exam-time-only OSCP/OSCP+ operating checklist — offline, version-aware and evidence-driven.</strong><br/>Designed for fast decisions under pressure. Exam rules last checked against OffSec's official docs: <strong>24 Sep 2026</strong><br/><strong>EXAM-ONLY:</strong> study plans, quizzes, simulations, prohibited-tool workflows and training commands are intentionally excluded.</p>
 </blockquote>
 <hr/>
 <details id="ref-v19-target-handoff-access-truth-layer">
@@ -1240,7 +1281,7 @@ impacket-wmiexec "$DOMAIN/$AUTH_USER@$TARGET" "whoami /all"  # password prompt
 </details>
 <details id="ref-read-this-first-2026-oscp-exam-operating-system">
 <summary>★ READ THIS FIRST — 2026 OSCP+ EXAM OPERATING SYSTEM</summary>
-<pre class="ref-code"><code class="language-text">EXAM STRUCTURE (OffSec guide checked 23 Sep 2026)
+<pre class="ref-code"><code class="language-text">EXAM STRUCTURE (OffSec guide checked 24 Sep 2026)
 
 3 stand-alone machines = 60 pts total
   └─ each machine: 10 initial access + 10 privilege escalation
@@ -1357,7 +1398,7 @@ new application source/config/backup
 <summary>🚫 2026 EXAM RULES — READ BEFORE USING ANY TOOL</summary>
 <blockquote>
 <p><strong>This block overrides older habits in the rest of the notes.</strong>
-Checked against the OffSec OSCP+ Exam Guide and FAQ on 23 Sep 2026.</p>
+Checked against the OffSec OSCP+ Exam Guide and FAQ on 24 Sep 2026.</p>
 </blockquote>
 <h3>Prohibited on the OSCP+ exam</h3>
 <pre class="ref-code"><code class="language-text">SQLmap / SQLninja and similar automatic exploitation tools
@@ -1411,7 +1452,7 @@ Meterpreter itself remains limited to the one selected target.
 <summary>⚗ TRUST / RELIABILITY LAYER — READ THE LABELS</summary>
 <p><code>[TRUST] [V5:TRUST] [EXAM:2026-09-23]</code> <em>(the V5 tag is retained for old bookmarks/searches)</em></p>
 <blockquote>
-<p><strong>Last rule verification:</strong> 23 Sep 2026.<br/>
+<p><strong>Last rule verification:</strong> 24 Sep 2026.<br/>
 The official OffSec Exam Guide/FAQ always override this checklist if the rules change.</p>
 </blockquote>
 <h3>Label legend</h3>
@@ -1495,8 +1536,8 @@ A prohibited feature or action remains prohibited even if launched from an allow
   Current binaries: netexec, nxc, nxcdb
 
 BloodHound CE
-  Upstream stable checked 23 Sep 2026: 9.7.1
-  Kali rolling package checked 23 Sep 2026: 9.7.0~rc4
+  Upstream stable checked 24 Sep 2026: 9.7.1
+  Kali rolling package checked 24 Sep 2026: 9.7.0~rc4
   Packaging can lag/differ from upstream; installed local help/workflow wins
   Exam-time rule: do NOT upgrade a known-good stack on exam day just to chase versions
   Initial setup: sudo bloodhound-setup
@@ -9955,7 +9996,7 @@ GOOD LUCK. YOU'VE GOT THIS.
 <li>OSCP Candidate Handbook (page updated 31 Jul 2026): https://help.offsec.com/hc/en-us/articles/40393367449108-OSCP-Candidate-Handbook</li>
 <li>OSCP Reporting Requirements (page updated 06 Aug 2026): https://help.offsec.com/hc/en-us/articles/360046787731-OSCP-Reporting-Requirements</li>
 </ul>
-<p><strong>Rule snapshot verified 23 Sep 2026.</strong> Re-check the official guide, FAQ and AI policy immediately before your exam. If these notes conflict with OffSec's current pages or your control-panel instructions, those current sources win.</p>
+<p><strong>Rule snapshot verified 24 Sep 2026.</strong> Re-check the official guide, FAQ and AI policy immediately before your exam. If these notes conflict with OffSec's current pages or your control-panel instructions, those current sources win.</p>
 <h3 id="ref-vulnerability-intelligence">Vulnerability Intelligence</h3>
 <ul>
 <li>NVD: https://nvd.nist.gov/</li>
@@ -9979,7 +10020,7 @@ GOOD LUCK. YOU'VE GOT THIS.
 <li>NetExec certificate auth: https://github.com/Pennyw0rth/NetExec-Wiki/blob/main/getting-started/using-certificates.md</li>
 <li>Microsoft PowerShell remoting security (authentication and authorization context): https://learn.microsoft.com/en-us/powershell/scripting/security/remoting/winrm-security?view=powershell-7.6</li>
 <li>Certipy releases (5.1.0 stable snapshot): https://github.com/ly4k/Certipy/releases</li>
-<li>BloodHound/Kali package state (checked 23 Sep 2026): https://pkg.kali.org/pkg/bloodhound/news/</li>
+<li>BloodHound/Kali package state (checked 24 Sep 2026): https://pkg.kali.org/pkg/bloodhound/news/</li>
 <li>Impacket 0.13.1 release/changelog: https://github.com/fortra/impacket/releases/tag/impacket_0_13_1</li>
 <li>PayloadsAllTheThings:
 https://github.com/swisskyrepo/PayloadsAllTheThings</li>
@@ -12927,7 +12968,7 @@ try{V16_SELF_TESTS.push(
  ['Password-state recovery is prompt-based and decoder-linked',()=>{const ref=document.getElementById('ref-9-4b-password-state-recovery')?.textContent||'';const rule=AD_FAILURE_RULES.find(x=>x.id==='password-state');return[ref.includes('impacket-changepasswd')&&!ref.includes('-newpass')&&rule?.ref==='ref-9-4b-password-state-recovery','mutation-safe recovery wired']}],
  ['Password-state output analyzer signal exists',()=>[OUTPUT_RULES.some(x=>x.id==='win-password-state'),'password-state analyzer signal present']],
  ['Static reference avoids literal demo passwords in executable examples',()=>{const txt=document.getElementById('referenceRoot')?.textContent||'';const bad=/(?:-u\s+(?:user|sa)\s+-p\s+['"]?pass|\/u:user\s+\/p:pass|user%pass|domain\\user%password)/i.test(txt);return[!bad,bad?'literal demo password residue found':'credential examples use variables or prompts']}],
- ['Rule snapshot date is 23 Sep 2026',()=>[RULE_VERIFIED_DATE==='2026-09-23'&&V13_RULE_DEFAULT==='2026-09-23'&&V16_RULE_VERIFIED==='2026-09-23','official-rule snapshot date current']],
+ ['Rule snapshot date is 24 Sep 2026',()=>[RULE_VERIFIED_DATE==='2026-09-23'&&V13_RULE_DEFAULT==='2026-09-23'&&V16_RULE_VERIFIED==='2026-09-23','official-rule snapshot date current']],
  ['Nmap banner rendering escapes hostile text',()=>{const old=scanPreviewHosts;try{scanPreviewHosts=[{ip:'10.10.10.10',host:'<img src=x onerror=window.__xss=1>',role:'linux',signals:[],tags:[],ports:[{port:22,proto:'tcp',state:'open',service:'ssh',product:'<svg onload=window.__xss=2>',version:''}]}];window.__xss=0;renderScanPreview();const html=$('#scanPreview').innerHTML;return[window.__xss===0&&!$('#scanPreview img')&&!$('#scanPreview svg')&&html.includes('&lt;img'),'host/service escaped']}finally{scanPreviewHosts=old;renderScanPreview()}}],
  ['Command quote survives apostrophe',()=>[shQuote("p@ss'word;$HOME")==="'p@ss'\"'\"'word;$HOME'",'POSIX single-quote escape']],
  ['Password route uses -p',()=>{const c={id:'cmd-pw',user:'alice',type:'password'},t=upgradeV8Target({id:'cmd-t',ip:'10.10.10.10',ports:[]});sessionCredentialSecrets[c.id]="P@ss w'rd!";const out=credCommands(t,c,'WINRM',[`nxc winrm {TARGET} -u {U} -p {P}`]).join('\n');delete sessionCredentialSecrets[c.id];return[out.includes(' -p ')&&!out.includes(' -H ')&&!out.includes('{P}'),'password only']}],
@@ -13594,6 +13635,206 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
   else start();
+})();
+</script>
+
+<script id="v24ExamNavigatorScript">
+(()=>{
+ 'use strict';
+ const RECENT_STORE='oscp:recent-nav:v24';
+ const MAX_RECENT=10;
+ let recent=[];let refEntries=[];let refIndex=0;let raf=0;let baseOpenRef=null;
+
+ function $id(id){return document.getElementById(id)}
+ function loadRecent(){try{const a=JSON.parse(localStorage.getItem(RECENT_STORE)||'[]');recent=Array.isArray(a)?a.slice(0,MAX_RECENT):[]}catch(_){recent=[]}}
+ function saveRecent(){try{localStorage.setItem(RECENT_STORE,JSON.stringify(recent.slice(0,MAX_RECENT)))}catch(_){}}
+ function cleanTitle(s){return String(s||'').replace(/\s+/g,' ').trim().slice(0,90)}
+ function searchItem(anchor){try{return typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS.find(x=>x.anchor===anchor):null}catch(_){return null}}
+ function addRecent(entry){
+   if(!entry||(!entry.anchor&&!entry.tag))return;
+   const key=entry.tag?'t:'+entry.tag:'a:'+entry.anchor;
+   recent=[{...entry,key,at:Date.now()},...recent.filter(x=>x.key!==key)].slice(0,MAX_RECENT);saveRecent();renderReaderQuick();
+ }
+ function addRecentAnchor(anchor){
+   const item=searchItem(anchor);
+   let title=item?.title;
+   if(!title){
+     const el=document.getElementById(anchor);
+     title=el?.querySelector?.('summary')?.textContent||el?.textContent||anchor;
+   }
+   addRecent({anchor,title:cleanTitle(title||anchor)});
+ }
+ function addRecentTag(tag){addRecent({tag:String(tag),title:String(tag)})}
+
+ function escapeText(s){return String(s||'')}
+ function makeQuickButton(label,title,handler,cls='btn'){
+   const b=document.createElement('button');b.type='button';b.className=cls;b.textContent=label;b.title=title||label;b.addEventListener('click',handler);return b;
+ }
+ function renderReaderQuick(){
+   const panel=$id('readabilityPanel');if(!panel)return;
+   let root=$id('readerQuickAccess');
+   if(!root){
+     root=document.createElement('div');root.id='readerQuickAccess';root.className='readerGroup';
+     panel.appendChild(root);
+   }
+   root.replaceChildren();
+   const title=document.createElement('div');title.className='readerLabel';title.textContent='Quick access';root.appendChild(title);
+
+   const rg=document.createElement('div');rg.className='readerQuickGroup';
+   const rh=document.createElement('div');rh.className='readerQuickTitle';
+   const rs=document.createElement('span');rs.textContent='Recent';rh.appendChild(rs);
+   if(recent.length){rh.appendChild(makeQuickButton('Clear','Clear recent navigation',()=>{recent=[];saveRecent();renderReaderQuick();}));}
+   rg.appendChild(rh);
+   const rl=document.createElement('div');rl.className='readerQuickList';
+   if(!recent.length){const e=document.createElement('div');e.className='readerQuickEmpty';e.textContent='Clicked tags and opened reference sections appear here.';rl.appendChild(e);}
+   recent.slice(0,6).forEach(x=>{
+     rl.appendChild(makeQuickButton(x.title||x.tag||x.anchor,x.title||'',()=>{
+       if(x.tag&&window.OSCP_TAG_LINKS?.goToTag)window.OSCP_TAG_LINKS.goToTag(x.tag);
+       else if(x.anchor&&typeof openRef==='function')openRef(x.anchor);
+     }));
+   });rg.appendChild(rl);root.appendChild(rg);
+
+   const pg=document.createElement('div');pg.className='readerQuickGroup';
+   const ph=document.createElement('div');ph.className='readerQuickTitle';ph.textContent='Pinned reference';pg.appendChild(ph);
+   const pl=document.createElement('div');pl.className='readerQuickList';
+   let pins=[];
+   try{pins=(typeof favorites!=='undefined'?favorites:[]).map(a=>searchItem(a)).filter(Boolean)}catch(_){}
+   if(!pins.length){const e=document.createElement('div');e.className='readerQuickEmpty';e.textContent='Pin search results or the current reference section.';pl.appendChild(e);}
+   pins.slice(0,6).forEach(x=>pl.appendChild(makeQuickButton('★ '+cleanTitle(x.title),x.title,()=>openRef(x.anchor))));
+   pg.appendChild(pl);root.appendChild(pg);
+ }
+
+ function help(open){
+   const back=$id('examHelpBackdrop');if(!back)return;
+   back.classList.toggle('open',!!open);
+   if(open)setTimeout(()=>$id('examHelpClose')?.focus(),0);
+ }
+ function isEditing(t){const tag=(t?.tagName||'').toLowerCase();return ['input','textarea','select','button'].includes(tag)||t?.isContentEditable}
+
+ function setupHelp(){
+   $id('examHelpBtn')?.addEventListener('click',()=>help(!$id('examHelpBackdrop')?.classList.contains('open')));
+   $id('examHelpClose')?.addEventListener('click',()=>help(false));
+   $id('examHelpBackdrop')?.addEventListener('click',e=>{if(e.target===$id('examHelpBackdrop'))help(false)});
+ }
+
+ function sectionAnchor(el){
+   if(!el)return'';
+   if(el.id)return el.id;
+   const d=el.closest?.('details[id]');return d?.id||'';
+ }
+ function buildReferenceEntries(){
+   const root=$id('referenceRoot');if(!root)return[];
+   const seen=new Set(),out=[];
+   root.querySelectorAll('h2,h3,summary').forEach(el=>{
+     const anchor=sectionAnchor(el);if(!anchor||seen.has(anchor))return;seen.add(anchor);
+     out.push({anchor,title:cleanTitle(el.textContent||anchor),el:document.getElementById(anchor)||el});
+   });
+   return out;
+ }
+ function updatePinButton(){
+   const b=$id('refPinCurrent');if(!b||!refEntries.length)return;
+   const a=refEntries[refIndex]?.anchor;let on=false;
+   try{on=typeof favorites!=='undefined'&&favorites.includes(a)}catch(_){}
+   b.textContent=on?'★ Pinned':'☆ Pin';b.classList.toggle('active',on);
+ }
+ function renderRefSelect(){
+   const sel=$id('refSectionSelect');if(!sel)return;
+   sel.replaceChildren();
+   refEntries.forEach((x,i)=>{const o=document.createElement('option');o.value=x.anchor;o.textContent=(i+1)+' · '+x.title;sel.appendChild(o)});
+   if(refEntries[refIndex])sel.value=refEntries[refIndex].anchor;
+   const pos=$id('refPosition');if(pos)pos.textContent=refEntries.length?(refIndex+1)+' / '+refEntries.length:'0 / 0';
+   updatePinButton();
+ }
+ function goRefIndex(i){
+   if(!refEntries.length)return;
+   refIndex=Math.max(0,Math.min(refEntries.length-1,i));renderRefSelect();
+   const a=refEntries[refIndex].anchor;
+   if(typeof openRef==='function')openRef(a);
+ }
+ function syncRefPosition(){
+   raf=0;
+   const view=$id('referenceView');if(!view?.classList.contains('active')||!refEntries.length)return;
+   const cutoff=(document.querySelector('.top')?.getBoundingClientRect().bottom||62)+62;
+   let best=0;
+   for(let i=0;i<refEntries.length;i++){
+     const top=refEntries[i].el.getBoundingClientRect().top;
+     if(top<=cutoff)best=i;else break;
+   }
+   if(best!==refIndex){refIndex=best;renderRefSelect();}
+ }
+ function scheduleRefSync(){if(!raf)raf=requestAnimationFrame(syncRefPosition)}
+ function setupReferenceNavigator(){
+   const view=$id('referenceView'),root=$id('referenceRoot');if(!view||!root||$id('refNavigator'))return;
+   refEntries=buildReferenceEntries();
+   const nav=document.createElement('div');nav.id='refNavigator';nav.className='noPrint';
+   nav.innerHTML='<button class="btn" id="refPrev" type="button" title="Previous reference section">←</button><select id="refSectionSelect" aria-label="Reference section"></select><button class="btn" id="refNext" type="button" title="Next reference section">→</button><button class="btn refNavSecondary" id="refPinCurrent" type="button">☆ Pin</button><span class="refPos refNavSecondary" id="refPosition"></span>';
+   root.parentNode.insertBefore(nav,root);
+   renderRefSelect();
+   $id('refPrev')?.addEventListener('click',()=>goRefIndex(refIndex-1));
+   $id('refNext')?.addEventListener('click',()=>goRefIndex(refIndex+1));
+   $id('refSectionSelect')?.addEventListener('change',e=>{
+     const i=refEntries.findIndex(x=>x.anchor===e.target.value);if(i>=0)goRefIndex(i);
+   });
+   $id('refPinCurrent')?.addEventListener('click',()=>{
+     const a=refEntries[refIndex]?.anchor;if(!a)return;
+     try{if(typeof toggleFavorite==='function'){toggleFavorite(a);updatePinButton();renderReaderQuick();}}catch(_){}
+   });
+   addEventListener('scroll',scheduleRefSync,{passive:true});addEventListener('resize',scheduleRefSync,{passive:true});
+ }
+
+ function setupOpenTracking(){
+   try{
+     if(typeof openRef==='function'){
+       baseOpenRef=openRef;
+       openRef=function(anchor){addRecentAnchor(anchor);return baseOpenRef(anchor)};
+     }
+   }catch(_){}
+   document.addEventListener('click',e=>{
+     const tag=e.target?.closest?.('.tagRefLink')?.dataset?.tagRef;if(tag)addRecentTag(tag);
+   },true);
+ }
+
+ function setupSearchKeys(){
+   const input=$id('globalSearch');if(!input)return;
+   const hint=document.createElement('div');hint.className='searchKeyboardHint';hint.textContent='Tip: Enter opens the best match · ↓ moves into results · / focuses search.';
+   $id('searchStats')?.insertAdjacentElement('afterend',hint);
+   input.addEventListener('keydown',e=>{
+     if(e.key==='Enter'){
+       const q=input.value.trim();if(!q)return;
+       e.preventDefault();
+       if(/^\[[A-Z0-9_-]+(?::[A-Z0-9_.-]+)+\]$/.test(q)&&window.OSCP_TAG_LINKS?.goToTag){window.OSCP_TAG_LINKS.goToTag(q);return;}
+       document.querySelector('#searchResults [data-open]')?.click();
+     }else if(e.key==='ArrowDown'){
+       const first=document.querySelector('#searchResults [data-open]');if(first){e.preventDefault();first.focus();}
+     }
+   });
+   document.addEventListener('keydown',e=>{
+     const b=e.target?.closest?.('#searchResults [data-open]');if(!b||!['ArrowDown','ArrowUp'].includes(e.key))return;
+     const all=[...document.querySelectorAll('#searchResults [data-open]')];const i=all.indexOf(b);if(i<0)return;
+     e.preventDefault();all[(i+(e.key==='ArrowDown'?1:-1)+all.length)%all.length]?.focus();
+   });
+ }
+
+ loadRecent();
+ function start(){
+   setupHelp();setupOpenTracking();setupReferenceNavigator();setupSearchKeys();renderReaderQuick();
+   document.addEventListener('keydown',e=>{
+     if(e.key==='Escape'&&$id('examHelpBackdrop')?.classList.contains('open')){e.preventDefault();e.stopImmediatePropagation();help(false);return;}
+     if(!isEditing(e.target)&&!e.ctrlKey&&!e.altKey&&!e.metaKey&&e.key==='?'){e.preventDefault();help(!$id('examHelpBackdrop')?.classList.contains('open'));}
+   },true);
+   try{
+     if(typeof V16_SELF_TESTS!=='undefined'){
+       V16_SELF_TESTS.push(
+         ['Reference navigator',()=>[!!$id('refNavigator')&&refEntries.length>20,refEntries.length+' sections']],
+         ['Recent and pinned quick access',()=>[!!$id('readerQuickAccess'),'reader quick access']],
+         ['Keyboard help overlay',()=>[!!$id('examHelpBackdrop')&&!!$id('examHelpBtn'),'help overlay']],
+         ['Search Enter shortcut',()=>[!!$id('globalSearch'),'search keyboard']]
+       );
+     }
+   }catch(_){}
+   window.OSCP_V24={recent:()=>[...recent],help,renderReaderQuick,refEntries:()=>refEntries.map(x=>({anchor:x.anchor,title:x.title}))};
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
 </body></html>
