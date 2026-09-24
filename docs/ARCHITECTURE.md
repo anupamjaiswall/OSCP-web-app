@@ -1,12 +1,16 @@
 # Architecture
 
-V30 separates **maintainable source** from the **single-file exam artifact**.
+V31 separates **maintainable/testable source** from the **single-file exam artifact**.
 
 ```text
 src/index.template.html
  ├─ src/styles/*.css
  ├─ src/js/*.js
- └─ src/content/*.html
+ │    ├─ 00-core-utils.js
+ │    ├─ 00-service-router-core.js
+ │    └─ browser feature layers
+ ├─ src/content/*.html
+ └─ src/meta/build.json
           ↓
      build.mjs
           ↓
@@ -15,12 +19,29 @@ src/index.template.html
 
 There are no runtime imports, fetches, CDNs, or module loaders.
 
-Reference methodology lives once under `src/content/`; `src/content/manifest.json` controls exact order.
+## Pure logic
 
-Shared DOM-free logic lives in `src/js/00-core-utils.js` and is directly tested in Node. V30 starts with escaping, point calculations, and evidence gates. Future pure logic should move there rather than creating another version-specific layer.
+DOM-free logic should be extracted into testable modules instead of remaining buried in UI IIFEs. V31 tests HTML escaping, scoring, evidence requirements, Service Router parsing, and Service Router classification/prioritization.
 
-**Never edit root `index.html` directly.** Run `npm run check` after source changes. CI rebuilds the artifact and fails on drift.
+The browser Service Router delegates to `OSCP_SERVICE_CORE`; it no longer owns its parser implementation.
 
-The existing UI still has legacy `innerHTML` rendering. Validation freezes the audited V29 assignment count, while new dynamic UI should prefer DOM APIs/`textContent`.
+## Source of truth
 
-Reliability beats architectural purity: large behavioral rewrites should be incremental and tested.
+Reference methodology lives once under `src/content/`; `src/content/manifest.json` controls order. Build identity lives once under `src/meta/build.json` and is validated against `package.json`.
+
+## Generated-file rule
+
+**Never edit root `index.html` directly.**
+
+```bash
+npm run check
+npm run checksum
+```
+
+CI rebuilds `index.html` and fails on drift.
+
+## Audit policy
+
+`npm run audit` syntax-checks every JS module and checks structural balance of methodology fragments. `npm run validate` checks offline CSP, runtime resources, IDs, anchors, version wiring, accessibility live regions, escaping consolidation, and `innerHTML` regression limits.
+
+Reliability beats architectural purity: behavioral rewrites should be incremental and test-covered.
