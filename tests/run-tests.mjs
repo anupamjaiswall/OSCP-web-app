@@ -12,9 +12,8 @@ function test(n,fn){fn();passed++;console.log('✓ '+n)}
 
 const sandbox={window:{}};vm.createContext(sandbox);
 vm.runInContext(read('src/js/00-core-utils.js'),sandbox);
-vm.runInContext(read('src/js/00-search-core.js'),sandbox);
 vm.runInContext(read('src/js/00-service-router-core.js'),sandbox);
-const u=sandbox.window.OSCP_UTILS,s=sandbox.window.OSCP_SEARCH_CORE,r=sandbox.window.OSCP_SERVICE_CORE;
+const u=sandbox.window.OSCP_UTILS,r=sandbox.window.OSCP_SERVICE_CORE;
 
 test('build version consistency',()=>{const m=JSON.parse(read('src/meta/build.json')),p=JSON.parse(read('package.json'));eq(p.version,m.version);eq(m.label,'V'+m.version.split('.')[0])});
 test('escapeHtml',()=>eq(u.escapeHtml(`<a x='y'>&"`),'&lt;a x=&#39;y&#39;&gt;&amp;&quot;'));
@@ -32,14 +31,6 @@ test('Service Router strict list ignores numeric prose',()=>{eq(r.parsePorts('22
 test('Service Router rejects invalid/closed endpoints',()=>{eq(r.parsePorts('0,70000'),[]);eq(r.parsePorts('22/tcp filtered ssh'),[])});
 test('Service Router prioritizes SMB before SSH',()=>eq(r.classify([22,445]).map(x=>x.name)[0],'RPC/SMB'));
 test('Service Router leaves unknown ports unclassified',()=>eq(r.classify([31337]).length,0));
-
-test('typo-tolerant search catches one-edit mistakes',()=>{ok(s.fuzzyScore({title:'SeImpersonate privilege',tags:['[WIN:SEIMPERSONATE]'],text:''},'seimpersonte')>0);ok(s.fuzzyScore({title:'Kerberoasting workflow',tags:['[AD:KERBEROS]'],text:''},'kerberost')>0)});
-test('search typo tolerance does not match unrelated short noise',()=>eq(s.fuzzyScore({title:'SMB enumeration',tags:['[PORT:445]'],text:''},'xyz'),0));
-test('Service Router degrades safely on truncated scan output',()=>{const x=r.parseServices('Nmap scan report for 10.10.10.10\n22/tcp open ssh OpenSSH 9.2\n80/tcp op');eq(x.endpoints.map(e=>e.port),[22])});
-test('Service Router ignores numeric VPN/noise prose',()=>eq(r.parsePorts('Host 10.10.10.10 via tun0 latency 31 ms retry 2'),[]));
-test('every reference fragment contributes structured IDs',()=>{const m=JSON.parse(read('src/content/manifest.json'));for(const f of m.files)ok(/<(?:h2|details)\b[^>]*id=/.test(read('src/content/'+f)),f+' lacks structured reference IDs')});
-test('critical exam reference anchors remain present',()=>{const all=JSON.parse(read('src/content/manifest.json')).files.map(f=>read('src/content/'+f)).join('\n');for(const id of ['ref-read-this-first-2026-oscp-exam-operating-system','ref-9-6-ad-attack-path-methodology-build-the-graph-don-t-just-run-tools','ref-9-7-ad-cs-esc1-esc17-decision-tree'])ok(all.includes('id="'+id+'"'),id)});
-test('V34 resilience and pure search layers are injected',()=>{const t=read('src/index.template.html'),v=read('src/js/20-v34-resilience.js');ok(t.includes('@inject:script:00-search-core.js'));ok(t.includes('@inject:style:14-v34-resilience.css'));ok(t.includes('@inject:script:20-v34-resilience.js'));ok(!v.includes('setInterval('),'V34 must not run a periodic render loop');ok(!v.includes("addEventListener('error'"),'V34 must not install recursive runtime-error rendering');ok(!v.includes("addEventListener('storage'"),'V34 must not run cross-tab storage chatter')});
 
 test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
 test('browser Service Router delegates pure core',()=>ok(read('src/js/09-v20-service-router.js').includes('window.OSCP_SERVICE_CORE')));

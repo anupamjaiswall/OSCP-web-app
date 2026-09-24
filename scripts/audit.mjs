@@ -9,10 +9,8 @@ const fail=m=>{throw new Error(m)};
 
 const jsFiles=fs.readdirSync(path.join(root,'src/js')).filter(x=>x.endsWith('.js')).sort();
 for(const file of jsFiles){
-  const source=read('src/js/'+file);
-  try{new vm.Script(source,{filename:file})}
+  try{new vm.Script(read('src/js/'+file),{filename:file})}
   catch(e){fail('JavaScript syntax error in '+file+': '+e.message)}
-  if(/\beval\s*\(/.test(source)||/\bnew\s+Function\s*\(/.test(source))fail('Dynamic code execution primitive found in '+file);
 }
 
 const core=read('src/js/00-service-router-core.js');

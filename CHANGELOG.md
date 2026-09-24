@@ -1,23 +1,5 @@
 # Changelog
 
-## V34.0.1 — 2026-09-24
-
-### Boot-safety hotfix
-- Removed V34 periodic background rendering, cross-tab storage chatter, and global runtime-error rendering after a browser-side infinite-loading regression.
-- Kept backup freshness and high-contrast controls as lightweight event-driven features.
-- Added a headless Chrome boot smoke test to CI so the generated offline page must reach a completed DOM load.
-
-
-## V34.0.0 — 2026-09-24
-
-### Exam resilience and regression hardening
-- Added a DOM-free typo-tolerant search core and regression tests for common one-edit mistakes.
-- Added single-tab conflict detection, runtime error visibility, backup freshness status, and high-contrast/focus hardening.
-- Added stricter CSP validation, dynamic-code execution checks, malformed scan fixtures, critical reference-anchor tests, and a 1.5 MB generated-artifact budget.
-- Expanded exam preflight with a tested backup/restore drill and single-tab guidance.
-- Kept the app zero-dependency and preserved the single-file offline exam artifact.
-
-
 ## V33.0.0 — 2026-09-24
 
 ### Workflow integration

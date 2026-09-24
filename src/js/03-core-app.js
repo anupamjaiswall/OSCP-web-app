@@ -89,7 +89,7 @@ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLower
 $('#globalSearch').addEventListener('input',e=>{if(e.target.value.trim()){switchView('searchView');renderSearch(e.target.value)}});
 
 function norm(s){return (s||'').toLowerCase().replace(/[^a-z0-9:_\-\[\]\. ]+/g,' ')}
-function fuzzyScore(item,q){if(window.OSCP_SEARCH_CORE?.fuzzyScore)return window.OSCP_SEARCH_CORE.fuzzyScore(item,q);q=norm(q).trim();if(!q)return 0;const title=norm(item.title),tags=norm((item.tags||[]).join(' ')),body=norm(item.text);let score=0;if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;const toks=q.split(/\s+/).filter(Boolean);for(const t of toks){if(tags.includes(t))score+=25;if(title.includes(t))score+=18;if(body.includes(t))score+=5;}return score}
+function fuzzyScore(item,q){q=norm(q).trim();if(!q)return 0;const title=norm(item.title),tags=norm((item.tags||[]).join(' ')),body=norm(item.text);let score=0;if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;const toks=q.split(/\s+/).filter(Boolean);for(const t of toks){if(tags.includes(t))score+=25;if(title.includes(t))score+=18;if(body.includes(t))score+=5;}return score}
 function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
 function validRecordId(v){return typeof v==='string'&&/^[A-Za-z0-9._:-]{1,160}$/.test(v)}
 function plainRecord(v){return !!v&&typeof v==='object'&&!Array.isArray(v)}
