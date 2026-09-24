@@ -1,6 +1,6 @@
 {
   "name": "oscp-exam-os",
-  "version": "34.12.0",
+  "version": "34.13.0",
   "private": true,
   "type": "module",
   "description": "Offline-first OSCP exam methodology and decision-support web app.",

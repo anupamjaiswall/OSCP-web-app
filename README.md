@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.12 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.13 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -22,6 +22,13 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 - After the browser `load` event, the reference hydrates in small section chunks so the exam controls stay responsive.
 - Search and reference navigation refresh automatically when hydration finishes.
 - No network fetch, server, CDN, or second artifact is introduced.
+
+## V34.13 Batch 13 — parser-safe storage startup
+
+- Removed the synchronous localStorage write/delete probe from parser-blocking startup.
+- Storage availability is now detected without mutating browser storage; existing guarded state helpers still handle real read/write failures.
+- This directly targets the boot diagnostic that stopped after search-core and before the storage-guard completion marker.
+- No exam data schema or methodology changed.
 
 ## V34.11 Batch 11 — finish browser boot before heavy panels
 

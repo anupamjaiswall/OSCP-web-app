@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.13.0 — 2026-09-24
+
+### Batch 13 — parser-safe storage guard
+- Removed the synchronous localStorage set/remove persistence probe from parser boot.
+- Kept the in-memory fallback for contexts where the storage object itself is unavailable.
+- Added regression coverage preventing parser-time storage mutation from returning.
+- No exam state schema or methodology changed.
+
+
 ## V34.12.0 — 2026-09-24
 
 ### Batch 12 — parser-safe deep reference
