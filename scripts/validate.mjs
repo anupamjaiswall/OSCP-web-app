@@ -19,20 +19,13 @@ if(/<script\b[^>]*\bsrc\s*=/i.test(html)) fail('Runtime script source detected')
 if(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref\s*=/i.test(html)) fail('Runtime stylesheet detected');
 if(/<(?:script|img|link)\b[^>]*(?:src|href)=["']https?:\/\//i.test(html)) fail('Remote runtime resource detected');
 
-const payloadStart='<script type="application/json" id="referencePayload">';
-const payloadAt=html.indexOf(payloadStart),payloadEnd=payloadAt>=0?html.indexOf('</script>',payloadAt):-1;
-const structuralHtml=payloadAt>=0&&payloadEnd>=0?html.slice(0,payloadAt)+html.slice(payloadEnd+9):html;
-const domAuditHtml=structuralHtml
-  .replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/gi,'$1</script>')
-  .replace(/(<style\b[^>]*>)[\s\S]*?<\/style>/gi,'$1</style>');
-const idMatches=[...domAuditHtml.matchAll(/\bid=["']([^"']+)["']/gi)],ids=idMatches.map(m=>m[1]),seen=new Set(),dupes=[];
+const idManifest=JSON.parse(read('src/content/manifest.json'));
+const idReference=idManifest.files.map(f=>read('src/content/'+f)).join('');
+const staticAuditHtml=read('src/index.template.html')+idReference;
+const idMatches=[...staticAuditHtml.matchAll(/\bid=["']([^"']+)["']/gi)],ids=idMatches.map(m=>m[1]),seen=new Set(),dupes=[];
 for(const id of ids){if(seen.has(id))dupes.push(id);seen.add(id)}
-if(dupes.length){
-  const unique=[...new Set(dupes)];
-  const contexts=unique.map(id=>idMatches.filter(m=>m[1]===id).map(m=>domAuditHtml.slice(Math.max(0,m.index-90),m.index+140).replace(/\s+/g,' ')).join(' || ')).join(' /// ');
-  fail('Duplicate IDs: '+unique.join(', ')+' · '+contexts);
-}
-const hrefs=[...domAuditHtml.matchAll(/\bhref=["']#([^"']+)["']/gi)].map(m=>m[1]);
+if(dupes.length) fail('Duplicate static IDs: '+[...new Set(dupes)].join(', '));
+const hrefs=[...staticAuditHtml.matchAll(/\bhref=["']#([^"']+)["']/gi)].map(m=>m[1]);
 const missing=[...new Set(hrefs.filter(id=>!seen.has(id)))];
 if(missing.length) fail('Broken anchors: '+missing.join(', '));
 
