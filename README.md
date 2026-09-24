@@ -1,6 +1,6 @@
 # 🔐 ULTIMATE OSCP METHODOLOGY CHECKLIST
 
-> **Current exam-time build — version history lives in Git commits.**
+> **Current exam-time build — V28 · version history lives in Git commits.**
 >
 > **Exam-time-only OSCP/OSCP+ operating checklist — offline, version-aware,
 > evidence-driven, and designed for fast decisions under pressure.** Works in:
@@ -88,6 +88,61 @@ AD 10 + all 3 standalone machines fully    = 70
 ```
 
 The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
+
+## V28 — COMPETITIVE CORE: CORRECT PARSING + NEVER REPEAT A DEAD BRANCH
+
+A second review of recent 2026 pass reports and public methodology repositories reinforced two things that matter more than adding another command list:
+
+1. strong operators organize enumeration by **service/port** and keep a fixed phase methodology;
+2. they record **what they tried and what did not work**, so the next action explores a new branch instead of repeating the same test with another wrapper.
+
+### Service Router parser is now strict and protocol-aware
+
+The old router extracted any 1–5 digit number from pasted text. That was convenient but unsafe: an IP octet, product version, RTT or date could be mistaken for a port.
+
+V28 accepts only recognized inputs:
+
+- strict lists such as `22,80,445`;
+- strict protocol lists such as `53/udp,161/udp,445/tcp`;
+- Nmap normal output (`22/tcp open ssh`);
+- Nmap grepable output;
+- Nmap XML;
+- Masscan `Discovered open port ...` lines;
+- RustScan `Open host:port` lines.
+
+It preserves **TCP/UDP**, **open vs open|filtered**, and the discovered service name. Unrelated numbers are intentionally ignored.
+
+The router can also:
+
+- **Load active target** — reuse structurally imported service data;
+- **Save to active target** — merge parsed endpoints into the current target workspace;
+- treat SNMP as UDP-specific rather than assuming any port 161 is SNMP.
+
+### Tried / Result Ledger
+
+Every target now has a compact ledger attached to the Active Work State:
+
+```text
+TEST / BRANCH             OUTCOME             EXACT RESULT
+SMB auth as CORP\alice    negative            STATUS_LOGON_FAILURE
+LDAP bind as alice@corp   blocked             DNS name not resolving
+HTTP /backup.zip          new evidence         recovered config with DB user
+```
+
+Outcomes are intentionally small:
+
+- **new evidence**
+- **worked / path opened**
+- **decisive negative**
+- **blocked / prerequisite missing**
+
+Exact repeated attempts are flagged. Two consecutive non-progress entries visibly suggest redefining the hypothesis or rotating rather than silently launching tool #3 for the same question.
+
+The latest attempts also appear in the target workspace and are appended to the copyable rotation packet.
+
+### What V28 deliberately does not copy from public checklists
+
+Some public methodologies recommend very broad credential spraying or repeated default-credential attempts. This app keeps the existing scope-aware, credential-type-aware, lockout-aware approach instead. Public notes are useful for **organization patterns**, not as authority for exam rules or indiscriminate actions.
 
 ## V27 — RECENT-PASS REVIEW: SERVICE/P​​HASE INDEX + OUTPUT DISCIPLINE
 

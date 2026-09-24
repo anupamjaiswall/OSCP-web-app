@@ -378,6 +378,13 @@ body.examFocus .activeWorkStrip{top:63px}
 @media(max-width:900px){.examIndexResults{grid-template-columns:1fr 1fr}.examIndexControls{grid-template-columns:1fr}.outputTruthGrid{grid-template-columns:1fr}.examIndexTabs{flex-wrap:wrap}}
 @media(max-width:560px){.examIndexResults{grid-template-columns:1fr}}
 </style>
+
+<style id="v28CompetitiveCoreStyles">
+.serviceParseSummary{border:1px solid var(--line);border-radius:8px;background:#0d131c;padding:8px 10px;margin:8px 0;font-size:12px}.serviceParseSummary.good{border-color:#32694c;color:#a9eac6}.serviceParseSummary.warn{border-color:#7a6030;color:#f4d483}.endpointPill{display:inline-block;font:800 11px ui-monospace,SFMono-Regular,Consolas,monospace;border:1px solid #3a5068;border-radius:999px;padding:3px 7px;margin:2px;background:#111b28}.endpointPill.udp{border-color:#735e35;color:#f0d497}.endpointPill.uncertain{border-style:dashed}
+.attemptLedgerPanel{border-top:1px solid var(--line);margin-top:14px;padding-top:13px}.attemptEntryGrid{display:grid;grid-template-columns:minmax(220px,1.1fr) 170px minmax(220px,1.2fr) auto;gap:7px;margin-top:9px}.attemptEntryGrid input,.attemptEntryGrid select{background:#090d13;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:0}.attemptDuplicateHint{min-height:20px;padding:5px 1px;color:var(--warn);font-size:11px}.attemptLedgerList{display:grid;gap:6px;max-height:270px;overflow:auto}.attemptRow{display:grid;grid-template-columns:auto minmax(150px,.9fr) minmax(180px,1.25fr) auto;gap:8px;align-items:start;border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:8px}.attemptOutcome{font-size:9px;font-weight:900;text-transform:uppercase;border-radius:999px;padding:3px 6px;white-space:nowrap;text-align:center}.attemptOutcome.evidence,.attemptOutcome.success{background:#143d27;color:#9cf0b8}.attemptOutcome.negative{background:#3b2024;color:#ffabb5}.attemptOutcome.blocked{background:#43391f;color:#ffdb85}.attemptAction{font-weight:800;font-size:12px}.attemptResult{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}.attemptTime{font-size:9px;color:var(--muted);white-space:nowrap}.attemptStreak{font-size:10px;border:1px solid var(--line);border-radius:999px;padding:4px 7px;color:var(--muted)}.attemptStreak.warn{border-color:#80672d;color:#ffd978}.attemptStreak.bad{border-color:#8f4650;color:#ffadb6}.attemptWorkspaceList{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.attemptWorkspaceItem{border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:7px 9px;max-width:380px}.attemptWorkspaceItem b{font-size:11px}.attemptWorkspaceItem span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.workStripAttempts.warn{border-color:#80672d;color:#ffd978}.workStripAttempts.bad{border-color:#8f4650;color:#ffadb6}
+@media(max-width:1000px){.attemptEntryGrid{grid-template-columns:1fr 1fr}.attemptEntryGrid input:nth-of-type(2){grid-column:1/-1}.attemptRow{grid-template-columns:auto 1fr auto}.attemptResult{grid-column:2/-1}}
+@media(max-width:620px){.attemptEntryGrid{grid-template-columns:1fr}.attemptEntryGrid input:nth-of-type(2){grid-column:auto}.attemptRow{grid-template-columns:1fr}.attemptResult{grid-column:auto}.attemptTime{white-space:normal}}
+</style>
 </head>
 <body>
 <a class="skipLink" href="#examMain">Skip to exam workspace</a>
@@ -401,6 +408,11 @@ body.examFocus .activeWorkStrip{top:63px}
    <label><span>Missing prerequisite / blocker</span><textarea id="workMissing" placeholder="Exact right, route, credential, build, config, trigger, or access still unproven."></textarea></label>
    <label><span>Next decisive test</span><textarea id="workNextTest" placeholder="One test that can materially confirm or kill the hypothesis."></textarea></label>
    <label class="workWide"><span>Return trigger</span><textarea id="workReturn" placeholder="Come back only when this exact evidence/prerequisite appears."></textarea></label>
+  </div>
+  <div class="attemptLedgerPanel">
+   <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3 style="margin:0">Tried / result ledger</h3><div class="muted">Record the branch, not every keystroke. Exact repeats are flagged before you add them.</div></div><span id="attemptStreak" class="attemptStreak">0 non-progress</span></div>
+   <div class="attemptEntryGrid"><input id="attemptAction" autocomplete="off" placeholder="What did you test? e.g. SMB auth as CORP\alice (secret omitted)"><select id="attemptOutcome"><option value="evidence">new evidence</option><option value="success">worked / path opened</option><option value="negative">decisive negative</option><option value="blocked">blocked / prerequisite missing</option></select><input id="attemptResult" autocomplete="off" placeholder="Exact result / error / what it proved"><button class="btn primary" id="attemptAdd" type="button">Log attempt</button></div>
+   <div id="attemptDuplicateHint" class="attemptDuplicateHint"></div><div id="attemptLedgerList" class="attemptLedgerList"></div>
   </div>
   <div class="workStateFooter"><div class="tiny" id="workStateSaved">Saved locally per target.</div><div class="row"><button class="btn" id="workCopyPacket" type="button">Copy rotation packet</button><button class="btn" id="workClearState" type="button">Clear state</button><button class="btn primary" id="workSaveClose" type="button">Save & close</button></div></div>
  </div>
@@ -460,7 +472,7 @@ Return trigger:"></textarea>
 <button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
 
 <div class="top">
-  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V28 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -916,9 +928,9 @@ state-changing AD abuse
 
 
 <section id="serviceRouterView" class="view">
- <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V20</span></h1><div class="muted">Paste discovered TCP ports. Get a small ordered queue, a manual truth check, and one fallback before you reach for another tool.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
+ <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V28</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
  <div class="grid">
-  <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Ports or Nmap-style text</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445,5985&#10;or paste lines containing 22/tcp open ssh ..."></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy first-pass queue</button></div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
+  <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Strict port list or scan output</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445&#10;53/udp,161/udp,445/tcp&#10;or paste Nmap / grepable / XML / Masscan output"></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy queue</button><button class="btn" id="serviceRouterLoadTarget" type="button">Load active target</button><button class="btn" id="serviceRouterSaveTarget" type="button">Save to active target</button></div><div id="serviceParseSummary" class="serviceParseSummary muted">Parser waits for a strict port list or recognized scan format.</div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
   <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
   <div class="card span5"><h2>3 · 70-point runway</h2><div class="scoreRunway"><label>AD set<select id="scoreAD"><option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="40">40</option></select></label><label>Standalone 1<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 2<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 3<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label></div><div id="scoreSummary" class="scoreSummary warn"></div><p class="tiny">Planning aid only. The Exam Control Panel is authoritative for the exact objectives and points on your attempt.</p></div>
   <div class="card span12"><h2>Failure-proof loop</h2><div class="pointRail"><span>1. Read the exact error</span><span>2. Re-prove reachability</span><span>3. Re-prove identity/auth format</span><span>4. Use one manual/native truth check</span><span>5. Try one justified alternate</span><span>6. Record result and rotate</span></div><p class="muted">Examples: SMB tool says login failed → validate domain vs local scope and try <code>smbclient</code> or native auth once. HTTP scanner finds nothing → inspect redirects, vhost, source, methods and content manually. LDAP tool errors → verify DNS/FQDN, bind identity and time before changing tools.</p></div>
@@ -1263,6 +1275,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
    <div class="card opsSpan8"><h2>↩ Resume / Park Packet</h2><div id="workspaceResume" class="resumeCard"></div></div>
    <div class="card opsSpan4"><h2>Open services</h2><div id="workspaceServices" class="muted">No imported service data.</div></div>
    <div class="card opsSpan12"><h2>✅ Expert coverage / closure</h2><div id="workspaceExpertBar" class="muted"></div></div>
+<div class="card opsSpan12 attemptWorkspaceCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>🧪 Tried / Result Ledger</h2><div class="muted">Do not spend exam time rediscovering the same dead branch.</div></div><button class="btn" id="workspaceAttemptOpen" type="button">Open ledger →</button></div><div id="workspaceAttemptLedger" class="attemptWorkspaceList muted">No attempts logged for this target.</div></div>
 <div class="card opsSpan8"><h2>Deterministic next-action engine</h2><div class="muted">Generated only from the state/signals you mark below. No AI.</div><div id="nextActionEngine"></div></div>
    <div class="card opsSpan12"><h2>Signals / observations</h2><div class="signalGrid" id="signalGrid"></div></div>
    <div class="card opsSpan7"><h2>Findings & confidence</h2><div class="row"><input id="findingTitle" placeholder="e.g. SeImpersonate Enabled / custom SUID"><input id="findingTag" placeholder="[WIN:SEIMPERSONATE]"><select id="findingConfidence"><option value="unconfirmed">UNCONFIRMED</option><option value="prereq">PREREQ MET</option><option value="high">HIGH SIGNAL</option><option value="exploited">EXPLOITED</option><option value="dead">DEAD END</option></select><button class="btn primary" id="addFinding">Add</button></div><div id="findingsList" style="margin-top:8px"></div></div>
@@ -10564,7 +10577,7 @@ function renderFavorites(){const root=$('#favoriteList');if(!root)return;const i
 function renderSearch(q){q=q||'';let scored=SEARCH_ITEMS.map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><div><span class="score">score ${x.score}</span> <button class="btn pinRef" data-pin="${esc(x.anchor)}">${favorites.includes(x.anchor)?'★':'☆'} Pin</button></div></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});$$('[data-pin]').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.pin))}
 
 
-function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-Exam-OS',version:27,legacyVersion:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
+function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-Exam-OS',version:28,legacyVersion:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
 $('#exportSession').onclick=()=>{downloadText('oscp-session.json',JSON.stringify(sessionPayload(false),null,2),'application/json');toast('Secret-free session exported — use encrypted backup to preserve secrets')};
 $('#importSession').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=JSON.parse(await f.text());if(!Array.isArray(o.targets))throw new Error('targets missing');targets=o.targets.map(upgradeTarget);credentials=Array.isArray(o.credentials)?o.credentials.map(c=>({...c,checks:c.checks||{}})):[];favorites=Array.isArray(o.favorites)?o.favorites:[];if(o.settings)settings={...settings,...o.settings,PASSWORD:o.settings.PASSWORD||''};activeTargetId=o.activeTargetId&&targets.some(t=>t.id===o.activeTargetId)?o.activeTargetId:(targets[0]?.id||'');preflightData=o.preflight||preflightData;targets.forEach(t=>{if(t.creds)sessionSecrets[t.id]=t.creds;if(!persistSecrets)t.creds=''});credentials.forEach(c=>{if(c.secret)sessionCredentialSecrets[c.id]=c.secret;if(!persistSecrets)c.secret=''});saveTargets();saveOps();renderSettings();renderPlaceholders();prepareCode();renderAllV7();toast('Session restored')}catch(err){alert('Invalid OSCP session JSON: '+err.message)}};
 $('#importPreflight').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{assertImportFileSize(f,'Preflight JSON');preflightData=JSON.parse(await f.text());saveOps();renderPreflight();toast('Preflight imported')}catch{alert('Invalid preflight JSON')}};
@@ -13427,18 +13440,116 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   {name:'MySQL',ports:[3306],priority:30,first:'Known/default creds only when justified → databases/users/files/plugins → local config/credential correlation.',truth:'mysql client query for USER(), VERSION(), grants and schemas.',fallback:'Distinguish network auth plugin/TLS errors from bad credentials before changing tools.',query:'MySQL enumeration grants'},
   {name:'PostgreSQL',ports:[5432],priority:30,first:'Known/default creds only when justified → roles/databases → file/program capabilities depend on role/config.',truth:'psql identity/version/role queries.',fallback:'Check pg_hba/auth method, database name and TLS mode before assuming credential failure.',query:'PostgreSQL enumeration'},
   {name:'RDP',ports:[3389],priority:48,first:'Use only with known/recovered credentials; note domain/local identity and whether interactive logon is actually allowed.',truth:'One xfreerdp connection with explicit domain/local context is enough to prove the access path.',fallback:'Auth success elsewhere does not imply RDP logon rights; inspect error before retrying.',query:'RDP credentials NLA'},
-  {name:'SNMP',ports:[161],priority:34,first:'Usually UDP: if discovered, test common read community only where justified → system/process/network/user clues → correlate, do not dump endlessly.',truth:'snmpwalk on a small OID branch first proves access and version.',fallback:'If timeout, verify UDP reachability/version/community before larger walks.',query:'SNMP enumeration'},
+  {name:'SNMP',ports:[161],protocols:['udp'],priority:34,first:'Usually UDP: if discovered, test common read community only where justified → system/process/network/user clues → correlate, do not dump endlessly.',truth:'snmpwalk on a small OID branch first proves access and version.',fallback:'If timeout, verify UDP reachability/version/community before larger walks.',query:'SNMP enumeration'},
   {name:'NFS',ports:[111,2049],priority:22,first:'Exports → mount options → readable/writable data → UID/GID mapping → secrets/source/backups.',truth:'showmount then a read-only mount first where possible.',fallback:'RPC visibility does not guarantee mount permission; inspect export restrictions and source host rules.',query:'NFS showmount no_root_squash'}
  ];
  const $=id=>document.getElementById(id);
- function parsePorts(text){const found=new Set();String(text||'').match(/\b\d{1,5}\b/g)?.forEach(x=>{const n=Number(x);if(n>0&&n<=65535)found.add(n)});return [...found].sort((a,b)=>a-b)}
+ function endpointKey(e){return String(e.port)+'/'+String(e.proto||'tcp')}
+ function endpointLabel(e){return endpointKey(e)+(e.service?' '+e.service:'')+(e.state==='open|filtered'?' ?':'')}
+ function addEndpoint(map,e){
+  const port=Number(e.port),proto=String(e.proto||'tcp').toLowerCase(),state=String(e.state||'open').toLowerCase();
+  if(!Number.isInteger(port)||port<1||port>65535||!['tcp','udp'].includes(proto)||!['open','open|filtered'].includes(state))return;
+  const key=port+'/'+proto,prev=map.get(key)||{};
+  map.set(key,{port,proto,state:prev.state==='open'||state==='open'?'open':'open|filtered',service:String(e.service||prev.service||'').trim(),detail:String(e.detail||prev.detail||'').trim()});
+ }
+ function parseServices(text){
+  const raw=String(text||'').trim(),map=new Map();let mode='none';
+  if(!raw)return{endpoints:[],mode,recognized:false};
+  if(/<nmaprun\b/i.test(raw)&&typeof DOMParser!=='undefined'){
+   try{
+    const doc=new DOMParser().parseFromString(raw,'application/xml');
+    if(!doc.querySelector('parsererror')){
+     doc.querySelectorAll('port').forEach(p=>{const st=p.querySelector('state')?.getAttribute('state')||'',svc=p.querySelector('service');addEndpoint(map,{port:p.getAttribute('portid'),proto:p.getAttribute('protocol'),state:st,service:svc?.getAttribute('name')||'',detail:[svc?.getAttribute('product'),svc?.getAttribute('version'),svc?.getAttribute('extrainfo')].filter(Boolean).join(' ')})});
+     if(map.size)mode='Nmap XML';
+    }
+   }catch(_){}
+  }
+  if(!map.size){
+   for(const m of raw.matchAll(/(\d{1,5})\/(open(?:\|filtered)?)\/(tcp|udp)\/\/([^\/\s]*)[^,\n]*/gi)){addEndpoint(map,{port:m[1],state:m[2],proto:m[3],service:m[4]});mode='Nmap grepable'}
+  }
+  if(!map.size){
+   for(const line of raw.split(/\r?\n/)){
+    const m=line.match(/^\s*(\d{1,5})\/(tcp|udp)\s+(open(?:\|filtered)?)\s*([^\s]*)?\s*(.*)$/i);
+    if(m){addEndpoint(map,{port:m[1],proto:m[2],state:m[3],service:m[4],detail:m[5]});mode='Nmap normal'}
+   }
+  }
+  if(!map.size){
+   for(const m of raw.matchAll(/Discovered\s+open\s+port\s+(\d{1,5})\/(tcp|udp)\b/gi)){addEndpoint(map,{port:m[1],proto:m[2],state:'open'});mode='Masscan'}
+  }
+  if(!map.size){
+   for(const m of raw.matchAll(/\bOpen\s+[^\s:]+:(\d{1,5})\b/gi)){addEndpoint(map,{port:m[1],proto:'tcp',state:'open'});mode='RustScan'}
+  }
+  if(!map.size){
+   const compact=raw.replace(/[;\n]+/g,',').replace(/\s+/g,',').replace(/,+/g,',').replace(/^,|,$/g,'');
+   if(compact&&compact.split(',').every(t=>/^\d{1,5}(?:\/(?:tcp|udp))?$/i.test(t))){
+    compact.split(',').forEach(t=>{const m=t.match(/^(\d{1,5})(?:\/(tcp|udp))?$/i);addEndpoint(map,{port:m[1],proto:m[2]||'tcp',state:'open'})});mode='explicit list'
+   }
+  }
+  const endpoints=[...map.values()].sort((a,b)=>a.port-b.port||a.proto.localeCompare(b.proto));
+  return{endpoints,mode,recognized:endpoints.length>0}
+ }
+ function parsePorts(text){return[...new Set(parseServices(text).endpoints.map(e=>e.port))].sort((a,b)=>a-b)}
  function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  function search(q){const g=$('globalSearch');if(!g)return;g.value=q;try{switchView('searchView');renderSearch(q)}catch(e){g.dispatchEvent(new Event('input',{bubbles:true}))}}
- function classify(ports){return CATALOG.map(x=>({...x,hit:x.ports.filter(p=>ports.includes(p))})).filter(x=>x.hit.length).sort((a,b)=>a.priority-b.priority)}
- function roleHints(ports){const h=[],has=p=>ports.includes(p),webs=[80,443,8000,8008,8080,8081,8443,8888,3000,5000].filter(has);if((has(88)||has(389)||has(636))&&has(445))h.push('<b>Likely AD/Windows role:</b> establish domain, DC/FQDN, DNS and time early; keep local vs domain credentials separate.');if(has(445)&&(has(5985)||has(3389)))h.push('<b>Windows access ladder:</b> SMB authentication, admin rights, WinRM/RDP logon rights and code execution are separate results.');if(webs.length>=2)h.push('<b>Multi-web host:</b> compare titles, redirects, certificates, Host handling and app fingerprints across ports before duplicate brute-force discovery.');if(has(22)&&webs.length)h.push('<b>Web + SSH:</b> prioritize source/config/backups and recovered keys/credentials; do not attack SSH just because it is exposed.');return h}
- function render(){const ports=parsePorts($('serviceRouterInput')?.value||''),rows=classify(ports),unknown=ports.filter(p=>!CATALOG.some(x=>x.ports.includes(p))),box=$('serviceQueue'),q=$('serviceFirstPassQueue'),rh=$('serviceRoleHints');if(rh)rh.innerHTML=roleHints(ports).map(x=>`<div class="serviceRoleHint">${x}</div>`).join('');if(!ports.length){if(box)box.innerHTML='<div class="muted">No ports parsed yet.</div>';if(q)q.textContent='Paste ports above.';return}if(box)box.innerHTML=rows.map(x=>`<div class="serviceCard"><h3>${esc(x.name)} <span class="ports">${esc(x.hit.join(', '))}</span></h3><div class="serviceAction"><b>First pass</b><br>${esc(x.first)}</div><div class="manualTruth"><b>Manual truth</b><br>${esc(x.truth)}</div><div class="fallback"><b>If tooling disagrees</b><br>${esc(x.fallback)}</div><div class="row"><button class="btn" type="button" data-service-search="${esc(x.query)}">Search reference →</button></div></div>`).join('')+(unknown.length?`<div class="serviceCard"><h3>Other ports <span class="ports">${unknown.join(', ')}</span></h3><div class="serviceAction">Identify the protocol manually: banner/TLS/HTTP probe, product role and access context. Then search the reference by product/service name.</div><div class="fallback">Do not map an unknown port to a vulnerability from the number alone.</div></div>`:'');const lines=['SERVICE-FIRST FIRST PASS',`Ports: ${ports.join(', ')}`,''];rows.forEach((x,i)=>lines.push(`${i+1}. ${x.name} [${x.hit.join(', ')}]\n   ${x.first}\n   Truth: ${x.truth}\n   Fallback: ${x.fallback}`));if(unknown.length)lines.push(`\nOther ports [${unknown.join(', ')}]\n   Identify protocol/product manually, then route by evidence.`);lines.push('\nSTOP CONDITION: new evidence → continue. Two decisive failures/no new evidence → record why and rotate.');if(q)q.textContent=lines.join('\n');box?.querySelectorAll('[data-service-search]').forEach(b=>b.addEventListener('click',()=>search(b.dataset.serviceSearch)))}
+ function matchCatalog(x,e){return x.ports.includes(e.port)&&(!Array.isArray(x.protocols)||x.protocols.includes(e.proto))}
+ function classify(input){
+  const eps=(input||[]).map(x=>typeof x==='number'?{port:x,proto:'tcp',state:'open',service:''}:x);
+  return CATALOG.map(x=>({...x,hit:eps.filter(e=>matchCatalog(x,e))})).filter(x=>x.hit.length).sort((a,b)=>a.priority-b.priority)
+ }
+ function roleHints(endpoints){
+  const ports=[...new Set((endpoints||[]).map(e=>e.port))],h=[],has=p=>ports.includes(p),webs=[80,443,8000,8008,8080,8081,8443,8888,3000,5000].filter(has);
+  if((has(88)||has(389)||has(636))&&has(445))h.push('<b>Likely AD/Windows role:</b> establish domain, DC/FQDN, DNS and time early; keep local vs domain credentials separate.');
+  if(has(445)&&(has(5985)||has(3389)))h.push('<b>Windows access ladder:</b> SMB authentication, admin rights, WinRM/RDP logon rights and code execution are separate results.');
+  if(webs.length>=2)h.push('<b>Multi-web host:</b> compare titles, redirects, certificates, Host handling and app fingerprints across ports before duplicate discovery.');
+  if(has(22)&&webs.length)h.push('<b>Web + SSH:</b> prioritize source/config/backups and recovered keys/credentials; do not attack SSH just because it is exposed.');
+  return h
+ }
+ function renderParseSummary(parsed){
+  const el=$('serviceParseSummary');if(!el)return;
+  if(!String($('serviceRouterInput')?.value||'').trim()){el.className='serviceParseSummary muted';el.textContent='Parser waits for a strict port list or recognized scan format.';return}
+  if(!parsed.recognized){el.className='serviceParseSummary warn';el.textContent='No real open-port records recognized. Unrelated numbers, IP octets, versions and timing values are intentionally ignored. Use a strict list such as 22,80,445 or paste Nmap/Masscan output.';return}
+  const tcp=parsed.endpoints.filter(e=>e.proto==='tcp').length,udp=parsed.endpoints.filter(e=>e.proto==='udp').length,uncertain=parsed.endpoints.filter(e=>e.state==='open|filtered').length;
+  el.className='serviceParseSummary good';el.innerHTML='<b>'+esc(parsed.mode)+'</b> · '+parsed.endpoints.length+' endpoint'+(parsed.endpoints.length===1?'':'s')+' · TCP '+tcp+' · UDP '+udp+(uncertain?' · '+uncertain+' open|filtered':'')
+ }
+ function render(){
+  const parsed=parseServices($('serviceRouterInput')?.value||''),endpoints=parsed.endpoints,rows=classify(endpoints),unknown=endpoints.filter(e=>!CATALOG.some(x=>matchCatalog(x,e))),box=$('serviceQueue'),q=$('serviceFirstPassQueue'),rh=$('serviceRoleHints');
+  renderParseSummary(parsed);
+  if(rh)rh.innerHTML=roleHints(endpoints).map(x=>'<div class="serviceRoleHint">'+x+'</div>').join('');
+  if(!endpoints.length){if(box)box.innerHTML='<div class="muted">No recognized open endpoints yet.</div>';if(q)q.textContent='Paste a strict port list or recognized scan output.';return}
+  if(box)box.innerHTML=rows.map(x=>'<div class="serviceCard"><h3>'+esc(x.name)+' <span class="ports">'+x.hit.map(e=>'<span class="endpointPill '+(e.proto==='udp'?'udp ':'')+(e.state==='open|filtered'?'uncertain':'')+'">'+esc(endpointLabel(e))+'</span>').join('')+'</span></h3><div class="serviceAction"><b>First pass</b><br>'+esc(x.first)+'</div><div class="manualTruth"><b>Manual truth</b><br>'+esc(x.truth)+'</div><div class="fallback"><b>If tooling disagrees</b><br>'+esc(x.fallback)+'</div><div class="row"><button class="btn" type="button" data-service-search="'+esc(x.query)+'">Search reference →</button></div></div>').join('')+
+   (unknown.length?'<div class="serviceCard"><h3>Other endpoints <span class="ports">'+unknown.map(e=>'<span class="endpointPill '+(e.proto==='udp'?'udp ':'')+'">'+esc(endpointLabel(e))+'</span>').join('')+'</span></h3><div class="serviceAction">Identify the protocol/product manually: banner, TLS, HTTP probe, product role and access context. Search by the observed product/service name.</div><div class="fallback">Do not map an unknown port number directly to a CVE.</div></div>':'');
+  const lines=['SERVICE-FIRST FIRST PASS','Parsed as: '+parsed.mode,'Endpoints: '+endpoints.map(endpointLabel).join(', '),''];
+  rows.forEach((x,i)=>lines.push((i+1)+'. '+x.name+' ['+x.hit.map(endpointLabel).join(', ')+']\n   '+x.first+'\n   Truth: '+x.truth+'\n   Fallback: '+x.fallback));
+  if(unknown.length)lines.push('\nOther endpoints ['+unknown.map(endpointLabel).join(', ')+']\n   Identify protocol/product manually, then route by evidence.');
+  lines.push('\nSTOP CONDITION: new evidence → continue. Two decisive failures/no new evidence → record the result and rotate.');
+  if(q)q.textContent=lines.join('\n');
+  box?.querySelectorAll('[data-service-search]').forEach(b=>b.addEventListener('click',()=>search(b.dataset.serviceSearch)))
+ }
+ function activeTargetPortsText(){
+  try{const t=typeof activeTarget==='function'?activeTarget():null;if(!t||!Array.isArray(t.ports)||!t.ports.length)return'';
+   return t.ports.filter(p=>p&&p.port&&p.state!=='closed').map(p=>String(p.port)+'/'+String(p.proto||'tcp')+' '+String(p.state||'open')+' '+String(p.service||'')+' '+[p.product,p.version,p.extra].filter(Boolean).join(' ')).join('\n')
+  }catch(_){return''}
+ }
+ function loadActiveTargetPorts(){
+  const txt=activeTargetPortsText();if(!txt){if(typeof toast==='function')toast('Active target has no imported service data');return}
+  const ta=$('serviceRouterInput');if(ta){ta.value=txt;render();if(typeof toast==='function')toast('Loaded active target services')}
+ }
+ function saveParsedToTarget(){
+  const parsed=parseServices($('serviceRouterInput')?.value||'');if(!parsed.endpoints.length){if(typeof toast==='function')toast('No recognized endpoints to save');return}
+  let t=null;try{t=typeof activeTarget==='function'?activeTarget():null}catch(_){}
+  if(!t){if(typeof toast==='function')toast('Select/add an active target first');return}
+  t.ports=Array.isArray(t.ports)?t.ports:[];
+  for(const e of parsed.endpoints){
+   const hit=t.ports.find(p=>+p.port===e.port&&String(p.proto||'tcp')===e.proto);
+   if(hit){if(!hit.service&&e.service)hit.service=e.service;if(!hit.state||hit.state==='filtered')hit.state=e.state}
+   else t.ports.push({port:e.port,proto:e.proto,state:e.state,service:e.service||'',product:'',version:'',extra:e.detail||''})
+  }
+  t.ports.sort((a,b)=>(+a.port)-(+b.port)||String(a.proto).localeCompare(String(b.proto)));t.updated=Date.now();
+  try{if(typeof logEvent==='function')logEvent(t,'enum','Service Router saved '+parsed.endpoints.length+' parsed endpoint(s)');if(typeof saveTargets==='function')saveTargets();if(typeof renderWorkspace==='function')renderWorkspace()}catch(_){}
+  if(typeof toast==='function')toast('Merged '+parsed.endpoints.length+' endpoint(s) into active target')
+ }
  function score(){const ad=Number($('scoreAD')?.value||0),ss=[...document.querySelectorAll('.scoreStandalone')].map(x=>Number(x.value||0)),total=ad+ss.reduce((a,b)=>a+b,0),need=Math.max(0,70-total),el=$('scoreSummary');if(!el)return;el.className='scoreSummary '+(total>=70?'good':'warn');let next='Bank every earned flag/evidence now.';if(total<70){const o=[];ss.forEach((v,i)=>{if(v===0)o.push(`S${i+1} local +10`);if(v===10)o.push(`S${i+1} privesc +10`)});if(ad<40)o.push(`AD remaining up to +${40-ad}`);next=o.length?`Nearest remaining point units: ${o.join(' · ')}`:'Re-check the Exam Control Panel objectives.'}el.innerHTML=`<div class="scoreBig">${total}/100</div><div><b>${total>=70?'Pass threshold reached in this planner':need+' more points to 70'}</b></div><div class="tiny" style="margin-top:6px">${esc(next)}</div>`}
- $('serviceRouterBuild')?.addEventListener('click',render);$('serviceRouterInput')?.addEventListener('input',()=>{clearTimeout(window.__oscpServiceTimer);window.__oscpServiceTimer=setTimeout(render,180)});$('serviceRouterCopy')?.addEventListener('click',async()=>{render();const txt=$('serviceFirstPassQueue')?.textContent||'';try{await navigator.clipboard.writeText(txt);toast('First-pass queue copied')}catch(e){}});$('scoreAD')?.addEventListener('change',score);document.querySelectorAll('.scoreStandalone').forEach(x=>x.addEventListener('change',score));score();window.OSCP_SERVICE_ROUTER={parsePorts,classify,render,score};try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['Service router parses Nmap-style ports',()=>{const p=parsePorts('22/tcp open ssh\\n445/tcp open microsoft-ds');return[p.includes(22)&&p.includes(445),p.join(',')]}],['Service router prioritizes SMB before SSH',()=>{const r=classify([22,445]).map(x=>x.name);return[r[0]==='RPC/SMB',r.join(' > ')]}],['Service router does not map unknown port to a CVE',()=>{const r=classify([31337]);return[r.length===0,'unknown remains manual-identification path']}])}catch(e){}
+ $('serviceRouterBuild')?.addEventListener('click',render);$('serviceRouterInput')?.addEventListener('input',()=>{clearTimeout(window.__oscpServiceTimer);window.__oscpServiceTimer=setTimeout(render,180)});$('serviceRouterCopy')?.addEventListener('click',async()=>{render();const txt=$('serviceFirstPassQueue')?.textContent||'';try{await navigator.clipboard.writeText(txt);toast('First-pass queue copied')}catch(e){}});$('serviceRouterLoadTarget')?.addEventListener('click',loadActiveTargetPorts);$('serviceRouterSaveTarget')?.addEventListener('click',saveParsedToTarget);$('scoreAD')?.addEventListener('change',score);document.querySelectorAll('.scoreStandalone').forEach(x=>x.addEventListener('change',score));score();window.OSCP_SERVICE_ROUTER={parsePorts,parseServices,classify,render,score,loadActiveTargetPorts,saveParsedToTarget};try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['Service router parses Nmap TCP/UDP',()=>{const r=parseServices('22/tcp open ssh\\n53/udp open domain\\n161/udp open|filtered snmp');return[r.endpoints.length===3&&r.endpoints.some(x=>x.port===53&&x.proto==='udp'),'count='+r.endpoints.length]}],['Service router ignores unrelated numbers',()=>{const p=parsePorts('Nmap scan report for 10.10.10.123\\nHost is up (0.021s latency).\\n22/tcp open ssh OpenSSH 8.9p1');return[p.length===1&&p[0]===22,p.join(',')]}],['Service router explicit list stays strict',()=>{const p=parsePorts('22,80,445');return[p.join(',')==='22,80,445',p.join(',')]}],['Service router arbitrary numeric prose is not ports',()=>{const p=parsePorts('target 10.10.10.10 latency 21 ms version 8.9');return[p.length===0,p.join(',')||'none']}],['Service router prioritizes SMB before SSH',()=>{const r=classify([22,445]).map(x=>x.name);return[r[0]==='RPC/SMB',r.join(' > ')]}],['Service router does not map unknown port to a CVE',()=>{const r=classify([31337]);return[r.length===0,'unknown remains manual-identification path']}])}catch(e){}
 })();
 </script>
 <div id="examResetModal" class="examResetBackdrop" role="dialog" aria-modal="true" aria-labelledby="examResetTitle" aria-hidden="true">
@@ -13447,7 +13558,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     <div class="examResetGrid">
       <div class="examResetStep"><b>1 · BANK FIRST — 20s</b>If you have <code>local.txt</code> or <code>proof.txt</code>, capture/submit it now. Record the exact path and command before touching anything else.</div>
       <div class="examResetStep"><b>2 · FACTS ONLY — 30s</b>Say the target, ports, access, creds, current user/privileges and last new evidence. Separate facts from assumptions.</div>
-      <div class="examResetStep"><b>3 · COVERAGE — 60s</b>Full TCP done? Every exposed service manually touched? Web vhosts/routes/backups? Recovered credentials classified and checked only against relevant exposed services? After shell: local listeners, files/config, sudo/SUID/caps or services/tasks/privileges.</div>
+      <div class="examResetStep"><b>3 · COVERAGE + LEDGER — 60s</b>Full TCP done? Every exposed service manually touched? Read the Tried / Result ledger: are you repeating a dead branch under a different tool name? Web vhosts/routes/backups? Recovered credentials classified against relevant services? After shell: local listeners, files/config, sudo/SUID/caps or services/tasks/privileges.</div>
       <div class="examResetStep"><b>4 · ONE TEST — 30s</b>Pick the cheapest test that can prove or kill the strongest hypothesis. Define success/failure before running it.</div>
       <div class="examResetStep"><b>5 · READ OUTPUT — 20s</b>Read the result line-by-line. Do not launch the next tool until you can state what changed.</div>
       <div class="examResetStep"><b>6 · ROTATE</b>No new evidence after the timer? Mark the path dead/parked, write why, then move to another service, hypothesis or machine.</div>
@@ -14409,6 +14520,82 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     ['Fatigue guard',()=>[!!$id('fatigueGuard'),'optional break timer']]
    )}catch(_){}
    window.OSCP_V27={openIndex,closeIndex,renderIndex,tagIndex:()=>new Map(tagIndex),fatigue:()=>({...fatigue})};
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
+
+<script id="v28CompetitiveCoreScript">
+(()=>{
+ 'use strict';
+ const STORE='oscp:attempt-ledger:v28';let all={};let lastKey='';
+ const $id=id=>document.getElementById(id);
+ function key(){try{return (typeof activeTarget==='function'&&activeTarget()?.id)||'__global__'}catch(_){return'__global__'}}
+ function load(){try{const x=JSON.parse(localStorage.getItem(STORE)||'{}');all=x&&typeof x==='object'&&!Array.isArray(x)?x:{}}catch(_){all={}}}
+ function save(){try{localStorage.setItem(STORE,JSON.stringify(all));return true}catch(_){return false}}
+ function entries(){return Array.isArray(all[key()])?all[key()]:[]}
+ function norm(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim()}
+ function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+ function outcomeLabel(v){return({evidence:'new evidence',success:'worked',negative:'negative',blocked:'blocked'})[v]||v}
+ function nonProgressStreak(){
+   let n=0;for(const e of [...entries()].reverse()){if(e.outcome==='negative'||e.outcome==='blocked')n++;else break}return n
+ }
+ function duplicateFor(action){
+   const n=norm(action);if(!n)return null;return [...entries()].reverse().find(e=>norm(e.action)===n)||null
+ }
+ function renderHint(){
+   const a=$id('attemptAction')?.value||'',hit=duplicateFor(a),h=$id('attemptDuplicateHint'),btn=$id('attemptAdd');if(!h||!btn)return;
+   if(hit){h.textContent='Already logged '+new Date(hit.at).toLocaleTimeString()+': '+outcomeLabel(hit.outcome)+' — '+(hit.result||'no result text');btn.classList.add('warn')}else{h.textContent='';btn.classList.remove('warn')}
+ }
+ function rowHTML(e){
+   return '<div class="attemptRow" data-attempt-id="'+esc(e.id)+'"><span class="attemptOutcome '+esc(e.outcome)+'">'+esc(outcomeLabel(e.outcome))+'</span><div><div class="attemptAction">'+esc(e.action)+'</div><div class="attemptResult">'+esc(e.result||'')+'</div></div><span class="attemptTime">'+new Date(e.at).toLocaleTimeString()+'</span><button class="btn bad attemptDelete" type="button" title="Delete this ledger entry">×</button></div>'
+ }
+ function render(){
+   const list=$id('attemptLedgerList'),streak=nonProgressStreak(),badge=$id('attemptStreak');
+   if(list){const xs=[...entries()].reverse();list.innerHTML=xs.length?xs.map(rowHTML).join(''):'<div class="muted">No attempts recorded for this target yet.</div>';list.querySelectorAll('.attemptDelete').forEach(b=>b.addEventListener('click',()=>remove(b.closest('[data-attempt-id]')?.dataset.attemptId)))}
+   if(badge){badge.textContent=streak+' non-progress';badge.className='attemptStreak'+(streak>=3?' bad':streak>=2?' warn':'')}
+   renderWorkspace();renderStripButton();renderHint()
+ }
+ function add(){
+   const action=String($id('attemptAction')?.value||'').trim(),result=String($id('attemptResult')?.value||'').trim(),outcome=$id('attemptOutcome')?.value||'evidence';
+   if(!action){if(typeof toast==='function')toast('Describe the branch/test first');return}
+   const hit=duplicateFor(action);
+   if(hit&&norm(hit.result)===norm(result)&&hit.outcome===outcome){if(typeof toast==='function')toast('Exact attempt already logged — do not repeat it');renderHint();return}
+   const arr=entries(),entry={id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),at:Date.now(),action,result,outcome};arr.push(entry);all[key()]=arr.slice(-100);save();
+   if($id('attemptAction'))$id('attemptAction').value='';if($id('attemptResult'))$id('attemptResult').value='';
+   try{const t=typeof activeTarget==='function'?activeTarget():null;if(t&&typeof logEvent==='function'){logEvent(t,'attempt',action+' → '+outcomeLabel(outcome)+(result?': '+result:''));if(typeof saveTargets==='function')saveTargets()}}catch(_){}
+   render();
+   const streak=nonProgressStreak();if(streak>=2&&typeof toast==='function')toast(streak+' consecutive non-progress attempts — redefine the hypothesis or rotate')
+ }
+ function remove(id){if(!id)return;all[key()]=entries().filter(e=>e.id!==id);save();render()}
+ function renderWorkspace(){
+   const root=$id('workspaceAttemptLedger');if(!root)return;const xs=[...entries()].reverse().slice(0,6);
+   root.innerHTML=xs.length?xs.map(e=>'<div class="attemptWorkspaceItem"><b>'+esc(outcomeLabel(e.outcome))+' · '+esc(e.action)+'</b><span>'+esc(e.result||'')+' · '+new Date(e.at).toLocaleTimeString()+'</span></div>').join(''):'No attempts logged for this target.';
+ }
+ function openLedger(){
+   window.OSCP_V26?.openWork?.();setTimeout(()=>{$id('attemptAction')?.focus();$id('attemptLedgerList')?.scrollIntoView({block:'nearest'})},50)
+ }
+ function renderStripButton(){
+   const actions=$id('activeWorkStrip')?.querySelector('.workStripActions');if(!actions)return;
+   let b=$id('workStripAttempts');if(!b){b=document.createElement('button');b.id='workStripAttempts';b.type='button';b.className='btn workStripAttempts';b.addEventListener('click',openLedger);actions.insertBefore(b,actions.firstChild)}
+   const n=entries().length,streak=nonProgressStreak();b.textContent='Tried '+n+(streak>=2?' · '+streak+'× no progress':'');b.className='btn workStripAttempts'+(streak>=3?' bad':streak>=2?' warn':'');b.title=streak>=2?'Repeated non-progress: redefine hypothesis or rotate':'Open tried/result ledger'
+ }
+ function extendPacket(){
+   const original=window.OSCP_V26?.packet;if(typeof original!=='function'||window.OSCP_V28_PACKET_WRAPPED)return;
+   window.OSCP_V28_PACKET_WRAPPED=true;window.OSCP_V26.packet=function(){const base=original(),xs=[...entries()].reverse().slice(0,5).reverse();return base+(xs.length?'\nTRIED:\n'+xs.map(e=>'  - ['+outcomeLabel(e.outcome)+'] '+e.action+(e.result?' → '+e.result:'')).join('\n'):'')}
+ }
+ load();
+ function start(){
+   $id('attemptAdd')?.addEventListener('click',add);$id('attemptAction')?.addEventListener('input',renderHint);$id('attemptResult')?.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();add()}});
+   $id('workspaceAttemptOpen')?.addEventListener('click',openLedger);render();extendPacket();lastKey=key();
+   const root=$id('activeWorkStrip');if(root)new MutationObserver(()=>renderStripButton()).observe(root,{childList:true,subtree:true});
+   setInterval(()=>{const k=key();if(k!==lastKey){lastKey=k;render()}},900);
+   try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(
+     ['V28 attempt ledger',()=>[!!$id('attemptLedgerList')&&!!$id('workspaceAttemptLedger'),'ledger surfaces']],
+     ['V28 duplicate-attempt detector',()=>[typeof duplicateFor==='function','duplicate detector']],
+     ['V28 non-progress streak',()=>[typeof nonProgressStreak==='function','streak detector']]
+   )}catch(_){}
+   window.OSCP_V28={entries,add,remove,duplicateFor,nonProgressStreak,openLedger,render};
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
