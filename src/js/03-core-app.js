@@ -364,6 +364,33 @@ function renderSearch(q){q=q||'';let scored=ensureSearchItems().map(x=>({...x,sc
 
 
 function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-Exam-OS',version:28,legacyVersion:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
+async function sha256Text(text){
+ if(!globalThis.crypto?.subtle)throw new Error('SHA-256 integrity requires Web Crypto in this browser context');
+ const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(text??'')));
+ return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function backupCanonicalText(obj){
+ if(!obj||typeof obj!=='object'||Array.isArray(obj))throw new Error('Backup payload must be a JSON object');
+ const clone={...obj};delete clone.integrity;return JSON.stringify(clone);
+}
+async function withBackupIntegrity(obj){
+ if(!globalThis.crypto?.subtle)return obj;
+ const digest=await sha256Text(backupCanonicalText(obj));
+ return {...obj,integrity:{algorithm:'SHA-256',digest}};
+}
+async function verifyBackupIntegrity(obj){
+ const meta=obj?.integrity;
+ if(meta===undefined)return{present:false,ok:true,digest:''};
+ if(!meta||typeof meta!=='object'||Array.isArray(meta)||meta.algorithm!=='SHA-256'||!/^[a-f0-9]{64}$/i.test(String(meta.digest||'')))throw new Error('Backup integrity metadata is invalid');
+ if(!globalThis.crypto?.subtle)throw new Error('Backup contains SHA-256 integrity metadata but Web Crypto is unavailable');
+ const actual=await sha256Text(backupCanonicalText(obj));
+ if(actual.toLowerCase()!==String(meta.digest).toLowerCase())throw new Error('Backup SHA-256 integrity check failed; the file may be truncated or modified');
+ return{present:true,ok:true,digest:actual};
+}
+async function currentStateFingerprint(){
+ const payload={...sessionPayload(false)};delete payload.exported;delete payload.integrity;
+ return sha256Text(JSON.stringify(payload));
+}
 let externalBackupMeta=safeStoredRecord(STORE+'lastExternalBackup',{at:0,kind:''});
 function renderExternalBackupFreshness(){
  const el=$('#backupFreshness');if(!el)return;
@@ -374,9 +401,10 @@ function renderExternalBackupFreshness(){
  el.dataset.state=age>2*60*60*1000?'warn':'good';
 }
 function markExternalBackup(kind){externalBackupMeta={at:Date.now(),kind:String(kind||'session')};safeStoreSet(STORE+'lastExternalBackup',JSON.stringify(externalBackupMeta));renderExternalBackupFreshness()}
-$('#exportSession').onclick=()=>{downloadText('oscp-session.json',JSON.stringify(sessionPayload(false),null,2),'application/json');markExternalBackup('secret-free session');toast('Secret-free session exported — use encrypted backup to preserve secrets')};
-$('#copySessionJson').onclick=async()=>{const json=JSON.stringify(sessionPayload(false),null,2),ok=await copyText(json);toast(ok?'Secret-free recovery JSON copied — paste it somewhere durable':'Copy blocked — use Export secret-free session instead')};
-$('#importSession').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{assertImportFileSize(f,'Session backup');const o=assertRestorableBackup(JSON.parse(await f.text()));snapshotNow('before session import');restoreV9Payload(o);toast('Session restored')}catch(err){alert('Invalid OSCP session JSON: '+err.message)}finally{e.target.value=''}};
+$('#exportSession').onclick=async()=>{try{const payload=await withBackupIntegrity(sessionPayload(false));downloadText('oscp-session.json',JSON.stringify(payload,null,2),'application/json');markExternalBackup('secret-free session');toast(payload.integrity?'Secret-free session exported · SHA-256 embedded':'Secret-free session exported · Web Crypto unavailable, checksum omitted')}catch(err){alert('Session export failed: '+err.message)}};
+$('#copySessionJson').onclick=async()=>{try{const payload=await withBackupIntegrity(sessionPayload(false)),json=JSON.stringify(payload,null,2),ok=await copyText(json);toast(ok?(payload.integrity?'Recovery JSON copied · SHA-256 embedded':'Recovery JSON copied · checksum unavailable'):'Copy blocked — use Export secret-free session instead')}catch(err){alert('Recovery copy failed: '+err.message)}};
+$('#importSession').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{assertImportFileSize(f,'Session backup');const parsed=JSON.parse(await f.text()),integrity=await verifyBackupIntegrity(parsed),o=assertRestorableBackup(parsed);snapshotNow('before session import');restoreV9Payload(o);toast(integrity.present?'Session restored · SHA-256 verified':'Session restored · legacy backup without checksum')}catch(err){alert('Invalid OSCP session JSON: '+err.message)}finally{e.target.value=''}};
+$('#stateFingerprintBtn').onclick=async()=>{const b=$('#stateFingerprintBtn'),out=$('#stateFingerprint');if(!b||!out)return;b.disabled=true;out.textContent='Calculating SHA-256…';try{out.textContent='SHA-256 '+await currentStateFingerprint()}catch(err){out.textContent='Unavailable: '+err.message}finally{b.disabled=false}};
 $('#importPreflight').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{assertImportFileSize(f,'Preflight JSON');preflightData=JSON.parse(await f.text());saveOps();renderPreflight();toast('Preflight imported')}catch{alert('Invalid preflight JSON')}};
 function renderPreflight(){const root=$('#preflightBody'),sum=$('#preflightSummary');if(!root||!sum)return;if(!preflightData||!Array.isArray(preflightData.tools)){root.innerHTML='';sum.textContent='No preflight imported.';return}const core=preflightData.tools.filter(x=>(x.priority||'core')==='core'),coreMiss=core.filter(x=>!x.present).length,allMiss=preflightData.tools.filter(x=>!x.present).length;sum.textContent=`core ${core.length-coreMiss}/${core.length} · all ${preflightData.tools.length-allMiss}/${preflightData.tools.length} commands found · generated ${preflightData.generated||'unknown'}`;root.innerHTML=preflightData.tools.map(x=>`<tr><td>${esc(x.tool)}</td><td>${esc(x.priority||'legacy')}</td><td>${x.present?'✅ present':'❌ missing'}</td><td>${esc(x.version||x.path||'')}</td></tr>`).join('')}
 function renderSessionStats(){renderExternalBackupFreshness();const s=$('#sessionStats');if(s)s.textContent=`${targets.length} targets · ${credentials.length} credentials · ${favorites.length} favorites · ${targets.reduce((n,t)=>n+(t.path?.length||0),0)} attack-path steps`;const st=$('#storageSummary');if(st)st.innerHTML=`<div class="row"><div><div class="opsMetric">${targets.length}</div><div class="opsMetricLabel">targets</div></div><div><div class="opsMetric">${credentials.length}</div><div class="opsMetricLabel">credentials</div></div><div><div class="opsMetric">${favorites.length}</div><div class="opsMetricLabel">pins</div></div><div><div class="opsMetric">${preflightData?.tools?.length||0}</div><div class="opsMetricLabel">preflight tools</div></div></div>`}

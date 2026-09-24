@@ -1,6 +1,15 @@
 # 🔐 OSCP Exam OS
 
-**V34.20 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.21 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.21 Batch 21 — secret-free backup integrity
+
+- New secret-free session JSON exports embed a SHA-256 over the canonical payload when Web Crypto is available.
+- Session import verifies an embedded digest before creating the pre-restore snapshot or replacing live state.
+- Older backups without an integrity field remain supported and are explicitly identified as legacy on restore.
+- **Fingerprint current state** calculates a manual secret-free SHA-256 with the volatile export timestamp removed.
+- Clipboard recovery receives the same integrity metadata but still does not count as a durable external backup.
+- No background hashing, polling, or exam-state schema migration was added.
 
 ## V34.20 Batch 20 — search completeness and accessibility
 

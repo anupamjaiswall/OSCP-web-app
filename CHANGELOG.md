@@ -1,5 +1,16 @@
 # Changelog
 
+## V34.21.0 — 2026-09-24
+
+### Batch 21 — secret-free backup integrity
+- Added optional WebCrypto SHA-256 integrity metadata to new secret-free session exports and clipboard recovery JSON.
+- Plain-session import verifies any embedded SHA-256 before taking a pre-restore snapshot or mutating live state.
+- Preserved backward compatibility for backups without integrity metadata.
+- Added a manual current-state fingerprint that excludes the volatile export timestamp.
+- Clipboard recovery remains non-durable and does not update external-backup freshness.
+- No background hashing or polling was added.
+
+
 ## V34.20.1 — 2026-09-24
 
 ### Search loading-state safety fix
