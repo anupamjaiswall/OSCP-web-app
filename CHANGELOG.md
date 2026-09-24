@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.14.0 — 2026-09-24
+
+### Batch 14 — fix infinite-load MutationObserver loop
+- Fixed the V28 active-work-strip observer recursively observing `renderStripButton()` edits.
+- Changed the observer from `childList + subtree` to direct `childList` only.
+- Added a regression test preventing self-observing strip behavior from returning.
+- Root cause was confirmed by a live Chrome debugger stack in CI.
+
+
 ## Browser gate origin correction — 2026-09-24
 
 - Runtime browser validation now serves the exact generated `index.html` from an ephemeral localhost origin instead of navigating headless Chrome directly to `file://`.

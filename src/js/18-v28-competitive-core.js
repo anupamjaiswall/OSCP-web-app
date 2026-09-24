@@ -61,7 +61,7 @@
  function start(){
    $id('attemptAdd')?.addEventListener('click',add);$id('attemptAction')?.addEventListener('input',renderHint);$id('attemptResult')?.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();add()}});
    $id('workspaceAttemptOpen')?.addEventListener('click',openLedger);render();extendPacket();lastKey=key();
-   const root=$id('activeWorkStrip');if(root)new MutationObserver(()=>renderStripButton()).observe(root,{childList:true,subtree:true});
+   const root=$id('activeWorkStrip');if(root)new MutationObserver(()=>renderStripButton()).observe(root,{childList:true});
    setInterval(()=>{const k=key();if(k!==lastKey){lastKey=k;render()}},900);
    try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(
      ['V28 attempt ledger',()=>[!!$id('attemptLedgerList')&&!!$id('workspaceAttemptLedger'),'ledger surfaces']],
