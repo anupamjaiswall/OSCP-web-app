@@ -1,5 +1,12 @@
 # Changelog
 
+## Browser gate origin correction — 2026-09-24
+
+- Runtime browser validation now serves the exact generated `index.html` from an ephemeral localhost origin instead of navigating headless Chrome directly to `file://`.
+- This avoids Chromium's headless file-origin storage initialization stall while still using the same self-contained artifact with no external assets or network dependencies.
+- Static build, CSP, checksum, generated-artifact sync, and source validation remain independent of the runtime origin.
+
+
 ## V34.13.0 — 2026-09-24
 
 ### Batch 13 — parser-safe storage guard

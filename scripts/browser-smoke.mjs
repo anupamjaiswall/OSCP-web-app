@@ -2,10 +2,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawn,execFileSync} from 'node:child_process';
-import {fileURLToPath,pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
+import http from 'node:http';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const appUrl=pathToFileURL(path.join(root,'index.html')).href;
+const appFile=path.join(root,'index.html');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 
 function findBrowser(){
@@ -39,7 +40,17 @@ function makeRpc(ws){
   return{send,events};
 }
 async function main(){
-  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  const html=fs.readFileSync(appFile,'utf8');
+  const server=http.createServer((req,res)=>{
+    if(req.url==='/'||req.url==='/index.html'){
+      res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
+      res.end(html);return;
+    }
+    res.writeHead(404,{'content-type':'text/plain'});res.end('not found');
+  });
+  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});
+  const addr=server.address();
+  const appUrl='http://127.0.0.1:'+addr.port+'/index.html';
   for(const id of ['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'])if(!html.includes('id="'+id+'"'))throw new Error('critical static control missing: '+id);
 
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-chrome-'));
@@ -80,7 +91,7 @@ async function main(){
         return lastState.ready==='complete'&&controlsOk&&lastState.boot?.ok!==false?lastState:false;
       }catch(e){lastProbeError=e.message;return false}
     },20000,150);
-    if(!ready)throw new Error('Offline app did not reach a usable completed state · lastState='+JSON.stringify(lastState)+' · probe='+lastProbeError);
+    if(!ready)throw new Error('Local offline artifact did not reach a usable completed state · lastState='+JSON.stringify(lastState)+' · probe='+lastProbeError);
 
     const renders=[];
     for(const scale of [1,1.25,1.5]){
@@ -96,6 +107,7 @@ async function main(){
     console.log('Browser render gate passed:',JSON.stringify({ready,renders}));
   }finally{
     try{child.kill('SIGKILL')}catch(_){}
+    try{server.close()}catch(_){}
     try{fs.rmSync(tmp,{recursive:true,force:true,maxRetries:2,retryDelay:100})}catch(_){}
   }
 }
