@@ -44,34 +44,24 @@ async function main(){
 
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-chrome-'));
   const profile=path.join(tmp,'profile');
-  const activePortFile=path.join(profile,'DevToolsActivePort');
   const args=[
     '--headless=new','--disable-gpu','--no-sandbox','--disable-dev-shm-usage',
     '--disable-background-networking','--disable-component-update','--disable-sync',
     '--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio',
     '--disable-client-side-phishing-detection','--disable-features=OptimizationHints,MediaRouter,Translate,AutofillServerCommunication',
     '--no-first-run','--no-default-browser-check','--allow-file-access-from-files',
-    '--remote-debugging-port=0',`--user-data-dir=${profile}`,appUrl
+    '--remote-debugging-address=127.0.0.1','--remote-debugging-port=9222',`--user-data-dir=${profile}`,'about:blank'
   ];
   const child=spawn(findBrowser(),args,{stdio:['ignore','ignore','pipe']});
-  let stderr='',browserWs='';
-  child.stderr.on('data',d=>{stderr+=String(d);if(stderr.length>12000)stderr=stderr.slice(-12000);const m=stderr.match(/DevTools listening on (ws:\/\/[^\s]+)/);if(m)browserWs=m[1]});
+  let stderr='';
+  child.stderr.on('data',d=>{stderr+=String(d);if(stderr.length>12000)stderr=stderr.slice(-12000)});
   try{
-    const wsUrl=await waitFor(()=>{
-      if(browserWs)return browserWs;
-      try{
-        if(fs.existsSync(activePortFile)){
-          const lines=fs.readFileSync(activePortFile,'utf8').trim().split(/\r?\n/);
-          if(lines[0]&&lines[1])return 'ws://127.0.0.1:'+lines[0]+lines[1];
-        }
-      }catch(_){}
-      return '';
-    },25000);
-    if(!wsUrl)throw new Error('Chrome DevTools endpoint did not start'+(stderr?' · '+stderr.slice(-1000):''));
-    const u=new URL(wsUrl),base='http://'+u.hostname+':'+u.port;
+    const base='http://127.0.0.1:9222';
+    const version=await waitFor(async()=>{try{return await (await fetch(base+'/json/version')).json()}catch(_){return false}},25000);
+    if(!version?.webSocketDebuggerUrl)throw new Error('Chrome DevTools endpoint did not start'+(stderr?' · '+stderr.slice(-1000):''));
     const page=await waitFor(async()=>{
       const pages=await (await fetch(base+'/json/list')).json();
-      return pages.find(p=>p.type==='page'&&String(p.url||'').startsWith('file:'))||pages.find(p=>p.type==='page');
+      return pages.find(p=>p.type==='page');
     },12000);
     if(!page?.webSocketDebuggerUrl)throw new Error('Chrome page target was not available');
 
@@ -79,6 +69,7 @@ async function main(){
     await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(new Error('DevTools websocket timed out')),8000);ws.onopen=()=>{clearTimeout(t);resolve()};ws.onerror=e=>{clearTimeout(t);reject(e instanceof Error?e:new Error('DevTools websocket failed'))}});
     const rpc=makeRpc(ws);
     await rpc.send('Runtime.enable');await rpc.send('Page.enable');
+    await rpc.send('Page.navigate',{url:appUrl});
 
     let lastState=null,lastProbeError='';
     const ready=await waitFor(async()=>{
