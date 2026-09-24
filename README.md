@@ -1,8 +1,14 @@
 # 🔐 OSCP Exam OS
 
-**V34.16 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.17 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
+
+## V34.17 Batch 17 — safe settings reset
+
+- Replaced the misleading inactive **Clear all local data** control with **Reset settings only**.
+- Resetting restores placeholder defaults and disables plaintext secret persistence while keeping targets, credentials, evidence, reports, snapshots, and other exam state.
+- Regression coverage explicitly forbids destructive storage/array clearing inside the settings reset path.
 
 ## V34.16 Batch 16 — reference navigation accessibility
 

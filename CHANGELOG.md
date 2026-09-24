@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.17.0 — 2026-09-24
+
+### Batch 17 — non-destructive settings reset
+- Replaced the inactive/misleading Clear all local data button with Reset settings only.
+- Reset restores placeholder defaults and disables persisted-secret preference without deleting exam targets, credentials, evidence, reports, or recovery snapshots.
+- Added regression coverage that forbids destructive state clearing in this path.
+
+
 ## V34.16.0 — 2026-09-24
 
 ### Batch 16 — reference navigation accessibility
