@@ -1,6 +1,14 @@
 # 🔐 OSCP Exam OS
 
-**V34.24 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.25 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.25 Batch 25 — recovery-risk visibility
+
+- Session view now exposes a live recovery-risk status without adding a polling loop.
+- The status distinguishes browser-storage failure, unsnapshotted core changes, stale/missing external backup, and healthy restore-point state.
+- Save-target/save-operations, snapshot, full-backup export, Session-view entry, and visibility changes refresh the indicator.
+- Closing the tab triggers the browser's native leave-warning only when storage has failed or core state is dirty while the external backup is stale/missing.
+- The feature lives in a separate recovery-status module so the large core startup chain remains untouched.
 
 ## V34.24 Batch 24 — keyboard navigation semantics
 

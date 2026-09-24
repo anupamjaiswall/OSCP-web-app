@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.25.0 — 2026-09-24
+
+### Batch 25 — recovery-risk visibility
+- Added an isolated recovery-status module and polite Session-view status line.
+- Reports browser storage write failure, unsnapshotted core target/operations changes, restore-point timestamp and external-backup freshness.
+- Refreshes only on relevant state/view/visibility events; no new polling loop.
+- Added a native beforeunload warning only for real recovery risk: storage failure or dirty core state with stale/missing external backup.
+- Added deterministic regressions for the isolated event-driven behavior.
+
+
 ## V34.24.0 — 2026-09-24
 
 ### Batch 24 — keyboard navigation semantics
