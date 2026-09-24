@@ -10351,12 +10351,14 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script>window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
   version:'34.11.0',
   label:'V34',
   date:'2026-09-24'
 });</script>
+<script>window.__OSCP_BOOT_STAGE__='00-build-meta';</script>
 <script id="coreUtilsScript">/* V30 shared pure utilities. Keep this file DOM-free so CI can execute it in Node. */
 (function(root){
   'use strict';
@@ -10414,6 +10416,7 @@ window.OSCP_BUILD=Object.freeze({
     escapeHtml,clampExamPoints,examScore,evidenceClaims,requiredEvidence,evidenceMissing
   });
 })(typeof window!=='undefined'?window:globalThis);</script>
+<script>window.__OSCP_BOOT_STAGE__='00-core-utils';</script>
 <script id="searchCoreScript">/* V34.1 batch 1: pure typo-tolerant search scoring. */
 (function(root){
   'use strict';
@@ -10463,6 +10466,7 @@ window.OSCP_BUILD=Object.freeze({
   root.OSCP_SEARCH_CORE=Object.freeze({norm,withinOneEdit,nearToken,fuzzyScore});
 })(typeof window!=='undefined'?window:globalThis);
 </script>
+<script>window.__OSCP_BOOT_STAGE__='00-search-core';</script>
 <script>
 /* V19 FIX: storage compatibility guard.
    Some browser/file contexts deny localStorage entirely. In that case keep the
@@ -13653,6 +13657,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  )}catch(e){}
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='08-ad-username-generator';</script>
 
 <script id="serviceRouterCoreScript">/* V31 pure Service Router core: parser + classification, DOM-free except optional DOMParser support. */
 (function(root){
@@ -13729,6 +13734,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
    CATALOG,endpointKey,endpointLabel,addEndpoint,parseServices,parsePorts,matchCatalog,classify
  });
 })(typeof window!=='undefined'?window:globalThis);</script>
+<script>window.__OSCP_BOOT_STAGE__='00-service-router-core';</script>
 <script id="v20ServiceRouterScript">
 (()=>{
  const {CATALOG,endpointLabel,parseServices,parsePorts,matchCatalog,classify}=window.OSCP_SERVICE_CORE;
@@ -13791,6 +13797,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  $('serviceRouterBuild')?.addEventListener('click',render);$('serviceRouterInput')?.addEventListener('input',()=>{clearTimeout(window.__oscpServiceTimer);window.__oscpServiceTimer=setTimeout(render,180)});$('serviceRouterCopy')?.addEventListener('click',async()=>{render();const txt=$('serviceFirstPassQueue')?.textContent||'';try{await navigator.clipboard.writeText(txt);toast('First-pass queue copied')}catch(e){}});$('serviceRouterLoadTarget')?.addEventListener('click',loadActiveTargetPorts);$('serviceRouterSaveTarget')?.addEventListener('click',saveParsedToTarget);$('scoreAD')?.addEventListener('change',score);document.querySelectorAll('.scoreStandalone').forEach(x=>x.addEventListener('change',score));score();window.OSCP_SERVICE_ROUTER={parsePorts,parseServices,classify,render,score,loadActiveTargetPorts,saveParsedToTarget};try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['Service router parses Nmap TCP/UDP',()=>{const r=parseServices('22/tcp open ssh\\n53/udp open domain\\n161/udp open|filtered snmp');return[r.endpoints.length===3&&r.endpoints.some(x=>x.port===53&&x.proto==='udp'),'count='+r.endpoints.length]}],['Service router ignores unrelated numbers',()=>{const p=parsePorts('Nmap scan report for 10.10.10.123\\nHost is up (0.021s latency).\\n22/tcp open ssh OpenSSH 8.9p1');return[p.length===1&&p[0]===22,p.join(',')]}],['Service router explicit list stays strict',()=>{const p=parsePorts('22,80,445');return[p.join(',')==='22,80,445',p.join(',')]}],['Service router arbitrary numeric prose is not ports',()=>{const p=parsePorts('target 10.10.10.10 latency 21 ms version 8.9');return[p.length===0,p.join(',')||'none']}],['Service router prioritizes SMB before SSH',()=>{const r=classify([22,445]).map(x=>x.name);return[r[0]==='RPC/SMB',r.join(' > ')]}],['Service router does not map unknown port to a CVE',()=>{const r=classify([31337]);return[r.length===0,'unknown remains manual-identification path']}])}catch(e){}
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='09-v20-service-router';</script>
 <div id="examResetModal" class="examResetBackdrop" role="dialog" aria-modal="true" aria-labelledby="examResetTitle" aria-hidden="true">
   <div class="examResetDialog">
     <div class="examResetHead"><div><h2 id="examResetTitle">↺ 3-Minute Reset · 15-Minute Cap</h2><div class="muted">Spend ~3 minutes re-anchoring to evidence, then allow at most one 15-minute evidence-producing retry before you rotate.</div></div><button class="btn" id="examResetClose" type="button" aria-label="Close stuck reset">Close</button></div>
@@ -13823,6 +13830,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   window.OSCP_STUCK_RESET={open,start,reset};
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='10-exam-stuck';</script>
 <div id="examBankModal" class="examBankBackdrop" role="dialog" aria-modal="true" aria-labelledby="examBankTitle" aria-hidden="true">
  <div class="examBankDialog">
   <div class="examBankHead"><div><h2 id="examBankTitle">✓ Bank the Points</h2><div class="muted">Do this immediately when you obtain local.txt or proof.txt.</div></div><button class="btn" id="examBankClose" type="button">Close</button></div>
@@ -13840,6 +13848,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
 <script id="examBankScript">
 (()=>{const m=document.getElementById('examBankModal'),b=document.getElementById('examBankBtn'),c=document.getElementById('examBankClose');if(!m||!b||!c)return;const open=()=>{m.classList.add('open');m.setAttribute('aria-hidden','false');c.focus()},close=()=>{m.classList.remove('open');m.setAttribute('aria-hidden','true');b.focus()};b.onclick=open;c.onclick=close;m.onclick=e=>{if(e.target===m)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&m.classList.contains('open')){e.preventDefault();close()}else if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='b'){e.preventDefault();open()}});document.getElementById('examBankTarget')?.addEventListener('click',()=>{close();try{switchView('workspaceView')}catch(e){}});document.getElementById('examBankEvidence')?.addEventListener('click',()=>{close();const q=document.getElementById('globalSearch');if(!q)return;q.value='[EVIDENCE:PACKET]';try{switchView('searchView');renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}});document.getElementById('examBankVerify')?.addEventListener('click',()=>{close();try{switchView('reportsView');renderReport();toast('Verify the report/evidence gate — this dialog never marks points as banked')}catch(e){}});window.OSCP_PROOF_BANK={open,close}})();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='11-exam-bank';</script>
 
 <script id="v22BracketLinksScript">(()=>{
   'use strict';
@@ -13989,6 +13998,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   else start();
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='12-v22-bracket-links';</script>
 
 <script id="v23ReadabilityScript">
 (()=>{
@@ -14126,6 +14136,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   else start();
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='13-v23-readability';</script>
 
 <script id="v24ExamNavigatorScript">
 (()=>{
@@ -14326,6 +14337,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='14-v24-exam-navigator';</script>
 
 <script id="v25ExamCommandLayerScript">
 (()=>{
@@ -14470,6 +14482,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='15-v25-command-layer';</script>
 
 <script id="v26ScratchArchitectureScript">
 (()=>{
@@ -14659,6 +14672,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='16-v26-scratch-architecture';</script>
 
 <script id="v27PasserResearchLayerScript">
 (()=>{
@@ -14799,6 +14813,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='17-v27-passer-research';</script>
 
 <script id="v28CompetitiveCoreScript">
 (()=>{
@@ -14875,6 +14890,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
+<script>window.__OSCP_BOOT_STAGE__='18-v28-competitive-core';</script>
 <script id="v33ExamIntegrationScript">(()=>{
  'use strict';
  const $id=id=>document.getElementById(id),core=()=>window.OSCP_SERVICE_CORE;
@@ -14957,4 +14973,6 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function start(){ensureDossier();ensurePreflight();setupScanHandoff();addEntryPoints();setupKeys();extendHelp();const strip=$id('activeWorkStrip');if(strip)new MutationObserver(()=>addEntryPoints()).observe(strip,{childList:true,subtree:true});try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['V33 service dossier',()=>[!!$id('v33DossierBackdrop')&&typeof core()?.classify==='function','target dossier']],['V33 selected scan handoff',()=>[typeof importHostAndRoute==='function','scan → target → router']],['V33 app preflight',()=>[preflightChecks().every(x=>x.status!=='fail'),preflightChecks().map(x=>x.label+':'+x.status).join('|')]])}catch(_){}window.OSCP_V33={openDossier,closeDossier,loadRouter,importHostAndRoute,openPreflight,closePreflight,preflightChecks}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start()
 })();</script>
+<script>window.__OSCP_BOOT_STAGE__='19-v33-exam-integration';</script>
+<script>window.__OSCP_BOOT_STAGE__='complete-scripts';</script>
 </body></html>
