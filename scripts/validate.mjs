@@ -25,9 +25,13 @@ const structuralHtml=payloadAt>=0&&payloadEnd>=0?html.slice(0,payloadAt)+html.sl
 const domAuditHtml=structuralHtml
   .replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/gi,'$1</script>')
   .replace(/(<style\b[^>]*>)[\s\S]*?<\/style>/gi,'$1</style>');
-const ids=[...domAuditHtml.matchAll(/\bid=["']([^"']+)["']/gi)].map(m=>m[1]),seen=new Set(),dupes=[];
+const idMatches=[...domAuditHtml.matchAll(/\bid=["']([^"']+)["']/gi)],ids=idMatches.map(m=>m[1]),seen=new Set(),dupes=[];
 for(const id of ids){if(seen.has(id))dupes.push(id);seen.add(id)}
-if(dupes.length) fail('Duplicate IDs: '+[...new Set(dupes)].join(', '));
+if(dupes.length){
+  const unique=[...new Set(dupes)];
+  const contexts=unique.map(id=>idMatches.filter(m=>m[1]===id).map(m=>domAuditHtml.slice(Math.max(0,m.index-90),m.index+140).replace(/\s+/g,' ')).join(' || ')).join(' /// ');
+  fail('Duplicate IDs: '+unique.join(', ')+' · '+contexts);
+}
 const hrefs=[...domAuditHtml.matchAll(/\bhref=["']#([^"']+)["']/gi)].map(m=>m[1]);
 const missing=[...new Set(hrefs.filter(id=>!seen.has(id)))];
 if(missing.length) fail('Broken anchors: '+missing.join(', '));
