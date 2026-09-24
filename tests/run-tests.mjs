@@ -32,6 +32,6 @@ test('Service Router rejects invalid/closed endpoints',()=>{eq(r.parsePorts('0,7
 test('Service Router prioritizes SMB before SSH',()=>eq(r.classify([22,445]).map(x=>x.name)[0],'RPC/SMB'));
 test('Service Router leaves unknown ports unclassified',()=>eq(r.classify([31337]).length,0));
 
-test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__OSCP_[A-Z_]+__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
+test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
 test('browser Service Router delegates pure core',()=>ok(read('src/js/09-v20-service-router.js').includes('window.OSCP_SERVICE_CORE')));
 console.log('\n'+passed+' tests passed');

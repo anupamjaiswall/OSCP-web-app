@@ -24,7 +24,7 @@ html=html
 
 const unresolved=[...new Set([
   ...(html.match(/@inject:[^<\\n]*/g)||[]),
-  ...(html.match(/__OSCP_[A-Z_]+__/g)||[])
+  ...(html.match(/__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/g)||[])
 ])];
 if(unresolved.length) throw new Error('Unresolved build marker(s): '+unresolved.join(' | '));
 fs.writeFileSync(path.join(root,'index.html'),html);

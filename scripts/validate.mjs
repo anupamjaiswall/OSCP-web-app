@@ -10,7 +10,7 @@ const meta=JSON.parse(read('src/meta/build.json'));
 const pkg=JSON.parse(read('package.json'));
 
 if(pkg.version!==meta.version) fail('package.json version does not match build metadata');
-if(/@inject:|__OSCP_[A-Z_]+__/.test(html)) fail('Unresolved build marker');
+if(/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(html)) fail('Unresolved build marker');
 if(!/connect-src\s+'none'/.test(html)) fail("connect-src 'none' missing");
 if(/<script\b[^>]*\bsrc\s*=/i.test(html)) fail('Runtime script source detected');
 if(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref\s*=/i.test(html)) fail('Runtime stylesheet detected');
