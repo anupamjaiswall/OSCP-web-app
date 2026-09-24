@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
 <title>OSCP Exam-Only Operating System</title>
+<meta name="theme-color" content="#0b0e14">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#0b0e14;--panel:#121722;--panel2:#171e2b;--text:#e9eef7;--muted:#96a2b4;--line:#293244;--accent:#71d3ff;--good:#72e3a6;--warn:#ffd166;--bad:#ff7b86;--chip:#202a3a;--shadow:0 16px 40px rgba(0,0,0,.25)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;font-variant-emoji:emoji}button,input,select,textarea{font:inherit}button{cursor:pointer}.brand,.navbtn,.quick,.playhead,.hero h1,.card h2,.card h3,summary,.chip,.btn{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif}
@@ -367,12 +369,29 @@ body.examFocus .activeWorkStrip{top:63px}
 @media(max-width:760px){.activeWorkStrip{top:105px;grid-template-columns:minmax(0,1fr) auto}.workStripCell{display:none}.workStripTarget{min-width:0}.workStateGrid{grid-template-columns:1fr}.workStateGrid .workWide{grid-column:auto}.workStateFooter{align-items:stretch;flex-direction:column}.workStateFooter .row{width:100%}.commandPaletteDialog,.v26Dialog{padding:11px}}
 @media print{.activeWorkStrip,.v26Backdrop,.skipLink,.appHealthWarning{display:none!important}}
 </style>
+
+<style id="v27PasserResearchStyles">
+.examIndexDialog{width:min(940px,100%)}.examIndexControls{display:grid;grid-template-columns:auto minmax(220px,1fr);gap:10px;align-items:center;margin:13px 0 4px}.examIndexTabs{flex-wrap:nowrap}.examIndexControls input{width:100%;background:#090d13;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 10px;outline:none}.examIndexControls input:focus{border-color:var(--accent)}
+.examIndexResults{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-height:62vh;overflow:auto;padding:4px}.indexCard{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:10px;text-align:left;cursor:pointer;min-width:0}.indexCard:hover,.indexCard:focus-visible{border-color:var(--accent);background:#14283a;outline:none}.indexCard .indexTag{font:800 12px ui-monospace,SFMono-Regular,Consolas,monospace;color:#9dd8fb}.indexCard .indexTitle{font-weight:800;margin:4px 0;font-size:13px}.indexCard .indexMeta{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.indexSectionTitle{grid-column:1/-1;color:var(--accent);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;margin-top:5px}
+.outputTruthCard{border-color:#4c637a}.outputTruthGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:10px}.outputTruthGrid>div{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:10px}.outputTruthGrid p{color:var(--muted);font-size:12px;margin:5px 0 9px}
+.fatigueGuard{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}.fatigueLine{display:flex;gap:8px;align-items:center;justify-content:space-between}.fatigueClock{font:800 16px ui-monospace,SFMono-Regular,Consolas,monospace}.fatigueClock.warn{color:var(--warn)}.fatigueClock.bad{color:var(--bad)}
+@media(max-width:900px){.examIndexResults{grid-template-columns:1fr 1fr}.examIndexControls{grid-template-columns:1fr}.outputTruthGrid{grid-template-columns:1fr}.examIndexTabs{flex-wrap:wrap}}
+@media(max-width:560px){.examIndexResults{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <a class="skipLink" href="#examMain">Skip to exam workspace</a>
 
 
 
+
+<div id="examIndexBackdrop" class="v26Backdrop" role="dialog" aria-modal="true" aria-labelledby="examIndexTitle">
+ <div class="v26Dialog examIndexDialog">
+  <div class="v26DialogHead"><div><h2 id="examIndexTitle">Exam notes index</h2><div class="muted">Generated from the live reference. No duplicate cheatsheet to maintain.</div></div><button class="btn" id="examIndexClose" type="button" aria-label="Close exam notes index">×</button></div>
+  <div class="examIndexControls"><div class="row examIndexTabs"><button class="btn active" data-index-tab="services" type="button">Services / ports</button><button class="btn" data-index-tab="phases" type="button">Phases</button><button class="btn" data-index-tab="recent" type="button">Recent / pinned</button></div><input id="examIndexFilter" autocomplete="off" spellcheck="false" placeholder="Filter: smb, 445, kerberos, sudo, evidence…"></div>
+  <div id="examIndexStats" class="tiny"></div><div id="examIndexResults" class="examIndexResults"></div>
+ </div>
+</div>
 <div id="workStateBackdrop" class="v26Backdrop" role="dialog" aria-modal="true" aria-labelledby="workStateTitle">
  <div class="v26Dialog workStateDialog">
   <div class="v26DialogHead"><div><h2 id="workStateTitle">Active work state</h2><div id="workStateContext" class="muted">No active target.</div></div><button class="btn" id="workStateClose" type="button" aria-label="Close active work state">×</button></div>
@@ -423,7 +442,7 @@ Return trigger:"></textarea>
    <div class="examHelpKey"><kbd>Alt+← / Alt+→</kbd><br><b>Back / Forward</b><div class="muted">Return to previous app locations.</div></div>
    <div class="examHelpKey"><kbd>Alt+1</kbd><br><b>Start</b><div class="muted">Return to the simple exam loop.</div></div>
    <div class="examHelpKey"><kbd>Alt+M</kbd><br><b>Methodology</b><div class="muted">Open the complete exam methodology.</div></div>
-   <div class="examHelpKey"><kbd>Ctrl+P</kbd><br><b>Command palette</b><div class="muted">Open any workflow or deep reference by intent.</div></div>
+   <div class="examHelpKey"><kbd>Ctrl+P</kbd><br><b>Command palette</b><div class="muted">Open any workflow or deep reference by intent.</div></div><div class="examHelpKey"><kbd>Alt+I</kbd><br><b>Notes index</b><div class="muted">Browse the live notes by service/port or phase.</div></div>
    <div class="examHelpKey"><kbd>Alt+H</kbd><br><b>Active work state</b><div class="muted">Evidence → hypothesis → blocker → next decisive test.</div></div>
    <div class="examHelpKey"><kbd>Alt+N</kbd><br><b>Quick note</b><div class="muted">Capture evidence/hypothesis/next test before you rotate.</div></div><div class="examHelpKey"><kbd>?</kbd><br><b>This help</b><div class="muted">Open or close this shortcut guide.</div></div>
   </div>
@@ -519,7 +538,7 @@ Return trigger:"></textarea>
  </div>
  <div class="grid">
   <div class="card span12 v25StateRouter">
-   <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>What do I have right now?</h2><div class="muted">Choose the evidence you actually have. The app opens the smallest useful workflow instead of making you remember where it lives.</div></div><span class="chip">V25 · STATE ROUTER</span></div>
+   <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>What do I have right now?</h2><div class="muted">Choose the evidence you actually have. The app opens the smallest useful workflow instead of making you remember where it lives.</div></div><div class="row"><button class="btn" id="examIndexOpen" type="button">Index by service / phase</button><span class="chip">V25 · STATE ROUTER</span></div></div>
    <div class="stateRouteGrid">
     <button class="stateRoute" type="button" data-v25-route="ports"><b>Ports / scan only</b><span>Build a service-first queue</span></button>
     <button class="stateRoute" type="button" data-v25-route="web"><b>Web application</b><span>Open web enumeration path</span></button>
@@ -903,6 +922,7 @@ state-changing AD abuse
   <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
   <div class="card span5"><h2>3 · 70-point runway</h2><div class="scoreRunway"><label>AD set<select id="scoreAD"><option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="40">40</option></select></label><label>Standalone 1<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 2<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 3<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label></div><div id="scoreSummary" class="scoreSummary warn"></div><p class="tiny">Planning aid only. The Exam Control Panel is authoritative for the exact objectives and points on your attempt.</p></div>
   <div class="card span12"><h2>Failure-proof loop</h2><div class="pointRail"><span>1. Read the exact error</span><span>2. Re-prove reachability</span><span>3. Re-prove identity/auth format</span><span>4. Use one manual/native truth check</span><span>5. Try one justified alternate</span><span>6. Record result and rotate</span></div><p class="muted">Examples: SMB tool says login failed → validate domain vs local scope and try <code>smbclient</code> or native auth once. HTTP scanner finds nothing → inspect redirects, vhost, source, methods and content manually. LDAP tool errors → verify DNS/FQDN, bind identity and time before changing tools.</p></div>
+  <div class="card span12 outputTruthCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Tool output is evidence</h2><div class="muted">Recent pass reports repeatedly mention lost time from not reading the actual output. Before changing tools, preserve the exact line and classify what failed.</div></div><span class="chip">READ → CLASSIFY → ACT</span></div><div class="outputTruthGrid"><div><b>Scan not structured yet?</b><p>Import Nmap XML/text once and let the target workspace keep the service state.</p><button class="btn" type="button" onclick="switchView('intakeView')">Open Scan Intake →</button></div><div><b>Command/tool produced an error?</b><p>Paste the exact output into the deterministic analyzer before assuming the credential, exploit or service is wrong.</p><button class="btn primary" type="button" onclick="switchView('analyzerView')">Open Output Analyzer →</button></div><div><b>Need the service notes?</b><p>Use the generated service/phase index instead of scrolling the reference or changing wordlists/tools.</p><button class="btn" type="button" id="serviceIndexOpen">Open Service Index →</button></div></div></div>
  </div>
 </section>
 
@@ -10544,7 +10564,7 @@ function renderFavorites(){const root=$('#favoriteList');if(!root)return;const i
 function renderSearch(q){q=q||'';let scored=SEARCH_ITEMS.map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><div><span class="score">score ${x.score}</span> <button class="btn pinRef" data-pin="${esc(x.anchor)}">${favorites.includes(x.anchor)?'★':'☆'} Pin</button></div></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});$$('[data-pin]').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.pin))}
 
 
-function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-Exam-OS',version:26,legacyVersion:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
+function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-Exam-OS',version:27,legacyVersion:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
 $('#exportSession').onclick=()=>{downloadText('oscp-session.json',JSON.stringify(sessionPayload(false),null,2),'application/json');toast('Secret-free session exported — use encrypted backup to preserve secrets')};
 $('#importSession').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=JSON.parse(await f.text());if(!Array.isArray(o.targets))throw new Error('targets missing');targets=o.targets.map(upgradeTarget);credentials=Array.isArray(o.credentials)?o.credentials.map(c=>({...c,checks:c.checks||{}})):[];favorites=Array.isArray(o.favorites)?o.favorites:[];if(o.settings)settings={...settings,...o.settings,PASSWORD:o.settings.PASSWORD||''};activeTargetId=o.activeTargetId&&targets.some(t=>t.id===o.activeTargetId)?o.activeTargetId:(targets[0]?.id||'');preflightData=o.preflight||preflightData;targets.forEach(t=>{if(t.creds)sessionSecrets[t.id]=t.creds;if(!persistSecrets)t.creds=''});credentials.forEach(c=>{if(c.secret)sessionCredentialSecrets[c.id]=c.secret;if(!persistSecrets)c.secret=''});saveTargets();saveOps();renderSettings();renderPlaceholders();prepareCode();renderAllV7();toast('Session restored')}catch(err){alert('Invalid OSCP session JSON: '+err.message)}};
 $('#importPreflight').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{assertImportFileSize(f,'Preflight JSON');preflightData=JSON.parse(await f.text());saveOps();renderPreflight();toast('Preflight imported')}catch{alert('Invalid preflight JSON')}};
@@ -14250,6 +14270,145 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
      }
    }catch(_){}
    window.OSCP_V26={openWork,closeWork,getWork,setWork,packet,openPalette,closePalette,actions:STATIC_ACTIONS,health};
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
+
+<script id="v27PasserResearchLayerScript">
+(()=>{
+ 'use strict';
+ const FATIGUE_STORE='oscp:fatigue:v27';
+ let tab='services',tagIndex=new Map(),fatigue={started:0,limit:90},fatigueTick=null;
+ const $id=id=>document.getElementById(id);
+ function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+ function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9:_\-.\[\] ]+/g,' ').trim()}
+
+ function buildTagIndex(){
+   tagIndex=new Map();
+   try{
+     for(const item of (typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS:[])){
+       for(const tag of (item.tags||[])){
+         if(!tagIndex.has(tag))tagIndex.set(tag,{tag,count:0,titles:[],anchors:[]});
+         const x=tagIndex.get(tag);x.count++;
+         if(x.titles.length<4&&!x.titles.includes(item.title))x.titles.push(item.title);
+         if(x.anchors.length<4&&!x.anchors.includes(item.anchor))x.anchors.push(item.anchor);
+       }
+     }
+   }catch(_){}
+ }
+ const phases=[
+  {name:'Initial access / services',prefixes:['[PORT:','[SERVICE:'],icon:'◌'},
+  {name:'Web',prefixes:['[WEB:'],icon:'🌐'},
+  {name:'Linux privilege escalation',prefixes:['[LINUX:'],icon:'🐧'},
+  {name:'Windows privilege escalation',prefixes:['[WIN:'],icon:'▣'},
+  {name:'Active Directory',prefixes:['[AD:'],icon:'🏰'},
+  {name:'Credential material',prefixes:['[CREDS:','[AUTH:'],icon:'🔐'},
+  {name:'Pivoting / routing',prefixes:['[PIVOT:'],icon:'🛣'},
+  {name:'Evidence / reporting',prefixes:['[EVIDENCE:','[REPORT:'],icon:'📸'},
+  {name:'Errors / failure modes',prefixes:['[ERROR:'],icon:'⚠'}
+ ];
+ function tagsForPhase(p){return [...tagIndex.values()].filter(x=>p.prefixes.some(pre=>x.tag.startsWith(pre))).sort((a,b)=>b.count-a.count||a.tag.localeCompare(b.tag))}
+ function serviceTags(){return [...tagIndex.values()].filter(x=>/^\[PORT:[^\]]+\]$/.test(x.tag)).sort((a,b)=>{const an=parseInt(a.tag.match(/\d+/)?.[0]||99999),bn=parseInt(b.tag.match(/\d+/)?.[0]||99999);return an-bn||a.tag.localeCompare(b.tag)})}
+ function openTag(tag){closeIndex();if(window.OSCP_TAG_LINKS?.goToTag)window.OSCP_TAG_LINKS.goToTag(tag);else{const input=$id('globalSearch');if(input)input.value=tag;switchView('searchView');if(typeof renderSearch==='function')renderSearch(tag)}}
+ function card(x,prefix=''){
+   const title=x.titles[0]||x.tag;
+   return '<button class="indexCard" type="button" data-index-tag="'+esc(x.tag)+'"><div class="indexTag">'+esc(prefix+x.tag)+'</div><div class="indexTitle">'+esc(title)+'</div><div class="indexMeta">'+x.count+' indexed section'+(x.count===1?'':'s')+(x.titles.length>1?' · '+esc(x.titles.slice(1).join(' · ')):'')+'</div></button>';
+ }
+ function recentCards(){
+   let out=[];
+   try{
+     const recent=window.OSCP_V24?.recent?.()||[];
+     if(recent.length){out.push('<div class="indexSectionTitle">Recent navigation</div>');for(const x of recent.slice(0,9)){const label=x.tag||x.title||x.anchor;out.push('<button class="indexCard" type="button" data-index-recent="'+esc(x.tag?('tag:'+x.tag):('anchor:'+x.anchor))+'"><div class="indexTag">RECENT</div><div class="indexTitle">'+esc(label)+'</div><div class="indexMeta">'+esc(x.title||'')+'</div></button>')}}
+   }catch(_){}
+   try{
+     const pins=(typeof favorites!=='undefined'?favorites:[]).map(a=>(typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS.find(x=>x.anchor===a):null)).filter(Boolean);
+     if(pins.length){out.push('<div class="indexSectionTitle">Pinned reference</div>');for(const x of pins.slice(0,12))out.push('<button class="indexCard" type="button" data-index-anchor="'+esc(x.anchor)+'"><div class="indexTag">★ PINNED</div><div class="indexTitle">'+esc(x.title)+'</div><div class="indexMeta">'+esc((x.tags||[]).slice(0,4).join(' '))+'</div></button>')}
+   }catch(_){}
+   return out;
+ }
+ function renderIndex(){
+   const root=$id('examIndexResults'),stats=$id('examIndexStats');if(!root)return;
+   const q=norm($id('examIndexFilter')?.value||'');let html=[],shown=0;
+   if(tab==='services'){
+     for(const x of serviceTags()){const hay=norm(x.tag+' '+x.titles.join(' '));if(q&&!hay.includes(q))continue;html.push(card(x));shown++}
+   }else if(tab==='phases'){
+     for(const p of phases){
+       const xs=tagsForPhase(p).filter(x=>!q||norm(p.name+' '+x.tag+' '+x.titles.join(' ')).includes(q));
+       if(!xs.length)continue;html.push('<div class="indexSectionTitle">'+esc(p.icon+' '+p.name)+' · '+xs.length+' tags</div>');
+       for(const x of xs.slice(0,40)){html.push(card(x));shown++}
+     }
+   }else{
+     html=recentCards();shown=html.filter(x=>x.startsWith('<button')).length;
+     if(q){
+       const temp=document.createElement('div');temp.innerHTML=html.join('');
+       temp.querySelectorAll('.indexCard').forEach(b=>{if(!norm(b.textContent).includes(q))b.remove()});
+       html=[temp.innerHTML];shown=temp.querySelectorAll('.indexCard').length;
+     }
+   }
+   root.innerHTML=html.join('')||'<div class="muted" style="grid-column:1/-1;padding:18px">No matching indexed notes.</div>';
+   if(stats)stats.textContent=(tab==='services'?'Service/port index':tab==='phases'?'Phase-filtered index':'Recent/pinned index')+' · '+shown+' visible items · generated from current notes';
+   root.querySelectorAll('[data-index-tag]').forEach(b=>b.addEventListener('click',()=>openTag(b.dataset.indexTag)));
+   root.querySelectorAll('[data-index-anchor]').forEach(b=>b.addEventListener('click',()=>{closeIndex();openRef(b.dataset.indexAnchor)}));
+   root.querySelectorAll('[data-index-recent]').forEach(b=>b.addEventListener('click',()=>{const v=b.dataset.indexRecent;closeIndex();if(v.startsWith('tag:'))openTag(v.slice(4));else openRef(v.slice(7))}));
+ }
+ function openIndex(which='services'){tab=which;buildTagIndex();$id('examIndexBackdrop')?.classList.add('open');document.querySelectorAll('[data-index-tab]').forEach(b=>b.classList.toggle('active',b.dataset.indexTab===tab));renderIndex();setTimeout(()=>$id('examIndexFilter')?.focus(),0)}
+ function closeIndex(){$id('examIndexBackdrop')?.classList.remove('open')}
+
+ function setupIndex(){
+   $id('examIndexOpen')?.addEventListener('click',()=>openIndex('services'));
+   $id('serviceIndexOpen')?.addEventListener('click',()=>openIndex('services'));
+   $id('examIndexClose')?.addEventListener('click',closeIndex);
+   $id('examIndexBackdrop')?.addEventListener('click',e=>{if(e.target===$id('examIndexBackdrop'))closeIndex()});
+   $id('examIndexFilter')?.addEventListener('input',renderIndex);
+   document.querySelectorAll('[data-index-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.indexTab;document.querySelectorAll('[data-index-tab]').forEach(x=>x.classList.toggle('active',x===b));renderIndex()}));
+ }
+
+ function loadFatigue(){try{fatigue={...fatigue,...JSON.parse(localStorage.getItem(FATIGUE_STORE)||'{}')}}catch(_){}}
+ function saveFatigue(){try{localStorage.setItem(FATIGUE_STORE,JSON.stringify(fatigue))}catch(_){}}
+ function fatigueElapsed(){return fatigue.started?Math.max(0,Date.now()-fatigue.started):0}
+ function fmt(ms){const m=Math.floor(ms/60000),h=Math.floor(m/60),mm=m%60;return h?String(h)+'h '+String(mm).padStart(2,'0')+'m':String(mm)+'m'}
+ function renderFatigue(){
+   const clock=$id('fatigueClock'),btn=$id('fatigueReset'),sel=$id('fatigueLimit');if(!clock)return;
+   if(sel)sel.value=String(fatigue.limit||90);
+   if(!fatigue.started){clock.textContent='Not started';clock.className='fatigueClock';if(btn)btn.textContent='Start';return}
+   const elapsed=fatigueElapsed(),ratio=elapsed/((fatigue.limit||90)*60000);
+   clock.textContent=fmt(elapsed)+' since last break';clock.className='fatigueClock'+(ratio>=1.35?' bad':ratio>=1?' warn':'');
+   if(btn)btn.textContent='I took a break';
+ }
+ function setupFatigue(){
+   const panel=$id('readabilityPanel');if(!panel||$id('fatigueGuard'))return;
+   const g=document.createElement('div');g.id='fatigueGuard';g.className='fatigueGuard';
+   g.innerHTML='<div class="readerLabel">Fatigue guard</div><div class="fatigueLine"><span id="fatigueClock" class="fatigueClock">Not started</span><select id="fatigueLimit" aria-label="Break reminder interval"><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select><button class="btn" id="fatigueReset" type="button">Start</button></div><div class="tiny" style="padding:6px 0 0">Optional only. Recent pass reports repeatedly recommend real breaks when attention stops producing new evidence.</div>';
+   panel.appendChild(g);
+   $id('fatigueReset')?.addEventListener('click',()=>{fatigue.started=Date.now();saveFatigue();renderFatigue()});
+   $id('fatigueLimit')?.addEventListener('change',e=>{fatigue.limit=+e.target.value||90;saveFatigue();renderFatigue()});
+   renderFatigue();clearInterval(fatigueTick);fatigueTick=setInterval(renderFatigue,30000);
+ }
+
+ function extendPalette(){
+   const a=window.OSCP_V26?.actions;if(!Array.isArray(a))return;
+   const add=x=>{if(!a.some(y=>y.id===x.id))a.push(x)};
+   add({id:'index',icon:'☷',title:'Exam notes index',desc:'Browse live notes by service/port or phase',kind:'index',keys:'index service port phase filters notes',run:()=>openIndex('services')});
+   add({id:'scanintake',icon:'📥',title:'Scan Intake',desc:'Parse Nmap XML/text locally and import target services',kind:'screen',keys:'scan nmap xml import ports intake',run:()=>switchView('intakeView')});
+   add({id:'output',icon:'👁',title:'Output Analyzer',desc:'Classify exact tool output before changing tools',kind:'screen',keys:'output error analyze tool failure read',run:()=>switchView('analyzerView')});
+ }
+
+ loadFatigue();
+ function start(){
+   setupIndex();setupFatigue();extendPalette();
+   document.addEventListener('keydown',e=>{
+     const tag=(e.target?.tagName||'').toLowerCase(),editing=['input','textarea','select'].includes(tag)||e.target?.isContentEditable;
+     if(e.key==='Escape'&&$id('examIndexBackdrop')?.classList.contains('open')){e.preventDefault();e.stopImmediatePropagation();closeIndex();return}
+     if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='i'){e.preventDefault();e.stopImmediatePropagation();openIndex('services');return}
+     if(!editing&&e.key.toLowerCase()==='i'&&e.shiftKey&&e.altKey){e.preventDefault();openIndex('services')}
+   },true);
+   try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(
+    ['Embedded favicon',()=>[!!document.querySelector('link[rel="icon"][href^="data:image/svg+xml"]'),'data SVG favicon']],
+    ['Live service/phase index',()=>[!!$id('examIndexBackdrop')&&tagIndex instanceof Map,'notes index']],
+    ['Fatigue guard',()=>[!!$id('fatigueGuard'),'optional break timer']]
+   )}catch(_){}
+   window.OSCP_V27={openIndex,closeIndex,renderIndex,tagIndex:()=>new Map(tagIndex),fatigue:()=>({...fatigue})};
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

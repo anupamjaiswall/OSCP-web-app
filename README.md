@@ -89,6 +89,49 @@ AD 10 + all 3 standalone machines fully    = 70
 
 The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
 
+## V27 — RECENT-PASS REVIEW: SERVICE/P​​HASE INDEX + OUTPUT DISCIPLINE
+
+A fresh review of recent OSCP pass reports (September 2026) did **not** justify adding another giant list of commands. The repeated useful patterns were: fixed methodology, notes organized by service, phase-filtered/checklist notes, fast search, careful reading of tool output, documenting while the state is fresh, and taking breaks when attention degrades. These are anecdotal workflow observations; the official OffSec Exam Guide/FAQ remain the authority for exam rules.
+
+### Live notes index
+
+The app now generates an index from the existing reference instead of duplicating content:
+
+- **Services / ports** — derived from current `[PORT:*]` tags and sorted by port.
+- **Phases** — generated from structured namespaces such as `[WEB:*]`, `[LINUX:*]`, `[WIN:*]`, `[AD:*]`, `[CREDS:*]`, `[PIVOT:*]`, `[EVIDENCE:*]`, and `[ERROR:*]`.
+- **Recent / pinned** — the references already used or explicitly pinned during this browser session.
+- Press **Alt+I** or use **Index by service / phase** on the Start page.
+
+Because the index is generated from the live reference, a corrected command/tag automatically appears in the index without maintaining a second cheatsheet.
+
+### Scan → service → output → evidence
+
+```text
+FULL PORT DISCOVERY
+        ↓
+STRUCTURED SCAN INTAKE
+        ↓
+SERVICE-FIRST QUEUE
+        ↓
+MANUAL / NATIVE TRUTH CHECK
+        ↓
+READ THE EXACT OUTPUT
+        ↓
+ONE HYPOTHESIS + ONE DECISIVE TEST
+        ↓
+RECORD RESULT / CONTINUE OR ROTATE
+```
+
+The Service Router now exposes **Scan Intake**, **Output Analyzer**, and the **Service Index** directly. Changing tools is not a substitute for understanding an error line.
+
+### Fatigue guard
+
+The Aa Read panel includes an optional **time-since-last-break** guard with 60/90/120-minute intervals. It does not force a schedule or interrupt the exam. Its only job is to make prolonged tunnel vision visible; use your own judgment and exam situation.
+
+### Favicon / offline identity
+
+The HTML now embeds its favicon as a **data-URI SVG terminal shield**, so it still works when the file is opened completely offline and introduces no extra file/dependency.
+
 ## V26 — IF THIS APP WERE DESIGNED FROM SCRATCH
 
 The deep technical reference remains a single self-contained offline HTML on purpose: during an exam, one file with no dependency chain is a reliability feature. The redesign is therefore **interaction architecture**, not a framework rewrite.
