@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.15.0">
+<meta name="oscp-build-version" content="34.16.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -332,13 +332,18 @@ body.examHighContrast .reference{color:#111827}
 body.examHighContrast :focus-visible{outline:3px solid #b9ecff!important;outline-offset:3px!important}
 </style>
 
-<style id="v24ExamNavigatorStyles">
+<style id="v24ExamNavigatorStyles">.skipLink{position:fixed;left:10px;top:8px;z-index:2200;transform:translateY(-180%);background:#0d1119;color:var(--text);border:2px solid var(--accent);border-radius:8px;padding:8px 11px;font-weight:800;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.45);transition:transform .12s ease}
+.skipLink:focus,.skipLink:focus-visible{transform:none;outline:3px solid #b9ecff;outline-offset:2px}
+
 #examHelpBackdrop{position:fixed;inset:0;z-index:1400;background:rgba(2,5,10,.84);display:none;place-items:center;padding:18px;backdrop-filter:blur(5px)}
 #examHelpBackdrop.open{display:grid}.examHelpDialog{width:min(840px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid #466079;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:16px}
 .examHelpHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.examHelpGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
 .examHelpKey{border:1px solid var(--line);border-radius:9px;background:var(--panel2);padding:9px}.examHelpKey kbd{display:inline-block;border:1px solid #52647a;background:#0d1119;border-radius:5px;padding:2px 6px;margin-bottom:5px;font:700 12px ui-monospace,SFMono-Regular,Consolas,monospace}
 .examHelpRule{border-left:4px solid var(--accent);background:#0d1119;border-radius:8px;padding:10px;margin-top:12px}
 #refNavigator{position:sticky;top:63px;z-index:35;max-width:1180px;margin:0 auto 10px;background:rgba(13,17,25,.97);border:1px solid #3a4a5e;border-radius:10px;padding:8px;display:grid;grid-template-columns:auto minmax(240px,1fr) auto auto auto;gap:7px;align-items:center;backdrop-filter:blur(10px)}
+#refNavigator .refBreadcrumb{grid-column:1/-1;display:flex;align-items:center;gap:7px;min-width:0;font-size:12px;color:var(--muted);padding:0 3px 2px}
+#refNavigator .refCrumbHome{appearance:none;border:0;background:transparent;color:#8fc7ff;font:inherit;font-size:12px;font-weight:800;padding:2px 0;cursor:pointer}
+#refNavigator #refBreadcrumbCurrent{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:700}
 #refNavigator select{min-width:0;width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px}
 #refNavigator .refPos{font:700 11px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--muted);white-space:nowrap}
 #refNavigator .btn.active{border-color:var(--accent);background:#153044}
@@ -1444,7 +1449,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.15.0',
+  version:'34.16.0',
   label:'V34',
   date:'2026-09-24'
 });</script>
@@ -5352,6 +5357,10 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
    });
    return out;
  }
+ function renderRefBreadcrumb(){
+   const root=$id('refBreadcrumb'),current=$id('refBreadcrumbCurrent');if(!root||!current)return;
+   const entry=refEntries[refIndex];root.hidden=!entry;current.textContent=entry?.title||'Reference';
+ }
  function updatePinButton(){
    const b=$id('refPinCurrent');if(!b||!refEntries.length)return;
    const a=refEntries[refIndex]?.anchor;let on=false;
@@ -5364,7 +5373,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
    refEntries.forEach((x,i)=>{const o=document.createElement('option');o.value=x.anchor;o.textContent=(i+1)+' · '+x.title;sel.appendChild(o)});
    if(refEntries[refIndex])sel.value=refEntries[refIndex].anchor;
    const pos=$id('refPosition');if(pos)pos.textContent=refEntries.length?(refIndex+1)+' / '+refEntries.length:'0 / 0';
-   updatePinButton();
+   renderRefBreadcrumb();updatePinButton();
  }
  function goRefIndex(i){
    if(!refEntries.length)return;
@@ -5389,9 +5398,10 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
    if($id('refNavigator')){refEntries=buildReferenceEntries();refIndex=Math.min(refIndex,Math.max(0,refEntries.length-1));renderRefSelect();return}
    refEntries=buildReferenceEntries();
    const nav=document.createElement('div');nav.id='refNavigator';nav.className='noPrint';
-   nav.innerHTML='<button class="btn" id="refPrev" type="button" title="Previous reference section">←</button><select id="refSectionSelect" aria-label="Reference section"></select><button class="btn" id="refNext" type="button" title="Next reference section">→</button><button class="btn refNavSecondary" id="refPinCurrent" type="button">☆ Pin</button><span class="refPos refNavSecondary" id="refPosition"></span>';
+   nav.innerHTML='<div class="refBreadcrumb" id="refBreadcrumb" aria-label="Reference breadcrumb"><button class="refCrumbHome" id="refBreadcrumbHome" type="button">Reference</button><span aria-hidden="true">›</span><span id="refBreadcrumbCurrent" aria-current="location">Reference</span></div><button class="btn" id="refPrev" type="button" title="Previous reference section">←</button><select id="refSectionSelect" aria-label="Reference section"></select><button class="btn" id="refNext" type="button" title="Next reference section">→</button><button class="btn refNavSecondary" id="refPinCurrent" type="button">☆ Pin</button><span class="refPos refNavSecondary" id="refPosition"></span>';
    root.parentNode.insertBefore(nav,root);
    renderRefSelect();
+   $id('refBreadcrumbHome')?.addEventListener('click',()=>{$id('referenceView')?.scrollIntoView({block:'start',behavior:'smooth'})});
    $id('refPrev')?.addEventListener('click',()=>goRefIndex(refIndex-1));
    $id('refNext')?.addEventListener('click',()=>goRefIndex(refIndex+1));
    $id('refSectionSelect')?.addEventListener('change',e=>{
