@@ -10,7 +10,8 @@
     "audit": "node scripts/audit.mjs",
     "validate": "node scripts/validate.mjs",
     "checksum": "node scripts/checksum.mjs",
-    "check": "npm run build && npm test && npm run audit && npm run validate"
+    "check": "npm run build && npm test && npm run audit && npm run validate",
+    "browser-smoke": "node scripts/browser-smoke.mjs"
   },
   "engines": {
     "node": ">=20"
