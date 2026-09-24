@@ -89,6 +89,62 @@ AD 10 + all 3 standalone machines fully    = 70
 
 The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
 
+## V26 — IF THIS APP WERE DESIGNED FROM SCRATCH
+
+The deep technical reference remains a single self-contained offline HTML on purpose: during an exam, one file with no dependency chain is a reliability feature. The redesign is therefore **interaction architecture**, not a framework rewrite.
+
+### Primary model: active work state
+
+Every target should answer five questions without searching through notes:
+
+```text
+EVIDENCE       What concrete observation changed the target model?
+HYPOTHESIS     Because of that evidence, what may be possible?
+MISSING        What exact prerequisite is still unproven?
+NEXT TEST      What single test can materially confirm or kill the hypothesis?
+RETURN WHEN    What exact new evidence justifies revisiting a parked path?
+```
+
+V26 keeps this state in a persistent strip above every app screen. It is stored locally **per target**, and the current **Next decisive test** is synchronized into the target tracker’s first “next action” slot.
+
+### Command palette instead of menu memory
+
+Press **Ctrl/Cmd+P** (or `.` outside an input) and search by intent:
+
+- `linux shell` → Linux Method Tree
+- `domain creds` / `kerberos` → AD workflow/reference
+- `445` → matching SMB reference sections
+- `proof` → Bank Proof
+- `pivot` → internal-routing path
+- `hash` / `ticket` / `certificate` → Credential Matrix / matching reference
+- any deep-reference heading or structured tag → that exact section
+
+The command palette is generated from a small **central action registry** plus the live reference index. New navigation should be added there first instead of creating another isolated button the operator has to remember.
+
+### Reliability principles kept from a clean-sheet design
+
+1. **Single-file offline runtime.** No CDN, package manager, network dependency, or service worker is required to open the exam console.
+2. **State before tools.** Evidence/hypothesis/blocker/next-test is visible regardless of which screen is open.
+3. **Progressive disclosure.** The simple exam surface stays small; deep/advanced controls remain available without dominating the primary workflow.
+4. **Keyboard-first navigation.** `/` searches content; **Ctrl/Cmd+P** searches actions + reference; **Alt+H** edits active work state.
+5. **Per-target persistence.** Work state survives navigation and target switching without mixing two machines’ hypotheses.
+6. **Runtime integrity check.** Startup verifies critical IDs, view targets, duplicate IDs and core navigation functions; a visible warning appears if the shell is structurally unsafe.
+7. **Accessible fallback.** A Skip-to-workspace link, focusable main landmark, modal semantics and keyboard operation remain available when mouse navigation is slow.
+8. **No content rewrite just for architecture.** Existing proven methodology, clickable tags, Service Router, Method Trees, Windows/AD desk, evidence capture and report tooling remain intact underneath the new shell.
+
+### Rotation packet generated from active state
+
+```text
+TARGET:       host / role / stage
+EVIDENCE:     strongest observation
+HYPOTHESIS:   current causal theory
+MISSING:      exact unproven prerequisite
+NEXT TEST:    one decisive test
+RETURN WHEN:  objective condition for revisiting the path
+```
+
+If those fields cannot be filled concisely, the path is not yet precise enough to justify more exploitation attempts.
+
 ## V25 — EVIDENCE-STATE ROUTER + CONTEXT SAFETY
 
 V25 reduces the number of choices you must remember during the exam. Instead of asking **"which app screen contains this?"**, ask **"what evidence do I have right now?"**
