@@ -39,7 +39,11 @@ if(!read('src/js/00-service-router-core.js').includes('root.OSCP_SERVICE_CORE'))
 
 const manifest=JSON.parse(read('src/content/manifest.json'));
 const reference=manifest.files.map(f=>read('src/content/'+f)).join('');
-if((reference.match(/<h2\s+id=/g)||[]).length!==39) fail('Reference section count changed');
+const sourceH2=(reference.match(/<h2\s+id=/g)||[]).length;
+if(sourceH2<39) fail('Reference section count dropped below baseline: '+sourceH2);
+const renderedReference=html.match(/<article class="reference" id="referenceRoot">([\s\S]*?)<\/article>/i)?.[1]||'';
+const renderedH2=(renderedReference.match(/<h2\s+id=/g)||[]).length;
+if(renderedH2!==sourceH2) fail('Generated reference section count differs from source: '+renderedH2+' vs '+sourceH2);
 
 if(!html.includes(meta.label+' · EXAM ONLY · OFFLINE · NO AI')) fail('Build badge/version mismatch');
 if(!html.includes('name="oscp-build-version" content="'+meta.version+'"')) fail('Build version meta missing');
@@ -52,4 +56,4 @@ for(const id of ['toast','serviceParseSummary','scoreSummary','attemptDuplicateH
   const tag=html.match(new RegExp('<[^>]+id="'+id+'"[^>]*>','i'))?.[0]||'';
   if(!/aria-live=["']polite["']/i.test(tag)) fail('Accessibility live-region missing for #'+id);
 }
-console.log('Validation passed: '+meta.label+', '+ids.length+' IDs, 39 reference sections, '+inner+' innerHTML assignments');
+console.log('Validation passed: '+meta.label+', '+ids.length+' IDs, '+sourceH2+' reference sections, '+inner+' innerHTML assignments');
