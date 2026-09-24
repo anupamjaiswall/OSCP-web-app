@@ -3,6 +3,7 @@
 ## V34.12.0 — 2026-09-24
 
 ### Batch 12 — parser-safe deep reference
+- Compressed the inert reference payload with gzip/base64 so the browser scans far less text before reaching the end of the document.
 - Moved the 410 KB deep methodology HTML out of the parser-critical DOM into an escaped inert JSON payload.
 - Hydrates reference sections incrementally after `window.load`.
 - Search waits for reference readiness and refreshes after hydration.

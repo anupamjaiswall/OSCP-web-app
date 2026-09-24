@@ -18,7 +18,7 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 ## V34.12 Batch 12 — lazy deep-reference hydration
 
 - The 410 KB methodology reference no longer expands into thousands of DOM nodes while the HTML parser is still loading.
-- It remains embedded inside the same offline `index.html` as an escaped inert JSON payload.
+- It remains embedded inside the same offline `index.html` as a gzip-compressed base64 inert payload, reducing parser work substantially.
 - After the browser `load` event, the reference hydrates in small section chunks so the exam controls stay responsive.
 - Search and reference navigation refresh automatically when hydration finishes.
 - No network fetch, server, CDN, or second artifact is introduced.
