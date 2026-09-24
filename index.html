@@ -722,6 +722,7 @@ credential → DNS/time/DC → SMB/LDAP/WinRM/RDP
  </div>
 </section>
 
+<script>window.__OSCP_PARSE_STAGE__='dashboard';</script>
 <section id="dashboardView" class="view">
 <div id="v16StorageWarning" class="card" style="display:none;border-color:var(--warn);margin-bottom:12px"><b>⚠ Browser storage is unavailable.</b><div class="tiny">The console is running with temporary in-memory state. Keep an exported/encrypted session backup because closing this tab may lose state.</div></div>
  <div class="hero"><div><h1>Exam Cockpit</h1><div class="muted">Observation → highest-signal next check → validate → exploit → evidence → re-enumerate. The app also verifies state freshness and reportability.</div></div><div class="chips"><span class="chip">EXAM MODE</span><span class="chip">Local-only</span><span class="chip">OFFLINE REFERENCE</span></div></div>
@@ -742,13 +743,16 @@ credential → DNS/time/DC → SMB/LDAP/WinRM/RDP
  </div>
 </section>
 
+<script>window.__OSCP_PARSE_STAGE__='search';</script>
 <section id="searchView" class="view"><div class="hero"><div><h1>Instant Search</h1><div class="muted">Title/tag matches rank above body-text matches. Press Ctrl+K anywhere.</div></div></div><div id="searchStats" class="muted" style="margin-bottom:10px"></div><div class="searchResults" id="searchResults"></div></section>
 
+<script>window.__OSCP_PARSE_STAGE__='targets';</script>
 <section id="targetsView" class="view"><div class="hero"><div><h1>Target State Tracker</h1><div class="muted">Progress persists in this browser via localStorage. Secrets persist only if you explicitly enable it.</div></div><div class="row"><button class="btn primary" id="addTarget">+ Target</button><button class="btn" id="exportTargets">Export JSON (no secrets)</button><label class="btn">Import JSON<input type="file" id="importTargets" accept="application/json" hidden></label></div></div><div class="targetList" id="targetList"></div></section>
 
 
 
 
+<script>window.__OSCP_PARSE_STAGE__='operator';</script>
 <section id="operatorView" class="view">
  <div class="hero"><div><h1>Expert Operator Mode</h1><div class="muted">One screen for the exam: bank points, test credentials, validate strong hypotheses, close enumeration gaps, then rotate. Deterministic and offline.</div></div><div class="row"><select id="operatorTarget"></select><button class="btn" id="operatorOpenWorkspace">Workspace →</button></div></div>
  <div class="operatorGrid">
