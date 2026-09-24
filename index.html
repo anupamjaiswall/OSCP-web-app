@@ -649,6 +649,7 @@ Return trigger:"></textarea>
  </div>
 </section>
 
+<script>window.__OSCP_PARSE_STAGE__='methodology';</script>
 <section id="methodologyView" class="view">
  <div class="hero"><div><h1>Best OSCP Methodology</h1><div class="muted">Evidence first. The output of each step decides the next step.</div></div><div class="chips"><span class="chip">Alt M</span><span class="chip">REPEATABLE</span></div></div>
  <div class="grid">
@@ -769,6 +770,7 @@ credential → DNS/time/DC → SMB/LDAP/WinRM/RDP
  </div>
 </section>
 
+<script>window.__OSCP_PARSE_STAGE__='coverage';</script>
 <section id="coverageView" class="view">
  <div class="hero"><div><h1>Service Coverage Audit</h1><div class="muted">Compares every imported open service with your command journal and manual coverage checks. Nmap service names are recognized even on non-standard ports; truly unknown ports stay visible as explicit coverage debt.</div></div><div class="row"><select id="coverageTarget"></select><button class="btn" id="coverageOpenOperator">Expert Operator →</button></div></div>
  <div id="coverageSummary" class="card"></div><div id="coverageBody"></div>
@@ -866,6 +868,7 @@ md5sum OSCP-OS-XXXXX-Exam-Report.7z
  </div>
 </section>
 
+<script>window.__OSCP_PARSE_STAGE__='compat';</script>
 <section id="compatView" class="view">
  <div class="hero"><div><h1>Tool Compatibility & Fallback Ladders</h1><div class="muted">Compare optional imported Kali tool inventory with the embedded verified snapshot. Version drift means re-check local help/syntax, not automatically downgrade.</div></div><button class="btn" id="compatOpenSession">Import inventory →</button></div>
  <div class="card"><h2>Installed vs embedded reference</h2><div style="overflow:auto"><table class="compatTable"><thead><tr><th>Tool</th><th>Reference</th><th>Installed</th><th>Status</th><th>Notes</th></tr></thead><tbody id="compatBody"></tbody></table></div></div>
@@ -957,6 +960,7 @@ state-changing AD abuse
 </section>
 
 
+<script>window.__OSCP_PARSE_STAGE__='service-router';</script>
 <section id="serviceRouterView" class="view">
  <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V34</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
  <div class="grid">
@@ -1119,6 +1123,7 @@ Start
  </div>
 </section>
 
+<script>window.__OSCP_PARSE_STAGE__='windows-strategy';</script>
 <section id="windowsStrategyView" class="view">
 
 <div class="card" id="v20AdFallbackToolbox" style="margin-bottom:14px;border-color:#355a78">
@@ -1222,6 +1227,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  <div class="card" style="margin-top:12px"><div class="tiny"><b>Source strategy:</b> Got Root?, “OSCP Windows Enumeration Checklist: My Complete Privilege Escalation Workflow for Every Box” (June 2026), plus current SpecterOps, Impacket, Certipy and BloodyAD documentation for the edge planner. This integration is paraphrased and reorganized; The current OffSec-rule guard and evidence-first methodology override any conflicting older habit.</div></div>
 </section>
 
+<script>window.__OSCP_PARSE_STAGE__='intake';</script>
 <section id="intakeView" class="view">
  <div class="hero"><div><h1>Scan Intake</h1><div class="muted">Import Nmap XML, grepable output, normal output, or a plain IP list. Everything is parsed locally in your browser.</div></div></div>
  <div class="opsGrid">
@@ -1286,6 +1292,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  </div></div>
 </section>
 
+<script>window.__OSCP_PARSE_STAGE__='journal';</script>
 <section id="journalView" class="view">
  <div class="hero"><div><h1>Command Journal</h1><div class="muted">Import terminal transcripts/history and preserve the exact commands you actually ran. Preview first; nothing is executed.</div></div><div class="row"><select id="journalTarget"></select><button class="btn" id="exportJournal">Export journal .md</button></div></div>
  <div class="opsGrid">
