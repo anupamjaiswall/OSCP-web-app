@@ -22,10 +22,13 @@ if(/<(?:script|img|link)\b[^>]*(?:src|href)=["']https?:\/\//i.test(html)) fail('
 const payloadStart='<script type="application/json" id="referencePayload">';
 const payloadAt=html.indexOf(payloadStart),payloadEnd=payloadAt>=0?html.indexOf('</script>',payloadAt):-1;
 const structuralHtml=payloadAt>=0&&payloadEnd>=0?html.slice(0,payloadAt)+html.slice(payloadEnd+9):html;
-const ids=[...structuralHtml.matchAll(/\bid=["']([^"']+)["']/gi)].map(m=>m[1]),seen=new Set(),dupes=[];
+const domAuditHtml=structuralHtml
+  .replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/gi,'$1</script>')
+  .replace(/(<style\b[^>]*>)[\s\S]*?<\/style>/gi,'$1</style>');
+const ids=[...domAuditHtml.matchAll(/\bid=["']([^"']+)["']/gi)].map(m=>m[1]),seen=new Set(),dupes=[];
 for(const id of ids){if(seen.has(id))dupes.push(id);seen.add(id)}
 if(dupes.length) fail('Duplicate IDs: '+[...new Set(dupes)].join(', '));
-const hrefs=[...structuralHtml.matchAll(/\bhref=["']#([^"']+)["']/gi)].map(m=>m[1]);
+const hrefs=[...domAuditHtml.matchAll(/\bhref=["']#([^"']+)["']/gi)].map(m=>m[1]);
 const missing=[...new Set(hrefs.filter(id=>!seen.has(id)))];
 if(missing.length) fail('Broken anchors: '+missing.join(', '));
 
