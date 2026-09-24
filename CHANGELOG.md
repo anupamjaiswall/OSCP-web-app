@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.10.0 — 2026-09-24
+
+### Batch 10 — collapse historical startup renders
+- Removed redundant standalone render passes from the V8–V14 compatibility layers.
+- Startup now performs one final V14 render after foundational setup; each V14 render already includes the older render chain exactly once.
+- Added a regression that permits only one standalone compatibility render during boot.
+- No storage schema or methodology changes.
+
+
 ## V34.9.0 — 2026-09-24
 
 ### Batch 9 — defer reference code decoration

@@ -803,10 +803,6 @@ function renderAllV8(){renderAllV7();renderScanPreview();renderBoard();renderCom
 const v8Switch=switchView;
 switchView=function(id){v8Switch(id);if(id==='intakeView')renderScanPreview();if(id==='boardView')renderBoard();if(id==='commandsView')renderCommandSelectors()};
 
-
-
-renderAllV8();
-
 /* ===== V9 Output Analyzer / Evidence Vault / Encrypted Recovery ===== */
 let evidenceVault=safeStoredArray(STORE+'evidenceVault');
 let analyzerDetections=[];
@@ -1084,12 +1080,6 @@ function renderAllV9(){
 const v9SwitchView=switchView;
 switchView=function(id){v9SwitchView(id);if(id==='analyzerView'){renderAnalyzerTarget();renderAnalyzer()}if(id==='vaultView'){renderVaultSelectors();renderVault()}if(id==='sessionView'){renderSnapshots();renderSessionHealth()}};
 
-
-
-renderAllV9();
-
-renderAllV8();
-
 /* ===== V10 Scope Guard / Command Journal ===== */
 let guardConfig=safeStoredRecord(STORE+'guardConfig',{entries:[],requireScope:true,checkPlaceholders:true,lhost:'',msfTargetId:''});
 function normalizeGuardConfig(v){v=plainRecord(v)?v:{};return{entries:Array.isArray(v.entries)?v.entries.map(x=>String(x??'').trim()).filter(Boolean):[],requireScope:v.requireScope!==false,checkPlaceholders:v.checkPlaceholders!==false,lhost:typeof v.lhost==='string'?v.lhost:'',msfTargetId:typeof v.msfTargetId==='string'?v.msfTargetId:''}}
@@ -1138,8 +1128,6 @@ const v10ReportMarkdownBase=reportMarkdown;reportMarkdown=function(t){return v10
 const v10SessionPayloadBase=sessionPayload;sessionPayload=function(includeSecrets=false){const o=v10SessionPayloadBase(includeSecrets);o.app='OSCP-V10';o.version=10;o.guardConfig=guardConfig;return o};const v10RestoreBase=restoreV9Payload;restoreV9Payload=function(o){if(o?.guardConfig)guardConfig=normalizeGuardConfig(o.guardConfig);v10RestoreBase(o);guardConfig=normalizeGuardConfig(guardConfig);safeStoreSet(STORE+'guardConfig',JSON.stringify(guardConfig));renderGuard();renderAllV10()};
 function journalCount(){return targets.reduce((n,t)=>n+(t.journal?.length||0),0)}const v10HealthBase=renderSessionHealth;renderSessionHealth=function(){v10HealthBase();const root=$('#sessionHealth');if(root)root.innerHTML+=`<div class="healthBox"><div class="healthNum">${journalCount()}</div><div class="tiny">journal commands</div></div><div class="healthBox"><div class="healthNum">${normalizedScope().length}</div><div class="tiny">scope entries</div></div>`};
 function renderAllV10(){renderAllV9();renderGuard();renderJournalSelectors();renderJournalPreview();renderJournal();renderReportJournalSummary();renderCockpitGuard()}const v10Switch=switchView;switchView=function(id){v10Switch(id);if(id==='guardView')renderGuard();if(id==='journalView'){renderJournalSelectors();renderJournal();renderJournalPreview()}};renderAllV10();
-
-renderAllV9();
 
 /* ===== V11 Expert Operator / Coverage / Credential Debt ===== */
 let expertPrefs=safeStoredRecord(STORE+'expertPrefs',{rotation:30,break:120});expertPrefs={...expertPrefs,rotation:Number.isFinite(+expertPrefs.rotation)?Math.min(240,Math.max(5,Math.round(+expertPrefs.rotation))):30,break:Number.isFinite(+expertPrefs.break)?Math.min(360,Math.max(15,Math.round(+expertPrefs.break))):120};
@@ -1294,10 +1282,6 @@ const v11RestoreBase=restoreV9Payload;restoreV9Payload=function(o){if(o?.expertP
 
 function renderAllV11(){renderAllV10();renderOperatorSelectors();renderOperator();renderCoverageSelectors();renderCoverage();renderDebt();renderCockpitAttention()}
 const v11Switch=switchView;switchView=function(id){v11Switch(id);if(id==='operatorView')renderOperator();if(id==='coverageView')renderCoverage();if(id==='debtView')renderDebt()};
-
-renderAllV11();
-
-renderAllV10();
 
 /* ===== V12 Exam Closer: hypotheses / correlation / consistency ===== */
 function upgradeV12Target(t){
@@ -1543,10 +1527,6 @@ const v12RestoreBase=restoreV9Payload;restoreV9Payload=function(o){v12RestoreBas
 function renderAllV12(){renderAllV11();renderHypSelectors();renderHypotheses();renderCorrelation();renderAudit();renderOperatorV12();renderReportConsistency()}
 const v12Switch=switchView;switchView=function(id){v12Switch(id);if(id==='hypothesisView')renderHypotheses();if(id==='correlationView')renderCorrelation();if(id==='auditView')renderAudit()};
 
-renderAllV12();
-
-renderAllV11();
-
 /* ===== V13 Battle-Tested: sanity / regression / freshness ===== */
 const V13_RULE_DEFAULT='2026-09-23';
 const V13_TOOL_SNAPSHOTS=[
@@ -1721,10 +1701,6 @@ const v13RestoreBase=restoreV9Payload;restoreV9Payload=function(o){if(o?.freshne
 
 function renderAllV13(){renderAllV12();renderSanity();renderRegression();renderFreshness();renderOperatorSanity()}
 const v13Switch=switchView;switchView=function(id){v13Switch(id);if(id==='sanityView')renderSanity();if(id==='regressionView')renderRegression();if(id==='freshnessView')renderFreshness()};
-
-renderAllV13();
-
-renderAllV12();
 
 /* ===== V14 Exam-Hardened Layer ===== */
 let examClock=safeStoredRecord(STORE+'examClock',{start:''});
@@ -1977,16 +1953,12 @@ const v14Switch=switchView;
 switchView=function(id){v14Switch(id);if(id==='clockView')renderClock();if(id==='revertView')renderReverts();if(id==='submissionView')renderSubmission();if(id==='compatView')renderCompat();if(id==='toolArsenalView')renderToolArsenal()};
 
 initToolArsenal();
-renderAllV14();
-
-renderAllV13();
-renderAllV14();
 if(!autosnapshots.length&&targets.length){
  setTimeout(()=>{if(!autosnapshots.length)snapshotNow('initial state')},1500);
 }
 
 renderSettings();renderPlaceholders();prepareCode();renderTargets();refreshTimerTargets();renderPlaybooks();renderDecoder();renderEvidenceTemplate();updateTimer();
-renderAllV7();
+renderAllV14();
 
 
 /* ===== V19 FAILURE-RESISTANT RELIABILITY LAYER ===== */
