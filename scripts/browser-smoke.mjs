@@ -55,7 +55,7 @@ async function main(){
   let stderr='',browserWs='';
   child.stderr.on('data',d=>{stderr+=String(d);if(stderr.length>12000)stderr=stderr.slice(-12000);const m=stderr.match(/DevTools listening on (ws:\/\/[^\s]+)/);if(m)browserWs=m[1]});
   try{
-    const wsUrl=await waitFor(()=>browserWs||'',12000);
+    const wsUrl=await waitFor(()=>browserWs||'',25000);
     if(!wsUrl)throw new Error('Chrome DevTools endpoint did not start'+(stderr?' · '+stderr.slice(-1000):''));
     const u=new URL(wsUrl),base='http://'+u.hostname+':'+u.port;
     const page=await waitFor(async()=>{
