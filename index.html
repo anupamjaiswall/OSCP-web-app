@@ -336,10 +336,36 @@ body.examFocus #refNavigator{top:63px}
 @media(max-width:560px){.examHelpGrid{grid-template-columns:1fr}#refNavigator{grid-template-columns:auto minmax(0,1fr) auto;padding:6px}#refNavigator .refPos{display:none}}
 @media print{#examHelpBackdrop,#refNavigator{display:none!important}}
 </style>
+
+<style id="v25ExamCommandLayerStyles">
+.navSectionLabel{padding:3px 12px 7px;color:#718096;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em}
+.topTargetContext{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid #36506a;background:#101923;color:#b9d8ef;border-radius:999px;padding:5px 9px;font-size:11px;cursor:pointer}.topTargetContext:hover{border-color:var(--accent);color:var(--text)}
+.v25StateRouter{border-color:#3d657e;background:linear-gradient(135deg,rgba(66,145,190,.08),var(--panel) 56%)}
+.stateRouteGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:11px}.stateRoute{text-align:left;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:11px;display:grid;gap:4px;cursor:pointer;min-height:72px}.stateRoute:hover,.stateRoute:focus-visible{border-color:var(--accent);background:#14283a;outline:none}.stateRoute b{font-size:14px}.stateRoute span{color:var(--muted);font-size:12px;line-height:1.35}.stateRoute.goodRoute{border-color:#2f6847;background:#102119}.stateRoute.goodRoute:hover{border-color:var(--good)}
+#quickNoteBackdrop{position:fixed;inset:0;z-index:1450;background:rgba(2,5,10,.84);display:none;place-items:center;padding:18px;backdrop-filter:blur(5px)}#quickNoteBackdrop.open{display:grid}.quickNoteDialog{width:min(720px,100%);background:var(--panel);border:1px solid #4b6077;border-radius:14px;padding:16px;box-shadow:0 24px 70px rgba(0,0,0,.55)}#quickNoteText{width:100%;min-height:340px;margin:12px 0 8px;resize:vertical;background:#090d13;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;outline:none}#quickNoteText:focus{border-color:var(--accent)}.quickNoteMeta{font-size:11px;color:var(--muted);margin-bottom:9px}
+#refNavigator.soloOn{border-color:#557b50;box-shadow:0 0 0 1px rgba(68,209,141,.16)}#refSoloCurrent.active{border-color:var(--good);background:#102119;color:#9cf0b8}
+.reference details.refSoloHidden,.reference>h2.refSoloHidden,.reference>h3.refSoloHidden{display:none!important}
+@media(max-width:1100px){.stateRouteGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.topTargetContext{max-width:160px}}
+@media(max-width:680px){.stateRouteGrid{grid-template-columns:1fr}.topTargetContext{max-width:120px}.quickNoteDialog{padding:12px}#quickNoteText{min-height:280px}}
+@media print{#quickNoteBackdrop,.topTargetContext{display:none!important}}
+</style>
 </head>
 <body>
 
 
+<div id="quickNoteBackdrop" role="dialog" aria-modal="true" aria-labelledby="quickNoteTitle">
+ <div class="quickNoteDialog">
+  <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2 id="quickNoteTitle" style="margin:0">Quick exam note</h2><div class="muted">Local browser scratchpad for the thought you cannot afford to lose while rotating.</div></div><button class="btn" id="quickNoteClose" type="button" aria-label="Close quick note">×</button></div>
+  <textarea id="quickNoteText" spellcheck="false" placeholder="Example:
+Strongest evidence:
+Current hypothesis:
+Missing prerequisite:
+Next decisive test:
+Return trigger:"></textarea>
+  <div class="quickNoteMeta" id="quickNoteMeta">Saved locally in this browser.</div>
+  <div class="row"><button class="btn primary" id="quickNoteStamp" type="button">+ Timestamp / context</button><button class="btn" id="quickNoteCopy" type="button">Copy</button><button class="btn bad" id="quickNoteClear" type="button">Clear</button></div>
+ </div>
+</div>
 <div id="examHelpBackdrop" role="dialog" aria-modal="true" aria-labelledby="examHelpTitle">
  <div class="examHelpDialog">
   <div class="examHelpHead"><div><h2 id="examHelpTitle" style="margin:0">Exam navigation help</h2><div class="muted">The shortcuts worth remembering. Everything else can stay out of your head.</div></div><button class="btn" id="examHelpClose" type="button" aria-label="Close help">×</button></div>
@@ -355,7 +381,7 @@ body.examFocus #refNavigator{top:63px}
    <div class="examHelpKey"><kbd>Alt+← / Alt+→</kbd><br><b>Back / Forward</b><div class="muted">Return to previous app locations.</div></div>
    <div class="examHelpKey"><kbd>Alt+1</kbd><br><b>Start</b><div class="muted">Return to the simple exam loop.</div></div>
    <div class="examHelpKey"><kbd>Alt+M</kbd><br><b>Methodology</b><div class="muted">Open the complete exam methodology.</div></div>
-   <div class="examHelpKey"><kbd>?</kbd><br><b>This help</b><div class="muted">Open or close this shortcut guide.</div></div>
+   <div class="examHelpKey"><kbd>Alt+N</kbd><br><b>Quick note</b><div class="muted">Capture evidence/hypothesis/next test before you rotate.</div></div><div class="examHelpKey"><kbd>?</kbd><br><b>This help</b><div class="muted">Open or close this shortcut guide.</div></div>
   </div>
   <div class="examHelpRule"><b>Fast operating rule:</b> observe → form one hypothesis → run one decisive test → record the result → continue only while evidence improves. Two decisive negatives or pure tool-swapping means park/rotate.</div>
  </div>
@@ -371,7 +397,7 @@ body.examFocus #refNavigator{top:63px}
 <button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
 
 <div class="top">
-  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">EXAM ONLY · OFFLINE · NO AI</div>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -385,6 +411,7 @@ body.examFocus #refNavigator{top:63px}
 </div>
 <div class="layout">
 <nav class="side" id="nav">
+  <div class="navSectionLabel">Exam core</div>
   <button class="navbtn active" data-view="simpleExamView">🏠 Start</button>
   <button class="navbtn" data-view="methodologyView">➜ Methodology</button>
   <button class="navbtn" data-view="toolArsenalView">🧰 Best Tools</button>
@@ -446,6 +473,19 @@ body.examFocus #refNavigator{top:63px}
   </div>
  </div>
  <div class="grid">
+  <div class="card span12 v25StateRouter">
+   <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>What do I have right now?</h2><div class="muted">Choose the evidence you actually have. The app opens the smallest useful workflow instead of making you remember where it lives.</div></div><span class="chip">V25 · STATE ROUTER</span></div>
+   <div class="stateRouteGrid">
+    <button class="stateRoute" type="button" data-v25-route="ports"><b>Ports / scan only</b><span>Build a service-first queue</span></button>
+    <button class="stateRoute" type="button" data-v25-route="web"><b>Web application</b><span>Open web enumeration path</span></button>
+    <button class="stateRoute" type="button" data-v25-route="linux"><b>Linux shell</b><span>Post-shell → root tree</span></button>
+    <button class="stateRoute" type="button" data-v25-route="windows"><b>Windows shell</b><span>Post-shell → admin/SYSTEM tree</span></button>
+    <button class="stateRoute" type="button" data-v25-route="ad"><b>Domain credentials</b><span>AD evidence tree</span></button>
+    <button class="stateRoute" type="button" data-v25-route="credential"><b>Hash / ticket / cert / password</b><span>Classify material before reuse</span></button>
+    <button class="stateRoute" type="button" data-v25-route="pivot"><b>Internal subnet / pivot</b><span>Open routing decision flow</span></button>
+    <button class="stateRoute goodRoute" type="button" data-v25-route="proof"><b>Flag / privileged shell</b><span>Bank points before curiosity</span></button>
+   </div>
+  </div>
   <div class="card span12 ruleLockCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Exam rules lock</h2><div class="muted">Re-checked 24 Sep 2026 against the current OffSec Exam Guide and FAQ. The live official pages always override this offline snapshot.</div></div><div class="row"><span id="ruleLockCount" class="ruleLockState">0/8 locked</span><button class="btn" id="ruleLockReset" type="button">Reset</button></div></div><div class="ruleLockGrid">
    <label class="check"><input class="ruleLockCheck" data-rule="objectives" type="checkbox"> I read the control-panel objectives and point values for this exact attempt.</label>
    <label class="check"><input class="ruleLockCheck" data-rule="ai" type="checkbox"> AI/LLM/chatbot tools are closed for both the exam and reporting phase.</label>
@@ -10161,7 +10201,7 @@ function buildSearchItems(){
   items.push({
    title:(summary?.textContent||node.textContent||node.id).trim(),
    anchor:node.id,
-   tags:[...new Set([...text.matchAll(/\[[A-Z0-9:_-]+\]/g)].map(x=>x[0]))],
+   tags:[...new Set([...text.matchAll(/\[[\]/g)].map(x=>x[0]))],
    text,
    kind:'detail'
   });
@@ -10459,7 +10499,7 @@ function renderFavorites(){const root=$('#favoriteList');if(!root)return;const i
 function renderSearch(q){q=q||'';let scored=SEARCH_ITEMS.map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><div><span class="score">score ${x.score}</span> <button class="btn pinRef" data-pin="${esc(x.anchor)}">${favorites.includes(x.anchor)?'★':'☆'} Pin</button></div></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});$$('[data-pin]').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.pin))}
 
 
-function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-V13',version:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
+function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-Exam-OS',version:25,legacyVersion:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
 $('#exportSession').onclick=()=>{downloadText('oscp-session.json',JSON.stringify(sessionPayload(false),null,2),'application/json');toast('Secret-free session exported — use encrypted backup to preserve secrets')};
 $('#importSession').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=JSON.parse(await f.text());if(!Array.isArray(o.targets))throw new Error('targets missing');targets=o.targets.map(upgradeTarget);credentials=Array.isArray(o.credentials)?o.credentials.map(c=>({...c,checks:c.checks||{}})):[];favorites=Array.isArray(o.favorites)?o.favorites:[];if(o.settings)settings={...settings,...o.settings,PASSWORD:o.settings.PASSWORD||''};activeTargetId=o.activeTargetId&&targets.some(t=>t.id===o.activeTargetId)?o.activeTargetId:(targets[0]?.id||'');preflightData=o.preflight||preflightData;targets.forEach(t=>{if(t.creds)sessionSecrets[t.id]=t.creds;if(!persistSecrets)t.creds=''});credentials.forEach(c=>{if(c.secret)sessionCredentialSecrets[c.id]=c.secret;if(!persistSecrets)c.secret=''});saveTargets();saveOps();renderSettings();renderPlaceholders();prepareCode();renderAllV7();toast('Session restored')}catch(err){alert('Invalid OSCP session JSON: '+err.message)}};
 $('#importPreflight').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{assertImportFileSize(f,'Preflight JSON');preflightData=JSON.parse(await f.text());saveOps();renderPreflight();toast('Preflight imported')}catch{alert('Invalid preflight JSON')}};
@@ -12055,7 +12095,7 @@ function renderClock(){
  $('#clockConfirmEmail').onchange=e=>{submissionState.confirmEmail=e.target.checked;saveSubmission()};
  renderOperatorClock();
 }
-function renderOperatorClock(){const r=$('#operatorClock'),d=clockDates();if(!r)return;if(!d){r.innerHTML='Not configured. <button class="btn" id="opClockOpen">Set clock →</button>';$('#opClockOpen').onclick=()=>switchView('clockView');return}const now=new Date(),attack=now<d.attackEnd,deadline=attack?d.attackEnd:d.reportEnd;r.innerHTML=`<b>${attack?'Attack':'Report'}:</b> ${fmtRemain(+deadline-now)}<br><span class="tiny">${attack?'Submit proof values before attack end.':'Upload final archive before deadline.'}</span><br><button class="btn" id="opClockOpen">Clock →</button>`;$('#opClockOpen').onclick=()=>switchView('clockView')}
+function renderOperatorClock(){const r=$('#operatorClock'),d=clockDates();if(!r)return;if(!d){r.innerHTML='Not configured. <button class="btn opClockOpen">Set clock →</button>';r.querySelector('.opClockOpen').onclick=()=>switchView('clockView');return}const now=new Date(),attack=now<d.attackEnd,deadline=attack?d.attackEnd:d.reportEnd;r.innerHTML=`<b>${attack?'Attack':'Report'}:</b> ${fmtRemain(+deadline-now)}<br><span class="tiny">${attack?'Submit proof values before attack end.':'Upload final archive before deadline.'}</span><br><button class="btn opClockOpen">Clock →</button>`;r.querySelector('.opClockOpen').onclick=()=>switchView('clockView')}
 $('#clockNowStart').onclick=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');$('#examStart').value=`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`};
 $('#saveExamClock').onclick=()=>{examClock.start=$('#examStart').value;safeStoreSet(STORE+'examClock',JSON.stringify(examClock));renderClock();toast('Exam clock saved')};
 $('#clearExamClock').onclick=()=>{examClock={start:''};safeStoreRemove(STORE+'examClock');renderClock()};
@@ -13833,6 +13873,150 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
      }
    }catch(_){}
    window.OSCP_V24={recent:()=>[...recent],help,renderReaderQuick,refEntries:()=>refEntries.map(x=>({anchor:x.anchor,title:x.title}))};
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
+
+<script id="v25ExamCommandLayerScript">
+(()=>{
+ 'use strict';
+ const NOTE_STORE='oscp:quick-note:v25';
+ const SOLO_STORE='oscp:ref-solo:v25';
+ let solo=false,baseOpenRef25=null;
+
+ const $id=id=>document.getElementById(id);
+ function safeGet(k,d=''){try{const v=localStorage.getItem(k);return v===null?d:v}catch(_){return d}}
+ function safeSet(k,v){try{localStorage.setItem(k,v);return true}catch(_){return false}}
+ function targetContext(){
+   try{
+     const t=typeof activeTarget==='function'?activeTarget():null;
+     if(!t)return null;
+     const next=(Array.isArray(t.next)?t.next.find(x=>String(x||'').trim()):'')||'';
+     return {label:t.ip||t.host||'unnamed target',role:t.role||'unknown',stage:t.stage||'enumeration',next};
+   }catch(_){return null}
+ }
+ function renderTopContext(){
+   const b=$id('topTargetContext');if(!b)return;
+   const t=targetContext();
+   if(!t){b.textContent='No target';b.title='No active target — open Current target';return}
+   b.textContent=t.label+' · '+t.stage;
+   b.title=[t.label,t.role,t.stage,t.next?('Next: '+t.next):''].filter(Boolean).join(' · ');
+ }
+ function goTree(kind){
+   if(typeof switchView==='function')switchView('methodTreesView');
+   setTimeout(()=>window.OSCP_TREE_READER?.show?.(kind),30);
+ }
+ function route(kind){
+   switch(kind){
+     case'ports':switchView('serviceRouterView');setTimeout(()=>$id('serviceRouterInput')?.focus(),40);break;
+     case'web':window.OSCP_TAG_LINKS?.goToTag?.('[WEB:ENUM]');break;
+     case'linux':goTree('linux');break;
+     case'windows':goTree('windows');break;
+     case'ad':goTree('ad');break;
+     case'credential':switchView('credentialsView');break;
+     case'pivot':window.OSCP_TAG_LINKS?.goToTag?.('[PIVOT:FLOW]');break;
+     case'proof':$id('examBankBtn')?.click();break;
+   }
+ }
+ function setupRouter(){
+   document.querySelectorAll('[data-v25-route]').forEach(b=>b.addEventListener('click',()=>route(b.dataset.v25Route)));
+ }
+
+ function note(open){
+   const back=$id('quickNoteBackdrop');if(!back)return;
+   back.classList.toggle('open',!!open);
+   if(open){const ta=$id('quickNoteText');ta.value=safeGet(NOTE_STORE,'');renderNoteMeta();setTimeout(()=>ta.focus(),0);}
+ }
+ function renderNoteMeta(){
+   const m=$id('quickNoteMeta'),t=targetContext();if(!m)return;
+   m.textContent=(t?('Context: '+t.label+' · '+t.role+' · '+t.stage+' · '):'')+'autosaved locally in this browser.';
+ }
+ function noteStamp(){
+   const ta=$id('quickNoteText');if(!ta)return;
+   const t=targetContext(),stamp=new Date().toLocaleString();
+   const block='\n['+stamp+']'+(t?' '+t.label+' · '+t.role+' · '+t.stage:'')+(t?.next?'\nNext tracked action: '+t.next:'')+'\n';
+   const pos=ta.selectionStart??ta.value.length;ta.value=ta.value.slice(0,pos)+block+ta.value.slice(pos);safeSet(NOTE_STORE,ta.value);ta.focus();ta.selectionStart=ta.selectionEnd=pos+block.length;renderNoteMeta();
+ }
+ function setupNote(){
+   const ta=$id('quickNoteText');
+   ta?.addEventListener('input',()=>{safeSet(NOTE_STORE,ta.value);renderNoteMeta()});
+   $id('quickNoteClose')?.addEventListener('click',()=>note(false));
+   $id('quickNoteBackdrop')?.addEventListener('click',e=>{if(e.target===$id('quickNoteBackdrop'))note(false)});
+   $id('quickNoteStamp')?.addEventListener('click',noteStamp);
+   $id('quickNoteCopy')?.addEventListener('click',async()=>{const ok=typeof copyText==='function'?await copyText(ta?.value||''):false;if(typeof toast==='function')toast(ok?'Quick note copied':'Copy blocked')});
+   $id('quickNoteClear')?.addEventListener('click',()=>{if(!confirm('Clear the local quick note?'))return;if(ta)ta.value='';safeSet(NOTE_STORE,'');renderNoteMeta()});
+ }
+
+ function currentRefAnchor(){
+   try{
+     const entries=window.OSCP_V24?.refEntries?.()||[];
+     const sel=$id('refSectionSelect');
+     return sel?.value||entries[0]?.anchor||'';
+   }catch(_){return''}
+ }
+ function applySolo(anchor){
+   const root=$id('referenceRoot');if(!root)return;
+   const target=document.getElementById(anchor);
+   const owner=target?.closest?.('details[id]')||target;
+   root.querySelectorAll('details[id],h2[id],h3[id]').forEach(el=>{
+     const same=el===owner||el.contains?.(owner)||owner?.contains?.(el);
+     el.classList.toggle('refSoloHidden',solo&&!same);
+   });
+   if(owner?.tagName==='DETAILS')owner.open=true;
+   $id('refNavigator')?.classList.toggle('soloOn',solo);
+   const b=$id('refSoloCurrent');if(b){b.classList.toggle('active',solo);b.textContent=solo?'◉ Solo':'○ Solo'}
+ }
+ function setupSolo(){
+   solo=safeGet(SOLO_STORE,'0')==='1';
+   const nav=$id('refNavigator');if(!nav)return;
+   if(!$id('refSoloCurrent')){
+     const b=document.createElement('button');b.id='refSoloCurrent';b.type='button';b.className='btn refNavSecondary';b.textContent='○ Solo';b.title='Show only the current reference section';
+     const pos=$id('refPosition');nav.insertBefore(b,pos||null);
+     b.addEventListener('click',()=>{solo=!solo;safeSet(SOLO_STORE,solo?'1':'0');applySolo(currentRefAnchor())});
+   }
+   if(solo)applySolo(currentRefAnchor());
+   if(typeof openRef==='function'){
+     baseOpenRef25=openRef;
+     openRef=function(anchor){
+       if(solo)applySolo(anchor);
+       const out=baseOpenRef25(anchor);
+       if(solo)setTimeout(()=>applySolo(anchor),35);
+       return out;
+     };
+   }
+ }
+
+ function addReaderNoteButton(){
+   const panel=$id('readabilityPanel');if(!panel||$id('readerQuickNoteGroup'))return;
+   const g=document.createElement('div');g.id='readerQuickNoteGroup';g.className='readerGroup';
+   g.innerHTML='<div class="readerLabel">Capture before rotating</div><button class="btn" id="readerQuickNoteBtn" type="button" style="width:100%">📝 Quick note · Alt+N</button>';
+   panel.appendChild(g);$id('readerQuickNoteBtn')?.addEventListener('click',()=>note(true));
+ }
+ function setupKeys(){
+   document.addEventListener('keydown',e=>{
+     const tag=(e.target?.tagName||'').toLowerCase(),editing=['input','textarea','select'].includes(tag)||e.target?.isContentEditable;
+     if(e.key==='Escape'&&$id('quickNoteBackdrop')?.classList.contains('open')){e.preventDefault();e.stopImmediatePropagation();note(false);return}
+     if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='n'){e.preventDefault();e.stopImmediatePropagation();note(true);return}
+     if(!editing&&e.key.toLowerCase()==='n'&&e.shiftKey&&e.altKey){e.preventDefault();note(true)}
+   },true);
+ }
+
+ function start(){
+   setupRouter();setupNote();setupSolo();addReaderNoteButton();setupKeys();
+   $id('topTargetContext')?.addEventListener('click',()=>switchView('workspaceView'));
+   renderTopContext();setInterval(renderTopContext,2000);
+   try{
+     if(typeof V16_SELF_TESTS!=='undefined'){
+       V16_SELF_TESTS.push(
+        ['Evidence state router',()=>[document.querySelectorAll('[data-v25-route]').length===8,'8 state routes']],
+        ['Top target context',()=>[!!$id('topTargetContext'),'target context']],
+        ['Quick exam note',()=>[!!$id('quickNoteBackdrop')&&!!$id('quickNoteText'),'local scratchpad']],
+        ['Solo reference mode',()=>[!!$id('refSoloCurrent'),'solo reference']]
+       );
+     }
+   }catch(_){}
+   window.OSCP_V25={route,note,renderTopContext,applySolo,solo:()=>solo};
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

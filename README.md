@@ -89,6 +89,45 @@ AD 10 + all 3 standalone machines fully    = 70
 
 The offline app now has **Service Router (Alt+Q)**: paste ports or Nmap-style lines, get a prioritized service queue, manual truth checks, fallback reasoning, role hints, and a live 70-point runway calculator.
 
+## V25 — EVIDENCE-STATE ROUTER + CONTEXT SAFETY
+
+V25 reduces the number of choices you must remember during the exam. Instead of asking **"which app screen contains this?"**, ask **"what evidence do I have right now?"**
+
+### What do I have right now?
+
+| Evidence in hand | Open this path |
+|---|---|
+| Ports / scan only | **Service Router** → small ordered service queue |
+| Web application | **[WEB:ENUM]** → hostname/vhost/routes/source/auth/input |
+| Linux shell | **Linux Method Tree** → baseline → sudo/SUID/caps/cron/systemd/secrets |
+| Windows shell | **Windows Method Tree** → token → secrets → services/tasks → software/access |
+| Domain credentials | **AD Method Tree** → DNS/time/auth → identity → graph → one proven edge |
+| Password/hash/ticket/cert | **Credential Matrix** → classify material + scope before reuse |
+| Internal subnet | **[PIVOT:FLOW]** → prove route and exact required exposure |
+| Flag / privileged shell | **Bank proof first** → screenshot + submit + exact commands |
+
+### Context-safety changes
+
+- The top bar always shows the **active target + current stage**. Click it to open the target workspace.
+- **Alt+N** opens an offline quick note. Use it before target rotation to save: strongest evidence, hypothesis, missing prerequisite, next decisive test, and return trigger.
+- The deep reference has a **Solo** switch that hides unrelated sections while you execute one path.
+- Exported full-session metadata now identifies the current app generation as **OSCP-Exam-OS V25** while retaining a legacy-version marker for compatibility.
+- Search indexing now recognizes structured tags containing dots as well as colons, underscores and hyphens.
+- The remaining duplicate runtime clock button ID was removed; static view/reference link audit is clean.
+
+### 30-second rotation packet
+
+```text
+ACCESS:      exact user / host / channel
+EVIDENCE:    strongest observation
+HYPOTHESIS:  because X, Y may be possible
+MISSING:     exact prerequisite still unproven
+NEXT TEST:   one decisive test
+RETURN WHEN: exact trigger/evidence that justifies coming back
+```
+
+A target should be easy to resume after an hour away. If this packet cannot be written, the current hypothesis is probably not precise enough.
+
 ## V24 — EXAM NAVIGATOR + FATIGUE-RESISTANT NOTES
 
 The app now treats **navigation as part of methodology**. The goal is to reduce memory load late in the exam, when knowing a technique is less useful if finding it takes five minutes.
