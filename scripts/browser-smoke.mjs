@@ -79,27 +79,36 @@ try{
 
   await send('Runtime.enable');
   await send('Page.enable');
-  const loaded=once('Page.loadEventFired');
-  await send('Page.navigate',{url:pathToFileURL(path.join(root,'index.html')).href});
-  await withTimeout(loaded,12000,'Page load');
-  await delay(300);
+  const nav=await send('Page.navigate',{url:pathToFileURL(path.join(root,'index.html')).href});
+  if(nav?.errorText)throw new Error('Page.navigate failed: '+nav.errorText);
 
-  const evaluated=await send('Runtime.evaluate',{
-    expression:`(()=>({
-      ready:document.readyState,
-      title:document.title,
-      globalSearch:!!document.getElementById('globalSearch'),
-      serviceRouter:!!document.getElementById('serviceRouterView'),
-      contrast:!!document.getElementById('readerContrastToggle'),
-      boot:window.OSCP_BOOT_HEALTH||null
-    }))()`,
-    returnByValue:true
-  });
-  const state=evaluated?.result?.value||{};
-  if(state.ready!=='complete')throw new Error('document.readyState='+state.ready);
+  async function readState(){
+    try{
+      const evaluated=await send('Runtime.evaluate',{
+        expression:`(()=>({
+          ready:document.readyState,
+          title:document.title,
+          globalSearch:!!document.getElementById('globalSearch'),
+          serviceRouter:!!document.getElementById('serviceRouterView'),
+          contrast:!!document.getElementById('readerContrastToggle'),
+          boot:window.OSCP_BOOT_HEALTH||null
+        }))()`,
+        returnByValue:true
+      });
+      return evaluated?.result?.value||{};
+    }catch(_){return{}}
+  }
+  let state={};
+  const readyBy=Date.now()+20000;
+  while(Date.now()<readyBy){
+    state=await readState();
+    if(state.globalSearch&&state.serviceRouter&&state.contrast&&state.boot?.ok===true)break;
+    await delay(200);
+  }
+  if(!state.globalSearch||!state.serviceRouter||!state.contrast)throw new Error('critical exam UI did not become ready: '+JSON.stringify(state));
+  if(state.boot?.ok!==true)throw new Error('OSCP boot health did not pass: '+JSON.stringify(state.boot));
+  if(!['interactive','complete'].includes(state.ready))throw new Error('document not interactive: '+state.ready);
   if(state.title!=='OSCP Exam-Only Operating System')throw new Error('unexpected title: '+state.title);
-  if(!state.globalSearch||!state.serviceRouter||!state.contrast)throw new Error('critical exam UI missing: '+JSON.stringify(state));
-  if(state.boot&&state.boot.ok===false)throw new Error('OSCP boot health failed: '+JSON.stringify(state.boot));
 
   const interaction=await send('Runtime.evaluate',{
     expression:`(()=>{
