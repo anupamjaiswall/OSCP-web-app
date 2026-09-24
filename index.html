@@ -415,7 +415,7 @@ body.examFocus .activeWorkStrip{top:63px}
 @media(max-width:800px){.v33ServiceGrid{grid-template-columns:1fr}.v33Toolbar select{min-width:0;flex:1}.v33Dialog{padding:12px}}
 @media print{.v33Backdrop,#v33TopCheck,.scanRouteBtn{display:none!important}}</style>
 </head>
-<body>
+<body>\n<script>window.__OSCP_PARSE_STAGE__='body-start';</script>
 <a class="skipLink" href="#examMain">Skip to exam workspace</a>
 
 
@@ -566,7 +566,7 @@ Return trigger:"></textarea>
   <div class="navsep"></div>
   <div class="tiny">Embedded current exam reference<br>Self-contained HTML<br>No external assets</div>
 </nav>
-<main class="main" id="examMain" tabindex="-1">
+<script>window.__OSCP_PARSE_STAGE__='pre-main';</script>\n<main class="main" id="examMain" tabindex="-1">
 <div id="activeWorkStrip" class="activeWorkStrip" aria-live="polite"></div>
 <section id="simpleExamView" class="view active">
  <div class="hero simpleHero"><div><h1>OSCP Exam Flow</h1><div class="muted">One repeatable loop. Collect evidence, test the smallest useful hypothesis, and move when the evidence stops improving.</div></div><div class="chips"><span class="chip">SIMPLE MODE</span><span class="chip">OFFLINE</span><span class="chip">Alt 1</span></div></div>
@@ -1295,7 +1295,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  </div>
 </section>
 
-<section id="workspaceView" class="view">
+<script>window.__OSCP_PARSE_STAGE__='workspace';</script>\n<section id="workspaceView" class="view">
  <div class="hero"><div><h1>Per-Target Workspace</h1><div class="muted">One target, one state: signals → findings → attack path → evidence → next actions.</div></div>
  <div class="row"><select id="workspaceTarget"></select><button class="btn primary" id="workspaceAddTarget">+ Target</button></div></div>
  <div id="workspaceTabs" class="opsTabs"></div><div id="workspaceEmpty" class="card muted">Add a target to begin.</div>
@@ -1328,7 +1328,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  <div class="graphShell"><svg id="attackGraph" xmlns="http://www.w3.org/2000/svg"></svg></div><div class="card" style="margin-top:12px"><h2>Path transcript</h2><div id="graphTranscript" class="muted"></div></div>
 </section>
 
-<section id="reportsView" class="view">
+<script>window.__OSCP_PARSE_STAGE__='reports';</script>\n<section id="reportsView" class="view">
 <div class="card" id="proofSubmissionVerifyCard" style="margin-bottom:14px;border-color:var(--warn)">
  <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Proof submission sanity check</h2><div class="muted">OffSec does not tell you whether a submitted proof value is correct. Before treating points as banked, compare the control-panel value character-for-character with the value shown by <code>cat</code>/<code>type</code> in the original-path interactive shell screenshot.</div></div><span class="chip">NO SECRET STORED HERE</span></div>
  <div class="checks" style="margin-bottom:0"><label class="check"><input type="checkbox"> screenshot shows full proof + target IP together</label><label class="check"><input type="checkbox"> submitted value visually re-checked against shell output</label></div>
@@ -1421,7 +1421,7 @@ find ~/oscp/evidence -type f -printf '%f\n' | sort | uniq -d</pre><div class="ti
  <div class="card"><div id="v15TestSummary" class="row"></div><div style="overflow:auto"><table class="v15Tests"><thead><tr><th>#</th><th>Test</th><th>Observed</th><th>Status</th></tr></thead><tbody id="v15TestBody"><tr><td colspan="4" class="muted">Not run yet.</td></tr></tbody></table></div></div>
 </section>
 
-<section id="settingsView" class="view"><div class="hero"><div><h1>Local Settings & Placeholder Replacement</h1><div class="muted">Values never leave this file. Persistent fields are stored in browser localStorage.</div></div></div><div class="card"><div class="privacy"><strong>Privacy:</strong> this page contains no network calls or third-party assets. Placeholder replacement never injects secrets into the reference. Credential secrets stay session-only unless “Persist secrets” is explicitly enabled.</div><div class="settingsGrid" id="settingsGrid" style="margin-top:14px"></div><div class="row" style="margin-top:12px"><label><input id="persistSecrets" type="checkbox"> Persist target credentials in localStorage (plain text on this device)</label></div><div class="row" style="margin-top:12px"><button class="btn primary" id="saveSettings">Apply placeholders</button><button class="btn bad" id="clearLocal">Clear all local data</button></div></div><div class="card" style="margin-top:14px"><h2>Exam-safe operating reminder</h2><pre>NO AI/LLM during exam/reporting
+<script>window.__OSCP_PARSE_STAGE__='settings';</script>\n<section id="settingsView" class="view"><div class="hero"><div><h1>Local Settings & Placeholder Replacement</h1><div class="muted">Values never leave this file. Persistent fields are stored in browser localStorage.</div></div></div><div class="card"><div class="privacy"><strong>Privacy:</strong> this page contains no network calls or third-party assets. Placeholder replacement never injects secrets into the reference. Credential secrets stay session-only unless “Persist secrets” is explicitly enabled.</div><div class="settingsGrid" id="settingsGrid" style="margin-top:14px"></div><div class="row" style="margin-top:12px"><label><input id="persistSecrets" type="checkbox"> Persist target credentials in localStorage (plain text on this device)</label></div><div class="row" style="margin-top:12px"><button class="btn primary" id="saveSettings">Apply placeholders</button><button class="btn bad" id="clearLocal">Clear all local data</button></div></div><div class="card" style="margin-top:14px"><h2>Exam-safe operating reminder</h2><pre>NO AI/LLM during exam/reporting
 NO SQLmap/automatic exploitation
 NO spoofing/poisoning
 NO mass vulnerability scanners
@@ -1430,7 +1430,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-<script>window.__OSCP_BOOT_STAGE__='start';</script>
+<script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
   version:'34.13.0',

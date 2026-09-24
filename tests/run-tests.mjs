@@ -53,6 +53,8 @@ test('report review flag does not contaminate exported report markdown',()=>{con
 
 test('target deletion snapshots first and repairs active-target state',()=>{const src=read('src/js/03-core-app.js');const p=src.indexOf("el.querySelector('.delTarget').onclick");const block=src.slice(p,p+900);ok(block.includes("snapshotNow('before target delete: '+label)"));ok(block.indexOf("snapshotNow('before target delete: '+label)")<block.indexOf('targets=targets.filter'));ok(block.includes("if(activeTargetId===id)activeTargetId=targets[0]?.id||''"));ok(block.includes('renderAllV7()'));ok(block.includes('recovery snapshot retained'))});
 
+test('static parser diagnostics cover major UI regions',()=>{const t=read('src/index.template.html'),s=read('scripts/browser-smoke.mjs');for(const x of ['body-start','pre-main','workspace','reports','settings','ui-complete'])ok(t.includes("__OSCP_PARSE_STAGE__='"+x+"'"),x);ok(s.includes('parseStage:window.__OSCP_PARSE_STAGE__'))});
+
 test('boot-stage diagnostics cover all inline startup modules',()=>{const t=read('src/index.template.html'),s=read('scripts/browser-smoke.mjs');ok(t.includes("window.__OSCP_BOOT_STAGE__='start'"));ok(t.includes("window.__OSCP_BOOT_STAGE__='03-core-app'"));ok(t.includes("window.__OSCP_BOOT_STAGE__='19-v33-exam-integration'"));ok(t.includes("window.__OSCP_BOOT_STAGE__='complete-scripts'"));ok(s.includes("stage:window.__OSCP_BOOT_STAGE__"))});
 
 test('core boot diagnostics cover legacy layer boundaries',()=>{const s=read('src/js/03-core-app.js'),b=read('scripts/browser-smoke.mjs');for(const x of ["'base'","'v7'","'v8'","'v9'","'v10'","'v11'","'v12'","'v13'","'v14'","'v19'","'complete'"])ok(s.includes("__OSCP_CORE_STAGE__="+x),x);ok(b.includes("coreStage:window.__OSCP_CORE_STAGE__"))});
