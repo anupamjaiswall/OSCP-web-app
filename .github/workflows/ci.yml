@@ -16,7 +16,7 @@ jobs:
       - name: Build, test, audit, validate
         run: npm run check
       - name: Headless browser boot and interaction gate
-        timeout-minutes: 1
+        timeout-minutes: 2
         run: node scripts/browser-smoke.mjs
       - name: Ensure generated exam artifact is committed
         run: git diff --exit-code -- index.html

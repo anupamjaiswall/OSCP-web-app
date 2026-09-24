@@ -38,7 +38,7 @@ const browser=findBrowser();
 let childExit=null;
 const child=spawn(browser,[
   '--headless','--disable-gpu','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking',
-  '--disable-component-update','--disable-sync','--no-first-run','--no-default-browser-check',
+  '--disable-component-update','--disable-sync','--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio','--no-first-run','--no-default-browser-check',
   '--allow-file-access-from-files','--remote-debugging-address=127.0.0.1',`--remote-debugging-port=${port}`,`--user-data-dir=${tmp}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
 let stderr='';
@@ -79,9 +79,13 @@ try{
 
   await send('Runtime.enable');
   await send('Page.enable');
+  const loaded=once('Page.loadEventFired');
   const nav=await send('Page.navigate',{url:pathToFileURL(path.join(root,'index.html')).href});
   if(nav?.errorText)throw new Error('Page.navigate failed: '+nav.errorText);
+  await withTimeout(loaded,30000,'Page.loadEventFired');
+  await delay(300);
 
+  let lastStateError='';
   async function readState(){
     try{
       const evaluated=await withTimeout(send('Runtime.evaluate',{
@@ -94,18 +98,19 @@ try{
           boot:window.OSCP_BOOT_HEALTH||null
         }))()`,
         returnByValue:true
-      }),1500,'state evaluation');
+      }),5000,'state evaluation');
+      lastStateError='';
       return evaluated?.result?.value||{};
-    }catch(_){return{}}
+    }catch(e){lastStateError=e.message;return{}}
   }
   let state={};
-  const readyBy=Date.now()+20000;
+  const readyBy=Date.now()+15000;
   while(Date.now()<readyBy){
     state=await readState();
     if(state.globalSearch&&state.serviceRouter&&state.contrast&&state.boot?.ok===true)break;
     await delay(200);
   }
-  if(!state.globalSearch||!state.serviceRouter||!state.contrast)throw new Error('critical exam UI did not become ready: '+JSON.stringify(state));
+  if(!state.globalSearch||!state.serviceRouter||!state.contrast)throw new Error('critical exam UI did not become ready: '+JSON.stringify(state)+(lastStateError?' · last evaluate error: '+lastStateError:''));
   if(state.boot?.ok!==true)throw new Error('OSCP boot health did not pass: '+JSON.stringify(state.boot));
   if(!['interactive','complete'].includes(state.ready))throw new Error('document not interactive: '+state.ready);
   if(state.title!=='OSCP Exam-Only Operating System')throw new Error('unexpected title: '+state.title);

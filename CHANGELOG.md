@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.6.1 — 2026-09-24
+
+### Browser-gate determinism fix
+- Synchronized the required Chrome probe on `Page.loadEventFired` before evaluating app readiness.
+- Increased bounded Runtime.evaluate timeouts and improved failure diagnostics without weakening the required gate.
+- Disabled additional background Chrome services to reduce CI noise and timing variance.
+- App runtime code and generated exam artifact are unchanged by this patch.
+
+
 ## V34.6.0 — 2026-09-24
 
 ### Batch 6 — required browser regression gate
