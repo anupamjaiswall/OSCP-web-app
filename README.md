@@ -1,8 +1,15 @@
 # 🔐 OSCP Exam OS
 
-**V34.17 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.18 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
+
+## V34.18 Batch 18 — emergency clipboard recovery
+
+- Session now includes **Copy recovery JSON** as a fallback when saving a file is inconvenient.
+- It uses the same **secret-free full-session payload** as the normal JSON export.
+- Clipboard recovery is intentionally **not** counted as a durable external backup and does not update backup-freshness metadata.
+- It does not mutate target, credential, evidence, report, or snapshot state.
 
 ## V34.17 Batch 17 — safe settings reset
 

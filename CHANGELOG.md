@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.18.0 — 2026-09-24
+
+### Batch 18 — emergency clipboard recovery
+- Added **Copy recovery JSON** beside the full-session export/import controls.
+- Clipboard recovery uses `sessionPayload(false)`, the same secret-free payload as the normal session export.
+- Clipboard copy does not mark the durable external-backup timestamp and does not mutate exam state.
+- Added regression coverage preventing secret-inclusive payloads or backup-freshness mutation in this path.
+
+
 ## V34.17.0 — 2026-09-24
 
 ### Batch 17 — non-destructive settings reset
