@@ -57,7 +57,9 @@ test('browser render is a required bounded CI gate',()=>{const ci=read('.github/
 
 test('bracket links are incremental and non-blocking at startup',()=>{const src=read('src/js/12-v22-bracket-links.js');const start=src.slice(src.indexOf('function start()'),src.indexOf("if(document.readyState==='loading')"));ok(src.includes('function linkifyIncremental'));ok(src.includes('setTimeout(pump,0)'));ok(start.includes('linkifyIncremental(root'));ok(!start.includes('linkify(root)'));ok(src.includes('window.OSCP_TAG_LINKS.complete=true'))});
 
-test('historical render layers do not rerender repeatedly during boot',()=>{const src=read('src/js/03-core-app.js');const calls=src.split('\n').map(x=>x.trim()).filter(x=>/^renderAllV(?:7|8|9|10|11|12|13|14)\(\);$/.test(x));eq(calls,['renderAllV14();'])});
+test('historical render layers do not rerender repeatedly during boot',()=>{const src=read('src/js/03-core-app.js');const calls=src.split('\n').map(x=>x.trim()).filter(x=>/^renderAllV(?:7|8|9|10|11|12|13|14)\(\);$/.test(x));eq(calls,[])});
+
+test('initial heavy compatibility rendering waits until after window load',()=>{const src=read('src/js/03-core-app.js');ok(src.includes("window.addEventListener('load',run,{once:true})"));ok(src.includes('setTimeout(()=>{renderAllV14();renderV16Disaster();renderV16();window.OSCP_INITIAL_RENDER_READY=true},120)'));ok(!src.includes("}};renderAllV10();"));const boot=src.slice(src.lastIndexOf('renderSettings();renderPlaceholders();prepareCode();renderTargets();'),src.indexOf('/* ===== V19 FAILURE-RESISTANT RELIABILITY LAYER ===== */'));ok(!boot.includes('renderAllV14();'))});
 
 test('reference code decoration is chunked off the boot path',()=>{const src=read('src/js/03-core-app.js');const a=src.indexOf('function prepareCode()');const b=src.indexOf('function applyPlaceholders()',a);const block=src.slice(a,b);ok(block.includes('setTimeout(pump,0)'));ok(block.includes('Math.min(i+24,blocks.length)'));ok(!block.includes("$$('#referenceRoot pre').forEach"));ok(block.includes('OSCP_CODE_BLOCKS_READY'))});
 

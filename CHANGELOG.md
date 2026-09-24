@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.11.0 — 2026-09-24
+
+### Batch 11 — parser-safe initial render
+- Removed the last immediate V10 compatibility render embedded in wrapper setup.
+- Deferred the first V14/V19 heavy compatibility render chain until after the browser load event.
+- Added a 120ms post-load yield so the offline page can finish first paint and become responsive before derived panels populate.
+- Added regression coverage preventing heavy compatibility rendering from returning to the parser path.
+
+
 ## V34.10.0 — 2026-09-24
 
 ### Batch 10 — collapse historical startup renders

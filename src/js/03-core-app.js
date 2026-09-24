@@ -1127,7 +1127,7 @@ function journalMarkdown(t){const items=(t?.journal||[]).filter(x=>x.includeRepo
 const v10ReportMarkdownBase=reportMarkdown;reportMarkdown=function(t){return v10ReportMarkdownBase(t)+(t?.journal?.some(x=>x.includeReport!==false)?'\n\n'+journalMarkdown(t):'')};const v10RenderReportBase=renderReport;renderReport=function(){v10RenderReportBase();renderReportJournalSummary()};
 const v10SessionPayloadBase=sessionPayload;sessionPayload=function(includeSecrets=false){const o=v10SessionPayloadBase(includeSecrets);o.app='OSCP-V10';o.version=10;o.guardConfig=guardConfig;return o};const v10RestoreBase=restoreV9Payload;restoreV9Payload=function(o){if(o?.guardConfig)guardConfig=normalizeGuardConfig(o.guardConfig);v10RestoreBase(o);guardConfig=normalizeGuardConfig(guardConfig);safeStoreSet(STORE+'guardConfig',JSON.stringify(guardConfig));renderGuard();renderAllV10()};
 function journalCount(){return targets.reduce((n,t)=>n+(t.journal?.length||0),0)}const v10HealthBase=renderSessionHealth;renderSessionHealth=function(){v10HealthBase();const root=$('#sessionHealth');if(root)root.innerHTML+=`<div class="healthBox"><div class="healthNum">${journalCount()}</div><div class="tiny">journal commands</div></div><div class="healthBox"><div class="healthNum">${normalizedScope().length}</div><div class="tiny">scope entries</div></div>`};
-function renderAllV10(){renderAllV9();renderGuard();renderJournalSelectors();renderJournalPreview();renderJournal();renderReportJournalSummary();renderCockpitGuard()}const v10Switch=switchView;switchView=function(id){v10Switch(id);if(id==='guardView')renderGuard();if(id==='journalView'){renderJournalSelectors();renderJournal();renderJournalPreview()}};renderAllV10();
+function renderAllV10(){renderAllV9();renderGuard();renderJournalSelectors();renderJournalPreview();renderJournal();renderReportJournalSummary();renderCockpitGuard()}const v10Switch=switchView;switchView=function(id){v10Switch(id);if(id==='guardView')renderGuard();if(id==='journalView'){renderJournalSelectors();renderJournal();renderJournalPreview()}};
 
 /* ===== V11 Expert Operator / Coverage / Credential Debt ===== */
 let expertPrefs=safeStoredRecord(STORE+'expertPrefs',{rotation:30,break:120});expertPrefs={...expertPrefs,rotation:Number.isFinite(+expertPrefs.rotation)?Math.min(240,Math.max(5,Math.round(+expertPrefs.rotation))):30,break:Number.isFinite(+expertPrefs.break)?Math.min(360,Math.max(15,Math.round(+expertPrefs.break))):120};
@@ -1958,7 +1958,6 @@ if(!autosnapshots.length&&targets.length){
 }
 
 renderSettings();renderPlaceholders();prepareCode();renderTargets();refreshTimerTargets();renderPlaybooks();renderDecoder();renderEvidenceTemplate();updateTimer();
-renderAllV14();
 
 
 /* ===== V19 FAILURE-RESISTANT RELIABILITY LAYER ===== */
@@ -2177,4 +2176,8 @@ const v15RestoreBase=restoreV9Payload;restoreV9Payload=function(o){v15RestoreBas
 const v15SwitchBase=switchView;switchView=function(id){v15SwitchBase(id);if(id==='v15ReliabilityView')renderV16Reliability();if(id==='v15ChainView')renderV16Chain();if(id==='v15DisasterView')renderV16Disaster();if(id==='v15SelfTestView'){} };
 const v15RenderRevertsBase=renderReverts;renderReverts=function(){v15RenderRevertsBase();renderV16Reliability()};
 
-renderV16Disaster();renderV16();
+function scheduleInitialHeavyRenders(){
+ const run=()=>setTimeout(()=>{renderAllV14();renderV16Disaster();renderV16();window.OSCP_INITIAL_RENDER_READY=true},120);
+ if(document.readyState==='complete')run();else window.addEventListener('load',run,{once:true});
+}
+scheduleInitialHeavyRenders();
