@@ -1,6 +1,13 @@
 # 🔐 OSCP Exam OS
 
-**V34.22 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.23 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.23 Batch 23 — DOM-safety regression gate
+
+- CI now rejects dangerous dynamic DOM sinks that are unnecessary in this offline app: `insertAdjacentHTML`, `outerHTML=`, `document.write`, `srcdoc=`, string-created inline event-handler attributes, and `javascript:` URLs.
+- The existing audited `innerHTML` ceiling remains in place; this batch strengthens it rather than raising it.
+- Regression tests confirm the shipped JavaScript currently contains none of the newly banned primitives.
+- Runtime application code is unchanged.
 
 ## V34.22 Batch 22 — real browser interaction gate
 

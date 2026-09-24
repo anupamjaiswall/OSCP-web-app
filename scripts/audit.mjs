@@ -13,6 +13,15 @@ for(const file of jsFiles){
   try{new vm.Script(source,{filename:file})}
   catch(e){fail('JavaScript syntax error in '+file+': '+e.message)}
   if(/\beval\s*\(/.test(source)||/\bnew\s+Function\s*\(/.test(source))fail('Dynamic code execution primitive found in '+file);
+  const unsafeDom=[
+    [/\.insertAdjacentHTML\s*\(/,'insertAdjacentHTML'],
+    [/\.outerHTML\s*=/,'outerHTML assignment'],
+    [/\bdocument\.write(?:ln)?\s*\(/,'document.write'],
+    [/\.srcdoc\s*=/,'srcdoc assignment'],
+    [/\.setAttribute\s*\(\s*['"]on[a-z]+['"]/i,'inline event-handler attribute'],
+    [/['"]javascript\s*:/i,'javascript: URL']
+  ];
+  for(const [pattern,label] of unsafeDom)if(pattern.test(source))fail('Unsafe DOM primitive ('+label+') found in '+file);
 }
 
 const core=read('src/js/00-service-router-core.js');

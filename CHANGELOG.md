@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.23.0 — 2026-09-24
+
+### Batch 23 — DOM-safety regression gate
+- Extended JavaScript audit with bans on insertAdjacentHTML, outerHTML assignment, document.write/document.writeln, srcdoc assignment, string-created inline event handlers and javascript: URLs.
+- Kept the existing audited innerHTML assignment ceiling unchanged.
+- Added deterministic tests proving the guard exists and the shipped JavaScript is clean.
+- Runtime app behavior is unchanged.
+
+
 ## V34.22.0 — 2026-09-24
 
 ### Batch 22 — real browser interaction regression gate
