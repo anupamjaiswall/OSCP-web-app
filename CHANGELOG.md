@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.19.0 — 2026-09-24
+
+### Batch 19 — exam preflight and known limitations
+- Expanded the manual preflight to cover cold/offline startup, typo search, navigation, zoom, persistence, external backup testing and restore rehearsal.
+- Added a Known Limitations document for browser/origin storage, DecompressionStream support, autosnapshot boundaries, secret-free free text, encrypted-backup passphrases and tool syntax drift.
+- Documentation-only runtime change: none.
+
+
 ## V34.18.0 — 2026-09-24
 
 ### Batch 18 — emergency clipboard recovery

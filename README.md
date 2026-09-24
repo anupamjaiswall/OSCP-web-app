@@ -1,8 +1,14 @@
 # 🔐 OSCP Exam OS
 
-**V34.18 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.19 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
+
+## V34.19 Batch 19 — exam preflight and limitations
+
+- Expanded the exam-day preflight into a cold-start, offline, persistence, backup-test and restore rehearsal.
+- Added explicit Known Limitations covering browser/origin storage, compressed reference support, backup boundaries, secret-free exports and tool-version drift.
+- Documentation-only batch; app runtime behavior is unchanged.
 
 ## V34.18 Batch 18 — emergency clipboard recovery
 
@@ -39,6 +45,9 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+
+Preflight: `docs/EXAM-PREFLIGHT.md` · Limitations: `docs/KNOWN-LIMITATIONS.md`
 
 ## V34.12 Batch 12 — lazy deep-reference hydration
 
