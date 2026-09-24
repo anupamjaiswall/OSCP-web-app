@@ -81,6 +81,8 @@ test('deep reference is inert during parser boot and hydrated after load',()=>{c
 
 test('reference-dependent navigation refreshes after hydration',()=>{const nav=read('src/js/14-v24-exam-navigator.js'),idx=read('src/js/17-v27-passer-research.js');ok(nav.includes("document.addEventListener('oscp-reference-ready'"));ok(idx.includes("document.addEventListener('oscp-reference-ready'"))});
 
+test('skip link is keyboard visible and reference breadcrumb tracks position',()=>{const tpl=read('src/index.template.html'),css=read('src/styles/08-v24-exam-navigator.css'),nav=read('src/js/14-v24-exam-navigator.js');ok(tpl.includes('class="skipLink"'));ok(css.includes('.skipLink:focus'));ok(nav.includes('id="refBreadcrumb"'));ok(nav.includes('aria-current="location"'));ok(nav.includes('function renderRefBreadcrumb()'));ok(nav.includes('renderRefBreadcrumb();updatePinButton()'));});
+
 test('reference code decoration is chunked off the boot path',()=>{const src=read('src/js/03-core-app.js');const a=src.indexOf('function prepareCode()');const b=src.indexOf('function applyPlaceholders()',a);const block=src.slice(a,b);ok(block.includes('setTimeout(pump,0)'));ok(block.includes('Math.min(i+24,blocks.length)'));ok(!block.includes("$$('#referenceRoot pre').forEach"));ok(block.includes('OSCP_CODE_BLOCKS_READY'))});
 
 test('boot path does not eagerly render empty search',()=>{const src=read('src/js/03-core-app.js');const boot=src.match(/renderSettings\(\);renderPlaceholders\(\);prepareCode\(\);[^\n]+/)?.[0]||'';ok(boot);ok(!boot.includes("renderSearch('')"));ok(!boot.includes('ensureSearchItems()'))});
