@@ -6,6 +6,10 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
 <title>OSCP Exam-Only Operating System</title>
 <meta name="theme-color" content="#0b0e14">
+<meta name="application-name" content="OSCP Exam OS">
+<meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
+<meta name="oscp-build-version" content="__OSCP_VERSION__">
+<meta name="oscp-build-date" content="__OSCP_BUILD_DATE__">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>/* @inject:style:00-base.css */</style>
 <style id="examStuckStyles">/* @inject:style:01-exam-stuck.css */</style>
@@ -56,7 +60,7 @@
   <div class="attemptLedgerPanel">
    <div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3 style="margin:0">Tried / result ledger</h3><div class="muted">Record the branch, not every keystroke. Exact repeats are flagged before you add them.</div></div><span id="attemptStreak" class="attemptStreak">0 non-progress</span></div>
    <div class="attemptEntryGrid"><input id="attemptAction" autocomplete="off" placeholder="What did you test? e.g. SMB auth as CORP\alice (secret omitted)"><select id="attemptOutcome"><option value="evidence">new evidence</option><option value="success">worked / path opened</option><option value="negative">decisive negative</option><option value="blocked">blocked / prerequisite missing</option></select><input id="attemptResult" autocomplete="off" placeholder="Exact result / error / what it proved"><button class="btn primary" id="attemptAdd" type="button">Log attempt</button></div>
-   <div id="attemptDuplicateHint" class="attemptDuplicateHint"></div><div id="attemptLedgerList" class="attemptLedgerList"></div>
+   <div id="attemptDuplicateHint" class="attemptDuplicateHint" role="status" aria-live="polite" aria-atomic="true"></div><div id="attemptLedgerList" class="attemptLedgerList"></div>
   </div>
   <div class="workStateFooter"><div class="tiny" id="workStateSaved">Saved locally per target.</div><div class="row"><button class="btn" id="workCopyPacket" type="button">Copy rotation packet</button><button class="btn" id="workClearState" type="button">Clear state</button><button class="btn primary" id="workSaveClose" type="button">Save & close</button></div></div>
  </div>
@@ -116,7 +120,7 @@ Return trigger:"></textarea>
 <button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
 
 <div class="top">
-  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V30 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">__OSCP_VERSION_LABEL__ · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -572,11 +576,11 @@ state-changing AD abuse
 
 
 <section id="serviceRouterView" class="view">
- <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V30</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
+ <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">__OSCP_VERSION_LABEL__</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
  <div class="grid">
-  <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Strict port list or scan output</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445&#10;53/udp,161/udp,445/tcp&#10;or paste Nmap / grepable / XML / Masscan output"></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy queue</button><button class="btn" id="serviceRouterLoadTarget" type="button">Load active target</button><button class="btn" id="serviceRouterSaveTarget" type="button">Save to active target</button></div><div id="serviceParseSummary" class="serviceParseSummary muted">Parser waits for a strict port list or recognized scan format.</div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
+  <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Strict port list or scan output</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445&#10;53/udp,161/udp,445/tcp&#10;or paste Nmap / grepable / XML / Masscan output"></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy queue</button><button class="btn" id="serviceRouterLoadTarget" type="button">Load active target</button><button class="btn" id="serviceRouterSaveTarget" type="button">Save to active target</button></div><div id="serviceParseSummary" class="serviceParseSummary muted" role="status" aria-live="polite" aria-atomic="true">Parser waits for a strict port list or recognized scan format.</div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
   <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
-  <div class="card span5"><h2>3 · 70-point runway</h2><div class="scoreRunway"><label>AD set<select id="scoreAD"><option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="40">40</option></select></label><label>Standalone 1<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 2<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 3<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label></div><div id="scoreSummary" class="scoreSummary warn"></div><p class="tiny">Planning aid only. The Exam Control Panel is authoritative for the exact objectives and points on your attempt.</p></div>
+  <div class="card span5"><h2>3 · 70-point runway</h2><div class="scoreRunway"><label>AD set<select id="scoreAD"><option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="40">40</option></select></label><label>Standalone 1<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 2<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label><label>Standalone 3<select class="scoreStandalone"><option value="0">0</option><option value="10">10 · local</option><option value="20">20 · full</option></select></label></div><div id="scoreSummary" class="scoreSummary warn" role="status" aria-live="polite" aria-atomic="true"></div><p class="tiny">Planning aid only. The Exam Control Panel is authoritative for the exact objectives and points on your attempt.</p></div>
   <div class="card span12"><h2>Failure-proof loop</h2><div class="pointRail"><span>1. Read the exact error</span><span>2. Re-prove reachability</span><span>3. Re-prove identity/auth format</span><span>4. Use one manual/native truth check</span><span>5. Try one justified alternate</span><span>6. Record result and rotate</span></div><p class="muted">Examples: SMB tool says login failed → validate domain vs local scope and try <code>smbclient</code> or native auth once. HTTP scanner finds nothing → inspect redirects, vhost, source, methods and content manually. LDAP tool errors → verify DNS/FQDN, bind identity and time before changing tools.</p></div>
   <div class="card span12 outputTruthCard"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Tool output is evidence</h2><div class="muted">Recent pass reports repeatedly mention lost time from not reading the actual output. Before changing tools, preserve the exact line and classify what failed.</div></div><span class="chip">READ → CLASSIFY → ACT</span></div><div class="outputTruthGrid"><div><b>Scan not structured yet?</b><p>Import Nmap XML/text once and let the target workspace keep the service state.</p><button class="btn" type="button" onclick="switchView('intakeView')">Open Scan Intake →</button></div><div><b>Command/tool produced an error?</b><p>Paste the exact output into the deterministic analyzer before assuming the credential, exploit or service is wrong.</p><button class="btn primary" type="button" onclick="switchView('analyzerView')">Open Output Analyzer →</button></div><div><b>Need the service notes?</b><p>Use the generated service/phase index instead of scrolling the reference or changing wordlists/tools.</p><button class="btn" type="button" id="serviceIndexOpen">Open Service Index →</button></div></div></div>
  </div>
@@ -1043,7 +1047,8 @@ Metasploit restricted functionality: one selected target; no Metasploit pivoting
 Re-check official OffSec rules immediately before exam day.</pre></div></section>
 </main>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<script id="buildMetaScript">/* @inject:script:00-build-meta.js */</script>
 <script id="coreUtilsScript">/* @inject:script:00-core-utils.js */</script>
 <script>/* @inject:script:01-storage-guard.js */</script>
 <script>/* @inject:script:02-state-migration.js */</script>
@@ -1061,6 +1066,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 
 <script id="adUsernameGeneratorScript">/* @inject:script:08-ad-username-generator.js */</script>
 
+<script id="serviceRouterCoreScript">/* @inject:script:00-service-router-core.js */</script>
 <script id="v20ServiceRouterScript">/* @inject:script:09-v20-service-router.js */</script>
 <div id="examResetModal" class="examResetBackdrop" role="dialog" aria-modal="true" aria-labelledby="examResetTitle" aria-hidden="true">
   <div class="examResetDialog">

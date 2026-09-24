@@ -1,5 +1,16 @@
 # Changelog
 
+## V31.0.0 — 2026-09-24
+
+- Added a single canonical build-version source and runtime build metadata.
+- Extracted Service Router parsing/classification into a DOM-free, unit-tested core.
+- Added parser regression tests for Nmap normal/grepable, UDP, Masscan, RustScan, strict lists, invalid input, priority routing, and unknown ports.
+- Added JavaScript syntax auditing and methodology-fragment structure auditing.
+- Added accessibility live regions for toast, parser, score, and duplicate-attempt feedback.
+- Added `npm run checksum` for SHA-256 verification of the offline artifact.
+- Strengthened CI to build → test → audit → validate before accepting generated artifact sync.
+
+
 ## V30.0.0 — 2026-09-24
 
 - Modular source tree with generated single-file exam artifact.

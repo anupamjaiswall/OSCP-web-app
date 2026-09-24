@@ -1,19 +1,28 @@
 # 🔐 OSCP Exam OS
 
-**V30 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V31 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
-The repository ships a **single self-contained `index.html`** for exam use, while maintainable source lives under `src/`. The generated artifact needs no web server, CDN, npm install, external stylesheet, or runtime network connection.
+The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
 ## Exam use
 
 1. Download or clone the repository before the exam.
 2. Open **`index.html`** directly in a modern browser.
 3. Keep it local/offline.
-4. Use Search, Service Router, methodology trees, and target workspace instead of scrolling the reference linearly.
+4. Use Search, Service Router, methodology trees, target workspace, and evidence gates instead of scrolling linearly.
 
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V31 reliability upgrades
+
+- **One canonical build version:** `src/meta/build.json` drives the visible build and is validated against `package.json`.
+- **Unit-tested Service Router core:** scan parsing/classification is separated from DOM rendering and tested against Nmap normal/grepable, UDP, Masscan, RustScan, strict lists, garbage input, invalid ports, priority routing, and unknown ports.
+- **JavaScript syntax audit:** every source JS module is compiled by Node in CI.
+- **Content-structure audit:** methodology fragments are checked for balanced `details`, `pre`, and `code` tags.
+- **Accessibility feedback:** changing parser, score, toast, and duplicate-attempt feedback are polite ARIA live regions.
+- **Artifact checksum:** `npm run checksum` prints SHA-256 for the exact offline `index.html`.
 
 ## Architecture
 
@@ -22,15 +31,21 @@ src/index.template.html
  + src/styles/*.css
  + src/js/*.js
  + src/content/*.html
+ + src/meta/build.json
           ↓
    scripts/build.mjs
           ↓
       index.html
 ```
 
-**Do not hand-edit `index.html`.** Edit source, then run `npm run check`.
+**Do not hand-edit `index.html`.**
 
-The previous 300+ KB README content dump was removed. Embedded methodology now has one source of truth under `src/content/`.
+```bash
+npm run check
+npm run checksum
+```
+
+The large methodology is no longer duplicated in README; `src/content/` is the source of truth.
 
 ## Development
 
@@ -39,32 +54,25 @@ Node.js 20+, zero npm dependencies:
 ```bash
 npm run build
 npm test
+npm run audit
 npm run validate
+npm run checksum
 npm run check
 ```
 
-CI rebuilds the artifact and fails if the committed `index.html` differs.
+CI rebuilds the exam artifact and fails if committed `index.html` drifts from source.
 
-## V30 reliability gates
+## Why the final output stays one file
 
-- strict offline CSP including `connect-src 'none'`;
-- no runtime external scripts/styles;
-- unique element IDs and valid static internal anchors;
-- one canonical HTML-escaping implementation;
-- scoring and evidence-gate pure logic covered by Node tests;
-- current audited `innerHTML` assignment count cannot increase silently;
-- reference-section count stays stable;
-- generated artifact remains reproducible from source.
-
-## Why the final output is still one file
-
-A single local HTML file is an advantage under exam pressure: no server, package manager, missing assets, CDN, relative-path failures, or network dependency. V30 makes the **source modular** while deliberately keeping the **exam artifact monolithic**.
+A single local HTML file is an operational advantage under exam pressure: no server, missing assets, CDN, CORS, package manager, or network dependency. The source is modular; the exam artifact intentionally is not.
 
 ## Security / maintainability
 
-Four independent `esc()` implementations now delegate to tested `OSCP_UTILS.escapeHtml()`, including single-quote escaping. Legacy `innerHTML` remains for compatibility, but CI prevents adding more without deliberate review.
+Dynamic HTML escaping is centralized through tested `OSCP_UTILS.escapeHtml()`. The Service Router parser/classifier is isolated in `OSCP_SERVICE_CORE` so correctness is tested without a browser.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/CONTENT-MAP.md](docs/CONTENT-MAP.md), and [CHANGELOG.md](CHANGELOG.md).
+Legacy `innerHTML` rendering remains for compatibility, but CI prevents the audited assignment count from increasing silently. New dynamic UI should prefer DOM APIs and `textContent`.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/CONTENT-MAP.md](docs/CONTENT-MAP.md), [docs/EXAM-PREFLIGHT.md](docs/EXAM-PREFLIGHT.md), and [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
