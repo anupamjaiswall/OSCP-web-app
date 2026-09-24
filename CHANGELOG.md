@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.7.2 — 2026-09-24
+
+### Browser-gate lifecycle fix
+- Browser render CI now polls for a valid PNG instead of waiting for Chrome to exit naturally.
+- Chrome is terminated explicitly after capture, preventing child-process/profile cleanup races on GitHub-hosted runners.
+- Temporary profile cleanup is best-effort and cannot mask the actual render result.
+- App runtime code and exam artifact are unchanged.
+
+
 ## V34.7.1 — 2026-09-24
 
 ### Browser render gate stabilization
