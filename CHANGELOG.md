@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.26.0 — 2026-09-24
+
+### Batch 26 — quick safety rollback
+- Added a Session-view control for the newest retained pre-destructive snapshot.
+- Chooses only snapshots whose reason begins with `before`, avoiding ordinary periodic snapshots for the quick-undo path.
+- Displays the safety-point time/reason and requires confirmation.
+- Validates the snapshot and creates a fresh current-state snapshot before replacing live state.
+- Reuses the existing autosnapshot format and restore chain.
+
+
 ## V34.25.0 — 2026-09-24
 
 ### Batch 25 — recovery-risk visibility

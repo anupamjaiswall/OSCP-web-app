@@ -11,7 +11,27 @@ function snapshot(){
   const backupFresh=!!backupAt&&Date.now()-backupAt<=MAX_EXTERNAL_AGE;
   return{dirty,lastSnapshot,backupAt,backupKind,backupFresh,storageFailed};
 }
+function latestSafetySnapshot(){
+  try{return autosnapshots.find(s=>/^before\b/i.test(String(s?.reason||'')))||null}catch(_){return null}
+}
+function renderUndo(){
+  const b=$id('undoSafetySnapshot'),meta=$id('undoSafetyMeta');if(!b||!meta)return;
+  const s=latestSafetySnapshot();b.disabled=!s;
+  meta.textContent=s?'Latest safety point: '+new Date(Number(s.at)||0).toLocaleString()+' · '+String(s.reason||'pre-change snapshot'):'No pre-destructive safety snapshot is currently retained.';
+}
+function restoreLatestSafety(){
+  const s=latestSafetySnapshot();if(!s){renderUndo();return false}
+  const when=new Date(Number(s.at)||0).toLocaleString(),reason=String(s.reason||'pre-change snapshot');
+  if(!confirm('Restore the latest pre-destructive safety snapshot?\n\n'+when+' · '+reason+'\n\nCurrent state will first receive its own recovery snapshot, then live state will be replaced.'))return false;
+  try{
+    assertRestorableBackup(s.payload);
+    const payload=s.payload;
+    if(snapshotNow('before quick safety restore')===false)throw new Error('Could not create the pre-restore recovery point');
+    restoreV9Payload(payload);render();toast('Latest safety snapshot restored');return true;
+  }catch(err){alert('Safety restore blocked: '+(err?.message||err));render();return false}
+}
 function render(){
+  renderUndo();
   const el=$id('recoveryFreshness');if(!el)return;
   const s=snapshot(),snap=s.lastSnapshot?new Date(s.lastSnapshot).toLocaleString():'none yet';
   if(s.storageFailed){el.dataset.state='bad';el.textContent='Recovery risk: browser storage reported a write failure. Export a full session backup now.';return}
@@ -35,13 +55,14 @@ function install(){
     const wrapped=function(id,...args){const out=baseSwitch.call(this,id,...args);if(id==='sessionView')render();return out};
     wrapped.__oscpRecoveryWrapped=true;globalThis.switchView=wrapped;
   }
+  $id('undoSafetySnapshot')?.addEventListener('click',restoreLatestSafety);
   document.addEventListener('visibilitychange',render,{passive:true});
   window.addEventListener('beforeunload',e=>{
     const s=snapshot();
     if(s.storageFailed||(s.dirty&&!s.backupFresh)){e.preventDefault();e.returnValue=''}
   },{capture:true});
   render();
-  window.OSCP_RECOVERY_STATUS={snapshot,render};
+  window.OSCP_RECOVERY_STATUS={snapshot,render,latestSafetySnapshot,restoreLatestSafety};
 }
 install();
 })();

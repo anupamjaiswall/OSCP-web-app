@@ -1,6 +1,14 @@
 # 🔐 OSCP Exam OS
 
-**V34.25 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.26 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.26 Batch 26 — quick safety rollback
+
+- Session view now offers **Restore latest safety snapshot** when a retained snapshot reason starts with `before …`, i.e. one created before a destructive/replace-state operation.
+- The rollback is confirmation-gated and shows the exact snapshot time/reason.
+- Before replacing live state, the app creates a new recovery snapshot of the current state, so the rollback itself is recoverable.
+- Normal backup-schema validation still runs before restore.
+- The feature reuses existing autosnapshots; no new persistence format or background work was added.
 
 ## V34.25 Batch 25 — recovery-risk visibility
 
