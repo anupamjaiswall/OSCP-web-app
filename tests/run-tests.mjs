@@ -12,8 +12,9 @@ function test(n,fn){fn();passed++;console.log('✓ '+n)}
 
 const sandbox={window:{}};vm.createContext(sandbox);
 vm.runInContext(read('src/js/00-core-utils.js'),sandbox);
+vm.runInContext(read('src/js/00-search-core.js'),sandbox);
 vm.runInContext(read('src/js/00-service-router-core.js'),sandbox);
-const u=sandbox.window.OSCP_UTILS,r=sandbox.window.OSCP_SERVICE_CORE;
+const u=sandbox.window.OSCP_UTILS,s=sandbox.window.OSCP_SEARCH_CORE,r=sandbox.window.OSCP_SERVICE_CORE;
 
 test('build version consistency',()=>{const m=JSON.parse(read('src/meta/build.json')),p=JSON.parse(read('package.json'));eq(p.version,m.version);eq(m.label,'V'+m.version.split('.')[0])});
 test('escapeHtml',()=>eq(u.escapeHtml(`<a x='y'>&"`),'&lt;a x=&#39;y&#39;&gt;&amp;&quot;'));
@@ -31,6 +32,11 @@ test('Service Router strict list ignores numeric prose',()=>{eq(r.parsePorts('22
 test('Service Router rejects invalid/closed endpoints',()=>{eq(r.parsePorts('0,70000'),[]);eq(r.parsePorts('22/tcp filtered ssh'),[])});
 test('Service Router prioritizes SMB before SSH',()=>eq(r.classify([22,445]).map(x=>x.name)[0],'RPC/SMB'));
 test('Service Router leaves unknown ports unclassified',()=>eq(r.classify([31337]).length,0));
+
+test('typo-tolerant search catches common one-edit mistakes',()=>{ok(s.fuzzyScore({title:'SeImpersonate privilege',tags:['[WIN:SEIMPERSONATE]'],text:''},'seimpersonte')>0);ok(s.fuzzyScore({title:'Kerberoasting workflow',tags:['[AD:KERBEROS]'],text:''},'kerberost')>0)});
+test('typo-tolerant search ignores unrelated short noise',()=>eq(s.fuzzyScore({title:'SMB enumeration',tags:['[PORT:445]'],text:''},'xyz'),0));
+test('readability high contrast stays user-triggered',()=>{const src=read('src/js/13-v23-readability.js');ok(src.includes('readerContrastToggle'));ok(src.includes('state.contrast=!state.contrast'));ok(!src.includes('setInterval('))});
+test('batch 1 adds no background runtime loop',()=>{const src=read('src/js/00-search-core.js');ok(!src.includes('setInterval('));ok(!src.includes("addEventListener('storage'"));ok(!src.includes("addEventListener('error'"))});
 
 test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
 test('browser Service Router delegates pure core',()=>ok(read('src/js/09-v20-service-router.js').includes('window.OSCP_SERVICE_CORE')));

@@ -1,7 +1,7 @@
-name: V33 build and validation
+name: V34.1 batch 1 build and validation
 on:
   push:
-    branches: [ main, v33-integration ]
+    branches: [ main ]
   pull_request:
 permissions:
   contents: read
@@ -15,5 +15,14 @@ jobs:
           node-version: 22
       - name: Build, test, audit, validate
         run: npm run check
+      - name: Headless browser boot smoke
+        run: |
+          BROWSER="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          test -n "$BROWSER"
+          timeout 25s "$BROWSER" --headless=new --disable-gpu --no-sandbox --disable-background-networking --disable-component-update --disable-sync --no-first-run --allow-file-access-from-files --virtual-time-budget=3000 --dump-dom "file://$PWD/index.html" > /tmp/oscp-dom.html
+          grep -q "OSCP Exam OS" /tmp/oscp-dom.html
+          grep -q "V34" /tmp/oscp-dom.html
+          grep -q "globalSearch" /tmp/oscp-dom.html
+          grep -q "serviceRouterView" /tmp/oscp-dom.html
       - name: Ensure generated exam artifact is committed
         run: git diff --exit-code -- index.html

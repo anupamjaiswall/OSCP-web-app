@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.1.0 — 2026-09-24
+
+### Batch 1 — search, readability, and browser boot safety
+- Added pure typo-tolerant search scoring with regression tests.
+- Added user-triggered high-contrast mode inside the existing readability controls.
+- Strengthened keyboard focus visibility.
+- Added a bounded headless Chrome boot smoke test in CI.
+- Added no background render loops, cross-tab storage chatter, or state-schema changes in this batch.
+
+
 ## V33.0.0 — 2026-09-24
 
 ### Workflow integration

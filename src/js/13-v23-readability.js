@@ -2,7 +2,7 @@
 (()=>{
   'use strict';
   const STORE='oscp:reader:v23';
-  const defaults={size:'1',density:'comfortable',focus:false,guides:true,tree:'linux'};
+  const defaults={size:'1',density:'comfortable',focus:false,guides:true,contrast:false,tree:'linux'};
   let state={...defaults};
 
   function load(){
@@ -18,10 +18,12 @@
     document.body.dataset.readDensity=state.density;
     document.body.classList.toggle('examFocus',!!state.focus);
     document.body.classList.toggle('readGuideLines',!!state.guides);
+    document.body.classList.toggle('examHighContrast',!!state.contrast);
     document.querySelectorAll('[data-read-size]').forEach(b=>b.classList.toggle('active',b.dataset.readSize===String(state.size)));
     document.querySelectorAll('[data-read-density]').forEach(b=>b.classList.toggle('active',b.dataset.readDensity===state.density));
     $id('readerGuideToggle')?.classList.toggle('active',!!state.guides);
     $id('focusModeBtn')?.classList.toggle('active',!!state.focus);
+    const contrast=$id('readerContrastToggle');if(contrast){contrast.classList.toggle('active',!!state.contrast);contrast.setAttribute('aria-pressed',String(!!state.contrast));contrast.textContent=state.contrast?'High contrast · ON':'High contrast';}
     save();
   }
   function setPanel(open){
@@ -87,6 +89,7 @@
     document.querySelectorAll('[data-read-size]').forEach(b=>b.addEventListener('click',()=>{state.size=b.dataset.readSize;apply();}));
     document.querySelectorAll('[data-read-density]').forEach(b=>b.addEventListener('click',()=>{state.density=b.dataset.readDensity;apply();}));
     $id('readerGuideToggle')?.addEventListener('click',()=>{state.guides=!state.guides;apply();});
+    $id('readerContrastToggle')?.addEventListener('click',()=>{state.contrast=!state.contrast;apply();});
     $id('focusModeBtn')?.addEventListener('click',()=>toggleFocus());
     $id('focusExitBtn')?.addEventListener('click',()=>toggleFocus(false));
     $id('readerResetBtn')?.addEventListener('click',()=>{state={...defaults};apply();setupTreeTabs();});

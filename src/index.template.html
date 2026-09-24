@@ -115,6 +115,7 @@ Return trigger:"></textarea>
   <div class="readerTitle"><b>Exam reading</b><button class="btn" id="readabilityClose" type="button" aria-label="Close reading controls">×</button></div>
   <div class="readerGroup"><div class="readerLabel">Text size</div><div class="readerButtons"><button class="btn" data-read-size="0" type="button">Small</button><button class="btn" data-read-size="1" type="button">Normal</button><button class="btn" data-read-size="2" type="button">Large</button></div></div>
   <div class="readerGroup"><div class="readerLabel">Spacing</div><div class="readerButtons"><button class="btn" data-read-density="compact" type="button">Compact</button><button class="btn" data-read-density="comfortable" type="button">Comfortable</button><button class="btn" id="readerGuideToggle" type="button">Tree guides</button></div></div>
+  <div class="readerGroup"><div class="readerLabel">Contrast</div><div class="readerButtons readerButtonsSingle"><button class="btn" id="readerContrastToggle" type="button" aria-pressed="false">High contrast</button></div></div>
   <div class="readerGroup"><div class="readerLabel">Distraction control</div><div class="readerButtons"><button class="btn" id="focusModeBtn" type="button">Focus mode</button><button class="btn" id="readerResetBtn" type="button">Reset</button><button class="btn" id="readerSearchBtn" type="button">Search /</button></div><div class="tiny" style="padding:7px 2px 0">Alt+Z toggles Focus. Esc exits Focus. Press / anywhere outside a text field to search.</div></div>
 </div>
 <button class="btn primary" id="focusExitBtn" type="button">Exit Focus · Esc</button>
@@ -1051,6 +1052,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script id="buildMetaScript">/* @inject:script:00-build-meta.js */</script>
 <script id="coreUtilsScript">/* @inject:script:00-core-utils.js */</script>
+<script id="searchCoreScript">/* @inject:script:00-search-core.js */</script>
 <script>/* @inject:script:01-storage-guard.js */</script>
 <script>/* @inject:script:02-state-migration.js */</script>
 <script>/* @inject:script:03-core-app.js */</script>

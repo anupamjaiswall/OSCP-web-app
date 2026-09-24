@@ -38,3 +38,11 @@ body.examFocus .top{justify-content:center}.examFocus .searchbar{max-width:920px
 body.readGuideLines .treePre{background-image:linear-gradient(to bottom,transparent calc(1.65em - 1px),rgba(255,255,255,.035) calc(1.65em - 1px),rgba(255,255,255,.035) 1.65em);background-size:100% 1.65em}
 @media(max-width:900px){#readabilityBtn{font-size:11px;padding:6px 7px}.methodTreeTabs{top:105px}.methodTreeTabs .tiny{width:100%;margin-left:0}body.examFocus .main{padding-left:12px;padding-right:12px}}
 @media print{#readabilityPanel,#readProgressTrack,#backTopBtn,#focusExitBtn,.methodTreeTabs{display:none!important}}
+
+.readerButtonsSingle{grid-template-columns:1fr}
+body.examHighContrast{--muted:#d7e2ee;--line:#51657d;--chip:#26364a}
+body.examHighContrast .card,body.examHighContrast .result,body.examHighContrast .target,body.examHighContrast .decoder{border-color:#637a94}
+body.examHighContrast .muted,body.examHighContrast .tiny,body.examHighContrast .resultText,body.examHighContrast .score{color:#d7e2ee}
+body.examHighContrast input,body.examHighContrast select,body.examHighContrast textarea{border-color:#637a94}
+body.examHighContrast .reference{color:#111827}
+body.examHighContrast :focus-visible{outline:3px solid #b9ecff!important;outline-offset:3px!important}

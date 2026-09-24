@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V33 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.1 Batch 1 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,15 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.1 Batch 1 — safe retrieval/readability upgrades
+
+This batch deliberately avoids background timers, storage listeners, runtime polling, and state-schema changes.
+
+- **Typo-tolerant search:** common one-edit mistakes in strong title/tag tokens still surface the intended methodology.
+- **High-contrast reading mode:** user-triggered and persisted inside the existing readability settings.
+- **Stronger focus visibility:** keyboard focus remains obvious during long exam sessions.
+- **Bounded headless-browser boot test:** CI now opens the generated offline `index.html` in Chrome with a fixed virtual-time budget and asserts core exam surfaces exist.
 
 ## V33 integration upgrades
 

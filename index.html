@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="33.0.0">
+<meta name="oscp-build-version" content="34.1.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -322,6 +322,14 @@ body.examFocus .top{justify-content:center}.examFocus .searchbar{max-width:920px
 body.readGuideLines .treePre{background-image:linear-gradient(to bottom,transparent calc(1.65em - 1px),rgba(255,255,255,.035) calc(1.65em - 1px),rgba(255,255,255,.035) 1.65em);background-size:100% 1.65em}
 @media(max-width:900px){#readabilityBtn{font-size:11px;padding:6px 7px}.methodTreeTabs{top:105px}.methodTreeTabs .tiny{width:100%;margin-left:0}body.examFocus .main{padding-left:12px;padding-right:12px}}
 @media print{#readabilityPanel,#readProgressTrack,#backTopBtn,#focusExitBtn,.methodTreeTabs{display:none!important}}
+
+.readerButtonsSingle{grid-template-columns:1fr}
+body.examHighContrast{--muted:#d7e2ee;--line:#51657d;--chip:#26364a}
+body.examHighContrast .card,body.examHighContrast .result,body.examHighContrast .target,body.examHighContrast .decoder{border-color:#637a94}
+body.examHighContrast .muted,body.examHighContrast .tiny,body.examHighContrast .resultText,body.examHighContrast .score{color:#d7e2ee}
+body.examHighContrast input,body.examHighContrast select,body.examHighContrast textarea{border-color:#637a94}
+body.examHighContrast .reference{color:#111827}
+body.examHighContrast :focus-visible{outline:3px solid #b9ecff!important;outline-offset:3px!important}
 </style>
 
 <style id="v24ExamNavigatorStyles">
@@ -487,13 +495,14 @@ Return trigger:"></textarea>
   <div class="readerTitle"><b>Exam reading</b><button class="btn" id="readabilityClose" type="button" aria-label="Close reading controls">×</button></div>
   <div class="readerGroup"><div class="readerLabel">Text size</div><div class="readerButtons"><button class="btn" data-read-size="0" type="button">Small</button><button class="btn" data-read-size="1" type="button">Normal</button><button class="btn" data-read-size="2" type="button">Large</button></div></div>
   <div class="readerGroup"><div class="readerLabel">Spacing</div><div class="readerButtons"><button class="btn" data-read-density="compact" type="button">Compact</button><button class="btn" data-read-density="comfortable" type="button">Comfortable</button><button class="btn" id="readerGuideToggle" type="button">Tree guides</button></div></div>
+  <div class="readerGroup"><div class="readerLabel">Contrast</div><div class="readerButtons readerButtonsSingle"><button class="btn" id="readerContrastToggle" type="button" aria-pressed="false">High contrast</button></div></div>
   <div class="readerGroup"><div class="readerLabel">Distraction control</div><div class="readerButtons"><button class="btn" id="focusModeBtn" type="button">Focus mode</button><button class="btn" id="readerResetBtn" type="button">Reset</button><button class="btn" id="readerSearchBtn" type="button">Search /</button></div><div class="tiny" style="padding:7px 2px 0">Alt+Z toggles Focus. Esc exits Focus. Press / anywhere outside a text field to search.</div></div>
 </div>
 <button class="btn primary" id="focusExitBtn" type="button">Exit Focus · Esc</button>
 <button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
 
 <div class="top">
-  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V33 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V34 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -949,7 +958,7 @@ state-changing AD abuse
 
 
 <section id="serviceRouterView" class="view">
- <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V33</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
+ <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V34</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
  <div class="grid">
   <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Strict port list or scan output</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445&#10;53/udp,161/udp,445/tcp&#10;or paste Nmap / grepable / XML / Masscan output"></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy queue</button><button class="btn" id="serviceRouterLoadTarget" type="button">Load active target</button><button class="btn" id="serviceRouterSaveTarget" type="button">Save to active target</button></div><div id="serviceParseSummary" class="serviceParseSummary muted" role="status" aria-live="polite" aria-atomic="true">Parser waits for a strict port list or recognized scan format.</div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
   <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
@@ -10344,8 +10353,8 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'33.0.0',
-  label:'V33',
+  version:'34.1.0',
+  label:'V34',
   date:'2026-09-24'
 });</script>
 <script id="coreUtilsScript">/* V30 shared pure utilities. Keep this file DOM-free so CI can execute it in Node. */
@@ -10405,6 +10414,55 @@ window.OSCP_BUILD=Object.freeze({
     escapeHtml,clampExamPoints,examScore,evidenceClaims,requiredEvidence,evidenceMissing
   });
 })(typeof window!=='undefined'?window:globalThis);</script>
+<script id="searchCoreScript">/* V34.1 batch 1: pure typo-tolerant search scoring. */
+(function(root){
+  'use strict';
+  function norm(value){
+    return String(value||'').toLowerCase().replace(/[^a-z0-9:_\-\[\]\. ]+/g,' ').replace(/\s+/g,' ').trim();
+  }
+  function withinOneEdit(a,b){
+    a=String(a||'');b=String(b||'');
+    if(a===b)return true;
+    if(Math.abs(a.length-b.length)>1)return false;
+    let i=0,j=0,edits=0;
+    while(i<a.length&&j<b.length){
+      if(a[i]===b[j]){i++;j++;continue}
+      if(++edits>1)return false;
+      if(a.length>b.length)i++;
+      else if(b.length>a.length)j++;
+      else{i++;j++}
+    }
+    if(i<a.length||j<b.length)edits++;
+    return edits<=1;
+  }
+  function nearToken(queryToken,word){
+    if(queryToken.length<4||word.length<4)return false;
+    if(withinOneEdit(queryToken,word))return true;
+    const prefix=word.slice(0,Math.min(word.length,queryToken.length+1));
+    return prefix.length>=4&&withinOneEdit(queryToken,prefix);
+  }
+  function fuzzyScore(item,q){
+    q=norm(q);if(!q)return 0;
+    const title=norm(item?.title),tags=norm((item?.tags||[]).join(' ')),body=norm(item?.text);
+    let score=0;
+    if(title===q)score+=100;
+    if(tags.includes(q))score+=80;
+    if(title.includes(q))score+=55;
+    if(body.includes(q))score+=20;
+    const toks=q.split(/\s+/).filter(Boolean);
+    const strongWords=[...new Set((title+' '+tags).split(/\s+/).filter(Boolean))];
+    for(const t of toks){
+      let direct=false;
+      if(tags.includes(t)){score+=25;direct=true}
+      if(title.includes(t)){score+=18;direct=true}
+      if(body.includes(t)){score+=5;direct=true}
+      if(!direct&&strongWords.some(w=>nearToken(t,w)))score+=12;
+    }
+    return score;
+  }
+  root.OSCP_SEARCH_CORE=Object.freeze({norm,withinOneEdit,nearToken,fuzzyScore});
+})(typeof window!=='undefined'?window:globalThis);
+</script>
 <script>
 /* V19 FIX: storage compatibility guard.
    Some browser/file contexts deny localStorage entirely. In that case keep the
@@ -10541,7 +10599,7 @@ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLower
 $('#globalSearch').addEventListener('input',e=>{if(e.target.value.trim()){switchView('searchView');renderSearch(e.target.value)}});
 
 function norm(s){return (s||'').toLowerCase().replace(/[^a-z0-9:_\-\[\]\. ]+/g,' ')}
-function fuzzyScore(item,q){q=norm(q).trim();if(!q)return 0;const title=norm(item.title),tags=norm((item.tags||[]).join(' ')),body=norm(item.text);let score=0;if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;const toks=q.split(/\s+/).filter(Boolean);for(const t of toks){if(tags.includes(t))score+=25;if(title.includes(t))score+=18;if(body.includes(t))score+=5;}return score}
+function fuzzyScore(item,q){if(window.OSCP_SEARCH_CORE?.fuzzyScore)return window.OSCP_SEARCH_CORE.fuzzyScore(item,q);q=norm(q).trim();if(!q)return 0;const title=norm(item.title),tags=norm((item.tags||[]).join(' ')),body=norm(item.text);let score=0;if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;const toks=q.split(/\s+/).filter(Boolean);for(const t of toks){if(tags.includes(t))score+=25;if(title.includes(t))score+=18;if(body.includes(t))score+=5;}return score}
 function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
 function validRecordId(v){return typeof v==='string'&&/^[A-Za-z0-9._:-]{1,160}$/.test(v)}
 function plainRecord(v){return !!v&&typeof v==='object'&&!Array.isArray(v)}
@@ -13912,7 +13970,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
 (()=>{
   'use strict';
   const STORE='oscp:reader:v23';
-  const defaults={size:'1',density:'comfortable',focus:false,guides:true,tree:'linux'};
+  const defaults={size:'1',density:'comfortable',focus:false,guides:true,contrast:false,tree:'linux'};
   let state={...defaults};
 
   function load(){
@@ -13928,10 +13986,12 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     document.body.dataset.readDensity=state.density;
     document.body.classList.toggle('examFocus',!!state.focus);
     document.body.classList.toggle('readGuideLines',!!state.guides);
+    document.body.classList.toggle('examHighContrast',!!state.contrast);
     document.querySelectorAll('[data-read-size]').forEach(b=>b.classList.toggle('active',b.dataset.readSize===String(state.size)));
     document.querySelectorAll('[data-read-density]').forEach(b=>b.classList.toggle('active',b.dataset.readDensity===state.density));
     $id('readerGuideToggle')?.classList.toggle('active',!!state.guides);
     $id('focusModeBtn')?.classList.toggle('active',!!state.focus);
+    const contrast=$id('readerContrastToggle');if(contrast){contrast.classList.toggle('active',!!state.contrast);contrast.setAttribute('aria-pressed',String(!!state.contrast));contrast.textContent=state.contrast?'High contrast · ON':'High contrast';}
     save();
   }
   function setPanel(open){
@@ -13997,6 +14057,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     document.querySelectorAll('[data-read-size]').forEach(b=>b.addEventListener('click',()=>{state.size=b.dataset.readSize;apply();}));
     document.querySelectorAll('[data-read-density]').forEach(b=>b.addEventListener('click',()=>{state.density=b.dataset.readDensity;apply();}));
     $id('readerGuideToggle')?.addEventListener('click',()=>{state.guides=!state.guides;apply();});
+    $id('readerContrastToggle')?.addEventListener('click',()=>{state.contrast=!state.contrast;apply();});
     $id('focusModeBtn')?.addEventListener('click',()=>toggleFocus());
     $id('focusExitBtn')?.addEventListener('click',()=>toggleFocus(false));
     $id('readerResetBtn')?.addEventListener('click',()=>{state={...defaults};apply();setupTreeTabs();});
