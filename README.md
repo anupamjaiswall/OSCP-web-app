@@ -18,7 +18,7 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 ## V34.6 Batch 6 — required browser regression gate
 
 - Headless Chrome boot/interaction testing is now a required CI gate, not advisory.
-- The gate synchronizes on Chrome's real `Page.loadEventFired` event before evaluating app readiness, avoiding race-prone startup probes.
+- The gate creates a dedicated Chrome DevTools target for the offline `index.html` and polls that exact page for readiness, avoiding races with Chrome's initial blank tab.
 - CI verifies the offline app reaches a healthy boot state with core exam controls present.
 - The browser test exercises typo-tolerant search and high-contrast mode.
 - It additionally checks critical controls at 125% and 150% zoom.

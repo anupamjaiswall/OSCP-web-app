@@ -47,9 +47,12 @@ child.on('exit',(code,signal)=>{childExit={code,signal}});
 
 let ws;
 try{
-  const targets=await waitForJson(`http://127.0.0.1:${port}/json/list`);
-  const page=targets.find(x=>x.type==='page');
-  if(!page?.webSocketDebuggerUrl)throw new Error('No page DevTools target');
+  await waitForJson(`http://127.0.0.1:${port}/json/version`);
+  const appUrl=pathToFileURL(path.join(root,'index.html')).href;
+  const created=await withTimeout(fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(appUrl)}`,{method:'PUT'}),5000,'DevTools target creation');
+  if(!created.ok)throw new Error('Unable to create app DevTools target: HTTP '+created.status);
+  const page=await created.json();
+  if(!page?.webSocketDebuggerUrl)throw new Error('No app page DevTools target');
 
   ws=new WebSocket(page.webSocketDebuggerUrl);
   await withTimeout(new Promise((resolve,reject)=>{
@@ -75,15 +78,8 @@ try{
   const send=(method,params={})=>new Promise((resolve,reject)=>{
     const id=++seq;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}));
   });
-  const once=method=>new Promise(resolve=>waiters.set(method,[...(waiters.get(method)||[]),resolve]));
-
   await send('Runtime.enable');
   await send('Page.enable');
-  const loaded=once('Page.loadEventFired');
-  const nav=await send('Page.navigate',{url:pathToFileURL(path.join(root,'index.html')).href});
-  if(nav?.errorText)throw new Error('Page.navigate failed: '+nav.errorText);
-  await withTimeout(loaded,30000,'Page.loadEventFired');
-  await delay(300);
 
   let lastStateError='';
   async function readState(){
@@ -98,13 +94,13 @@ try{
           boot:window.OSCP_BOOT_HEALTH||null
         }))()`,
         returnByValue:true
-      }),5000,'state evaluation');
+      }),4000,'state evaluation');
       lastStateError='';
       return evaluated?.result?.value||{};
     }catch(e){lastStateError=e.message;return{}}
   }
   let state={};
-  const readyBy=Date.now()+15000;
+  const readyBy=Date.now()+30000;
   while(Date.now()<readyBy){
     state=await readState();
     if(state.globalSearch&&state.serviceRouter&&state.contrast&&state.boot?.ok===true)break;

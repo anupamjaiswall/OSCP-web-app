@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.6.2 — 2026-09-24
+
+### Browser-gate target fix
+- Replaced the unreliable `Page.loadEventFired` dependency with a dedicated Chrome DevTools page target created directly for the offline `index.html`.
+- Readiness checks now poll the exact app target for up to 30 seconds with bounded evaluations.
+- The browser gate remains required; no app runtime code or generated exam artifact changed in this patch.
+
+
 ## V34.6.1 — 2026-09-24
 
 ### Browser-gate determinism fix
