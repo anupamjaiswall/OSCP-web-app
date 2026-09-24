@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.8 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.8.2 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,11 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.8.2 CI stabilization
+
+- Browser render checks now use a bounded wall-clock screenshot capture instead of virtual-time/compositor draining, which could stall Chrome even when the app itself was valid.
+- Runtime app code is unchanged in this patch.
 
 ## V34.8 Batch 8 — lazy deep-search index
 

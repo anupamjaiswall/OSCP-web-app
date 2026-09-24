@@ -25,7 +25,7 @@ async function render(scale){
     '--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio',
     '--disable-client-side-phishing-detection','--disable-features=OptimizationHints,MediaRouter,Translate,AutofillServerCommunication',
     '--no-first-run','--no-default-browser-check','--allow-file-access-from-files',
-    '--run-all-compositor-stages-before-draw','--virtual-time-budget=6000',
+    '--timeout=7000',
     '--window-size=1440,1000',`--force-device-scale-factor=${scale}`,
     `--user-data-dir=${path.join(tmp,'profile')}`,`--screenshot=${shot}`,appUrl
   ];
@@ -34,7 +34,7 @@ async function render(scale){
   child.stderr.on('data',d=>{stderr+=String(d);if(stderr.length>6000)stderr=stderr.slice(-6000)});
   child.on('exit',()=>{exited=true});
   try{
-    const deadline=Date.now()+25000;
+    const deadline=Date.now()+18000;
     while(Date.now()<deadline){
       if(fs.existsSync(shot)){
         const buf=fs.readFileSync(shot);

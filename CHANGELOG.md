@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.8.2 — 2026-09-24
+
+### Browser render gate harness fix
+- Replaced Chrome virtual-time/compositor screenshot flags with a fixed wall-clock headless screenshot timeout.
+- Keeps the browser render gate required at 100%, 125%, and 150% scale while avoiding a Chrome lifecycle stall unrelated to app correctness.
+- Runtime app code and exam methodology are unchanged.
+
+
 ## V34.8.1 — 2026-09-24
 
 ### Lazy-index boot leak fix
