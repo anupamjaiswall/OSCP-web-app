@@ -10201,7 +10201,7 @@ function buildSearchItems(){
   items.push({
    title:(summary?.textContent||node.textContent||node.id).trim(),
    anchor:node.id,
-   tags:[...new Set([...text.matchAll(/\[[\]/g)].map(x=>x[0]))],
+   tags:[...new Set([...text.matchAll(/\[[A-Z0-9:_.-]+\]/g)].map(x=>x[0]))],
    text,
    kind:'detail'
   });
