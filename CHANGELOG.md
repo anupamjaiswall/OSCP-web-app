@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.6.4 — 2026-09-24
+
+### Required browser-gate pipe transport
+- Replaced both TCP DevTools and `--dump-dom` with Chrome DevTools Protocol over local OS pipes.
+- The required gate creates and attaches to the exact offline app target without network-port or load-event races.
+- Restored real browser interaction checks for typo search, high contrast, 125%/150% zoom, boot health, and uncaught exceptions.
+- App runtime code and generated exam artifact remain unchanged.
+
+
 ## V34.6.3 — 2026-09-24
 
 ### Required browser-gate transport fix
