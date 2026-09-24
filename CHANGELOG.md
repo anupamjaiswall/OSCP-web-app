@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.14.1 — 2026-09-24
+
+### Snapshot delete runtime fix
+- Fixed recovery-snapshot Delete binding to iterate the full NodeList instead of calling `.forEach` on a nullable single-element selector.
+- Added a regression that locks the correct `$('.snapDelete').forEach(...)` binding.
+- No storage schema, methodology, or startup behavior changed.
+
+
 ## V34.14.0 — 2026-09-24
 
 ### Batch 14 — fix infinite-load MutationObserver loop

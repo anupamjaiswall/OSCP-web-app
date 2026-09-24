@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.14 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.14.1 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -22,6 +22,13 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 - After the browser `load` event, the reference hydrates in small section chunks so the exam controls stay responsive.
 - Search and reference navigation refresh automatically when hydration finishes.
 - No network fetch, server, CDN, or second artifact is introduced.
+
+## V34.14.1 runtime fix
+
+- Fixed recovery-snapshot Delete handler binding that could throw during the first deferred compatibility render.
+- Added regression coverage for the exact selector mistake.
+- No other runtime behavior changed.
+
 
 ## V34.14 Batch 14 — infinite-load root-cause fix
 
