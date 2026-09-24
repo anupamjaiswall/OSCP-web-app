@@ -19,7 +19,9 @@ if(/<script\b[^>]*\bsrc\s*=/i.test(html)) fail('Runtime script source detected')
 if(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref\s*=/i.test(html)) fail('Runtime stylesheet detected');
 if(/<(?:script|img|link)\b[^>]*(?:src|href)=["']https?:\/\//i.test(html)) fail('Remote runtime resource detected');
 
-const structuralHtml=html.replace(/<script type="application\\/json" id="referencePayload">[\\s\\S]*?<\\/script>/i,'');
+const payloadStart='<script type="application/json" id="referencePayload">';
+const payloadAt=html.indexOf(payloadStart),payloadEnd=payloadAt>=0?html.indexOf('</script>',payloadAt):-1;
+const structuralHtml=payloadAt>=0&&payloadEnd>=0?html.slice(0,payloadAt)+html.slice(payloadEnd+9):html;
 const ids=[...structuralHtml.matchAll(/\bid=["']([^"']+)["']/gi)].map(m=>m[1]),seen=new Set(),dupes=[];
 for(const id of ids){if(seen.has(id))dupes.push(id);seen.add(id)}
 if(dupes.length) fail('Duplicate IDs: '+[...new Set(dupes)].join(', '));
