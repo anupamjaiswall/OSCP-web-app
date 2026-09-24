@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.6.5 — 2026-09-24
+
+### Browser-gate stabilization
+- Replaced the flaky DevTools-pipe transport with bounded headless Chrome DOM boot checks using a fixed virtual-time budget.
+- The required gate verifies runtime-created exam controls at 100%, 125%, and 150% scale.
+- Typo search and high-contrast behavior remain covered by deterministic regression tests instead of fragile CDP interaction transport.
+- App runtime code and generated exam artifact remain unchanged.
+
+
 ## V34.6.4 — 2026-09-24
 
 ### Required browser-gate pipe transport
