@@ -14306,8 +14306,8 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
    $id('workStripEdit')?.addEventListener('click',()=>openWork());
    root.classList.toggle('noTarget',!has);
  }
- function escHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
- function escAttr(s){return escHtml(s).replace(/'/g,'&#39;')}
+ function escHtml(s){return window.OSCP_UTILS.escapeHtml(s)}
+ function escAttr(s){return window.OSCP_UTILS.escapeHtml(s)}
 
  const fieldMap={evidence:'workEvidence',hypothesis:'workHypothesis',missing:'workMissing',nextTest:'workNextTest',returnWhen:'workReturn'};
  function fillWork(){
