@@ -55,6 +55,8 @@ test('target deletion snapshots first and repairs active-target state',()=>{cons
 
 test('browser smoke is a required bounded CI gate',()=>{const ci=read('.github/workflows/ci.yml'),smoke=read('scripts/browser-smoke.mjs');ok(ci.includes('Headless browser boot and interaction gate'));ok(!ci.includes('continue-on-error: true'));ok(smoke.includes("'--virtual-time-budget=5000'"));ok(smoke.includes("'--dump-dom'"));ok(smoke.includes('run(1.25)'));ok(smoke.includes('run(1.5)'));ok(smoke.includes('readerContrastToggle'));ok(smoke.includes('v33TopCheck'));ok(!smoke.includes('remote-debugging-port'));ok(!smoke.includes('remote-debugging-pipe'))});
 
+test('bracket links are incremental and non-blocking at startup',()=>{const src=read('src/js/12-v22-bracket-links.js');const start=src.slice(src.indexOf('function start()'),src.indexOf("if(document.readyState==='loading')"));ok(src.includes('function linkifyIncremental'));ok(src.includes('setTimeout(pump,0)'));ok(start.includes('linkifyIncremental(root'));ok(!start.includes('linkify(root)'));ok(src.includes('window.OSCP_TAG_LINKS.complete=true'))});
+
 test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
 test('browser Service Router delegates pure core',()=>ok(read('src/js/09-v20-service-router.js').includes('window.OSCP_SERVICE_CORE')));
 test('research-backed scan workflow stays two-pass',()=>{

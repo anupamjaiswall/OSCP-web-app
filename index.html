@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.6.0">
+<meta name="oscp-build-version" content="34.7.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -10353,7 +10353,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.6.0',
+  version:'34.7.0',
   label:'V34',
   date:'2026-09-24'
 });</script>
@@ -13844,15 +13844,15 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
 (()=>{const m=document.getElementById('examBankModal'),b=document.getElementById('examBankBtn'),c=document.getElementById('examBankClose');if(!m||!b||!c)return;const open=()=>{m.classList.add('open');m.setAttribute('aria-hidden','false');c.focus()},close=()=>{m.classList.remove('open');m.setAttribute('aria-hidden','true');b.focus()};b.onclick=open;c.onclick=close;m.onclick=e=>{if(e.target===m)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&m.classList.contains('open')){e.preventDefault();close()}else if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='b'){e.preventDefault();open()}});document.getElementById('examBankTarget')?.addEventListener('click',()=>{close();try{switchView('workspaceView')}catch(e){}});document.getElementById('examBankEvidence')?.addEventListener('click',()=>{close();const q=document.getElementById('globalSearch');if(!q)return;q.value='[EVIDENCE:PACKET]';try{switchView('searchView');renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}});document.getElementById('examBankVerify')?.addEventListener('click',()=>{close();try{switchView('reportsView');renderReport();toast('Verify the report/evidence gate — this dialog never marks points as banked')}catch(e){}});window.OSCP_PROOF_BANK={open,close}})();
 </script>
 
-<script id="v22BracketLinksScript">
-(()=>{
+<script id="v22BracketLinksScript">(()=>{
   'use strict';
   const TAG_RE=/\[(?:[A-Z][A-Z0-9_-]*)(?::[A-Z0-9_.-]+)+\]/g;
+  const TAG_TEST=/\[(?:[A-Z][A-Z0-9_-]*)(?::[A-Z0-9_.-]+)+\]/;
   const SKIP='script,style,noscript,textarea,input,select,option,a,button,[contenteditable="true"],[data-tag],[data-open],[data-q]';
 
   function canLink(node){
     const p=node&&node.parentElement;
-    return !!p&&!p.closest(SKIP)&&TAG_RE.test(node.nodeValue||'');
+    return !!p&&!p.closest(SKIP)&&TAG_TEST.test(node.nodeValue||'');
   }
 
   function tagLink(tag){
@@ -13867,9 +13867,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   }
 
   function linkText(node){
-    if(!node||node.nodeType!==Node.TEXT_NODE)return 0;
-    TAG_RE.lastIndex=0;
-    if(!canLink(node)){TAG_RE.lastIndex=0;return 0;}
+    if(!node||node.nodeType!==Node.TEXT_NODE||!canLink(node))return 0;
     const text=node.nodeValue||'';
     TAG_RE.lastIndex=0;
     let m,last=0,count=0;
@@ -13880,9 +13878,10 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
       last=m.index+m[0].length;
       count++;
     }
+    TAG_RE.lastIndex=0;
     if(!count)return 0;
     if(last<text.length)frag.appendChild(document.createTextNode(text.slice(last)));
-    node.parentNode.replaceChild(frag,node);
+    node.parentNode?.replaceChild(frag,node);
     return count;
   }
 
@@ -13895,6 +13894,31 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     const nodes=[];
     while(walker.nextNode())nodes.push(walker.currentNode);
     return nodes.reduce((n,x)=>n+linkText(x),0);
+  }
+
+  function linkifyIncremental(root,{chunkSize=160,onDone}={}){
+    if(!root)return;
+    const iterator=document.createNodeIterator(root,NodeFilter.SHOW_TEXT);
+    let total=0,finished=false;
+    function pump(){
+      if(finished)return;
+      let processed=0,node;
+      while(processed<chunkSize&&(node=iterator.nextNode())){
+        total+=linkText(node);
+        processed++;
+      }
+      if(!node){
+        finished=true;
+        if(window.OSCP_TAG_LINKS){
+          window.OSCP_TAG_LINKS.initialLinked=total;
+          window.OSCP_TAG_LINKS.complete=true;
+        }
+        if(typeof onDone==='function')onDone(total);
+        return;
+      }
+      setTimeout(pump,0);
+    }
+    setTimeout(pump,0);
   }
 
   function exactTagMatches(tag){
@@ -13936,22 +13960,28 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
 
   function start(){
     const root=document.querySelector('.main')||document.body;
-    const linked=linkify(root);
-    const observer=new MutationObserver(records=>{
-      for(const record of records){
-        for(const node of record.addedNodes){
-          if(node.nodeType===Node.TEXT_NODE)linkText(node);
-          else if(node.nodeType===Node.ELEMENT_NODE)linkify(node);
+    window.OSCP_TAG_LINKS={linkify,linkifyIncremental,goToTag,exactTagMatches,initialLinked:0,complete:false};
+
+    linkifyIncremental(root,{onDone:linked=>{
+      const observer=new MutationObserver(records=>{
+        for(const record of records){
+          for(const added of record.addedNodes){
+            if(added.nodeType===Node.TEXT_NODE)linkText(added);
+            else if(added.nodeType===Node.ELEMENT_NODE)linkify(added);
+          }
         }
-      }
-    });
-    observer.observe(root,{childList:true,subtree:true});
-    window.OSCP_TAG_LINKS={linkify,goToTag,exactTagMatches,initialLinked:linked};
+      });
+      observer.observe(root,{childList:true,subtree:true});
+      window.OSCP_TAG_LINKS.observer=observer;
+      window.OSCP_TAG_LINKS.initialLinked=linked;
+      window.OSCP_TAG_LINKS.complete=true;
+    }});
+
     try{
       if(typeof V16_SELF_TESTS!=='undefined'){
         V16_SELF_TESTS.push(['Clickable bracket reference tags',()=>[
-          !!document.querySelector('.tagRefLink')&&typeof window.OSCP_TAG_LINKS.goToTag==='function',
-          document.querySelectorAll('.tagRefLink').length+' linked tags'
+          typeof window.OSCP_TAG_LINKS.goToTag==='function'&&typeof window.OSCP_TAG_LINKS.linkifyIncremental==='function',
+          (window.OSCP_TAG_LINKS.initialLinked||0)+' linked tags · '+(window.OSCP_TAG_LINKS.complete?'complete':'linking')
         ]]);
       }
     }catch(_){}

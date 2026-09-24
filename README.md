@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.6 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.7 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,13 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.7 Batch 7 — faster first paint
+
+- Clickable bracket references are now linked **incrementally after first paint** instead of scanning and rewriting the entire notes DOM synchronously during startup.
+- The public `OSCP_TAG_LINKS` API remains available immediately; all matching bracket tags continue becoming clickable in finite chunks.
+- The mutation observer starts only after the initial finite pass, avoiding self-generated mutation churn during boot.
+- CI locks out the old blocking `linkify(root)` startup path.
 
 ## V34.6 Batch 6 — required browser regression gate
 

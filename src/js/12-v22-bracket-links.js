@@ -1,12 +1,12 @@
-
 (()=>{
   'use strict';
   const TAG_RE=/\[(?:[A-Z][A-Z0-9_-]*)(?::[A-Z0-9_.-]+)+\]/g;
+  const TAG_TEST=/\[(?:[A-Z][A-Z0-9_-]*)(?::[A-Z0-9_.-]+)+\]/;
   const SKIP='script,style,noscript,textarea,input,select,option,a,button,[contenteditable="true"],[data-tag],[data-open],[data-q]';
 
   function canLink(node){
     const p=node&&node.parentElement;
-    return !!p&&!p.closest(SKIP)&&TAG_RE.test(node.nodeValue||'');
+    return !!p&&!p.closest(SKIP)&&TAG_TEST.test(node.nodeValue||'');
   }
 
   function tagLink(tag){
@@ -21,9 +21,7 @@
   }
 
   function linkText(node){
-    if(!node||node.nodeType!==Node.TEXT_NODE)return 0;
-    TAG_RE.lastIndex=0;
-    if(!canLink(node)){TAG_RE.lastIndex=0;return 0;}
+    if(!node||node.nodeType!==Node.TEXT_NODE||!canLink(node))return 0;
     const text=node.nodeValue||'';
     TAG_RE.lastIndex=0;
     let m,last=0,count=0;
@@ -34,9 +32,10 @@
       last=m.index+m[0].length;
       count++;
     }
+    TAG_RE.lastIndex=0;
     if(!count)return 0;
     if(last<text.length)frag.appendChild(document.createTextNode(text.slice(last)));
-    node.parentNode.replaceChild(frag,node);
+    node.parentNode?.replaceChild(frag,node);
     return count;
   }
 
@@ -49,6 +48,31 @@
     const nodes=[];
     while(walker.nextNode())nodes.push(walker.currentNode);
     return nodes.reduce((n,x)=>n+linkText(x),0);
+  }
+
+  function linkifyIncremental(root,{chunkSize=160,onDone}={}){
+    if(!root)return;
+    const iterator=document.createNodeIterator(root,NodeFilter.SHOW_TEXT);
+    let total=0,finished=false;
+    function pump(){
+      if(finished)return;
+      let processed=0,node;
+      while(processed<chunkSize&&(node=iterator.nextNode())){
+        total+=linkText(node);
+        processed++;
+      }
+      if(!node){
+        finished=true;
+        if(window.OSCP_TAG_LINKS){
+          window.OSCP_TAG_LINKS.initialLinked=total;
+          window.OSCP_TAG_LINKS.complete=true;
+        }
+        if(typeof onDone==='function')onDone(total);
+        return;
+      }
+      setTimeout(pump,0);
+    }
+    setTimeout(pump,0);
   }
 
   function exactTagMatches(tag){
@@ -90,22 +114,28 @@
 
   function start(){
     const root=document.querySelector('.main')||document.body;
-    const linked=linkify(root);
-    const observer=new MutationObserver(records=>{
-      for(const record of records){
-        for(const node of record.addedNodes){
-          if(node.nodeType===Node.TEXT_NODE)linkText(node);
-          else if(node.nodeType===Node.ELEMENT_NODE)linkify(node);
+    window.OSCP_TAG_LINKS={linkify,linkifyIncremental,goToTag,exactTagMatches,initialLinked:0,complete:false};
+
+    linkifyIncremental(root,{onDone:linked=>{
+      const observer=new MutationObserver(records=>{
+        for(const record of records){
+          for(const added of record.addedNodes){
+            if(added.nodeType===Node.TEXT_NODE)linkText(added);
+            else if(added.nodeType===Node.ELEMENT_NODE)linkify(added);
+          }
         }
-      }
-    });
-    observer.observe(root,{childList:true,subtree:true});
-    window.OSCP_TAG_LINKS={linkify,goToTag,exactTagMatches,initialLinked:linked};
+      });
+      observer.observe(root,{childList:true,subtree:true});
+      window.OSCP_TAG_LINKS.observer=observer;
+      window.OSCP_TAG_LINKS.initialLinked=linked;
+      window.OSCP_TAG_LINKS.complete=true;
+    }});
+
     try{
       if(typeof V16_SELF_TESTS!=='undefined'){
         V16_SELF_TESTS.push(['Clickable bracket reference tags',()=>[
-          !!document.querySelector('.tagRefLink')&&typeof window.OSCP_TAG_LINKS.goToTag==='function',
-          document.querySelectorAll('.tagRefLink').length+' linked tags'
+          typeof window.OSCP_TAG_LINKS.goToTag==='function'&&typeof window.OSCP_TAG_LINKS.linkifyIncremental==='function',
+          (window.OSCP_TAG_LINKS.initialLinked||0)+' linked tags · '+(window.OSCP_TAG_LINKS.complete?'complete':'linking')
         ]]);
       }
     }catch(_){}

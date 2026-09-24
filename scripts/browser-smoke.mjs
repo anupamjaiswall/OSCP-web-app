@@ -19,12 +19,12 @@ function run(scale){
   try{
     const out=execFileSync(findBrowser(),[
       '--headless=new','--disable-gpu','--no-sandbox','--disable-dev-shm-usage',
-      '--disable-background-networking','--disable-component-update','--disable-sync',
-      '--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio',
+      '--disable-background-networking','--disable-component-update','--disable-sync','--disable-client-side-phishing-detection',
+      '--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio','--disable-features=OptimizationHints,MediaRouter,Translate,AutofillServerCommunication',
       '--no-first-run','--no-default-browser-check','--allow-file-access-from-files',
       '--virtual-time-budget=5000',`--force-device-scale-factor=${scale}`,
       `--user-data-dir=${profile}`,'--dump-dom',appUrl
-    ],{encoding:'utf8',timeout:20000,maxBuffer:8*1024*1024,stdio:['ignore','pipe','pipe']});
+    ],{encoding:'utf8',timeout:30000,maxBuffer:8*1024*1024,stdio:['ignore','pipe','pipe']});
     const required=[
       '<title>OSCP Exam-Only Operating System</title>',
       'id="globalSearch"',

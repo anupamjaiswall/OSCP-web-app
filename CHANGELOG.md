@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.7.0 — 2026-09-24
+
+### Batch 7 — startup performance
+- Replaced synchronous whole-document bracket-tag linkification during DOMContentLoaded with finite chunked processing after first paint.
+- Delayed the bracket-link mutation observer until the initial pass completes, reducing boot-time mutation churn.
+- Fixed global-regex state leakage in bracket-tag eligibility checks.
+- Added regression coverage preventing a return to the blocking startup path.
+- Browser smoke gets a slightly larger bounded process timeout while retaining a fixed virtual-time budget.
+
+
 ## V34.6.5 — 2026-09-24
 
 ### Browser-gate stabilization
