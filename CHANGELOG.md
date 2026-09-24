@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.0.1 — 2026-09-24
+
+### Boot-safety hotfix
+- Removed V34 periodic background rendering, cross-tab storage chatter, and global runtime-error rendering after a browser-side infinite-loading regression.
+- Kept backup freshness and high-contrast controls as lightweight event-driven features.
+- Added a headless Chrome boot smoke test to CI so the generated offline page must reach a completed DOM load.
+
+
 ## V34.0.0 — 2026-09-24
 
 ### Exam resilience and regression hardening

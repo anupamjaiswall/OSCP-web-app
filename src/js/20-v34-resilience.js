@@ -1,28 +1,86 @@
 (()=>{
  'use strict';
  const $id=id=>document.getElementById(id);
- const KEY_BACKUP='oscp_v34_last_external_backup',KEY_CONTRAST='oscp_v34_high_contrast',KEY_PING='oscp_v34_tab_ping',KEY_PONG='oscp_v34_tab_pong',KEY_BYE='oscp_v34_tab_bye';
- const tabId=(globalThis.crypto?.randomUUID?.()||('tab-'+Date.now()+'-'+Math.random().toString(16).slice(2)));
- let otherTabAt=0,otherTabId='',errors=[],downloadWrapped=false;
+ const KEY_BACKUP='oscp_v34_last_external_backup';
+ const KEY_CONTRAST='oscp_v34_high_contrast';
  function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e}
  function btn(label,fn,cls='btn'){const b=node('button',cls,label);b.type='button';b.addEventListener('click',fn);return b}
- function safeGet(k,d=''){try{const v=localStorage.getItem(k);return v===null?d:v}catch(_){return d}}function safeSet(k,v){try{localStorage.setItem(k,v);return true}catch(_){return false}}function parseJson(s,f=null){try{return JSON.parse(s)}catch(_){return f}}
+ function safeGet(k,d=''){try{const v=localStorage.getItem(k);return v===null?d:v}catch(_){return d}}
+ function safeSet(k,v){try{localStorage.setItem(k,v);return true}catch(_){return false}}
+ function parseJson(s,f=null){try{return JSON.parse(s)}catch(_){return f}}
  function rel(ts){if(!ts)return'never';const sec=Math.max(0,Math.floor((Date.now()-ts)/1000));if(sec<60)return sec+'s ago';const m=Math.floor(sec/60);if(m<60)return m+'m ago';const h=Math.floor(m/60);return h<48?h+'h ago':Math.floor(h/24)+'d ago'}
- function backupInfo(){const x=parseJson(safeGet(KEY_BACKUP,''),{});return x&&Number.isFinite(+x.at)?{at:+x.at,name:String(x.name||'session backup')}:{at:0,name:''}}function markBackup(name){safeSet(KEY_BACKUP,JSON.stringify({at:Date.now(),name:String(name||'session backup')}));renderAll()}
- function wrapDownloads(){if(downloadWrapped)return;const base=window.downloadText;if(typeof base!=='function')return;downloadWrapped=true;window.downloadText=function(name,...rest){const out=base.call(this,name,...rest);if(/^oscp-(?:session|encrypted-backup)\.json$/i.test(String(name||'')))markBackup(name);return out}}
- function persistent(){return window.__OSCP_STORAGE_PERSISTENT__!==false}function tabConflict(){return !!otherTabAt&&Date.now()-otherTabAt<45000}function send(key,payload){safeSet(key,JSON.stringify(payload))}function ping(){send(KEY_PING,{id:tabId,at:Date.now()})}
- function setupTabs(){window.addEventListener('storage',e=>{if(!e.newValue)return;const m=parseJson(e.newValue,null);if(!m||m.id===tabId)return;if(e.key===KEY_PING)send(KEY_PONG,{id:tabId,to:m.id,at:Date.now()});else if(e.key===KEY_PONG&&m.to===tabId){otherTabAt=Date.now();otherTabId=m.id;renderAll()}else if(e.key===KEY_BYE&&m.id===otherTabId){otherTabAt=0;otherTabId='';renderAll()}});ping();setInterval(ping,30000);window.addEventListener('beforeunload',()=>send(KEY_BYE,{id:tabId,at:Date.now()}))}
- function recordError(kind,message,source,line){const msg=String(message||'Unknown error');if(/ResizeObserver loop/i.test(msg))return;errors.unshift({at:Date.now(),kind,msg,source:String(source||''),line:Number(line||0)});errors=errors.slice(0,12);renderAll()}function setupErrors(){window.addEventListener('error',e=>recordError('error',e.message,e.filename,e.lineno));window.addEventListener('unhandledrejection',e=>recordError('promise',e.reason?.message||e.reason||'Unhandled promise rejection','',''))}
- function setContrast(on){document.body.classList.toggle('v34HighContrast',!!on);safeSet(KEY_CONTRAST,on?'1':'0');renderAll()}function contrastOn(){return document.body.classList.contains('v34HighContrast')}
- function ensurePanel(){let back=$id('v34SafetyBackdrop');if(back)return back;back=node('div','v34SafetyBackdrop');back.id='v34SafetyBackdrop';back.setAttribute('role','dialog');back.setAttribute('aria-modal','true');back.setAttribute('aria-labelledby','v34SafetyTitle');const dialog=node('div','v34SafetyDialog'),head=node('div','v34SafetyHead'),left=node('div'),title=node('h2','', 'Exam resilience status');title.id='v34SafetyTitle';left.append(title,node('div','muted','Storage, backup freshness, multi-tab safety and runtime errors.'));head.append(left,btn('×',closePanel));dialog.append(head);const grid=node('div','v34SafetyGrid');grid.id='v34SafetyGrid';dialog.append(grid);const err=node('div','v34SafetyItem');err.id='v34RuntimeErrors';dialog.append(err);const actions=node('div','v34SafetyActions');actions.append(btn('Export secret-free backup',()=>{$id('exportSession')?.click()},'btn good'),btn('Open Session recovery',()=>{closePanel();if(typeof switchView==='function')switchView('sessionView')}),btn('Open Exam Clock',()=>{closePanel();if(typeof switchView==='function')switchView('clockView')}),btn('High contrast',()=>setContrast(!contrastOn())));dialog.append(actions);back.append(dialog);back.addEventListener('click',e=>{if(e.target===back)closePanel()});document.body.append(back);return back}
- function safetyRows(){const b=backupInfo(),age=b.at?Date.now()-b.at:Infinity;return[{title:'Browser persistence',state:persistent()?'good':'bad',detail:persistent()?'Persistent localStorage is available.':'Storage fallback is memory-only; closing this tab can lose state.'},{title:'Single-tab guard',state:tabConflict()?'bad':'good',detail:tabConflict()?'Another copy of this app responded recently. Close the extra tab to avoid competing writes.':'No competing tab responded in the last 45 seconds (best-effort check).'},{title:'External backup',state:!b.at?'warn':age>7200000?'warn':'good',detail:b.at?(b.name+' · '+rel(b.at)):'No downloaded session backup recorded in this browser yet.'},{title:'Runtime errors',state:errors.length?'bad':'good',detail:errors.length?(errors.length+' captured error(s) this session.'):'No uncaught JavaScript errors captured this session.'}]}
- function renderPanel(){if(!$id('v34SafetyBackdrop'))return;const grid=$id('v34SafetyGrid');grid.replaceChildren();for(const x of safetyRows()){const d=node('div','v34SafetyItem '+x.state);d.append(node('b','',x.title),node('div','tiny',x.detail));grid.append(d)}const box=$id('v34RuntimeErrors');box.replaceChildren(node('b','', 'Runtime error log'));if(!errors.length)box.append(node('div','tiny','No uncaught runtime errors.'));else{const list=node('div','v34ErrorList');for(const e of errors)list.append(node('div','v34Error','['+new Date(e.at).toLocaleTimeString()+'] '+e.kind+': '+e.msg+(e.source?' · '+e.source+(e.line?':'+e.line:''):'')));box.append(list)}}
- function openPanel(){ensurePanel();renderPanel();$id('v34SafetyBackdrop').classList.add('open')}function closePanel(){$id('v34SafetyBackdrop')?.classList.remove('open')}
- function renderTop(){const b=$id('v34SafetyBtn');if(!b)return;const rows=safetyRows(),bad=rows.some(x=>x.state==='bad'),warn=rows.some(x=>x.state==='warn');b.className='btn'+(bad?' v34Bad':warn?' v34Warn':'');b.textContent=bad?'⚠ Safety':warn?'○ Safety':'✓ Safety';b.title=rows.map(x=>x.title+': '+x.detail).join('\n');$id('v34TabWarning')?.classList.toggle('show',tabConflict())}
- function renderRecovery(){const root=$id('v34RecoveryStatus');if(!root)return;root.replaceChildren();const b=backupInfo();for(const x of safetyRows().slice(0,3)){const d=node('div','v34RecoveryMetric');d.append(node('b','',x.title),node('div','tiny',x.detail));root.append(d)}const note=$id('v34BackupNote');if(note)note.textContent=b.at?'Last downloaded backup: '+new Date(b.at).toLocaleString()+' ('+b.name+').':'No downloaded session backup recorded yet. Local autosnapshots protect against many in-browser mistakes, but keep an external file too.'}
- function renderContrastButton(){const b=$id('v34ContrastBtn');if(b)b.textContent=contrastOn()?'High contrast: ON':'High contrast: OFF'}function renderAll(){renderTop();renderPanel();renderRecovery();renderContrastButton()}
- function addEntryPoints(){const help=$id('examHelpBtn'),top=help?.parentElement;if(top&&!$id('v34SafetyBtn')){const b=btn('○ Safety',openPanel);b.id='v34SafetyBtn';top.insertBefore(b,help)}if(!$id('v34TabWarning')){const w=node('div','v34TabWarning','⚠ Another app tab is active. Close the duplicate tab before continuing so local state cannot race.');w.id='v34TabWarning';w.setAttribute('role','alert');document.body.append(w)}const session=$id('sessionView'),hero=session?.querySelector('.hero');if(session&&hero&&!$id('v34RecoveryCard')){const card=node('div','card v34RecoveryCard');card.id='v34RecoveryCard';const h=node('div','row'),left=node('div');left.append(node('h2','', 'Exam-state resilience'),node('div','muted','Use one browser tab. Keep an external session file in addition to local autosnapshots.'));h.append(left,btn('Open safety status',openPanel,'btn primary'));card.append(h);const note=node('div','tiny');note.id='v34BackupNote';card.append(note);const metrics=node('div','v34RecoveryStatus');metrics.id='v34RecoveryStatus';card.append(metrics);hero.insertAdjacentElement('afterend',card)}const rp=$id('readabilityPanel');if(rp&&!$id('v34ContrastBtn')){const g=node('div','readerGroup'),lab=node('div','readerLabel','Contrast'),wrap=node('div','readerButtons'),b=btn('High contrast: OFF',()=>setContrast(!contrastOn()));b.id='v34ContrastBtn';wrap.append(b);g.append(lab,wrap);rp.append(g)}const actions=window.OSCP_V26?.actions;if(Array.isArray(actions)&&!actions.some(x=>x.id==='v34-safety'))actions.push({id:'v34-safety',icon:'🛟',title:'Exam resilience status',desc:'Backup freshness, tab conflict, storage and runtime errors',kind:'safety',keys:'backup safety recovery multi tab runtime error storage',run:openPanel})}
- function setupBackupTracking(){wrapDownloads();const exp=$id('exportSession');if(exp&&!exp.dataset.v34BackupTrack){exp.dataset.v34BackupTrack='1';exp.addEventListener('click',()=>setTimeout(()=>markBackup('oscp-session.json'),80))}}
- function start(){document.body.classList.toggle('v34HighContrast',safeGet(KEY_CONTRAST,'0')==='1');ensurePanel();addEntryPoints();setupBackupTracking();setupTabs();setupErrors();renderAll();setInterval(()=>{wrapDownloads();addEntryPoints();renderAll()},5000);try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['V34 resilience status',()=>[!!$id('v34SafetyBtn')&&!!$id('v34SafetyBackdrop'),'safety status']],['V34 multi-tab guard',()=>[typeof window.OSCP_V34?.ping==='function','cross-tab ping guard']],['V34 runtime error monitor',()=>[typeof window.OSCP_V34?.errors==='function','error capture']])}catch(_){}window.OSCP_V34={openPanel,closePanel,ping,errors:()=>errors.slice(),tabConflict,backupInfo,setContrast}}
+ function backupInfo(){const x=parseJson(safeGet(KEY_BACKUP,''),{});return x&&Number.isFinite(+x.at)?{at:+x.at,name:String(x.name||'session backup')}:{at:0,name:''}}
+ function persistent(){return window.__OSCP_STORAGE_PERSISTENT__!==false}
+ function markBackup(name){safeSet(KEY_BACKUP,JSON.stringify({at:Date.now(),name:String(name||'session backup')}));renderAll()}
+ function contrastOn(){return document.body.classList.contains('v34HighContrast')}
+ function setContrast(on){document.body.classList.toggle('v34HighContrast',!!on);safeSet(KEY_CONTRAST,on?'1':'0');renderAll()}
+ function safetyRows(){
+   const b=backupInfo(),age=b.at?Date.now()-b.at:Infinity;
+   return[
+     {title:'Browser persistence',state:persistent()?'good':'bad',detail:persistent()?'Persistent localStorage is available.':'Storage fallback is memory-only; export a session backup before closing the tab.'},
+     {title:'External backup',state:!b.at?'warn':age>7200000?'warn':'good',detail:b.at?(b.name+' · '+rel(b.at)):'No downloaded session backup recorded in this browser yet.'}
+   ];
+ }
+ function ensurePanel(){
+   let back=$id('v34SafetyBackdrop');if(back)return back;
+   back=node('div','v34SafetyBackdrop');back.id='v34SafetyBackdrop';back.setAttribute('role','dialog');back.setAttribute('aria-modal','true');back.setAttribute('aria-labelledby','v34SafetyTitle');
+   const dialog=node('div','v34SafetyDialog'),head=node('div','v34SafetyHead'),left=node('div'),title=node('h2','Exam resilience status');title.id='v34SafetyTitle';
+   left.append(title,node('div','muted','Lightweight status only: persistence, external backup freshness and readability.'));
+   head.append(left,btn('×',closePanel));dialog.append(head);
+   const grid=node('div','v34SafetyGrid');grid.id='v34SafetyGrid';dialog.append(grid);
+   const actions=node('div','v34SafetyActions');
+   actions.append(
+     btn('Export secret-free backup',()=>{$id('exportSession')?.click()},'btn good'),
+     btn('Open Session recovery',()=>{closePanel();if(typeof switchView==='function')switchView('sessionView')}),
+     btn('Open Exam Clock',()=>{closePanel();if(typeof switchView==='function')switchView('clockView')}),
+     btn('High contrast',()=>setContrast(!contrastOn()))
+   );
+   dialog.append(actions);back.append(dialog);back.addEventListener('click',e=>{if(e.target===back)closePanel()});document.body.append(back);return back;
+ }
+ function renderPanel(){
+   const grid=$id('v34SafetyGrid');if(!grid)return;grid.replaceChildren();
+   for(const x of safetyRows()){const d=node('div','v34SafetyItem '+x.state);d.append(node('b','',x.title),node('div','tiny',x.detail));grid.append(d)}
+ }
+ function openPanel(){ensurePanel();renderPanel();$id('v34SafetyBackdrop')?.classList.add('open')}
+ function closePanel(){$id('v34SafetyBackdrop')?.classList.remove('open')}
+ function renderTop(){
+   const b=$id('v34SafetyBtn');if(!b)return;
+   const rows=safetyRows(),bad=rows.some(x=>x.state==='bad'),warn=rows.some(x=>x.state==='warn');
+   b.className='btn'+(bad?' v34Bad':warn?' v34Warn':'');b.textContent=bad?'⚠ Safety':warn?'○ Safety':'✓ Safety';b.title=rows.map(x=>x.title+': '+x.detail).join('\n');
+ }
+ function renderRecovery(){
+   const root=$id('v34RecoveryStatus');if(!root)return;root.replaceChildren();const b=backupInfo();
+   for(const x of safetyRows()){const d=node('div','v34RecoveryMetric');d.append(node('b','',x.title),node('div','tiny',x.detail));root.append(d)}
+   const note=$id('v34BackupNote');if(note)note.textContent=b.at?'Last downloaded backup: '+new Date(b.at).toLocaleString()+' ('+b.name+').':'No downloaded session backup recorded yet. Local autosnapshots help, but keep an external file too.';
+ }
+ function renderContrastButton(){const b=$id('v34ContrastBtn');if(b)b.textContent=contrastOn()?'High contrast: ON':'High contrast: OFF'}
+ function renderAll(){renderTop();renderPanel();renderRecovery();renderContrastButton()}
+ function addEntryPoints(){
+   const help=$id('examHelpBtn'),top=help?.parentElement;
+   if(top&&!$id('v34SafetyBtn')){const b=btn('○ Safety',openPanel);b.id='v34SafetyBtn';top.insertBefore(b,help)}
+   const session=$id('sessionView'),hero=session?.querySelector('.hero');
+   if(session&&hero&&!$id('v34RecoveryCard')){
+     const card=node('div','card v34RecoveryCard');card.id='v34RecoveryCard';const h=node('div','row'),left=node('div');
+     left.append(node('h2','', 'Exam-state resilience'),node('div','muted','Keep an external session file in addition to local autosnapshots.'));
+     h.append(left,btn('Open safety status',openPanel,'btn primary'));card.append(h);
+     const note=node('div','tiny');note.id='v34BackupNote';card.append(note);
+     const metrics=node('div','v34RecoveryStatus');metrics.id='v34RecoveryStatus';card.append(metrics);hero.insertAdjacentElement('afterend',card);
+   }
+   const rp=$id('readabilityPanel');
+   if(rp&&!$id('v34ContrastBtn')){const g=node('div','readerGroup'),lab=node('div','readerLabel','Contrast'),wrap=node('div','readerButtons'),b=btn('High contrast: OFF',()=>setContrast(!contrastOn()));b.id='v34ContrastBtn';wrap.append(b);g.append(lab,wrap);rp.append(g)}
+   const actions=window.OSCP_V26?.actions;
+   if(Array.isArray(actions)&&!actions.some(x=>x.id==='v34-safety'))actions.push({id:'v34-safety',icon:'🛟',title:'Exam resilience status',desc:'Storage persistence and backup freshness',kind:'safety',keys:'backup safety recovery storage',run:openPanel});
+ }
+ function setupBackupTracking(){
+   const plain=$id('exportSession'),enc=$id('exportEncrypted');
+   if(plain&&!plain.dataset.v34BackupTrack){plain.dataset.v34BackupTrack='1';plain.addEventListener('click',()=>markBackup('oscp-session.json'))}
+   if(enc&&!enc.dataset.v34BackupTrack){enc.dataset.v34BackupTrack='1';enc.addEventListener('click',()=>{const pass=$id('encPassphrase')?.value||'';if(pass.length>=8)markBackup('oscp-encrypted-backup.json')})}
+ }
+ function start(){
+   document.body.classList.toggle('v34HighContrast',safeGet(KEY_CONTRAST,'0')==='1');
+   ensurePanel();addEntryPoints();setupBackupTracking();renderAll();
+   try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['V34 lightweight resilience',()=>[!!$id('v34SafetyBtn')&&!!$id('v34SafetyBackdrop'),'no background render loop']])}catch(_){}
+   window.OSCP_V34={openPanel,closePanel,backupInfo,setContrast,render:renderAll};
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start()
 })();

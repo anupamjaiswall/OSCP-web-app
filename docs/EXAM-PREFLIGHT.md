@@ -15,7 +15,7 @@ Then:
 - do not rely on GitHub Pages during the exam;
 - verify the visible build badge matches the version you practiced with;
 - confirm local storage works with a temporary target, then remove the temporary data;
-- keep **one app tab only**; V34 warns when another copy responds through the browser storage channel;
+- keep **one app tab only**; avoid two copies writing to the same browser storage at the same time;
 - test the UI at 100%, 125%, and 150% browser zoom;
 - re-read the current OffSec exam guide and proctor instructions immediately before the attempt.
 

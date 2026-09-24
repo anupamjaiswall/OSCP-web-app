@@ -20,10 +20,9 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 V34 focuses on reliability under exam pressure rather than adding more command volume:
 
 - **Typo-tolerant search core:** one-edit mistakes in strong title/tag tokens can still surface the intended methodology.
-- **Single-tab guard:** detects another live copy of the app (best effort) and warns before two tabs race on local state.
-- **Runtime error monitor:** uncaught JavaScript errors and rejected promises become visible instead of silently breaking a workflow.
-- **Backup freshness status:** records external session/encrypted-backup downloads and surfaces stale or missing backup state.
+- **Backup freshness status:** records external session/encrypted-backup downloads and surfaces stale or missing backup state without background polling.
 - **High-contrast + focus hardening:** stronger long-session readability and explicit keyboard focus.
+- **Boot-safety hotfix:** the resilience layer is event-driven only—no periodic render loop, cross-tab storage chatter, or global error-render recursion.
 - **Stricter CI:** CSP coverage, dangerous dynamic-code checks, malformed scan fixtures, critical reference anchors, and a 1.5 MB artifact budget.
 - **Recovery drill:** `docs/EXAM-PREFLIGHT.md` now documents a full backup-test-restore workflow.
 

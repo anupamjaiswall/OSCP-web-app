@@ -15,5 +15,12 @@ jobs:
           node-version: 22
       - name: Build, test, audit, validate
         run: npm run check
+      - name: Headless browser boot smoke
+        run: |
+          BROWSER="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          test -n "$BROWSER"
+          timeout 20s "$BROWSER" --headless=new --disable-gpu --no-sandbox --allow-file-access-from-files --dump-dom "file://$PWD/index.html" > /tmp/oscp-dom.html
+          grep -q "OSCP Exam OS" /tmp/oscp-dom.html
+          grep -q "V34" /tmp/oscp-dom.html
       - name: Ensure generated exam artifact is committed
         run: git diff --exit-code -- index.html
