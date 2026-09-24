@@ -19,10 +19,11 @@ if(/<script\b[^>]*\bsrc\s*=/i.test(html)) fail('Runtime script source detected')
 if(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref\s*=/i.test(html)) fail('Runtime stylesheet detected');
 if(/<(?:script|img|link)\b[^>]*(?:src|href)=["']https?:\/\//i.test(html)) fail('Remote runtime resource detected');
 
-const ids=[...html.matchAll(/\bid=["']([^"']+)["']/gi)].map(m=>m[1]),seen=new Set(),dupes=[];
+const structuralHtml=html.replace(/<script type="application\\/json" id="referencePayload">[\\s\\S]*?<\\/script>/i,'');
+const ids=[...structuralHtml.matchAll(/\bid=["']([^"']+)["']/gi)].map(m=>m[1]),seen=new Set(),dupes=[];
 for(const id of ids){if(seen.has(id))dupes.push(id);seen.add(id)}
 if(dupes.length) fail('Duplicate IDs: '+[...new Set(dupes)].join(', '));
-const hrefs=[...html.matchAll(/\bhref=["']#([^"']+)["']/gi)].map(m=>m[1]);
+const hrefs=[...structuralHtml.matchAll(/\bhref=["']#([^"']+)["']/gi)].map(m=>m[1]);
 const missing=[...new Set(hrefs.filter(id=>!seen.has(id)))];
 if(missing.length) fail('Broken anchors: '+missing.join(', '));
 
