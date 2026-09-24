@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.4 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.5 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,14 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.5 Batch 5 — target deletion integrity
+
+- Target deletion now names the target in the confirmation prompt.
+- A secret-free recovery snapshot is created before the target is removed.
+- If the deleted target was active, the app selects a deterministic remaining target (or clears active state).
+- All dependent exam views refresh immediately after deletion instead of leaving stale UI.
+- No new background behavior was added.
 
 ## V34.4 Batch 4 — report-readiness ergonomics
 

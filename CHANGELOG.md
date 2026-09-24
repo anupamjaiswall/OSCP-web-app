@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.5.0 — 2026-09-24
+
+### Batch 5 — target deletion integrity
+- Target deletion creates a secret-free recovery snapshot first.
+- Confirmation now identifies the target being deleted.
+- Deleting the active target repairs active-target selection deterministically.
+- All dependent views refresh after deletion to avoid stale exam state.
+- Added regression coverage for ordering and active-target repair.
+
+
 ## V34.4.0 — 2026-09-24
 
 ### Batch 4 — report-readiness ergonomics
