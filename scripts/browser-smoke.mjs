@@ -43,19 +43,30 @@ async function main(){
   for(const id of ['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'])if(!html.includes('id="'+id+'"'))throw new Error('critical static control missing: '+id);
 
   const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-chrome-'));
+  const profile=path.join(tmp,'profile');
+  const activePortFile=path.join(profile,'DevToolsActivePort');
   const args=[
     '--headless=new','--disable-gpu','--no-sandbox','--disable-dev-shm-usage',
     '--disable-background-networking','--disable-component-update','--disable-sync',
     '--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio',
     '--disable-client-side-phishing-detection','--disable-features=OptimizationHints,MediaRouter,Translate,AutofillServerCommunication',
     '--no-first-run','--no-default-browser-check','--allow-file-access-from-files',
-    '--remote-debugging-port=0',`--user-data-dir=${path.join(tmp,'profile')}`,appUrl
+    '--remote-debugging-port=0',`--user-data-dir=${profile}`,appUrl
   ];
   const child=spawn(findBrowser(),args,{stdio:['ignore','ignore','pipe']});
   let stderr='',browserWs='';
   child.stderr.on('data',d=>{stderr+=String(d);if(stderr.length>12000)stderr=stderr.slice(-12000);const m=stderr.match(/DevTools listening on (ws:\/\/[^\s]+)/);if(m)browserWs=m[1]});
   try{
-    const wsUrl=await waitFor(()=>browserWs||'',25000);
+    const wsUrl=await waitFor(()=>{
+      if(browserWs)return browserWs;
+      try{
+        if(fs.existsSync(activePortFile)){
+          const lines=fs.readFileSync(activePortFile,'utf8').trim().split(/\r?\n/);
+          if(lines[0]&&lines[1])return 'ws://127.0.0.1:'+lines[0]+lines[1];
+        }
+      }catch(_){}
+      return '';
+    },25000);
     if(!wsUrl)throw new Error('Chrome DevTools endpoint did not start'+(stderr?' · '+stderr.slice(-1000):''));
     const u=new URL(wsUrl),base='http://'+u.hostname+':'+u.port;
     const page=await waitFor(async()=>{
