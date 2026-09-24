@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.6.3 — 2026-09-24
+
+### Required browser-gate transport fix
+- Replaced flaky Chrome remote-debugging/CDP transport with native headless `--dump-dom` plus a bounded virtual-time budget.
+- The required gate now proves startup JavaScript produced runtime-only controls and fails if the page does not settle within the browser timeout.
+- Runs the boot check at normal, 125%, and 150% display scale.
+- Keeps deterministic unit regressions for typo search and high-contrast behavior.
+- App runtime code and generated exam artifact remain unchanged.
+
+
 ## V34.6.2 — 2026-09-24
 
 ### Browser-gate target fix
