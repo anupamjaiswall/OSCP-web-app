@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V31 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V32 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -15,7 +15,23 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
 
-## V31 reliability upgrades
+## V32 research-backed note upgrades
+
+V32 was reviewed against the current OffSec Exam Guide, FAQ and Body of Knowledge plus recent 2026 pass reports. Recurring high-signal patterns were converted into exam-time decision aids:
+
+- clean full-port discovery → targeted fingerprinting;
+- output/error classification before tool switching;
+- a layer-by-layer pivot proof ladder;
+- rights-gated AD credential extraction;
+- concise evidence-oriented live notes;
+- stronger passing-score screenshot/report audits;
+- repaired reporting/quick-reference markup left by older Markdown conversion.
+
+Community pass reports are anecdotal evidence only; official OffSec instructions remain authoritative.
+
+Research log: [docs/RESEARCH-2026-09-24.md](docs/RESEARCH-2026-09-24.md)
+
+## V31 reliability foundation
 
 - **One canonical build version:** `src/meta/build.json` drives the visible build and is validated against `package.json`.
 - **Unit-tested Service Router core:** scan parsing/classification is separated from DOM rendering and tested against Nmap normal/grepable, UDP, Masscan, RustScan, strict lists, garbage input, invalid ports, priority routing, and unknown ports.
