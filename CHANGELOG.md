@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.9.0 — 2026-09-24
+
+### Batch 9 — defer reference code decoration
+- Moved processing of 420 embedded reference code blocks off the synchronous boot path.
+- Copy-button creation and placeholder substitution now run in finite 24-block chunks after startup.
+- Added a regression preventing whole-reference synchronous code decoration from returning.
+- No storage schema change or background polling was added.
+
+
 ## CI browser gate repair — 2026-09-24
 
 - Replaced file-appearance screenshot polling with a direct Chrome DevTools protocol readiness probe.

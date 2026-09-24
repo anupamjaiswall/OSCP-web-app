@@ -122,7 +122,23 @@ function substitute(raw){
  if(m.LPORT){s=s.replace(/\bLPORT=LPORT\b/g,`LPORT=${m.LPORT}`).replace(/\bset\s+LPORT\s+LPORT\b/gi,`set LPORT ${m.LPORT}`);}
  if(m.USERNAME)s=s.replace(/(-u\s+)(?:user)(\b)/g,`$1${m.USERNAME}$2`).replace(/DOMAIN\/user/g,(m.DOMAIN||'DOMAIN')+'/'+m.USERNAME);
  return s;}
-function prepareCode(){ $$('#referenceRoot pre').forEach(pre=>{const code=pre.querySelector('code');if(!code)return;if(!code.dataset.raw)code.dataset.raw=code.textContent; if(!pre.querySelector('.copybtn')){const b=document.createElement('button');b.className='copybtn noPrint';b.textContent='Copy';b.onclick=async()=>await guardedCopyText(code.textContent,'Reference snippet',null,{allowPlaceholders:true});pre.appendChild(b)}}); applyPlaceholders();}
+let __prepareCodeQueued=false;
+function prepareCode(){
+ if(__prepareCodeQueued)return;
+ __prepareCodeQueued=true;
+ const blocks=[...document.querySelectorAll('#referenceRoot pre')];let i=0;
+ const pump=()=>{
+  const end=Math.min(i+24,blocks.length);
+  for(;i<end;i++){
+   const pre=blocks[i],code=pre.querySelector('code');if(!code)continue;
+   if(!code.dataset.raw)code.dataset.raw=code.textContent;
+   code.textContent=substitute(code.dataset.raw);
+   if(!pre.querySelector('.copybtn')){const b=document.createElement('button');b.className='copybtn noPrint';b.textContent='Copy';b.onclick=async()=>await guardedCopyText(code.textContent,'Reference snippet',null,{allowPlaceholders:true});pre.appendChild(b)}
+  }
+  if(i<blocks.length)setTimeout(pump,0);else{__prepareCodeQueued=false;window.OSCP_CODE_BLOCKS_READY=true}
+ };
+ setTimeout(pump,0);
+}
 function applyPlaceholders(){ $$('#referenceRoot pre code').forEach(code=>{if(code.dataset.raw)code.textContent=substitute(code.dataset.raw)});}
 
 function applySecretPersistence(want){persistSecrets=!!want;safeStoreSet(STORE+'persistSecrets',persistSecrets?'1':'0');saveTargets();if(typeof saveOps==='function')saveOps();return persistSecrets}

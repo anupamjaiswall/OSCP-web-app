@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.8.2">
+<meta name="oscp-build-version" content="34.9.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -10353,7 +10353,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.8.2',
+  version:'34.9.0',
   label:'V34',
   date:'2026-09-24'
 });</script>
@@ -10632,7 +10632,23 @@ function substitute(raw){
  if(m.LPORT){s=s.replace(/\bLPORT=LPORT\b/g,`LPORT=${m.LPORT}`).replace(/\bset\s+LPORT\s+LPORT\b/gi,`set LPORT ${m.LPORT}`);}
  if(m.USERNAME)s=s.replace(/(-u\s+)(?:user)(\b)/g,`$1${m.USERNAME}$2`).replace(/DOMAIN\/user/g,(m.DOMAIN||'DOMAIN')+'/'+m.USERNAME);
  return s;}
-function prepareCode(){ $$('#referenceRoot pre').forEach(pre=>{const code=pre.querySelector('code');if(!code)return;if(!code.dataset.raw)code.dataset.raw=code.textContent; if(!pre.querySelector('.copybtn')){const b=document.createElement('button');b.className='copybtn noPrint';b.textContent='Copy';b.onclick=async()=>await guardedCopyText(code.textContent,'Reference snippet',null,{allowPlaceholders:true});pre.appendChild(b)}}); applyPlaceholders();}
+let __prepareCodeQueued=false;
+function prepareCode(){
+ if(__prepareCodeQueued)return;
+ __prepareCodeQueued=true;
+ const blocks=[...document.querySelectorAll('#referenceRoot pre')];let i=0;
+ const pump=()=>{
+  const end=Math.min(i+24,blocks.length);
+  for(;i<end;i++){
+   const pre=blocks[i],code=pre.querySelector('code');if(!code)continue;
+   if(!code.dataset.raw)code.dataset.raw=code.textContent;
+   code.textContent=substitute(code.dataset.raw);
+   if(!pre.querySelector('.copybtn')){const b=document.createElement('button');b.className='copybtn noPrint';b.textContent='Copy';b.onclick=async()=>await guardedCopyText(code.textContent,'Reference snippet',null,{allowPlaceholders:true});pre.appendChild(b)}
+  }
+  if(i<blocks.length)setTimeout(pump,0);else{__prepareCodeQueued=false;window.OSCP_CODE_BLOCKS_READY=true}
+ };
+ setTimeout(pump,0);
+}
 function applyPlaceholders(){ $$('#referenceRoot pre code').forEach(code=>{if(code.dataset.raw)code.textContent=substitute(code.dataset.raw)});}
 
 function applySecretPersistence(want){persistSecrets=!!want;safeStoreSet(STORE+'persistSecrets',persistSecrets?'1':'0');saveTargets();if(typeof saveOps==='function')saveOps();return persistSecrets}
