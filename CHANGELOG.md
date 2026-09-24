@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.4.0 — 2026-09-24
+
+### Batch 4 — report-readiness ergonomics
+- Added a persisted per-target “Needs report review” flag inside the existing report object.
+- Surfaced review status in the Reports header and active-target summary.
+- Kept the internal review flag out of exported Markdown.
+- Added regression coverage for persistence/UI wiring and export cleanliness.
+- No timers, polling, cross-tab coordination, or background rendering were added.
+
+
 ## V34.3.0 — 2026-09-24
 
 ### Batch 3 — recovery and destructive-action safety

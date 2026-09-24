@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.3 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.4 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,16 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.4 Batch 4 — report-readiness ergonomics
+
+This batch adds one small report-state flag to the existing target report object.
+
+- **Needs report review:** mark a target when its commands, screenshots, or narrative still need a final human pass.
+- **Visible status:** the Reports view shows the review flag beside the target selector.
+- **Cockpit visibility:** the active-target summary carries a REPORT REVIEW chip until the flag is cleared.
+- **Export stays clean:** the internal review flag is intentionally not written into exported report Markdown.
+- No timers, polling, cross-tab coordination, or background rendering were added.
 
 ## V34.3 Batch 3 — recovery and destructive-action safety
 

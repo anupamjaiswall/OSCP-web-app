@@ -48,6 +48,9 @@ test('clear-all operation creates recovery point first',()=>{const src=read('src
 test('recovery snapshot deletion requires confirmation',()=>{const src=read('src/js/03-core-app.js');const p=src.indexOf("$('.snapDelete')");const block=src.slice(p,p+800);ok(block.includes("confirm('Delete this recovery snapshot? This cannot be undone.')"));ok(src.includes('title="Delete recovery snapshot">Delete</button>'))});
 test('clear-all button is visually explicit',()=>ok(read('src/index.template.html').includes('Clear ALL operations state')));
 
+test('report review flag persists on the target report object',()=>{const src=read('src/js/03-core-app.js'),tpl=read('src/index.template.html');ok(src.includes("reviewNeeded:false"));ok(src.includes("t.report.reviewNeeded=$('#rNeedsReview').checked"));ok(src.includes('REPORT REVIEW'));ok(tpl.includes('id="rNeedsReview"'));ok(tpl.includes('id="reportReviewStatus"'))});
+test('report review flag does not contaminate exported report markdown',()=>{const src=read('src/js/03-core-app.js');const a=src.indexOf('function reportMarkdown(t)');const b=src.indexOf('function renderReport()',a);const block=src.slice(a,b);ok(!block.includes('reviewNeeded'));ok(!block.includes('REPORT REVIEW'))});
+
 test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
 test('browser Service Router delegates pure core',()=>ok(read('src/js/09-v20-service-router.js').includes('window.OSCP_SERVICE_CORE')));
 test('research-backed scan workflow stays two-pass',()=>{
