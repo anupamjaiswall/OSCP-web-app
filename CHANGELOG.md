@@ -1,5 +1,16 @@
 # Changelog
 
+## V34.20.0 — 2026-09-24
+
+### Batch 20 — search completeness and keyboard accessibility
+- Debounced live search input by 120 ms and removed the switch-view double-render path.
+- Expanded heading search coverage from three following siblings to the complete immediate heading region.
+- Empty searches no longer trigger deep-reference hydration; first real search displays an explicit one-time loading state.
+- Added search input/status/result ARIA semantics and a regression forbidding positive tabindex values.
+- Added deterministic tests for debounce, coverage, lazy empty-search behavior, and accessibility.
+- No exam-state schema or background polling changed.
+
+
 ## V34.19.0 — 2026-09-24
 
 ### Batch 19 — exam preflight and known limitations

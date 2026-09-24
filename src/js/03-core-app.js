@@ -11,8 +11,11 @@ function buildSearchItems(){
   if(seen.has(node.id))continue;seen.add(node.id);
   const summary=node.firstElementChild?.tagName==='SUMMARY'?node.firstElementChild:null;
   const heading=!summary&&/^H[2-4]$/.test(node.tagName||'');
-  const siblings=heading&&node.parentElement?[...node.parentElement.children]:[],position=siblings.indexOf(node);
-  const context=heading?[node,...siblings.slice(position+1,position+4).filter(x=>!/^H[1-4]$/.test(x.tagName||''))]:[node];
+  let context=[node];
+  if(heading){
+   let cur=node.nextElementSibling;
+   while(cur&&!/^H[2-4]$/.test(cur.tagName||'')){context.push(cur);cur=cur.nextElementSibling}
+  }
   const text=context.map(x=>x.textContent||'').join('\n').trim();
   items.push({
    title:(summary?.textContent||node.textContent||node.id).trim(),
@@ -95,14 +98,35 @@ function switchView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id=
 $$('.navbtn').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
 
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('#globalSearch').focus();$('#globalSearch').select();}});
-$('#globalSearch').addEventListener('input',e=>{if(e.target.value.trim()){switchView('searchView');renderSearch(e.target.value)}});
+let searchInputTimer=0;
+const SEARCH_INPUT_DEBOUNCE_MS=120;
+function scheduleSearchInput(value){
+ clearTimeout(searchInputTimer);
+ const q=String(value||'');
+ searchInputTimer=setTimeout(()=>{
+  if(q.trim()){
+   if($('#searchView').classList.contains('active'))renderSearch(q);
+   else switchView('searchView');
+  }else if($('#searchView').classList.contains('active'))renderSearch('');
+ },SEARCH_INPUT_DEBOUNCE_MS);
+}
+$('#globalSearch').addEventListener('input',e=>scheduleSearchInput(e.target.value));
 
 function norm(s){return (s||'').toLowerCase().replace(/[^a-z0-9:_\-\[\]\. ]+/g,' ')}
 function fuzzyScore(item,q){if(window.OSCP_SEARCH_CORE?.fuzzyScore)return window.OSCP_SEARCH_CORE.fuzzyScore(item,q);q=norm(q).trim();if(!q)return 0;const title=norm(item.title),tags=norm((item.tags||[]).join(' ')),body=norm(item.text);let score=0;if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;const toks=q.split(/\s+/).filter(Boolean);for(const t of toks){if(tags.includes(t))score+=25;if(title.includes(t))score+=18;if(body.includes(t))score+=5;}return score}
 function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
 function validRecordId(v){return typeof v==='string'&&/^[A-Za-z0-9._:-]{1,160}$/.test(v)}
 function plainRecord(v){return !!v&&typeof v==='object'&&!Array.isArray(v)}
-function renderSearch(q){q=q||'';let scored=ensureSearchItems().map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><span class="score">score ${x.score}</span></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});}
+function renderSearch(q){
+ q=String(q||'');const clean=q.trim();
+ if(!clean){$('#searchStats').textContent='Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').replaceChildren();return}
+ if(!window.OSCP_REFERENCE_READY){ensureSearchItems();$('#searchStats').textContent='Preparing embedded reference for search…';$('#searchResults').innerHTML='<div class="card muted">Loading the offline methodology index once. Your query will run automatically when it is ready.</div>';return}
+ let scored=ensureSearchItems().map(x=>({...x,score:fuzzyScore(x,clean)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);
+ $('#searchStats').textContent=`${scored.length} best matches for “${clean}”`;
+ $('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><span class="score">score ${x.score}</span></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';
+ $('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));
+ $('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});
+}
 function openRef(anchor){switchView('referenceView');setTimeout(()=>{const el=document.getElementById(anchor);if(!el)return;let d=el.closest('details');if(d)d.open=true;el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1800)},30)}
 
 const quick=[['🐧','Linux shell','[LINUX:TREE]'],['▣','Windows shell','[WIN:WORKFLOW]'],['🏰','Domain creds','[AD:FLOW]'],['🎫','Rubeus / tickets','Rubeus'],['👤','AD usernames','[AD:USERNAMES]'],['🔑','Password / hash','[CREDS:FANOUT]'],['🌐','Web target','[WEB:ENUM]'],['🛣️','Internal subnet','[PIVOT:FLOW]'],['POTATO','SeImpersonate','[WIN:SEIMPERSONATE]'],['⚙️','Custom SUID','[LINUX:SUID]'],['📸','Need proof','[EVIDENCE:PACKET]']];

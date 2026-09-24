@@ -1,6 +1,14 @@
 # 🔐 OSCP Exam OS
 
-**V34.19 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.20 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.20 Batch 20 — search completeness and accessibility
+
+- Live typing is debounced for 120 ms and no longer renders search twice when switching into Search.
+- Search headings index their complete immediate content region instead of only the next three sibling nodes.
+- Empty Search no longer hydrates the deep reference; the first real query shows a clear one-time loading state.
+- Search status is announced politely to assistive technology, results are a named region, and positive tabindex values are regression-blocked.
+- No exam-state schema, timers, observers, or background polling were added.
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
