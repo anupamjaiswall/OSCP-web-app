@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.20.1 — 2026-09-24
+
+### Search loading-state safety fix
+- Replaced the new search loading-state innerHTML write with explicit DOM construction.
+- Preserves the existing audited innerHTML baseline instead of weakening validation.
+- Runtime behavior is otherwise unchanged.
+
+
 ## V34.20.0 — 2026-09-24
 
 ### Batch 20 — search completeness and keyboard accessibility

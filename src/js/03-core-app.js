@@ -120,7 +120,7 @@ function plainRecord(v){return !!v&&typeof v==='object'&&!Array.isArray(v)}
 function renderSearch(q){
  q=String(q||'');const clean=q.trim();
  if(!clean){$('#searchStats').textContent='Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').replaceChildren();return}
- if(!window.OSCP_REFERENCE_READY){ensureSearchItems();$('#searchStats').textContent='Preparing embedded reference for search…';$('#searchResults').innerHTML='<div class="card muted">Loading the offline methodology index once. Your query will run automatically when it is ready.</div>';return}
+ if(!window.OSCP_REFERENCE_READY){ensureSearchItems();$('#searchStats').textContent='Preparing embedded reference for search…';const loading=document.createElement('div');loading.className='card muted';loading.textContent='Loading the offline methodology index once. Your query will run automatically when it is ready.';$('#searchResults').replaceChildren(loading);return}
  let scored=ensureSearchItems().map(x=>({...x,score:fuzzyScore(x,clean)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);
  $('#searchStats').textContent=`${scored.length} best matches for “${clean}”`;
  $('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><span class="score">score ${x.score}</span></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';
