@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V33 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,18 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34 resilience upgrades
+
+V34 focuses on reliability under exam pressure rather than adding more command volume:
+
+- **Typo-tolerant search core:** one-edit mistakes in strong title/tag tokens can still surface the intended methodology.
+- **Single-tab guard:** detects another live copy of the app (best effort) and warns before two tabs race on local state.
+- **Runtime error monitor:** uncaught JavaScript errors and rejected promises become visible instead of silently breaking a workflow.
+- **Backup freshness status:** records external session/encrypted-backup downloads and surfaces stale or missing backup state.
+- **High-contrast + focus hardening:** stronger long-session readability and explicit keyboard focus.
+- **Stricter CI:** CSP coverage, dangerous dynamic-code checks, malformed scan fixtures, critical reference anchors, and a 1.5 MB artifact budget.
+- **Recovery drill:** `docs/EXAM-PREFLIGHT.md` now documents a full backup-test-restore workflow.
 
 ## V33 integration upgrades
 

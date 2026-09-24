@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="33.0.0">
+<meta name="oscp-build-version" content="34.0.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -406,6 +406,18 @@ body.examFocus .activeWorkStrip{top:63px}
 .v33StartCard .row{justify-content:space-between;align-items:center}#v33TopCheck{white-space:nowrap}
 @media(max-width:800px){.v33ServiceGrid{grid-template-columns:1fr}.v33Toolbar select{min-width:0;flex:1}.v33Dialog{padding:12px}}
 @media print{.v33Backdrop,#v33TopCheck,.scanRouteBtn{display:none!important}}</style>
+<style id="v34ResilienceStyles">/* V34 exam resilience layer. */
+.v34SafetyBackdrop{position:fixed;inset:0;z-index:1660;background:rgba(3,7,18,.82);display:none;place-items:center;padding:20px}.v34SafetyBackdrop.open{display:grid}
+.v34SafetyDialog{width:min(920px,96vw);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid #52677d;border-radius:14px;box-shadow:0 25px 80px rgba(0,0,0,.62);padding:16px}
+.v34SafetyHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.v34SafetyHead h2{margin:0 0 3px}.v34SafetyGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.v34SafetyItem{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:11px}.v34SafetyItem.good{border-color:#386b50}.v34SafetyItem.warn{border-color:#7a6330}.v34SafetyItem.bad{border-color:#82414a}.v34SafetyItem b{display:block;margin-bottom:4px}
+.v34SafetyActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}#v34SafetyBtn.v34Warn{border-color:#9a772e}#v34SafetyBtn.v34Bad{border-color:#a94d59}
+.v34TabWarning{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:1670;max-width:min(760px,92vw);background:#3b2610;color:#ffe8b0;border:1px solid #aa7b31;border-radius:10px;padding:10px 14px;box-shadow:0 12px 40px rgba(0,0,0,.45);font-weight:800;display:none}.v34TabWarning.show{display:block}
+.v34RecoveryCard{margin-top:12px;border-color:#49627b}.v34RecoveryStatus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}.v34RecoveryMetric{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px}.v34RecoveryMetric b{display:block;font-size:13px}
+.v34ErrorList{display:grid;gap:6px;margin-top:7px}.v34Error{font:11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;background:#241417;border:1px solid #6d3941;border-radius:7px;padding:7px;overflow-wrap:anywhere}
+body.v34HighContrast .muted,body.v34HighContrast .tiny{color:#eef4fb!important}body.v34HighContrast .card,body.v34HighContrast .result,body.v34HighContrast details,body.v34HighContrast .v34SafetyItem{border-color:#7b8fa4!important}body.v34HighContrast code{filter:contrast(1.15)}
+body :focus-visible{outline:3px solid #8fd3ff!important;outline-offset:2px!important}@media(max-width:760px){.v34SafetyGrid,.v34RecoveryStatus{grid-template-columns:1fr}}@media print{.v34SafetyBackdrop,.v34TabWarning,#v34SafetyBtn,.v34RecoveryCard{display:none!important}}
+</style>
 </head>
 <body>
 <a class="skipLink" href="#examMain">Skip to exam workspace</a>
@@ -493,7 +505,7 @@ Return trigger:"></textarea>
 <button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
 
 <div class="top">
-  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V33 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V34 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -10344,8 +10356,8 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'33.0.0',
-  label:'V33',
+  version:'34.0.0',
+  label:'V34',
   date:'2026-09-24'
 });</script>
 <script id="coreUtilsScript">/* V30 shared pure utilities. Keep this file DOM-free so CI can execute it in Node. */
@@ -10405,6 +10417,27 @@ window.OSCP_BUILD=Object.freeze({
     escapeHtml,clampExamPoints,examScore,evidenceClaims,requiredEvidence,evidenceMissing
   });
 })(typeof window!=='undefined'?window:globalThis);</script>
+<script id="searchCoreScript">/* V34 pure search scoring. DOM-free so typo tolerance is regression-testable. */
+(function(root){
+  'use strict';
+  function norm(value){return String(value||'').toLowerCase().replace(/[^a-z0-9:_\-\[\]\. ]+/g,' ').replace(/\s+/g,' ').trim()}
+  function withinOneEdit(a,b){
+    a=String(a||'');b=String(b||'');if(a===b)return true;if(Math.abs(a.length-b.length)>1)return false;
+    let i=0,j=0,edits=0;
+    while(i<a.length&&j<b.length){if(a[i]===b[j]){i++;j++;continue}if(++edits>1)return false;if(a.length>b.length)i++;else if(b.length>a.length)j++;else{i++;j++}}
+    if(i<a.length||j<b.length)edits++;return edits<=1;
+  }
+  function nearToken(queryToken,word){if(queryToken.length<4||word.length<4)return false;if(withinOneEdit(queryToken,word))return true;const prefix=word.slice(0,Math.min(word.length,queryToken.length+1));return prefix.length>=4&&withinOneEdit(queryToken,prefix)}
+  function fuzzyScore(item,q){
+    q=norm(q);if(!q)return 0;const title=norm(item?.title),tags=norm((item?.tags||[]).join(' ')),body=norm(item?.text);let score=0;
+    if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;
+    const toks=q.split(/\s+/).filter(Boolean),strongWords=[...new Set((title+' '+tags).split(/\s+/).filter(Boolean))];
+    for(const t of toks){let direct=false;if(tags.includes(t)){score+=25;direct=true}if(title.includes(t)){score+=18;direct=true}if(body.includes(t)){score+=5;direct=true}if(!direct&&strongWords.some(w=>nearToken(t,w)))score+=12}
+    return score;
+  }
+  root.OSCP_SEARCH_CORE=Object.freeze({norm,withinOneEdit,nearToken,fuzzyScore});
+})(typeof window!=='undefined'?window:globalThis);
+</script>
 <script>
 /* V19 FIX: storage compatibility guard.
    Some browser/file contexts deny localStorage entirely. In that case keep the
@@ -10541,7 +10574,7 @@ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLower
 $('#globalSearch').addEventListener('input',e=>{if(e.target.value.trim()){switchView('searchView');renderSearch(e.target.value)}});
 
 function norm(s){return (s||'').toLowerCase().replace(/[^a-z0-9:_\-\[\]\. ]+/g,' ')}
-function fuzzyScore(item,q){q=norm(q).trim();if(!q)return 0;const title=norm(item.title),tags=norm((item.tags||[]).join(' ')),body=norm(item.text);let score=0;if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;const toks=q.split(/\s+/).filter(Boolean);for(const t of toks){if(tags.includes(t))score+=25;if(title.includes(t))score+=18;if(body.includes(t))score+=5;}return score}
+function fuzzyScore(item,q){if(window.OSCP_SEARCH_CORE?.fuzzyScore)return window.OSCP_SEARCH_CORE.fuzzyScore(item,q);q=norm(q).trim();if(!q)return 0;const title=norm(item.title),tags=norm((item.tags||[]).join(' ')),body=norm(item.text);let score=0;if(title===q)score+=100;if(tags.includes(q))score+=80;if(title.includes(q))score+=55;if(body.includes(q))score+=20;const toks=q.split(/\s+/).filter(Boolean);for(const t of toks){if(tags.includes(t))score+=25;if(title.includes(t))score+=18;if(body.includes(t))score+=5;}return score}
 function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
 function validRecordId(v){return typeof v==='string'&&/^[A-Za-z0-9._:-]{1,160}$/.test(v)}
 function plainRecord(v){return !!v&&typeof v==='object'&&!Array.isArray(v)}
@@ -14870,4 +14903,33 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function start(){ensureDossier();ensurePreflight();setupScanHandoff();addEntryPoints();setupKeys();extendHelp();const strip=$id('activeWorkStrip');if(strip)new MutationObserver(()=>addEntryPoints()).observe(strip,{childList:true,subtree:true});try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['V33 service dossier',()=>[!!$id('v33DossierBackdrop')&&typeof core()?.classify==='function','target dossier']],['V33 selected scan handoff',()=>[typeof importHostAndRoute==='function','scan → target → router']],['V33 app preflight',()=>[preflightChecks().every(x=>x.status!=='fail'),preflightChecks().map(x=>x.label+':'+x.status).join('|')]])}catch(_){}window.OSCP_V33={openDossier,closeDossier,loadRouter,importHostAndRoute,openPreflight,closePreflight,preflightChecks}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start()
 })();</script>
+<script id="v34ResilienceScript">(()=>{
+ 'use strict';
+ const $id=id=>document.getElementById(id);
+ const KEY_BACKUP='oscp_v34_last_external_backup',KEY_CONTRAST='oscp_v34_high_contrast',KEY_PING='oscp_v34_tab_ping',KEY_PONG='oscp_v34_tab_pong',KEY_BYE='oscp_v34_tab_bye';
+ const tabId=(globalThis.crypto?.randomUUID?.()||('tab-'+Date.now()+'-'+Math.random().toString(16).slice(2)));
+ let otherTabAt=0,otherTabId='',errors=[],downloadWrapped=false;
+ function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e}
+ function btn(label,fn,cls='btn'){const b=node('button',cls,label);b.type='button';b.addEventListener('click',fn);return b}
+ function safeGet(k,d=''){try{const v=localStorage.getItem(k);return v===null?d:v}catch(_){return d}}function safeSet(k,v){try{localStorage.setItem(k,v);return true}catch(_){return false}}function parseJson(s,f=null){try{return JSON.parse(s)}catch(_){return f}}
+ function rel(ts){if(!ts)return'never';const sec=Math.max(0,Math.floor((Date.now()-ts)/1000));if(sec<60)return sec+'s ago';const m=Math.floor(sec/60);if(m<60)return m+'m ago';const h=Math.floor(m/60);return h<48?h+'h ago':Math.floor(h/24)+'d ago'}
+ function backupInfo(){const x=parseJson(safeGet(KEY_BACKUP,''),{});return x&&Number.isFinite(+x.at)?{at:+x.at,name:String(x.name||'session backup')}:{at:0,name:''}}function markBackup(name){safeSet(KEY_BACKUP,JSON.stringify({at:Date.now(),name:String(name||'session backup')}));renderAll()}
+ function wrapDownloads(){if(downloadWrapped)return;const base=window.downloadText;if(typeof base!=='function')return;downloadWrapped=true;window.downloadText=function(name,...rest){const out=base.call(this,name,...rest);if(/^oscp-(?:session|encrypted-backup)\.json$/i.test(String(name||'')))markBackup(name);return out}}
+ function persistent(){return window.__OSCP_STORAGE_PERSISTENT__!==false}function tabConflict(){return !!otherTabAt&&Date.now()-otherTabAt<45000}function send(key,payload){safeSet(key,JSON.stringify(payload))}function ping(){send(KEY_PING,{id:tabId,at:Date.now()})}
+ function setupTabs(){window.addEventListener('storage',e=>{if(!e.newValue)return;const m=parseJson(e.newValue,null);if(!m||m.id===tabId)return;if(e.key===KEY_PING)send(KEY_PONG,{id:tabId,to:m.id,at:Date.now()});else if(e.key===KEY_PONG&&m.to===tabId){otherTabAt=Date.now();otherTabId=m.id;renderAll()}else if(e.key===KEY_BYE&&m.id===otherTabId){otherTabAt=0;otherTabId='';renderAll()}});ping();setInterval(ping,30000);window.addEventListener('beforeunload',()=>send(KEY_BYE,{id:tabId,at:Date.now()}))}
+ function recordError(kind,message,source,line){const msg=String(message||'Unknown error');if(/ResizeObserver loop/i.test(msg))return;errors.unshift({at:Date.now(),kind,msg,source:String(source||''),line:Number(line||0)});errors=errors.slice(0,12);renderAll()}function setupErrors(){window.addEventListener('error',e=>recordError('error',e.message,e.filename,e.lineno));window.addEventListener('unhandledrejection',e=>recordError('promise',e.reason?.message||e.reason||'Unhandled promise rejection','',''))}
+ function setContrast(on){document.body.classList.toggle('v34HighContrast',!!on);safeSet(KEY_CONTRAST,on?'1':'0');renderAll()}function contrastOn(){return document.body.classList.contains('v34HighContrast')}
+ function ensurePanel(){let back=$id('v34SafetyBackdrop');if(back)return back;back=node('div','v34SafetyBackdrop');back.id='v34SafetyBackdrop';back.setAttribute('role','dialog');back.setAttribute('aria-modal','true');back.setAttribute('aria-labelledby','v34SafetyTitle');const dialog=node('div','v34SafetyDialog'),head=node('div','v34SafetyHead'),left=node('div'),title=node('h2','', 'Exam resilience status');title.id='v34SafetyTitle';left.append(title,node('div','muted','Storage, backup freshness, multi-tab safety and runtime errors.'));head.append(left,btn('×',closePanel));dialog.append(head);const grid=node('div','v34SafetyGrid');grid.id='v34SafetyGrid';dialog.append(grid);const err=node('div','v34SafetyItem');err.id='v34RuntimeErrors';dialog.append(err);const actions=node('div','v34SafetyActions');actions.append(btn('Export secret-free backup',()=>{$id('exportSession')?.click()},'btn good'),btn('Open Session recovery',()=>{closePanel();if(typeof switchView==='function')switchView('sessionView')}),btn('Open Exam Clock',()=>{closePanel();if(typeof switchView==='function')switchView('clockView')}),btn('High contrast',()=>setContrast(!contrastOn())));dialog.append(actions);back.append(dialog);back.addEventListener('click',e=>{if(e.target===back)closePanel()});document.body.append(back);return back}
+ function safetyRows(){const b=backupInfo(),age=b.at?Date.now()-b.at:Infinity;return[{title:'Browser persistence',state:persistent()?'good':'bad',detail:persistent()?'Persistent localStorage is available.':'Storage fallback is memory-only; closing this tab can lose state.'},{title:'Single-tab guard',state:tabConflict()?'bad':'good',detail:tabConflict()?'Another copy of this app responded recently. Close the extra tab to avoid competing writes.':'No competing tab responded in the last 45 seconds (best-effort check).'},{title:'External backup',state:!b.at?'warn':age>7200000?'warn':'good',detail:b.at?(b.name+' · '+rel(b.at)):'No downloaded session backup recorded in this browser yet.'},{title:'Runtime errors',state:errors.length?'bad':'good',detail:errors.length?(errors.length+' captured error(s) this session.'):'No uncaught JavaScript errors captured this session.'}]}
+ function renderPanel(){if(!$id('v34SafetyBackdrop'))return;const grid=$id('v34SafetyGrid');grid.replaceChildren();for(const x of safetyRows()){const d=node('div','v34SafetyItem '+x.state);d.append(node('b','',x.title),node('div','tiny',x.detail));grid.append(d)}const box=$id('v34RuntimeErrors');box.replaceChildren(node('b','', 'Runtime error log'));if(!errors.length)box.append(node('div','tiny','No uncaught runtime errors.'));else{const list=node('div','v34ErrorList');for(const e of errors)list.append(node('div','v34Error','['+new Date(e.at).toLocaleTimeString()+'] '+e.kind+': '+e.msg+(e.source?' · '+e.source+(e.line?':'+e.line:''):'')));box.append(list)}}
+ function openPanel(){ensurePanel();renderPanel();$id('v34SafetyBackdrop').classList.add('open')}function closePanel(){$id('v34SafetyBackdrop')?.classList.remove('open')}
+ function renderTop(){const b=$id('v34SafetyBtn');if(!b)return;const rows=safetyRows(),bad=rows.some(x=>x.state==='bad'),warn=rows.some(x=>x.state==='warn');b.className='btn'+(bad?' v34Bad':warn?' v34Warn':'');b.textContent=bad?'⚠ Safety':warn?'○ Safety':'✓ Safety';b.title=rows.map(x=>x.title+': '+x.detail).join('\n');$id('v34TabWarning')?.classList.toggle('show',tabConflict())}
+ function renderRecovery(){const root=$id('v34RecoveryStatus');if(!root)return;root.replaceChildren();const b=backupInfo();for(const x of safetyRows().slice(0,3)){const d=node('div','v34RecoveryMetric');d.append(node('b','',x.title),node('div','tiny',x.detail));root.append(d)}const note=$id('v34BackupNote');if(note)note.textContent=b.at?'Last downloaded backup: '+new Date(b.at).toLocaleString()+' ('+b.name+').':'No downloaded session backup recorded yet. Local autosnapshots protect against many in-browser mistakes, but keep an external file too.'}
+ function renderContrastButton(){const b=$id('v34ContrastBtn');if(b)b.textContent=contrastOn()?'High contrast: ON':'High contrast: OFF'}function renderAll(){renderTop();renderPanel();renderRecovery();renderContrastButton()}
+ function addEntryPoints(){const help=$id('examHelpBtn'),top=help?.parentElement;if(top&&!$id('v34SafetyBtn')){const b=btn('○ Safety',openPanel);b.id='v34SafetyBtn';top.insertBefore(b,help)}if(!$id('v34TabWarning')){const w=node('div','v34TabWarning','⚠ Another app tab is active. Close the duplicate tab before continuing so local state cannot race.');w.id='v34TabWarning';w.setAttribute('role','alert');document.body.append(w)}const session=$id('sessionView'),hero=session?.querySelector('.hero');if(session&&hero&&!$id('v34RecoveryCard')){const card=node('div','card v34RecoveryCard');card.id='v34RecoveryCard';const h=node('div','row'),left=node('div');left.append(node('h2','', 'Exam-state resilience'),node('div','muted','Use one browser tab. Keep an external session file in addition to local autosnapshots.'));h.append(left,btn('Open safety status',openPanel,'btn primary'));card.append(h);const note=node('div','tiny');note.id='v34BackupNote';card.append(note);const metrics=node('div','v34RecoveryStatus');metrics.id='v34RecoveryStatus';card.append(metrics);hero.insertAdjacentElement('afterend',card)}const rp=$id('readabilityPanel');if(rp&&!$id('v34ContrastBtn')){const g=node('div','readerGroup'),lab=node('div','readerLabel','Contrast'),wrap=node('div','readerButtons'),b=btn('High contrast: OFF',()=>setContrast(!contrastOn()));b.id='v34ContrastBtn';wrap.append(b);g.append(lab,wrap);rp.append(g)}const actions=window.OSCP_V26?.actions;if(Array.isArray(actions)&&!actions.some(x=>x.id==='v34-safety'))actions.push({id:'v34-safety',icon:'🛟',title:'Exam resilience status',desc:'Backup freshness, tab conflict, storage and runtime errors',kind:'safety',keys:'backup safety recovery multi tab runtime error storage',run:openPanel})}
+ function setupBackupTracking(){wrapDownloads();const exp=$id('exportSession');if(exp&&!exp.dataset.v34BackupTrack){exp.dataset.v34BackupTrack='1';exp.addEventListener('click',()=>setTimeout(()=>markBackup('oscp-session.json'),80))}}
+ function start(){document.body.classList.toggle('v34HighContrast',safeGet(KEY_CONTRAST,'0')==='1');ensurePanel();addEntryPoints();setupBackupTracking();setupTabs();setupErrors();renderAll();setInterval(()=>{wrapDownloads();addEntryPoints();renderAll()},5000);try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['V34 resilience status',()=>[!!$id('v34SafetyBtn')&&!!$id('v34SafetyBackdrop'),'safety status']],['V34 multi-tab guard',()=>[typeof window.OSCP_V34?.ping==='function','cross-tab ping guard']],['V34 runtime error monitor',()=>[typeof window.OSCP_V34?.errors==='function','error capture']])}catch(_){}window.OSCP_V34={openPanel,closePanel,ping,errors:()=>errors.slice(),tabConflict,backupInfo,setContrast}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start()
+})();
+</script>
 </body></html>

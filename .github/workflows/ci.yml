@@ -1,7 +1,7 @@
-name: V33 build and validation
+name: V34 build and validation
 on:
   push:
-    branches: [ main, v33-integration ]
+    branches: [ main ]
   pull_request:
 permissions:
   contents: read

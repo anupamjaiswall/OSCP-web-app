@@ -11,7 +11,8 @@ const pkg=JSON.parse(read('package.json'));
 
 if(pkg.version!==meta.version) fail('package.json version does not match build metadata');
 if(/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(html)) fail('Unresolved build marker');
-if(!/connect-src\s+'none'/.test(html)) fail("connect-src 'none' missing");
+for(const directive of ["default-src 'none'","connect-src 'none'","object-src 'none'","frame-src 'none'","form-action 'none'","base-uri 'none'"]){if(!html.includes(directive))fail('CSP directive missing: '+directive)}
+if(Buffer.byteLength(html)>1_500_000) fail('Generated index.html exceeds 1.5 MB size budget');
 if(/<script\b[^>]*\bsrc\s*=/i.test(html)) fail('Runtime script source detected');
 if(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref\s*=/i.test(html)) fail('Runtime stylesheet detected');
 if(/<(?:script|img|link)\b[^>]*(?:src|href)=["']https?:\/\//i.test(html)) fail('Remote runtime resource detected');
