@@ -16,15 +16,6 @@ jobs:
       - name: Build, test, audit, validate
         run: npm run check
       - name: Headless browser boot smoke
-        run: |
-          BROWSER="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
-          test -n "$BROWSER"
-          timeout 25s "$BROWSER" --headless=new --disable-gpu --no-sandbox --disable-background-networking --disable-component-update --disable-sync --no-first-run --allow-file-access-from-files --window-size=1440,1000 --screenshot=/tmp/oscp-boot.png "file://$PWD/index.html"
-          test -s /tmp/oscp-boot.png
-          test "$(stat -c%s /tmp/oscp-boot.png)" -gt 10000
-          grep -q "V34 · EXAM ONLY · OFFLINE · NO AI" index.html
-          grep -q 'id="globalSearch"' index.html
-          grep -q 'id="serviceRouterView"' index.html
-          grep -q 'id="readerContrastToggle"' index.html
+        run: node scripts/browser-smoke.mjs
       - name: Ensure generated exam artifact is committed
         run: git diff --exit-code -- index.html
