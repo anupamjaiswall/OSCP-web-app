@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.24.0">
+<meta name="oscp-build-version" content="34.25.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -1363,7 +1363,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
 
 <section id="sessionView" class="view">
  <div class="hero"><div><h1>Session Snapshot & Recovery</h1><div class="muted">Back up the whole exam state to one JSON file. Optional tool-inventory import is available for version drift checks.</div></div></div>
- <div class="opsGrid"><div class="card opsSpan6"><h2>Full session snapshot</h2><div class="privacy"><b>Plain JSON is always secret-free.</b><div class="tiny">If you need to preserve passwords, hashes, keys or tickets, use the encrypted backup below. This prevents an accidental plaintext secret export.</div></div><div class="row" style="margin-top:10px"><button class="btn good" id="exportSession">Export secret-free session</button><button class="btn" id="copySessionJson" title="Emergency clipboard copy; secret-free and not a durable backup">Copy recovery JSON</button><label class="btn">Import session<input type="file" id="importSession" accept="application/json" hidden></label></div><div id="sessionStats" class="muted" style="margin-top:10px"></div><div id="backupFreshness" class="tiny" data-state="warn" style="margin-top:8px">External backup: none recorded in this browser profile yet.</div><div class="row" style="margin-top:8px"><button class="btn" id="stateFingerprintBtn" type="button">Fingerprint current state</button><code id="stateFingerprint" aria-live="polite">Not calculated</code></div><p class="tiny">New plain session exports embed a SHA-256 integrity value when Web Crypto is available; imports verify it before replacing live state. The manual fingerprint excludes the volatile export timestamp. Dedicated secret fields are omitted and known session secrets are redacted from journal/report text. Unknown secrets manually typed into arbitrary free-text may still exist—review before sharing.</p></div>
+ <div class="opsGrid"><div class="card opsSpan6"><h2>Full session snapshot</h2><div class="privacy"><b>Plain JSON is always secret-free.</b><div class="tiny">If you need to preserve passwords, hashes, keys or tickets, use the encrypted backup below. This prevents an accidental plaintext secret export.</div></div><div class="row" style="margin-top:10px"><button class="btn good" id="exportSession">Export secret-free session</button><button class="btn" id="copySessionJson" title="Emergency clipboard copy; secret-free and not a durable backup">Copy recovery JSON</button><label class="btn">Import session<input type="file" id="importSession" accept="application/json" hidden></label></div><div id="sessionStats" class="muted" style="margin-top:10px"></div><div id="backupFreshness" class="tiny" data-state="warn" style="margin-top:8px">External backup: none recorded in this browser profile yet.</div><div id="recoveryFreshness" class="tiny" data-state="warn" role="status" aria-live="polite" style="margin-top:6px">Recovery status becomes available after startup.</div><div class="row" style="margin-top:8px"><button class="btn" id="stateFingerprintBtn" type="button">Fingerprint current state</button><code id="stateFingerprint" aria-live="polite">Not calculated</code></div><p class="tiny">New plain session exports embed a SHA-256 integrity value when Web Crypto is available; imports verify it before replacing live state. The manual fingerprint excludes the volatile export timestamp. Dedicated secret fields are omitted and known session secrets are redacted from journal/report text. Unknown secrets manually typed into arbitrary free-text may still exist—review before sharing.</p></div>
  <div class="card opsSpan6"><h2>Optional tool inventory</h2><p class="tiny">No helper is required or bundled. If you already have a compatible inventory JSON, import it here; otherwise installed <code>-h/--help</code> and version output are the syntax authority.</p><label class="btn">Import inventory JSON<input type="file" id="importPreflight" accept="application/json" hidden></label><div id="preflightSummary" class="muted" style="margin-top:10px">No preflight imported.</div><div style="overflow:auto"><table class="preflightTable"><thead><tr><th>Tool</th><th>Class</th><th>Status</th><th>Version / path</th></tr></thead><tbody id="preflightBody"></tbody></table></div></div>
  
  <div class="card opsSpan6"><h2>🔐 Encrypted Session Backup</h2><div class="encBox">
@@ -1449,7 +1449,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.24.0',
+  version:'34.25.0',
   label:'V34',
   date:'2026-09-24'
 });</script>
@@ -6239,5 +6239,53 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  if(document.readyState==='complete')setTimeout(()=>start(),250);else window.addEventListener('load',()=>setTimeout(()=>start(),250),{once:true});
 })();</script>
 <script>window.__OSCP_BOOT_STAGE__='20-reference-hydrator';console.log('[OSCP_BOOT_STAGE]','20-reference-hydrator');</script>
+<script id="recoveryStatusScript">(()=>{
+'use strict';
+const MAX_EXTERNAL_AGE=2*60*60*1000;
+const $id=id=>document.getElementById(id);
+function snapshot(){
+  let dirty=false,lastSnapshot=0,backupAt=0,backupKind='backup',storageFailed=false;
+  try{dirty=!!v9Dirty}catch(_){}
+  try{lastSnapshot=Number(lastSnapshotAt)||0}catch(_){}
+  try{backupAt=Number(externalBackupMeta?.at)||0;backupKind=String(externalBackupMeta?.kind||'backup')}catch(_){}
+  try{storageFailed=!!__oscpStorageWriteWarned}catch(_){}
+  const backupFresh=!!backupAt&&Date.now()-backupAt<=MAX_EXTERNAL_AGE;
+  return{dirty,lastSnapshot,backupAt,backupKind,backupFresh,storageFailed};
+}
+function render(){
+  const el=$id('recoveryFreshness');if(!el)return;
+  const s=snapshot(),snap=s.lastSnapshot?new Date(s.lastSnapshot).toLocaleString():'none yet';
+  if(s.storageFailed){el.dataset.state='bad';el.textContent='Recovery risk: browser storage reported a write failure. Export a full session backup now.';return}
+  if(s.dirty&&!s.backupFresh){el.dataset.state='warn';el.textContent='Recovery risk: core state changed since the last restore point and the external backup is stale or missing. Last restore point: '+snap+'.';return}
+  if(s.dirty){el.dataset.state='warn';el.textContent='Core state changed since the last restore point. External '+s.backupKind+' backup is fresh. Last restore point: '+snap+'.';return}
+  el.dataset.state=s.backupFresh?'good':'warn';
+  el.textContent='Core target/operations state matches the latest restore point ('+snap+'). '+(s.backupFresh?'External '+s.backupKind+' backup is fresh.':'External backup is stale or missing.');
+}
+function wrap(name,after){
+  try{
+    const base=globalThis[name];
+    if(typeof base!=='function'||base.__oscpRecoveryWrapped)return;
+    const wrapped=function(...args){const out=base.apply(this,args);after();return out};
+    wrapped.__oscpRecoveryWrapped=true;globalThis[name]=wrapped;
+  }catch(_){}
+}
+function install(){
+  wrap('saveTargets',render);wrap('saveOps',render);wrap('snapshotNow',render);wrap('markExternalBackup',render);
+  const baseSwitch=globalThis.switchView;
+  if(typeof baseSwitch==='function'&&!baseSwitch.__oscpRecoveryWrapped){
+    const wrapped=function(id,...args){const out=baseSwitch.call(this,id,...args);if(id==='sessionView')render();return out};
+    wrapped.__oscpRecoveryWrapped=true;globalThis.switchView=wrapped;
+  }
+  document.addEventListener('visibilitychange',render,{passive:true});
+  window.addEventListener('beforeunload',e=>{
+    const s=snapshot();
+    if(s.storageFailed||(s.dirty&&!s.backupFresh)){e.preventDefault();e.returnValue=''}
+  },{capture:true});
+  render();
+  window.OSCP_RECOVERY_STATUS={snapshot,render};
+}
+install();
+})();</script>
+<script>window.__OSCP_BOOT_STAGE__='21-recovery-status';console.log('[OSCP_BOOT_STAGE]','21-recovery-status');</script>
 <script>window.__OSCP_BOOT_STAGE__='complete-scripts';console.log('[OSCP_BOOT_STAGE]','complete-scripts');</script>
 </body></html>
