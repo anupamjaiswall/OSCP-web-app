@@ -16,10 +16,11 @@ function findBrowser(){
   throw new Error('Chrome/Chromium executable not found');
 }
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
-async function waitForJson(url,timeoutMs=12000){
+async function waitForJson(url,timeoutMs=25000){
   const end=Date.now()+timeoutMs;
   let last='';
   while(Date.now()<end){
+    if(childExit)throw new Error('Chrome exited before DevTools became ready: '+JSON.stringify(childExit));
     try{
       const r=await fetch(url);
       if(r.ok)return await r.json();
@@ -34,13 +35,15 @@ function withTimeout(p,ms,label){
 }
 
 const browser=findBrowser();
+let childExit=null;
 const child=spawn(browser,[
-  '--headless=new','--disable-gpu','--no-sandbox','--disable-background-networking',
+  '--headless','--disable-gpu','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking',
   '--disable-component-update','--disable-sync','--no-first-run','--no-default-browser-check',
-  '--allow-file-access-from-files',`--remote-debugging-port=${port}`,`--user-data-dir=${tmp}`,'about:blank'
+  '--allow-file-access-from-files','--remote-debugging-address=127.0.0.1',`--remote-debugging-port=${port}`,`--user-data-dir=${tmp}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
 let stderr='';
 child.stderr.on('data',d=>{stderr+=String(d);if(stderr.length>12000)stderr=stderr.slice(-12000)});
+child.on('exit',(code,signal)=>{childExit={code,signal}});
 
 let ws;
 try{
