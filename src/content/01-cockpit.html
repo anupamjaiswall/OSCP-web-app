@@ -724,6 +724,7 @@ WHAT AM I ASSUMING?
 
 WHAT DID I MISS?
   full TCP
+  scan reliability / pivot path
   useful UDP
   DNS/vhosts
   source/backups/config
@@ -732,10 +733,51 @@ WHAT DID I MISS?
   post-shell re-enumeration
   DNS/time in AD
   writable privileged dependency
+  exact stdout/stderr / HTTP status / protocol error
 
 WRITE ONLY NEXT 3 ACTIONS.
 </code></pre>
 <p>If none of the next three actions can produce <strong>new evidence</strong>, rotate targets/surfaces.</p>
+<hr/>
+<h2 id="ref-c13-5-output-triage-before-switching-tools">C13.5 OUTPUT TRIAGE — BEFORE SWITCHING TOOLS</h2>
+<p>Search: <code>[OUTPUT:TRIAGE]</code></p>
+<p><strong>2026 passer pattern:</strong> missed information in tool output can cost more time than missing another tool. Classify the failure before changing syntax, frameworks or attack paths.</p>
+<pre class="ref-code"><code class="language-text">TIMEOUT / NO ROUTE
+  → reachability, VPN, pivot, route or firewall path
+  → says nothing about credential validity
+
+CONNECTION REFUSED
+  → host/path answered but nothing is listening on that port
+
+TLS / CERT / REDIRECT / WRONG HOST
+  → hostname, SNI, vhost, scheme or certificate-name problem
+
+401 / LOGON_FAILURE / PREAUTH_FAILED
+  → presented identity/secret was rejected
+  → check local-vs-domain form and secret provenance once
+
+403 / ACCESS_DENIED / LOGON-TYPE DENIED
+  → authentication may be valid; authorization/right is missing
+
+UNKNOWN OPTION / IMPORT / USAGE ERROR
+  → local tool/build problem
+  → read installed --help before abandoning the hypothesis
+
+EMPTY SMB / LDAP / WEB ENUMERATION
+  → first verify share/base DN/filter/Host header/path/scope
+  → "empty" is not automatically "nothing exists"
+
+AUTH SUCCESS WITHOUT ADMIN SIGNAL
+  → authentication only
+  → prove share access / WinRM / RDP / admin execution separately
+</code></pre>
+<h3 id="ref-output-triage-micro-loop">30-second output micro-loop</h3>
+<pre class="ref-code"><code class="language-text">1. Copy the exact error/status.
+2. Name the failing layer: network → name/TLS → authentication → authorization → parser/tool.
+3. Use one native/manual truth check.
+4. Correct the proved cause and retry the SAME hypothesis once.
+5. New evidence? continue. Same result? record it and rotate.
+</code></pre>
 <hr/>
 <h2 id="ref-c14-output-recognition-cheat-table">C14. OUTPUT RECOGNITION CHEAT TABLE</h2>
 <table class="ref-table">
@@ -925,6 +967,7 @@ WRITE ONLY NEXT 3 ACTIONS.
 [ERROR:403]
 [ERROR:SHELL]
 [ERROR:PIVOT]
+[OUTPUT:TRIAGE]
 [EXPLOIT:GATE]
 [EVIDENCE:PACKET]
 [STUCK:RESET]

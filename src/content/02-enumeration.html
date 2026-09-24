@@ -191,39 +191,67 @@ ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u htt
 <hr/>
 <h2 id="ref-3-nmap-port-scanning">3. NMAP &amp; PORT SCANNING</h2>
 <details id="ref-3-1-nmap-workflow-fast-default-adaptive-rate">
-<summary>🔍 3.1 Nmap Workflow --- Fast Default, Adaptive Rate</summary>
+<summary>🔍 3.1 Nmap Workflow — Reliable Two-Pass Baseline</summary>
+<p><code>[SCAN:RELIABLE] [OUTPUT:TRIAGE]</code></p>
+<blockquote>
+<p><strong>Exam default:</strong> discover open ports first, then fingerprint only those ports. If the port map looks suspiciously sparse, stop noisy enumeration against that host and repeat a clean discovery pass before assuming the service is absent.</p>
+</blockquote>
 <pre class="ref-code"><code class="language-bash"># STEP 0: Create output directory once
 mkdir -p scans/nmap
 
-# STEP 1: Full TCP scan — conservative VPN baseline; adapt to packet loss
-sudo nmap -Pn -n -p- --min-rate 1000 -oA scans/nmap/tcp-all $IP &amp;
-# If results look sparse or packets drop, reduce/remove --min-rate and retry a small known set.
+# STEP 1: CLEAN FULL-TCP DISCOVERY — no -sC/-sV yet
+sudo nmap -Pn -n -p- --open -T4 --max-retries 2 -oA scans/nmap/tcp-all "$IP"
 
-# STEP 2: Meanwhile, top 1000 with scripts (quicker results while full scan runs)
-sudo nmap -Pn -n -sC -sV --top-ports 1000 -oA scans/nmap/tcp-initial $IP &amp;
-
-# STEP 3: When all-ports finishes, targeted deep scan
 ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' scans/nmap/tcp-all.nmap | paste -sd, -)
-echo "Open ports: $ports"
-test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sC -sV -p "$ports" -oA scans/nmap/tcp-detail $IP
+echo "Open TCP: $ports"
 
-# STEP 4: Targeted UDP when the host role, TCP results or remaining hypothesis justifies it
-sudo nmap -Pn -n -sU --top-ports 100 -oA scans/nmap/udp-top100 $IP &amp;
-# Critical UDP: 53,67,68,69,111,123,137,138,139,161,162,500,514,1194,1900
+# STEP 1B: SANITY RECOVERY — only if results look sparse/inconsistent
+# Stop ferox/gobuster/other noisy work against THIS SAME host while validating.
+sudo nmap -Pn -n -p- --open -T3 --max-retries 3 -oA scans/nmap/tcp-verify "$IP"
+verify_ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' scans/nmap/tcp-verify.nmap | paste -sd, -)
+echo "Verify TCP: $verify_ports"
+# If lists differ materially: inspect --reason, packet loss, VPN/pivot path and one known service.
 
-# STEP 5: Run only a selected, relevant NSE script after reviewing its behavior
+# STEP 2: TARGETED FINGERPRINT — confirmed opens only
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sC -sV -p "$ports" -oA scans/nmap/tcp-detail "$IP"
+
+# OPTIONAL ACCELERATION — only after the path behaves consistently
+# sudo nmap -Pn -n -p- --open --min-rate 1000 --max-retries 2 -oA scans/nmap/tcp-fast "$IP"
+
+# STEP 3: Targeted UDP when host role/TCP evidence justifies it
+sudo nmap -Pn -n -sU --top-ports 100 --max-retries 2 -oA scans/nmap/udp-top100 "$IP"
+# High-value UDP examples: 53,69,111,123,137,138,161,162,500,514,1194
+
+# STEP 4: Selected NSE only after reading what the script does
 SCRIPT='&lt;relevant-script&gt;'
 nmap --script-help "$SCRIPT"
-test -n "$ports" &amp;&amp; sudo nmap -Pn -n --script "$SCRIPT" -p "$ports" -oA scans/nmap/nse-selected $IP
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n --script "$SCRIPT" -p "$ports" -oA scans/nmap/nse-selected "$IP"
 
-# STEP 6: OS detection only when it will change the next decision
-test -n "$ports" &amp;&amp; sudo nmap -Pn -n -O --osscan-guess -p "$ports" -oA scans/nmap/os $IP
+# STEP 5: OS detection only if it changes the next decision
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n -O --osscan-guess -p "$ports" -oA scans/nmap/os "$IP"
 </code></pre>
+<h3>Scan sanity ladder</h3>
+<pre class="ref-code"><code class="language-text">PORT MAP LOOKS WRONG?
+  ↓
+Stop concurrent noisy enumeration against THIS host
+  ↓
+Prove route/VPN/pivot + one known service
+  ↓
+Repeat clean -p- discovery at a calmer timing
+  ↓
+Fingerprint ONLY confirmed opens
+  ↓
+Through SOCKS? use TCP connect (-sT) and smaller known port sets
+  ↓
+Still inconsistent? record it as a network/pivot problem, not "no service"
+</code></pre>
+<p>This is a reliability tactic, not a claim that one timing profile is universally best. Your current VPN/pivot and observed packet loss decide the rate.</p>
 </details>
 <details id="ref-3-2-nmap-tips-tricks">
 <summary>⚡ 3.2 Nmap Tips &amp; Tricks</summary>
-<pre class="ref-code"><code class="language-bash"># Controlled acceleration — reduce/remove the floor if results look incomplete
+<pre class="ref-code"><code class="language-bash"># Optional acceleration AFTER a stable discovery baseline
 --min-rate 1000 --max-retries 2
+# If results look incomplete, remove the rate floor and retry calmer.
 
 # If firewall dropping packets — use these
 nmap -sS -p$ports $IP              # SYN scan
@@ -242,7 +270,7 @@ proxychains nmap -sT -Pn -p 80,443,445,22,3389 192.168.x.x
 nmap -sC -sV -p$ports $IP -oA scans/nmap/targeted
 
 # Extract just open port numbers from result
-grep "open" scans/nmap/targeted.txt | awk '{print $1}' | cut -d'/' -f1
+grep "open" scans/nmap/targeted.nmap | awk '{print $1}' | cut -d'/' -f1
 
 # Parse nmap XML with python (automation)
 python3 -c "
