@@ -15,7 +15,7 @@ jobs:
           node-version: 22
       - name: Build, test, audit, validate
         run: npm run check
-      - name: Headless browser boot and interaction gate
+      - name: Headless browser render gate
         timeout-minutes: 2
         run: node scripts/browser-smoke.mjs
       - name: Ensure generated exam artifact is committed

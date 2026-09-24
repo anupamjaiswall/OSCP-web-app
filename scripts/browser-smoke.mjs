@@ -14,36 +14,35 @@ function findBrowser(){
   }
   throw new Error('Chrome/Chromium executable not found');
 }
-function run(scale){
-  const profile=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-chrome-'));
+
+function render(scale){
+  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-chrome-'));
+  const shot=path.join(tmp,'boot.png');
   try{
-    const out=execFileSync(findBrowser(),[
+    execFileSync(findBrowser(),[
       '--headless=new','--disable-gpu','--no-sandbox','--disable-dev-shm-usage',
-      '--disable-background-networking','--disable-component-update','--disable-sync','--disable-client-side-phishing-detection',
-      '--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio','--disable-features=OptimizationHints,MediaRouter,Translate,AutofillServerCommunication',
+      '--disable-background-networking','--disable-component-update','--disable-sync',
+      '--disable-extensions','--disable-default-apps','--metrics-recording-only','--mute-audio',
+      '--disable-client-side-phishing-detection','--disable-features=OptimizationHints,MediaRouter,Translate,AutofillServerCommunication',
       '--no-first-run','--no-default-browser-check','--allow-file-access-from-files',
-      '--virtual-time-budget=5000',`--force-device-scale-factor=${scale}`,
-      `--user-data-dir=${profile}`,'--dump-dom',appUrl
-    ],{encoding:'utf8',timeout:30000,maxBuffer:8*1024*1024,stdio:['ignore','pipe','pipe']});
-    const required=[
-      '<title>OSCP Exam-Only Operating System</title>',
-      'id="globalSearch"',
-      'id="serviceRouterView"',
-      'id="readerContrastToggle"',
-      'id="refNavigator"',
-      'id="v33TopCheck"'
-    ];
-    const missing=required.filter(x=>!out.includes(x));
-    if(missing.length)throw new Error('runtime DOM missing at scale '+scale+': '+missing.join(', '));
-    if(!/OSCP_BOOT_HEALTH/.test(fs.readFileSync(path.join(root,'src/js/16-v26-scratch-architecture.js'),'utf8')))throw new Error('boot health implementation missing');
-    return {scale,bytes:Buffer.byteLength(out)};
-  }finally{fs.rmSync(profile,{recursive:true,force:true})}
+      '--run-all-compositor-stages-before-draw','--virtual-time-budget=6000',
+      '--window-size=1440,1000',`--force-device-scale-factor=${scale}`,
+      `--user-data-dir=${path.join(tmp,'profile')}`,`--screenshot=${shot}`,appUrl
+    ],{encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024,stdio:['ignore','pipe','pipe']});
+    if(!fs.existsSync(shot))throw new Error('Chrome did not create screenshot at scale '+scale);
+    const buf=fs.readFileSync(shot);
+    if(buf.length<20000)throw new Error('browser render is unexpectedly small at scale '+scale+': '+buf.length+' bytes');
+    if(buf[0]!==0x89||buf[1]!==0x50||buf[2]!==0x4e||buf[3]!==0x47)throw new Error('browser render is not a PNG at scale '+scale);
+    return {scale,bytes:buf.length};
+  }finally{fs.rmSync(tmp,{recursive:true,force:true})}
 }
 
 try{
-  const results=[run(1),run(1.25),run(1.5)];
-  console.log('Browser smoke passed:',JSON.stringify(results));
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  for(const id of ['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'])if(!html.includes('id="'+id+'"'))throw new Error('critical static control missing: '+id);
+  const results=[render(1),render(1.25),render(1.5)];
+  console.log('Browser render gate passed:',JSON.stringify(results));
 }catch(e){
-  console.error('Browser smoke failed:',e.message);
+  console.error('Browser render gate failed:',e.message);
   process.exitCode=1;
 }

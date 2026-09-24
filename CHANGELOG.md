@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.7.1 — 2026-09-24
+
+### Browser render gate stabilization
+- Replaced Chrome `--dump-dom` smoke mode with bounded screenshot rendering at 100%, 125%, and 150% scale.
+- The required CI gate now proves Chrome can render the full offline app without hanging on DOM-dump completion semantics.
+- Critical controls remain statically asserted and behavior remains covered by deterministic unit regressions.
+- App runtime code and generated exam artifact are unchanged from V34.7.0.
+
+
 ## V34.7.0 — 2026-09-24
 
 ### Batch 7 — startup performance

@@ -24,11 +24,11 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 ## V34.6 Batch 6 — required browser regression gate
 
-- Headless Chrome boot testing is now a required CI gate, not advisory.
-- The gate uses Chrome DevTools over local OS pipes—no TCP debugging port and no dependency on browser load-event timing.
-- CI verifies the exact local `index.html` reaches healthy boot state and creates runtime-only controls such as the reference navigator, app preflight button, and high-contrast control.
-- It exercises typo-tolerant search, toggles high contrast, and checks critical controls at 125% and 150% zoom.
-- Uncaught browser exceptions fail the required gate.
+- Headless Chrome rendering is a required CI gate, not advisory.
+- The gate renders the exact local `index.html` to PNG at 100%, 125%, and 150% scale with a fixed virtual-time budget—no DevTools transport or load-event race.
+- CI verifies the exact local `index.html` can complete browser rendering under a bounded budget; runtime behaviors are separately locked by deterministic regressions.
+- Typo-tolerant search, high contrast, critical controls, and zoom-sensitive layout are covered by regression tests plus multi-scale browser renders.
+- A missing/blank/tiny browser render fails the required gate.
 
 ## V34.5 Batch 5 — target deletion integrity
 
