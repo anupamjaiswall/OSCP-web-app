@@ -1,5 +1,16 @@
 # Changelog
 
+## V34.3.0 — 2026-09-24
+
+### Batch 3 — recovery and destructive-action safety
+- Normal session imports are file-size checked and backup-schema validated before state mutation.
+- Normal imports create a secret-free recovery snapshot before restore.
+- Clear-all operations state creates a recovery snapshot first and uses explicit destructive wording.
+- Recovery snapshot deletion now requires confirmation and uses an explicit Delete button.
+- Removed the legacy two-stage normal-session import wrapper so one validated restore chain is authoritative.
+- No new timers, storage listeners, polling, or background render loops were added.
+
+
 ## V34.2.0 — 2026-09-24
 
 ### Batch 2 — regression and security gates

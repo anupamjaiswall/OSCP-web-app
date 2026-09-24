@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.2 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.3 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,16 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.3 Batch 3 — recovery and destructive-action safety
+
+This batch changes existing recovery paths only; it adds no polling, background render loop, or cross-tab behavior.
+
+- **Validated normal session restore:** secret-free session JSON is size-checked and schema-validated before any live state is replaced.
+- **Automatic pre-restore snapshot:** normal session imports create a secret-free recovery point first.
+- **Safe clear-all:** clearing browser operations state creates a recovery snapshot before deletion and uses explicit “Clear ALL” wording.
+- **Snapshot delete confirmation:** restore points cannot be deleted with a single accidental click.
+- **One restore chain:** the legacy two-stage normal-session import wrapper is removed so one validated restore path is authoritative.
 
 ## V34.2 Batch 2 — regression and security gates
 

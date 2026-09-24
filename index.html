@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.2.0">
+<meta name="oscp-build-version" content="34.3.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -1358,7 +1358,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  </div></div>
  <div class="card opsSpan6"><h2>🕘 Autosnapshots</h2><div class="row"><button class="btn primary" id="manualSnapshot">Create now</button><span class="muted">Secret-field-free restore points, max 8; known journal/report secrets are redacted.</span></div><div id="snapshotList"></div></div>
  <div class="card opsSpan12"><h2>⚕ Session Health</h2><div id="sessionHealth" class="health"></div></div>
-<div class="card opsSpan12"><h2>Browser-resident state</h2><div id="storageSummary"></div><div class="row" style="margin-top:10px"><button class="btn bad" id="clearV7Ops">Clear operations state</button></div></div></div>
+<div class="card opsSpan12"><h2>Browser-resident state</h2><div id="storageSummary"></div><div class="row" style="margin-top:10px"><button class="btn bad" id="clearV7Ops" title="Clears ALL targets, credentials, favorites and preflight after creating a recovery snapshot">Clear ALL operations state</button></div></div></div>
 </section>
 
 <section id="playbooksView" class="view"><div class="hero"><div><h1>Machine Archetype Playbooks</h1><div class="muted">Pattern recognition: follow the likely chain, but let evidence override the archetype.</div></div></div><div class="grid" id="playbooks"></div></section>
@@ -10353,7 +10353,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.2.0',
+  version:'34.3.0',
   label:'V34',
   date:'2026-09-24'
 });</script>
@@ -10816,11 +10816,11 @@ function renderSearch(q){q=q||'';let scored=SEARCH_ITEMS.map(x=>({...x,score:fuz
 
 function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-Exam-OS',version:28,legacyVersion:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
 $('#exportSession').onclick=()=>{downloadText('oscp-session.json',JSON.stringify(sessionPayload(false),null,2),'application/json');toast('Secret-free session exported — use encrypted backup to preserve secrets')};
-$('#importSession').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=JSON.parse(await f.text());if(!Array.isArray(o.targets))throw new Error('targets missing');targets=o.targets.map(upgradeTarget);credentials=Array.isArray(o.credentials)?o.credentials.map(c=>({...c,checks:c.checks||{}})):[];favorites=Array.isArray(o.favorites)?o.favorites:[];if(o.settings)settings={...settings,...o.settings,PASSWORD:o.settings.PASSWORD||''};activeTargetId=o.activeTargetId&&targets.some(t=>t.id===o.activeTargetId)?o.activeTargetId:(targets[0]?.id||'');preflightData=o.preflight||preflightData;targets.forEach(t=>{if(t.creds)sessionSecrets[t.id]=t.creds;if(!persistSecrets)t.creds=''});credentials.forEach(c=>{if(c.secret)sessionCredentialSecrets[c.id]=c.secret;if(!persistSecrets)c.secret=''});saveTargets();saveOps();renderSettings();renderPlaceholders();prepareCode();renderAllV7();toast('Session restored')}catch(err){alert('Invalid OSCP session JSON: '+err.message)}};
+$('#importSession').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{assertImportFileSize(f,'Session backup');const o=assertRestorableBackup(JSON.parse(await f.text()));snapshotNow('before session import');restoreV9Payload(o);toast('Session restored')}catch(err){alert('Invalid OSCP session JSON: '+err.message)}finally{e.target.value=''}};
 $('#importPreflight').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{assertImportFileSize(f,'Preflight JSON');preflightData=JSON.parse(await f.text());saveOps();renderPreflight();toast('Preflight imported')}catch{alert('Invalid preflight JSON')}};
 function renderPreflight(){const root=$('#preflightBody'),sum=$('#preflightSummary');if(!root||!sum)return;if(!preflightData||!Array.isArray(preflightData.tools)){root.innerHTML='';sum.textContent='No preflight imported.';return}const core=preflightData.tools.filter(x=>(x.priority||'core')==='core'),coreMiss=core.filter(x=>!x.present).length,allMiss=preflightData.tools.filter(x=>!x.present).length;sum.textContent=`core ${core.length-coreMiss}/${core.length} · all ${preflightData.tools.length-allMiss}/${preflightData.tools.length} commands found · generated ${preflightData.generated||'unknown'}`;root.innerHTML=preflightData.tools.map(x=>`<tr><td>${esc(x.tool)}</td><td>${esc(x.priority||'legacy')}</td><td>${x.present?'✅ present':'❌ missing'}</td><td>${esc(x.version||x.path||'')}</td></tr>`).join('')}
 function renderSessionStats(){const s=$('#sessionStats');if(s)s.textContent=`${targets.length} targets · ${credentials.length} credentials · ${favorites.length} favorites · ${targets.reduce((n,t)=>n+(t.path?.length||0),0)} attack-path steps`;const st=$('#storageSummary');if(st)st.innerHTML=`<div class="row"><div><div class="opsMetric">${targets.length}</div><div class="opsMetricLabel">targets</div></div><div><div class="opsMetric">${credentials.length}</div><div class="opsMetricLabel">credentials</div></div><div><div class="opsMetric">${favorites.length}</div><div class="opsMetricLabel">pins</div></div><div><div class="opsMetric">${preflightData?.tools?.length||0}</div><div class="opsMetricLabel">preflight tools</div></div></div>`}
-$('#clearV7Ops').onclick=()=>{if(!confirm('Clear targets, credentials, favorites and preflight from this browser?'))return;['targets','credentials','favorites','preflight','activeTarget'].forEach(k=>safeStoreRemove(STORE+k));targets=[];credentials=[];favorites=[];preflightData=null;activeTargetId='';sessionSecrets={};sessionCredentialSecrets={};renderTargets();renderAllV7();toast('Operations state cleared')};
+$('#clearV7Ops').onclick=()=>{if(!confirm('CLEAR ALL targets, credentials, favorites and preflight from this browser? A secret-free recovery snapshot will be created first.'))return;snapshotNow('before clear operations state');['targets','credentials','favorites','preflight','activeTarget'].forEach(k=>safeStoreRemove(STORE+k));targets=[];credentials=[];favorites=[];preflightData=null;activeTargetId='';sessionSecrets={};sessionCredentialSecrets={};renderTargets();renderAllV7();toast('Operations state cleared — recovery snapshot retained')};
 
 function renderAllV7(){renderOpsSelectors();renderWorkspace();renderCredentialMatrix();renderGraph();renderReport();renderFavorites();renderActiveSummary();renderPreflight();renderSessionStats()}
 $('#addTarget').onclick=()=>{const t=newTarget();targets.push(t);activeTargetId=t.id;saveTargets();renderTargets();renderAllV7()};
@@ -11450,12 +11450,7 @@ function restoreV9Payload(o){
  safeStoreSet(STORE+'boardConfig',JSON.stringify(boardConfig));
  saveTargets();saveOps();saveVault();renderSettings();renderPlaceholders();prepareCode();renderAllV9();
 }
-const v9NormalImportBase=$('#importSession').onchange;
-$('#importSession').onchange=async e=>{
- const file=e.target.files[0];let extra=null;try{if(file)extra=JSON.parse(await file.text())}catch(_){}
- await v9NormalImportBase(e);
- if(extra){if(extra.boardConfig){boardConfig=extra.boardConfig;safeStoreSet(STORE+'boardConfig',JSON.stringify(boardConfig))}if(Array.isArray(extra.evidenceVault)){evidenceVault=extra.evidenceVault;saveVault()}renderAllV9()}
-};
+/* Normal session import is validated before mutation and restored through the current restore chain. */
 
 /* AES-GCM encrypted backups */
 function b64(bytes){let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s)}
@@ -11524,9 +11519,9 @@ function snapshotNow(reason='manual'){
  }catch(e){toast('Autosnapshot failed — browser storage may be full');return false}
 }
 function renderSnapshots(){
- const root=$('#snapshotList');if(!root)return;root.innerHTML=autosnapshots.length?autosnapshots.map(s=>`<div class="snapshot"><div class="row" style="justify-content:space-between"><div><div class="snapshotTitle">${new Date(s.at).toLocaleString()}</div><div class="snapshotMeta">${esc(s.reason)} · ${(s.payload.targets||[]).length} targets · ${(s.payload.credentials||[]).length} credentials · dedicated secrets excluded</div></div><div><button class="btn snapRestore" data-sid="${esc(s.id)}">Restore</button><button class="btn bad snapDelete" data-sid="${esc(s.id)}">×</button></div></div></div>`).join(''):'<div class="muted">No autosnapshots yet.</div>';
+ const root=$('#snapshotList');if(!root)return;root.innerHTML=autosnapshots.length?autosnapshots.map(s=>`<div class="snapshot"><div class="row" style="justify-content:space-between"><div><div class="snapshotTitle">${new Date(s.at).toLocaleString()}</div><div class="snapshotMeta">${esc(s.reason)} · ${(s.payload.targets||[]).length} targets · ${(s.payload.credentials||[]).length} credentials · dedicated secrets excluded</div></div><div><button class="btn snapRestore" data-sid="${esc(s.id)}">Restore</button><button class="btn bad snapDelete" data-sid="${esc(s.id)}" title="Delete recovery snapshot">Delete</button></div></div></div>`).join(''):'<div class="muted">No autosnapshots yet.</div>';
  $$('.snapRestore').forEach(b=>b.onclick=()=>{const s=autosnapshots.find(x=>x.id===b.dataset.sid);if(s&&confirm('Restore this secret-field-free snapshot? Current state will be replaced.')){try{assertRestorableBackup(s.payload);snapshotNow('before snapshot restore');restoreV9Payload(s.payload);toast('Snapshot restored')}catch(err){alert('Snapshot restore blocked: '+err.message)}}});
- $$('.snapDelete').forEach(b=>b.onclick=()=>{autosnapshots=autosnapshots.filter(x=>x.id!==b.dataset.sid);safeStoreSet(STORE+'autosnapshots',JSON.stringify(autosnapshots));renderSnapshots();renderCockpitRecovery()});
+ $('.snapDelete').forEach(b=>b.onclick=()=>{const s=autosnapshots.find(x=>x.id===b.dataset.sid);if(!s||!confirm('Delete this recovery snapshot? This cannot be undone.'))return;autosnapshots=autosnapshots.filter(x=>x.id!==b.dataset.sid);safeStoreSet(STORE+'autosnapshots',JSON.stringify(autosnapshots));renderSnapshots();renderCockpitRecovery()});
 }
 function renderCockpitRecovery(){const r=$('#cockpitRecovery');if(!r)return;r.innerHTML=lastSnapshotAt?`Last secret-field-free restore point: <b>${new Date(lastSnapshotAt).toLocaleString()}</b><br><span class="tiny">${autosnapshots.length} restore point(s) retained.</span>`:'No restore point created yet.'}
 $('#manualSnapshot').onclick=()=>{snapshotNow('manual');toast('Restore point created')};

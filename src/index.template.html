@@ -978,7 +978,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  </div></div>
  <div class="card opsSpan6"><h2>🕘 Autosnapshots</h2><div class="row"><button class="btn primary" id="manualSnapshot">Create now</button><span class="muted">Secret-field-free restore points, max 8; known journal/report secrets are redacted.</span></div><div id="snapshotList"></div></div>
  <div class="card opsSpan12"><h2>⚕ Session Health</h2><div id="sessionHealth" class="health"></div></div>
-<div class="card opsSpan12"><h2>Browser-resident state</h2><div id="storageSummary"></div><div class="row" style="margin-top:10px"><button class="btn bad" id="clearV7Ops">Clear operations state</button></div></div></div>
+<div class="card opsSpan12"><h2>Browser-resident state</h2><div id="storageSummary"></div><div class="row" style="margin-top:10px"><button class="btn bad" id="clearV7Ops" title="Clears ALL targets, credentials, favorites and preflight after creating a recovery snapshot">Clear ALL operations state</button></div></div></div>
 </section>
 
 <section id="playbooksView" class="view"><div class="hero"><div><h1>Machine Archetype Playbooks</h1><div class="muted">Pattern recognition: follow the likely chain, but let evidence override the archetype.</div></div></div><div class="grid" id="playbooks"></div></section>
