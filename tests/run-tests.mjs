@@ -12,8 +12,9 @@ function test(n,fn){fn();passed++;console.log('✓ '+n)}
 
 const sandbox={window:{}};vm.createContext(sandbox);
 vm.runInContext(read('src/js/00-core-utils.js'),sandbox);
+vm.runInContext(read('src/js/00-search-core.js'),sandbox);
 vm.runInContext(read('src/js/00-service-router-core.js'),sandbox);
-const u=sandbox.window.OSCP_UTILS,r=sandbox.window.OSCP_SERVICE_CORE;
+const u=sandbox.window.OSCP_UTILS,s=sandbox.window.OSCP_SEARCH_CORE,r=sandbox.window.OSCP_SERVICE_CORE;
 
 test('build version consistency',()=>{const m=JSON.parse(read('src/meta/build.json')),p=JSON.parse(read('package.json'));eq(p.version,m.version);eq(m.label,'V'+m.version.split('.')[0])});
 test('escapeHtml',()=>eq(u.escapeHtml(`<a x='y'>&"`),'&lt;a x=&#39;y&#39;&gt;&amp;&quot;'));
