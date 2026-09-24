@@ -69,12 +69,16 @@ async function main(){
     const rpc=makeRpc(ws);
     await rpc.send('Runtime.enable');await rpc.send('Page.enable');
 
+    let lastState=null,lastProbeError='';
     const ready=await waitFor(async()=>{
-      const out=await rpc.send('Runtime.evaluate',{expression:`JSON.stringify({ready:document.readyState,controls:['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'].every(id=>!!document.getElementById(id)),boot:window.OSCP_BOOT_HEALTH?.ok!==false})`,returnByValue:true});
-      const raw=out?.result?.value;if(!raw)return false;const state=JSON.parse(raw);
-      return state.ready==='complete'&&state.controls&&state.boot?state:false;
+      try{
+        const out=await rpc.send('Runtime.evaluate',{expression:`JSON.stringify({ready:document.readyState,controls:['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'].map(id=>[id,!!document.getElementById(id)]),boot:window.OSCP_BOOT_HEALTH||null,searchReady:window.OSCP_SEARCH_INDEX_READY===true,codeReady:window.OSCP_CODE_BLOCKS_READY===true})`,returnByValue:true});
+        const raw=out?.result?.value;if(!raw)return false;lastState=JSON.parse(raw);lastProbeError='';
+        const controlsOk=lastState.controls.every(x=>x[1]);
+        return lastState.ready==='complete'&&controlsOk&&lastState.boot?.ok!==false?lastState:false;
+      }catch(e){lastProbeError=e.message;return false}
     },20000,150);
-    if(!ready)throw new Error('Offline app did not reach a usable completed state');
+    if(!ready)throw new Error('Offline app did not reach a usable completed state · lastState='+JSON.stringify(lastState)+' · probe='+lastProbeError);
 
     const renders=[];
     for(const scale of [1,1.25,1.5]){
