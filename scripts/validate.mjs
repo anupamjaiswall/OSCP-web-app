@@ -49,7 +49,7 @@ if(!html.includes('window.OSCP_UTILS.examScore(ad,ss,70)')) fail('Score utility 
 if(!html.includes('window.OSCP_UTILS.evidenceMissing(t)')) fail('Evidence utility not wired');
 
 for(const id of ['toast','serviceParseSummary','scoreSummary','attemptDuplicateHint']){
-  const tag=html.match(new RegExp('<[^>]+id=["\\']'+id+'["\\'][^>]*>','i'))?.[0]||'';
+  const tag=html.match(new RegExp('<[^>]+id="'+id+'"[^>]*>','i'))?.[0]||'';
   if(!/aria-live=["']polite["']/i.test(tag)) fail('Accessibility live-region missing for #'+id);
 }
 console.log('Validation passed: '+meta.label+', '+ids.length+' IDs, 39 reference sections, '+inner+' innerHTML assignments');
