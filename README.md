@@ -1,8 +1,14 @@
 # 🔐 OSCP Exam OS
 
-**V34.14.1 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.15 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
+
+## V34.15 Batch 15 — backup freshness
+
+- Session view shows when the last full external backup was exported and whether it was secret-free or encrypted.
+- Only timestamp/type metadata is persisted; exam target/session data formats are unchanged.
+- No polling, observer, or background render loop was introduced.
 
 ## Exam use
 

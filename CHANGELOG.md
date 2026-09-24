@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.15.0 — 2026-09-24
+
+### Batch 15 — external backup freshness
+- Added a Session-view indicator for the most recent full external backup created from this browser profile.
+- Secret-free and encrypted full-session exports record only backup timestamp/type metadata.
+- Freshness updates only on render/export; no polling, MutationObserver, or target/session schema change was added.
+- Added regression coverage for both export paths and the no-background-work guarantee.
+
+
 ## V34.14.1 — 2026-09-24
 
 ### Snapshot delete runtime fix
