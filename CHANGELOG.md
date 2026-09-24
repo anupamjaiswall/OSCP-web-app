@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.16.0 — 2026-09-24
+
+### Batch 16 — reference navigation accessibility
+- Styled the existing skip-to-workspace link so it becomes visible on keyboard focus.
+- Added a compact Reference → current-section breadcrumb to the sticky reference navigator.
+- Breadcrumb updates reuse existing reference position tracking; no polling, MutationObserver, or persisted state was added.
+- Added regression coverage for the skip-link focus style and breadcrumb wiring.
+
+
 ## V34.15.0 — 2026-09-24
 
 ### Batch 15 — external backup freshness

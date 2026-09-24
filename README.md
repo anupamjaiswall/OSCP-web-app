@@ -1,8 +1,14 @@
 # 🔐 OSCP Exam OS
 
-**V34.15 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.16 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
+
+## V34.16 Batch 16 — reference navigation accessibility
+
+- The existing skip link is now visibly surfaced when keyboard-focused.
+- Reference view now shows a compact **Reference › current section** breadcrumb inside the sticky navigator.
+- Breadcrumb state reuses the existing reference-position tracking; no new observer, timer, or storage state was added.
 
 ## V34.15 Batch 15 — backup freshness
 
