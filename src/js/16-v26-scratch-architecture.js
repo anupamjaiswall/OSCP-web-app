@@ -109,7 +109,8 @@
  function referencePaletteItems(){
    try{
      if(typeof SEARCH_ITEMS==='undefined')return[];
-     return SEARCH_ITEMS.map((x,i)=>({id:'ref:'+x.anchor,icon:'§',title:x.title,desc:(x.tags||[]).slice(0,5).join(' ')+' · deep reference',kind:'reference',keys:(x.tags||[]).join(' ')+' '+x.text.slice(0,260),priority:2,run:()=>openRef(x.anchor)}));
+     const items=typeof ensureSearchItems==='function'?ensureSearchItems():SEARCH_ITEMS;
+     return items.map((x,i)=>({id:'ref:'+x.anchor,icon:'§',title:x.title,desc:(x.tags||[]).slice(0,5).join(' ')+' · deep reference',kind:'reference',keys:(x.tags||[]).join(' ')+' '+x.text.slice(0,260),priority:2,run:()=>openRef(x.anchor)}));
    }catch(_){return[]}
  }
  function buildPalette(q=''){

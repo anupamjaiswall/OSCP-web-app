@@ -9,7 +9,7 @@
  function loadRecent(){try{const a=JSON.parse(localStorage.getItem(RECENT_STORE)||'[]');recent=Array.isArray(a)?a.slice(0,MAX_RECENT):[]}catch(_){recent=[]}}
  function saveRecent(){try{localStorage.setItem(RECENT_STORE,JSON.stringify(recent.slice(0,MAX_RECENT)))}catch(_){}}
  function cleanTitle(s){return String(s||'').replace(/\s+/g,' ').trim().slice(0,90)}
- function searchItem(anchor){try{return typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS.find(x=>x.anchor===anchor):null}catch(_){return null}}
+ function searchItem(anchor){try{return typeof SEARCH_ITEMS!=='undefined'&&SEARCH_ITEMS.length?SEARCH_ITEMS.find(x=>x.anchor===anchor):null}catch(_){return null}}
  function addRecent(entry){
    if(!entry||(!entry.anchor&&!entry.tag))return;
    const key=entry.tag?'t:'+entry.tag:'a:'+entry.anchor;

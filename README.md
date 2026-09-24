@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.7 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.8 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,14 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.8 Batch 8 — lazy deep-search index
+
+- The large deep-reference search index is no longer built synchronously while the app script loads.
+- Search/index data is created only on first actual search, bracket lookup, command-palette reference lookup, or notes-index use.
+- Index extraction now uses `textContent` rather than layout-forcing `innerText`.
+- Preflight reports an unused lazy index as an advisory state instead of a failure.
+- Existing pinned items still render from their DOM anchor without forcing the full index at boot.
 
 ## V34.7 Batch 7 — faster first paint
 

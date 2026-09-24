@@ -46,7 +46,7 @@
  function preflightChecks(){
    const metaVersion=document.querySelector('meta[name="oscp-build-version"]')?.content||'',build=window.OSCP_BUILD||{},csp=document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content||'',dupes=duplicateIds(),critical=['simpleExamView','workspaceView','serviceRouterView','methodTreesView','windowsStrategyView','reportsView','referenceView','globalSearch','examBankBtn','examStuckBtn'],missing=critical.filter(id=>!$id(id));
    let routerOK=false;try{const x=core()?.parseServices?.('22/tcp open ssh\n53/udp open domain');routerOK=x?.endpoints?.length===2}catch(_){}
-   const external=document.querySelectorAll('script[src],link[rel="stylesheet"][href^="http"]').length,searchCount=(()=>{try{return typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS.length:0}catch(_){return 0}})(),health=window.OSCP_BOOT_HEALTH;
+   const external=document.querySelectorAll('script[src],link[rel="stylesheet"][href^="http"]').length,searchReady=window.OSCP_SEARCH_INDEX?.ready?.()===true,searchCount=(()=>{try{return typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS.length:0}catch(_){return 0}})(),health=window.OSCP_BOOT_HEALTH;
    return[
      {label:'Build identity',status:metaVersion===build.version&&/^V\d+$/.test(build.label||'')?'pass':'fail',detail:(build.label||'?')+' · '+(build.version||'?')+' · '+(build.date||'?')},
      {label:'Local browser storage',status:storageCheck()?'pass':'fail',detail:'Target state, notes and session data can be written/read locally.'},
@@ -54,7 +54,7 @@
      {label:'Critical app controls',status:missing.length?'fail':'pass',detail:missing.length?'Missing: '+missing.join(', '):'Core exam views and controls are present.'},
      {label:'Duplicate HTML IDs',status:dupes.length?'fail':'pass',detail:dupes.length?'Duplicates: '+dupes.join(', '):'No duplicate IDs detected.'},
      {label:'Service parser smoke test',status:routerOK?'pass':'fail',detail:routerOK?'TCP/UDP parsing returned expected endpoints.':'Service parser did not pass the local smoke test.'},
-     {label:'Reference search index',status:searchCount>100?'pass':searchCount?'warn':'fail',detail:searchCount+' indexed reference sections.'},
+     {label:'Reference search index',status:searchReady?(searchCount>100?'pass':'warn'):'warn',detail:searchReady?(searchCount+' indexed reference sections.'):'Lazy index not built yet; first search/index use will build it.'},
      {label:'Boot integrity layer',status:health?.ok===false?'fail':health?.ok===true?'pass':'warn',detail:health?.ok===true?'Runtime health check passed.':health?.ok===false?'Runtime health reported a problem.':'Runtime health result is not available yet.'},
      {label:'Exam copy location',status:location.protocol==='file:'?'pass':'warn',detail:location.protocol==='file:'?'Opened as a local file.':'Current scheme is '+location.protocol+' — download/open the single HTML locally before the exam for maximum independence.'},
      {label:'Active target state',status:currentTarget()?'pass':'warn',detail:currentTarget()?'Active target: '+(currentTarget().ip||currentTarget().host||'unnamed'):'No active target yet; expected before the exam begins.'}

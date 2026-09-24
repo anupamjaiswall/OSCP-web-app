@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.8.0 — 2026-09-24
+
+### Batch 8 — lazy search indexing
+- Removed synchronous deep-reference search-index construction from script startup.
+- Added `ensureSearchItems()` and a small readiness API so search data is built only when a search/index feature is actually used.
+- Replaced `innerText` extraction with `textContent` to avoid layout-forcing work during index creation.
+- Updated bracket lookup, command palette, notes index, favorites, and preflight to tolerate the lazy index safely.
+- Added regressions that forbid eager search-index construction.
+
+
 ## V34.7.2 — 2026-09-24
 
 ### Browser-gate lifecycle fix

@@ -78,6 +78,7 @@
   function exactTagMatches(tag){
     try{
       if(typeof SEARCH_ITEMS==='undefined'||!Array.isArray(SEARCH_ITEMS))return [];
+      if(typeof ensureSearchItems==='function')ensureSearchItems();
       const wanted=String(tag||'').toUpperCase();
       return SEARCH_ITEMS.filter(item=>(item.tags||[]).some(t=>String(t).toUpperCase()===wanted));
     }catch(_){return [];}

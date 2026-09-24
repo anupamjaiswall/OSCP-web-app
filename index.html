@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.7.0">
+<meta name="oscp-build-version" content="34.8.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -10353,7 +10353,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.7.0',
+  version:'34.8.0',
   label:'V34',
   date:'2026-09-24'
 });</script>
@@ -10522,7 +10522,7 @@ function buildSearchItems(){
   const heading=!summary&&/^H[2-4]$/.test(node.tagName||'');
   const siblings=heading&&node.parentElement?[...node.parentElement.children]:[],position=siblings.indexOf(node);
   const context=heading?[node,...siblings.slice(position+1,position+4).filter(x=>!/^H[1-4]$/.test(x.tagName||''))]:[node];
-  const text=context.map(x=>x.innerText||x.textContent||'').join('\n').trim();
+  const text=context.map(x=>x.textContent||'').join('\n').trim();
   items.push({
    title:(summary?.textContent||node.textContent||node.id).trim(),
    anchor:node.id,
@@ -10533,7 +10533,13 @@ function buildSearchItems(){
  }
  return items;
 }
-let SEARCH_ITEMS=buildSearchItems();
+let SEARCH_ITEMS=[];
+let SEARCH_ITEMS_READY=false;
+function ensureSearchItems(){
+ if(!SEARCH_ITEMS_READY){SEARCH_ITEMS=buildSearchItems();SEARCH_ITEMS_READY=true;window.OSCP_SEARCH_INDEX_READY=true;}
+ return SEARCH_ITEMS;
+}
+window.OSCP_SEARCH_INDEX={ensure:ensureSearchItems,ready:()=>SEARCH_ITEMS_READY,count:()=>SEARCH_ITEMS.length};
 
 const STORE='oscp_v16_';
 /* Boot-resilience: one malformed localStorage value must never white-screen the exam console. */
@@ -10603,7 +10609,7 @@ function fuzzyScore(item,q){if(window.OSCP_SEARCH_CORE?.fuzzyScore)return window
 function esc(s){return window.OSCP_UTILS.escapeHtml(s)}
 function validRecordId(v){return typeof v==='string'&&/^[A-Za-z0-9._:-]{1,160}$/.test(v)}
 function plainRecord(v){return !!v&&typeof v==='object'&&!Array.isArray(v)}
-function renderSearch(q){q=q||'';let scored=SEARCH_ITEMS.map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><span class="score">score ${x.score}</span></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});}
+function renderSearch(q){q=q||'';let scored=ensureSearchItems().map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><span class="score">score ${x.score}</span></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});}
 function openRef(anchor){switchView('referenceView');setTimeout(()=>{const el=document.getElementById(anchor);if(!el)return;let d=el.closest('details');if(d)d.open=true;el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1800)},30)}
 
 const quick=[['🐧','Linux shell','[LINUX:TREE]'],['▣','Windows shell','[WIN:WORKFLOW]'],['🏰','Domain creds','[AD:FLOW]'],['🎫','Rubeus / tickets','Rubeus'],['👤','AD usernames','[AD:USERNAMES]'],['🔑','Password / hash','[CREDS:FANOUT]'],['🌐','Web target','[WEB:ENUM]'],['🛣️','Internal subnet','[PIVOT:FLOW]'],['POTATO','SeImpersonate','[WIN:SEIMPERSONATE]'],['⚙️','Custom SUID','[LINUX:SUID]'],['📸','Need proof','[EVIDENCE:PACKET]']];
@@ -10811,8 +10817,8 @@ $('#downloadReport').onclick=()=>{const t=activeTarget();if(!t)return;const safe
 $('#downloadAllReports').onclick=()=>{if(!targets.length)return;const bundle=targets.map(t=>reportMarkdown(t)).join('\n\n---\n\n');downloadText('OSCP-all-targets-report.md',bundle,'text/markdown')};
 
 function toggleFavorite(anchor){favorites=favorites.includes(anchor)?favorites.filter(x=>x!==anchor):[...favorites,anchor];saveOps();renderSearch($('#globalSearch').value)}
-function renderFavorites(){const root=$('#favoriteList');if(!root)return;const items=favorites.map(a=>SEARCH_ITEMS.find(x=>x.anchor===a)).filter(Boolean);root.innerHTML=items.length?items.map(x=>`<div class="favorite"><div><b>${esc(x.title)}</b><div class="tiny">${esc((x.tags||[]).slice(0,4).join(' '))}</div></div><div><button class="btn favOpen" data-a="${esc(x.anchor)}">Open</button><button class="btn bad favRemove" data-a="${esc(x.anchor)}">×</button></div></div>`).join(''):'<div class="muted">Pin useful search results and they stay here.</div>';$$('.favOpen').forEach(b=>b.onclick=()=>openRef(b.dataset.a));$$('.favRemove').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.a))}
-function renderSearch(q){q=q||'';let scored=SEARCH_ITEMS.map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><div><span class="score">score ${x.score}</span> <button class="btn pinRef" data-pin="${esc(x.anchor)}">${favorites.includes(x.anchor)?'★':'☆'} Pin</button></div></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});$$('[data-pin]').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.pin))}
+function renderFavorites(){const root=$('#favoriteList');if(!root)return;const items=favorites.map(a=>{const indexed=SEARCH_ITEMS.find(x=>x.anchor===a);if(indexed)return indexed;const el=document.getElementById(a);if(!el)return null;return{anchor:a,title:(el.querySelector?.('summary')?.textContent||el.textContent||a).replace(/\s+/g,' ').trim().slice(0,120),tags:[]}}).filter(Boolean);root.innerHTML=items.length?items.map(x=>`<div class="favorite"><div><b>${esc(x.title)}</b><div class="tiny">${esc((x.tags||[]).slice(0,4).join(' '))}</div></div><div><button class="btn favOpen" data-a="${esc(x.anchor)}">Open</button><button class="btn bad favRemove" data-a="${esc(x.anchor)}">×</button></div></div>`).join(''):'<div class="muted">Pin useful search results and they stay here.</div>';$$('.favOpen').forEach(b=>b.onclick=()=>openRef(b.dataset.a));$$('.favRemove').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.a))}
+function renderSearch(q){q=q||'';let scored=ensureSearchItems().map(x=>({...x,score:fuzzyScore(x,q)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,60);$('#searchStats').textContent=q?`${scored.length} best matches for “${q}”`:'Type a tag, port, error, privilege, tool, or clue.';$('#searchResults').innerHTML=scored.map(x=>`<div class="result"><div class="row" style="justify-content:space-between"><div class="resultTitle">${esc(x.title)}</div><div><span class="score">score ${x.score}</span> <button class="btn pinRef" data-pin="${esc(x.anchor)}">${favorites.includes(x.anchor)?'★':'☆'} Pin</button></div></div><div class="chips">${(x.tags||[]).slice(0,8).map(t=>`<span class="chip click" data-tag="${esc(t)}">${esc(t)}</span>`).join('')}</div><div class="resultText">${esc(x.text.replace(/\s+/g,' ').slice(0,520))}</div><button class="btn" data-open="${esc(x.anchor)}">Open in full reference →</button></div>`).join('')||'<div class="card muted">No match. Try a shorter term or exact [TAG].</div>';$$('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));$$('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});$$('[data-pin]').forEach(b=>b.onclick=()=>toggleFavorite(b.dataset.pin))}
 
 
 function sessionPayload(includeSecrets=false){const tg=targets.map(t=>({...t,creds:includeSecrets?(sessionSecrets[t.id]||t.creds||''):''}));const cr=credentials.map(c=>({...c,secret:includeSecrets?(sessionCredentialSecrets[c.id]||c.secret||''):''}));const set={...settings,PASSWORD:includeSecrets?settings.PASSWORD:''};return{app:'OSCP-Exam-OS',version:28,legacyVersion:11,exported:new Date().toISOString(),targets:tg,credentials:cr,favorites,settings:set,persistSecrets:false,activeTargetId,preflight:preflightData}}
@@ -13924,6 +13930,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   function exactTagMatches(tag){
     try{
       if(typeof SEARCH_ITEMS==='undefined'||!Array.isArray(SEARCH_ITEMS))return [];
+      if(typeof ensureSearchItems==='function')ensureSearchItems();
       const wanted=String(tag||'').toUpperCase();
       return SEARCH_ITEMS.filter(item=>(item.tags||[]).some(t=>String(t).toUpperCase()===wanted));
     }catch(_){return [];}
@@ -14140,7 +14147,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function loadRecent(){try{const a=JSON.parse(localStorage.getItem(RECENT_STORE)||'[]');recent=Array.isArray(a)?a.slice(0,MAX_RECENT):[]}catch(_){recent=[]}}
  function saveRecent(){try{localStorage.setItem(RECENT_STORE,JSON.stringify(recent.slice(0,MAX_RECENT)))}catch(_){}}
  function cleanTitle(s){return String(s||'').replace(/\s+/g,' ').trim().slice(0,90)}
- function searchItem(anchor){try{return typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS.find(x=>x.anchor===anchor):null}catch(_){return null}}
+ function searchItem(anchor){try{return typeof SEARCH_ITEMS!=='undefined'&&SEARCH_ITEMS.length?SEARCH_ITEMS.find(x=>x.anchor===anchor):null}catch(_){return null}}
  function addRecent(entry){
    if(!entry||(!entry.anchor&&!entry.tag))return;
    const key=entry.tag?'t:'+entry.tag:'a:'+entry.anchor;
@@ -14584,7 +14591,8 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function referencePaletteItems(){
    try{
      if(typeof SEARCH_ITEMS==='undefined')return[];
-     return SEARCH_ITEMS.map((x,i)=>({id:'ref:'+x.anchor,icon:'§',title:x.title,desc:(x.tags||[]).slice(0,5).join(' ')+' · deep reference',kind:'reference',keys:(x.tags||[]).join(' ')+' '+x.text.slice(0,260),priority:2,run:()=>openRef(x.anchor)}));
+     const items=typeof ensureSearchItems==='function'?ensureSearchItems():SEARCH_ITEMS;
+     return items.map((x,i)=>({id:'ref:'+x.anchor,icon:'§',title:x.title,desc:(x.tags||[]).slice(0,5).join(' ')+' · deep reference',kind:'reference',keys:(x.tags||[]).join(' ')+' '+x.text.slice(0,260),priority:2,run:()=>openRef(x.anchor)}));
    }catch(_){return[]}
  }
  function buildPalette(q=''){
@@ -14673,7 +14681,8 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function buildTagIndex(){
    tagIndex=new Map();
    try{
-     for(const item of (typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS:[])){
+     const items=typeof ensureSearchItems==='function'?ensureSearchItems():(typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS:[]);
+     for(const item of items){
        for(const tag of (item.tags||[])){
          if(!tagIndex.has(tag))tagIndex.set(tag,{tag,count:0,titles:[],anchors:[]});
          const x=tagIndex.get(tag);x.count++;
@@ -14923,7 +14932,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function preflightChecks(){
    const metaVersion=document.querySelector('meta[name="oscp-build-version"]')?.content||'',build=window.OSCP_BUILD||{},csp=document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content||'',dupes=duplicateIds(),critical=['simpleExamView','workspaceView','serviceRouterView','methodTreesView','windowsStrategyView','reportsView','referenceView','globalSearch','examBankBtn','examStuckBtn'],missing=critical.filter(id=>!$id(id));
    let routerOK=false;try{const x=core()?.parseServices?.('22/tcp open ssh\n53/udp open domain');routerOK=x?.endpoints?.length===2}catch(_){}
-   const external=document.querySelectorAll('script[src],link[rel="stylesheet"][href^="http"]').length,searchCount=(()=>{try{return typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS.length:0}catch(_){return 0}})(),health=window.OSCP_BOOT_HEALTH;
+   const external=document.querySelectorAll('script[src],link[rel="stylesheet"][href^="http"]').length,searchReady=window.OSCP_SEARCH_INDEX?.ready?.()===true,searchCount=(()=>{try{return typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS.length:0}catch(_){return 0}})(),health=window.OSCP_BOOT_HEALTH;
    return[
      {label:'Build identity',status:metaVersion===build.version&&/^V\d+$/.test(build.label||'')?'pass':'fail',detail:(build.label||'?')+' · '+(build.version||'?')+' · '+(build.date||'?')},
      {label:'Local browser storage',status:storageCheck()?'pass':'fail',detail:'Target state, notes and session data can be written/read locally.'},
@@ -14931,7 +14940,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
      {label:'Critical app controls',status:missing.length?'fail':'pass',detail:missing.length?'Missing: '+missing.join(', '):'Core exam views and controls are present.'},
      {label:'Duplicate HTML IDs',status:dupes.length?'fail':'pass',detail:dupes.length?'Duplicates: '+dupes.join(', '):'No duplicate IDs detected.'},
      {label:'Service parser smoke test',status:routerOK?'pass':'fail',detail:routerOK?'TCP/UDP parsing returned expected endpoints.':'Service parser did not pass the local smoke test.'},
-     {label:'Reference search index',status:searchCount>100?'pass':searchCount?'warn':'fail',detail:searchCount+' indexed reference sections.'},
+     {label:'Reference search index',status:searchReady?(searchCount>100?'pass':'warn'):'warn',detail:searchReady?(searchCount+' indexed reference sections.'):'Lazy index not built yet; first search/index use will build it.'},
      {label:'Boot integrity layer',status:health?.ok===false?'fail':health?.ok===true?'pass':'warn',detail:health?.ok===true?'Runtime health check passed.':health?.ok===false?'Runtime health reported a problem.':'Runtime health result is not available yet.'},
      {label:'Exam copy location',status:location.protocol==='file:'?'pass':'warn',detail:location.protocol==='file:'?'Opened as a local file.':'Current scheme is '+location.protocol+' — download/open the single HTML locally before the exam for maximum independence.'},
      {label:'Active target state',status:currentTarget()?'pass':'warn',detail:currentTarget()?'Active target: '+(currentTarget().ip||currentTarget().host||'unnamed'):'No active target yet; expected before the exam begins.'}

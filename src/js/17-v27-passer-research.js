@@ -10,7 +10,8 @@
  function buildTagIndex(){
    tagIndex=new Map();
    try{
-     for(const item of (typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS:[])){
+     const items=typeof ensureSearchItems==='function'?ensureSearchItems():(typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS:[]);
+     for(const item of items){
        for(const tag of (item.tags||[])){
          if(!tagIndex.has(tag))tagIndex.set(tag,{tag,count:0,titles:[],anchors:[]});
          const x=tagIndex.get(tag);x.count++;
