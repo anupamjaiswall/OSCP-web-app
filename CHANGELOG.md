@@ -1,5 +1,13 @@
 # Changelog
 
+## CI browser gate repair — 2026-09-24
+
+- Replaced file-appearance screenshot polling with a direct Chrome DevTools protocol readiness probe.
+- The required gate now verifies `document.readyState === complete`, critical controls, boot health, uncaught exceptions, and PNG capture at 100%, 125%, and 150% scale.
+- Chrome is explicitly terminated after verification, so app timers do not control CI lifecycle.
+- Runtime application code is unchanged.
+
+
 ## V34.8.2 — 2026-09-24
 
 ### Browser render gate harness fix
