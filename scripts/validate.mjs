@@ -52,7 +52,8 @@ let renderedReference='';try{renderedReference=JSON.parse(payloadText)}catch(e){
 if(typeof renderedReference!=='string'||!renderedReference.length)fail('Reference payload is empty');
 const renderedH2=(renderedReference.match(/<h2\s+id=/g)||[]).length;
 if(renderedH2!==sourceH2) fail('Generated reference payload section count differs from source: '+renderedH2+' vs '+sourceH2);
-if(/<article class="reference" id="referenceRoot">[\s\S]*?<h2\s+id=/i.test(html))fail('Deep reference returned to parser-critical DOM');
+const liveReference=html.match(/<article class="reference" id="referenceRoot">([\s\S]*?)<\/article>/i)?.[1]||'';
+if(/<h2\s+id=/i.test(liveReference))fail('Deep reference returned to parser-critical DOM');
 
 if(!html.includes(meta.label+' · EXAM ONLY · OFFLINE · NO AI')) fail('Build badge/version mismatch');
 if(!html.includes('name="oscp-build-version" content="'+meta.version+'"')) fail('Build version meta missing');
