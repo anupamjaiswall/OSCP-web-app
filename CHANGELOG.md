@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.24.0 — 2026-09-24
+
+### Batch 24 — keyboard navigation semantics
+- Added accessible group/pressed-state semantics and roving keyboard focus to methodology-tree selectors.
+- Added Arrow/Home/End focus navigation without changing normal button activation.
+- Added a Reference navigation landmark, explicit previous/next labels, live position feedback and pin pressed state.
+- Added keyboard shortcuts inside the reference navigator while preserving native select behavior.
+- Added deterministic regressions for the new semantics.
+
+
 ## V34.23.0 — 2026-09-24
 
 ### Batch 23 — DOM-safety regression gate

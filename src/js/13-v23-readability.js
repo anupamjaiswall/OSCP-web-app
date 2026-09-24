@@ -59,8 +59,11 @@
     const kinds=['linux','windows','ad'];
     cards.forEach((c,i)=>{c.dataset.treeKind=kinds[i]||('tree'+i);c.id=c.id||('method-tree-'+(kinds[i]||i));});
     const tabs=document.createElement('div');
-    tabs.className='methodTreeTabs';
+    tabs.className='methodTreeTabs';tabs.setAttribute('role','group');tabs.setAttribute('aria-label','Methodology tree selector');
     tabs.innerHTML='<button class="btn" type="button" data-tree-tab="linux">🐧 Linux</button><button class="btn" type="button" data-tree-tab="windows">▣ Windows</button><button class="btn" type="button" data-tree-tab="ad">🏰 AD</button><button class="btn" type="button" data-tree-tab="all">All 3</button><span class="tiny">One tree at a time = less exam-time scanning.</span>';
+    const treeButtons=[...tabs.querySelectorAll('[data-tree-tab]')];
+    treeButtons.forEach(b=>{const kind=b.dataset.treeTab;b.id='method-tree-toggle-'+kind;b.setAttribute('aria-controls',kind==='all'?cards.map(c=>c.id).join(' '):('method-tree-'+kind));});
+    cards.forEach(c=>{c.setAttribute('role','region');c.setAttribute('aria-label',(c.dataset.treeKind||'Methodology')+' methodology tree')});
     grid.parentNode.insertBefore(tabs,grid);
     function show(kind){
       state.tree=kind;save();
@@ -69,13 +72,21 @@
         c.classList.toggle('treeHidden',!all&&!hit);
         c.classList.toggle('treeSolo',!all&&hit);
       });
-      tabs.querySelectorAll('[data-tree-tab]').forEach(b=>b.classList.toggle('active',b.dataset.treeTab===kind));
+      treeButtons.forEach(b=>{const on=b.dataset.treeTab===kind;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));b.tabIndex=on?0:-1});
       if(kind!=='all'){
         const card=cards.find(c=>c.dataset.treeKind===kind);
         if(card&&view.classList.contains('active'))setTimeout(()=>card.scrollIntoView({block:'start',behavior:'smooth'}),20);
       }
     }
     tabs.addEventListener('click',e=>{const b=e.target.closest('[data-tree-tab]');if(b)show(b.dataset.treeTab);});
+    tabs.addEventListener('keydown',e=>{
+      const b=e.target.closest?.('[data-tree-tab]');if(!b)return;
+      const i=treeButtons.indexOf(b);let next=-1;
+      if(e.key==='ArrowRight'||e.key==='ArrowDown')next=(i+1)%treeButtons.length;
+      else if(e.key==='ArrowLeft'||e.key==='ArrowUp')next=(i-1+treeButtons.length)%treeButtons.length;
+      else if(e.key==='Home')next=0;else if(e.key==='End')next=treeButtons.length-1;
+      if(next>=0){e.preventDefault();treeButtons[next].focus()}
+    });
     show(['linux','windows','ad','all'].includes(state.tree)?state.tree:'linux');
     window.OSCP_TREE_READER={show};
   }

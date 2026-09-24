@@ -99,7 +99,7 @@
    const b=$id('refPinCurrent');if(!b||!refEntries.length)return;
    const a=refEntries[refIndex]?.anchor;let on=false;
    try{on=typeof favorites!=='undefined'&&favorites.includes(a)}catch(_){}
-   b.textContent=on?'★ Pinned':'☆ Pin';b.classList.toggle('active',on);
+   b.textContent=on?'★ Pinned':'☆ Pin';b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',on?'Unpin current reference section':'Pin current reference section');
  }
  function renderRefSelect(){
    const sel=$id('refSectionSelect');if(!sel)return;
@@ -131,8 +131,8 @@
    const view=$id('referenceView'),root=$id('referenceRoot');if(!view||!root)return;
    if($id('refNavigator')){refEntries=buildReferenceEntries();refIndex=Math.min(refIndex,Math.max(0,refEntries.length-1));renderRefSelect();return}
    refEntries=buildReferenceEntries();
-   const nav=document.createElement('div');nav.id='refNavigator';nav.className='noPrint';
-   nav.innerHTML='<div class="refBreadcrumb" id="refBreadcrumb" aria-label="Reference breadcrumb"><button class="refCrumbHome" id="refBreadcrumbHome" type="button">Reference</button><span aria-hidden="true">›</span><span id="refBreadcrumbCurrent" aria-current="location">Reference</span></div><button class="btn" id="refPrev" type="button" title="Previous reference section">←</button><select id="refSectionSelect" aria-label="Reference section"></select><button class="btn" id="refNext" type="button" title="Next reference section">→</button><button class="btn refNavSecondary" id="refPinCurrent" type="button">☆ Pin</button><span class="refPos refNavSecondary" id="refPosition"></span>';
+   const nav=document.createElement('div');nav.id='refNavigator';nav.className='noPrint';nav.setAttribute('role','navigation');nav.setAttribute('aria-label','Reference section navigation');
+   nav.innerHTML='<div class="refBreadcrumb" id="refBreadcrumb" aria-label="Reference breadcrumb"><button class="refCrumbHome" id="refBreadcrumbHome" type="button">Reference</button><span aria-hidden="true">›</span><span id="refBreadcrumbCurrent" aria-current="location">Reference</span></div><button class="btn" id="refPrev" type="button" title="Previous reference section" aria-label="Previous reference section">←</button><select id="refSectionSelect" aria-label="Reference section"></select><button class="btn" id="refNext" type="button" title="Next reference section" aria-label="Next reference section">→</button><button class="btn refNavSecondary" id="refPinCurrent" type="button" aria-pressed="false">☆ Pin</button><span class="refPos refNavSecondary" id="refPosition" aria-live="polite"></span>';
    root.parentNode.insertBefore(nav,root);
    renderRefSelect();
    $id('refBreadcrumbHome')?.addEventListener('click',()=>{$id('referenceView')?.scrollIntoView({block:'start',behavior:'smooth'})});
@@ -144,6 +144,13 @@
    $id('refPinCurrent')?.addEventListener('click',()=>{
      const a=refEntries[refIndex]?.anchor;if(!a)return;
      try{if(typeof toggleFavorite==='function'){toggleFavorite(a);updatePinButton();renderReaderQuick();}}catch(_){}
+   });
+   nav.addEventListener('keydown',e=>{
+     if(e.target?.tagName==='SELECT')return;
+     if(e.key==='ArrowLeft'){e.preventDefault();goRefIndex(refIndex-1)}
+     else if(e.key==='ArrowRight'){e.preventDefault();goRefIndex(refIndex+1)}
+     else if(e.key==='Home'){e.preventDefault();goRefIndex(0)}
+     else if(e.key==='End'){e.preventDefault();goRefIndex(refEntries.length-1)}
    });
    addEventListener('scroll',scheduleRefSync,{passive:true});addEventListener('resize',scheduleRefSync,{passive:true});
  }

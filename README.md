@@ -1,6 +1,14 @@
 # 🔐 OSCP Exam OS
 
-**V34.23 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.24 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.24 Batch 24 — keyboard navigation semantics
+
+- Methodology-tree controls now expose an accessible group label, pressed state, and roving keyboard focus.
+- Arrow keys plus Home/End move focus across Linux, Windows, AD, and All-3 controls; Enter/Space retain normal button activation.
+- Reference navigation now has an explicit navigation landmark, labeled previous/next controls, live position feedback, and accurate pin/unpin pressed state.
+- Arrow Left/Right and Home/End navigate reference sections when focus is on navigator buttons; the section dropdown keeps native key behavior.
+- No exam-state storage or background behavior changed.
 
 ## V34.23 Batch 23 — DOM-safety regression gate
 
