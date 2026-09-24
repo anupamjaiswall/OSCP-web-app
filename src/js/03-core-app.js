@@ -26,10 +26,12 @@ function buildSearchItems(){
 let SEARCH_ITEMS=[];
 let SEARCH_ITEMS_READY=false;
 function ensureSearchItems(){
+ if(!window.OSCP_REFERENCE_READY){window.OSCP_REFERENCE?.start?.();return SEARCH_ITEMS;}
  if(!SEARCH_ITEMS_READY){SEARCH_ITEMS=buildSearchItems();SEARCH_ITEMS_READY=true;window.OSCP_SEARCH_INDEX_READY=true;}
  return SEARCH_ITEMS;
 }
 window.OSCP_SEARCH_INDEX={ensure:ensureSearchItems,ready:()=>SEARCH_ITEMS_READY,count:()=>SEARCH_ITEMS.length};
+document.addEventListener('oscp-reference-ready',()=>{SEARCH_ITEMS_READY=false;window.OSCP_SEARCH_INDEX_READY=false;const q=document.getElementById('globalSearch')?.value.trim();if(q)renderSearch(q)});
 
 const STORE='oscp_v16_';
 /* Boot-resilience: one malformed localStorage value must never white-screen the exam console. */

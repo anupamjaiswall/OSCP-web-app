@@ -1,4 +1,4 @@
-name: V34.8 build and validation
+name: V34.12 build and validation
 on:
   push:
     branches: [ main ]

@@ -996,7 +996,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
   <p><b>Hard rule:</b> Responder/Inveigh poisoning or spoofing is not an OSCP workflow. Native/manual proof remains first; these are fallbacks for a specific unresolved question.</p>
   <button class="btn" onclick="switchView('windowsStrategyView')">Open Windows fallback toolbox →</button>
 </div>
-<div class="hero noPrint"><div><h1>Full Reference</h1><div class="muted">Deep reference embedded locally. Search first; do not scroll linearly under pressure.</div></div><div class="row"><button class="btn" id="collapseDetails">Collapse all</button><button class="btn" id="expandDetails">Expand all</button></div></div><article class="reference" id="referenceRoot"><!-- @inject:reference --></article></section>
+<div class="hero noPrint"><div><h1>Full Reference</h1><div class="muted">Deep reference embedded locally. Search first; do not scroll linearly under pressure.</div></div><div class="row"><button class="btn" id="collapseDetails">Collapse all</button><button class="btn" id="expandDetails">Expand all</button></div></div><article class="reference" id="referenceRoot"><div id="referenceLoading" class="card muted">Deep reference loads after the exam controls are ready…</div></article></section>
 
 
 <section id="v15ReliabilityView" class="view">
@@ -1142,5 +1142,8 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_BOOT_STAGE__='18-v28-competitive-core';</script>
 <script id="v33ExamIntegrationScript">/* @inject:script:19-v33-exam-integration.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='19-v33-exam-integration';</script>
+<script type="application/json" id="referencePayload"><!-- @inject:reference-payload --></script>
+<script id="referenceHydratorScript">/* @inject:script:20-reference-hydrator.js */</script>
+<script>window.__OSCP_BOOT_STAGE__='20-reference-hydrator';</script>
 <script>window.__OSCP_BOOT_STAGE__='complete-scripts';</script>
 </body></html>

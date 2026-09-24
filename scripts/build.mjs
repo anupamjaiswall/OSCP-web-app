@@ -15,7 +15,9 @@ let html=read('src/index.template.html');
 html=html.replace(/\/\* @inject:style:([^*]+?) \*\//g,(_,f)=>read('src/styles/'+f.trim()));
 html=html.replace(/\/\* @inject:script:([^*]+?) \*\//g,(_,f)=>read('src/js/'+f.trim()));
 const manifest=JSON.parse(read('src/content/manifest.json'));
-html=html.replace('<!-- @inject:reference -->',()=>manifest.files.map(f=>read('src/content/'+f)).join(''));
+const referenceHtml=manifest.files.map(f=>read('src/content/'+f)).join('');
+const referencePayload=JSON.stringify(referenceHtml).replace(/</g,'\\u003c');
+html=html.replace('<!-- @inject:reference-payload -->',referencePayload);
 
 html=html
   .replaceAll('__OSCP_VERSION__',meta.version)

@@ -44,9 +44,12 @@ const manifest=JSON.parse(read('src/content/manifest.json'));
 const reference=manifest.files.map(f=>read('src/content/'+f)).join('');
 const sourceH2=(reference.match(/<h2\s+id=/g)||[]).length;
 if(sourceH2<39) fail('Reference section count dropped below baseline: '+sourceH2);
-const renderedReference=html.match(/<article class="reference" id="referenceRoot">([\s\S]*?)<\/article>/i)?.[1]||'';
+const payloadText=html.match(/<script type="application\/json" id="referencePayload">([\s\S]*?)<\/script>/i)?.[1]||'';
+let renderedReference='';try{renderedReference=JSON.parse(payloadText)}catch(e){fail('Reference payload JSON is invalid')}
+if(typeof renderedReference!=='string'||!renderedReference.length)fail('Reference payload is empty');
 const renderedH2=(renderedReference.match(/<h2\s+id=/g)||[]).length;
-if(renderedH2!==sourceH2) fail('Generated reference section count differs from source: '+renderedH2+' vs '+sourceH2);
+if(renderedH2!==sourceH2) fail('Generated reference payload section count differs from source: '+renderedH2+' vs '+sourceH2);
+if(/<article class="reference" id="referenceRoot">[\s\S]*?<h2\s+id=/i.test(html))fail('Deep reference returned to parser-critical DOM');
 
 if(!html.includes(meta.label+' · EXAM ONLY · OFFLINE · NO AI')) fail('Build badge/version mismatch');
 if(!html.includes('name="oscp-build-version" content="'+meta.version+'"')) fail('Build version meta missing');

@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.12.0 — 2026-09-24
+
+### Batch 12 — parser-safe deep reference
+- Moved the 410 KB deep methodology HTML out of the parser-critical DOM into an escaped inert JSON payload.
+- Hydrates reference sections incrementally after `window.load`.
+- Search waits for reference readiness and refreshes after hydration.
+- Reference navigator and live notes index rebuild when hydration completes.
+- Preserves the single-file offline artifact and the 1.5 MB size budget.
+
+
 ## V34.11.0 — 2026-09-24
 
 ### Batch 11 — parser-safe initial render

@@ -121,6 +121,7 @@
  loadFatigue();
  function start(){
    setupIndex();setupFatigue();extendPalette();
+   document.addEventListener('oscp-reference-ready',()=>{buildTagIndex();if($id('examIndexBackdrop')?.classList.contains('open'))renderIndex()});
    document.addEventListener('keydown',e=>{
      const tag=(e.target?.tagName||'').toLowerCase(),editing=['input','textarea','select'].includes(tag)||e.target?.isContentEditable;
      if(e.key==='Escape'&&$id('examIndexBackdrop')?.classList.contains('open')){e.preventDefault();e.stopImmediatePropagation();closeIndex();return}

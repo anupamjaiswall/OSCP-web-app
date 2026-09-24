@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V34.11 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.12 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,14 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V34.12 Batch 12 — lazy deep-reference hydration
+
+- The 410 KB methodology reference no longer expands into thousands of DOM nodes while the HTML parser is still loading.
+- It remains embedded inside the same offline `index.html` as an escaped inert JSON payload.
+- After the browser `load` event, the reference hydrates in small section chunks so the exam controls stay responsive.
+- Search and reference navigation refresh automatically when hydration finishes.
+- No network fetch, server, CDN, or second artifact is introduced.
 
 ## V34.11 Batch 11 — finish browser boot before heavy panels
 

@@ -124,7 +124,8 @@
  }
  function scheduleRefSync(){if(!raf)raf=requestAnimationFrame(syncRefPosition)}
  function setupReferenceNavigator(){
-   const view=$id('referenceView'),root=$id('referenceRoot');if(!view||!root||$id('refNavigator'))return;
+   const view=$id('referenceView'),root=$id('referenceRoot');if(!view||!root)return;
+   if($id('refNavigator')){refEntries=buildReferenceEntries();refIndex=Math.min(refIndex,Math.max(0,refEntries.length-1));renderRefSelect();return}
    refEntries=buildReferenceEntries();
    const nav=document.createElement('div');nav.id='refNavigator';nav.className='noPrint';
    nav.innerHTML='<button class="btn" id="refPrev" type="button" title="Previous reference section">←</button><select id="refSectionSelect" aria-label="Reference section"></select><button class="btn" id="refNext" type="button" title="Next reference section">→</button><button class="btn refNavSecondary" id="refPinCurrent" type="button">☆ Pin</button><span class="refPos refNavSecondary" id="refPosition"></span>';
@@ -178,6 +179,7 @@
  loadRecent();
  function start(){
    setupHelp();setupOpenTracking();setupReferenceNavigator();setupSearchKeys();renderReaderQuick();
+   document.addEventListener('oscp-reference-ready',()=>{setupReferenceNavigator();renderReaderQuick();});
    document.addEventListener('keydown',e=>{
      if(e.key==='Escape'&&$id('examHelpBackdrop')?.classList.contains('open')){e.preventDefault();e.stopImmediatePropagation();help(false);return;}
      if(!isEditing(e.target)&&!e.ctrlKey&&!e.altKey&&!e.metaKey&&e.key==='?'){e.preventDefault();help(!$id('examHelpBackdrop')?.classList.contains('open'));}
