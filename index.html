@@ -405,7 +405,8 @@ body.examFocus .activeWorkStrip{top:63px}
 .v33PreflightSummary.pass{background:#10251b;color:#9beac0}.v33PreflightSummary.warn{background:#302812;color:#f2d37b}.v33PreflightSummary.fail{background:#35191d;color:#ffadb5}.v33StartCard{border-color:#405c73}
 .v33StartCard .row{justify-content:space-between;align-items:center}#v33TopCheck{white-space:nowrap}
 @media(max-width:800px){.v33ServiceGrid{grid-template-columns:1fr}.v33Toolbar select{min-width:0;flex:1}.v33Dialog{padding:12px}}
-@media print{.v33Backdrop,#v33TopCheck,.scanRouteBtn{display:none!important}}</style>\n</head>
+@media print{.v33Backdrop,#v33TopCheck,.scanRouteBtn{display:none!important}}</style>
+</head>
 <body>
 <a class="skipLink" href="#examMain">Skip to exam workspace</a>
 
@@ -14868,4 +14869,5 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function extendHelp(){const grid=$id('examHelpBackdrop')?.querySelector('.examHelpGrid');if(!grid||grid.querySelector('[data-v33-help]'))return;const add=(key,title,text)=>{const d=node('div','examHelpKey');d.dataset.v33Help='1';d.append(node('kbd','',key),document.createElement('br'),node('b','',title),node('div','muted',text));grid.append(d)};add('Alt+D','Service dossier','Active target ports with service methodology and truth checks.');add('Alt+F','App preflight','Check this local copy before the exam clock starts.')}
  function start(){ensureDossier();ensurePreflight();setupScanHandoff();addEntryPoints();setupKeys();extendHelp();const strip=$id('activeWorkStrip');if(strip)new MutationObserver(()=>addEntryPoints()).observe(strip,{childList:true,subtree:true});try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['V33 service dossier',()=>[!!$id('v33DossierBackdrop')&&typeof core()?.classify==='function','target dossier']],['V33 selected scan handoff',()=>[typeof importHostAndRoute==='function','scan → target → router']],['V33 app preflight',()=>[preflightChecks().every(x=>x.status!=='fail'),preflightChecks().map(x=>x.label+':'+x.status).join('|')]])}catch(_){}window.OSCP_V33={openDossier,closeDossier,loadRouter,importHostAndRoute,openPreflight,closePreflight,preflightChecks}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start()
-})();</script>\n</body></html>
+})();</script>
+</body></html>
