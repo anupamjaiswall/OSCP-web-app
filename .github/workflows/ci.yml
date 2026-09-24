@@ -1,4 +1,4 @@
-name: V34.1 batch 1 build and validation
+name: V34.2 build and validation
 on:
   push:
     branches: [ main ]
@@ -17,6 +17,7 @@ jobs:
         run: npm run check
       - name: Headless browser diagnostic
         continue-on-error: true
+        timeout-minutes: 1
         run: node scripts/browser-smoke.mjs
       - name: Ensure generated exam artifact is committed
         run: git diff --exit-code -- index.html

@@ -84,7 +84,7 @@ try{
 
   async function readState(){
     try{
-      const evaluated=await send('Runtime.evaluate',{
+      const evaluated=await withTimeout(send('Runtime.evaluate',{
         expression:`(()=>({
           ready:document.readyState,
           title:document.title,
@@ -94,7 +94,7 @@ try{
           boot:window.OSCP_BOOT_HEALTH||null
         }))()`,
         returnByValue:true
-      });
+      }),1500,'state evaluation');
       return evaluated?.result?.value||{};
     }catch(_){return{}}
   }
@@ -110,7 +110,7 @@ try{
   if(!['interactive','complete'].includes(state.ready))throw new Error('document not interactive: '+state.ready);
   if(state.title!=='OSCP Exam-Only Operating System')throw new Error('unexpected title: '+state.title);
 
-  const interaction=await send('Runtime.evaluate',{
+  const interaction=await withTimeout(send('Runtime.evaluate',{
     expression:`(()=>{
       const search=document.getElementById('globalSearch');
       search.value='seimpersonte';
@@ -123,7 +123,7 @@ try{
       return {matches,contrastOn};
     })()`,
     returnByValue:true
-  });
+  }),2500,'interaction evaluation');
   const behavior=interaction?.result?.value||{};
   if(!(behavior.matches>0))throw new Error('typo search produced no browser results');
   if(!behavior.contrastOn)throw new Error('high-contrast control did not apply');
