@@ -79,7 +79,7 @@ async function main(){
     const ws=new WebSocket(page.webSocketDebuggerUrl);
     await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(new Error('DevTools websocket timed out')),8000);ws.onopen=()=>{clearTimeout(t);resolve()};ws.onerror=e=>{clearTimeout(t);reject(e instanceof Error?e:new Error('DevTools websocket failed'))}});
     const rpc=makeRpc(ws);
-    await rpc.send('Runtime.enable');await rpc.send('Page.enable');
+    await rpc.send('Runtime.enable');await rpc.send('Page.enable');await rpc.send('Debugger.enable');
     await rpc.send('Page.navigate',{url:appUrl});
 
     let lastState=null,lastProbeError='';
@@ -93,7 +93,14 @@ async function main(){
     },20000,150);
     if(!ready){
       const stages=rpc.events.filter(e=>e.method==='Runtime.consoleAPICalled').map(e=>e.params?.args?.map(a=>a.value).filter(v=>v!==undefined)).filter(a=>a?.[0]==='[OSCP_BOOT_STAGE]').map(a=>a[1]);
-      throw new Error('Local offline artifact did not reach a usable completed state · lastState='+JSON.stringify(lastState)+' · consoleStages='+JSON.stringify(stages.slice(-12))+' · probe='+lastProbeError);
+      let stack=[];
+      try{
+        rpc.send('Debugger.pause').catch(()=>{});
+        await delay(700);
+        const paused=[...rpc.events].reverse().find(e=>e.method==='Debugger.paused');
+        stack=(paused?.params?.callFrames||[]).slice(0,10).map(f=>({fn:f.functionName||'<anonymous>',url:f.url||'',line:(f.location?.lineNumber??-1)+1,column:(f.location?.columnNumber??-1)+1}));
+      }catch(_){}
+      throw new Error('Local offline artifact did not reach a usable completed state · lastState='+JSON.stringify(lastState)+' · consoleStages='+JSON.stringify(stages.slice(-12))+' · stack='+JSON.stringify(stack)+' · probe='+lastProbeError);
     }
 
     const renders=[];
