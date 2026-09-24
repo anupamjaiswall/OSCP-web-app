@@ -28,7 +28,7 @@
  }
  function fail(e){
    running=false;console.error('[OSCP] Reference hydration failed',e);
-   if(status){status.className='card';status.innerHTML='<b>Deep reference could not load.</b><div class="tiny"></div>';const d=status.querySelector('.tiny');if(d)d.textContent=String(e?.message||e)}
+   if(status){status.className='card';status.replaceChildren();const b=document.createElement('b');b.textContent='Deep reference could not load.';const d=document.createElement('div');d.className='tiny';d.textContent=String(e?.message||e);status.append(b,d)}
  }
  function schedule(){
    if(ready||!running)return;
