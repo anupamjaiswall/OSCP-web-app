@@ -91,7 +91,10 @@ async function main(){
         return lastState.ready==='complete'&&controlsOk&&lastState.boot?.ok!==false?lastState:false;
       }catch(e){lastProbeError=e.message;return false}
     },20000,150);
-    if(!ready)throw new Error('Local offline artifact did not reach a usable completed state · lastState='+JSON.stringify(lastState)+' · probe='+lastProbeError);
+    if(!ready){
+      const stages=rpc.events.filter(e=>e.method==='Runtime.consoleAPICalled').map(e=>e.params?.args?.map(a=>a.value).filter(v=>v!==undefined)).filter(a=>a?.[0]==='[OSCP_BOOT_STAGE]').map(a=>a[1]);
+      throw new Error('Local offline artifact did not reach a usable completed state · lastState='+JSON.stringify(lastState)+' · consoleStages='+JSON.stringify(stages.slice(-12))+' · probe='+lastProbeError);
+    }
 
     const renders=[];
     for(const scale of [1,1.25,1.5]){
