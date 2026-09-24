@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.22.0 — 2026-09-24
+
+### Batch 22 — real browser interaction regression gate
+- Extended the required Chrome gate beyond startup/screenshot checks.
+- Added live typo-search verification for `seimpersonte`, including lazy reference hydration and non-empty results.
+- Added live high-contrast toggle verification.
+- Added target-creation verification in a fresh disposable browser profile.
+- Browser exceptions remain fatal and no runtime app code changed.
+
+
 ## V34.21.0 — 2026-09-24
 
 ### Batch 21 — secret-free backup integrity

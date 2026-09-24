@@ -1,6 +1,15 @@
 # 🔐 OSCP Exam OS
 
-**V34.21 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.22 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.22 Batch 22 — real browser interaction gate
+
+- Required Chrome CI now performs real interactions after boot, not screenshots alone.
+- It types the typo query `seimpersonte` and waits for a real search result after lazy reference hydration.
+- It clicks the high-contrast control and verifies the live body state changes.
+- It creates one target in a fresh temporary browser profile and verifies exactly one target card appears.
+- Uncaught browser exceptions remain a hard failure and the temporary profile is discarded after the run.
+- Runtime application code is unchanged in this batch.
 
 ## V34.21 Batch 21 — secret-free backup integrity
 

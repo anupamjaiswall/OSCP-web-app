@@ -115,6 +115,28 @@ async function main(){
       throw new Error('Local offline artifact did not reach a usable completed state · lastState='+JSON.stringify(lastState)+' · consoleStages='+JSON.stringify(stages.slice(-12))+' · stack='+JSON.stringify(stack)+' · probe='+lastProbeError);
     }
 
+    async function evalValue(expression){
+      const out=await rpc.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
+      if(out?.exceptionDetails)throw new Error('browser evaluation exception: '+JSON.stringify(out.exceptionDetails).slice(0,1200));
+      return out?.result?.value;
+    }
+
+    // Real interaction 1: typo-tolerant search must produce results after lazy reference hydration.
+    await evalValue(`(()=>{const i=document.getElementById('globalSearch');i.value='seimpersonte';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
+    const typoSearch=await waitFor(async()=>{
+      const x=await evalValue(`JSON.stringify({stats:document.getElementById('searchStats')?.textContent||'',results:document.querySelectorAll('#searchResults .result').length,ready:window.OSCP_REFERENCE_READY===true})`);
+      const s=JSON.parse(x||'{}');return s.ready&&s.results>0?s:false;
+    },20000,150);
+    if(!typoSearch)throw new Error('typo-tolerant browser search did not return a result');
+
+    // Real interaction 2: readability/high-contrast control must change the live body state.
+    const contrast=await evalValue(`(()=>{const b=document.getElementById('readerContrastToggle');if(!b)return false;b.click();return document.body.classList.contains('examHighContrast')})()`);
+    if(!contrast)throw new Error('high-contrast browser toggle did not activate');
+
+    // Real interaction 3: target creation must render a target in a fresh profile.
+    const targetCreated=await evalValue(`(()=>{const before=document.querySelectorAll('#targetList .target').length;document.getElementById('addTarget')?.click();const after=document.querySelectorAll('#targetList .target').length;return after===before+1})()`);
+    if(!targetCreated)throw new Error('target creation did not render exactly one new target');
+
     const renders=[];
     for(const scale of [1,1.25,1.5]){
       await rpc.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:scale,mobile:false});
