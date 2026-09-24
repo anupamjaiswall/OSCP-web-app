@@ -1,5 +1,20 @@
 # Changelog
 
+## V32.0.0 — 2026-09-24
+
+### Research-backed exam notes
+- Replaced concurrent same-host Nmap discovery/fingerprinting with a reliable two-pass default.
+- Added scan-sanity recovery for sparse/inconsistent results, lossy VPNs and pivot/SOCKS paths.
+- Added output triage separating network, name/TLS, authentication, authorization and local-tool failures before tool switching.
+- Added an AD `secretsdump` decision gate requiring proven local-admin or replication rights.
+- Added a pivot proof ladder and route diary.
+- Rebuilt malformed Sections 18.3–19.2 into valid collapsible HTML and removed old Markdown-conversion debris.
+- Added concise live-note/report templates and a stronger passing-score evidence audit.
+- Updated the first-30-minute exam scan flow to avoid stacking heavy scans against one host.
+- Added OffSec Body of Knowledge / Authoritative References plus a dated passer-feedback synthesis.
+- Added CI regressions for two-pass scanning, pivot proof, output triage and conversion-debris cleanup.
+
+
 ## V31.0.0 — 2026-09-24
 
 - Added a single canonical build-version source and runtime build metadata.

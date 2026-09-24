@@ -1,7 +1,7 @@
-name: V31 build and validation
+name: V32 build and validation
 on:
   push:
-    branches: [ main, v31-hardening ]
+    branches: [ main, v32-notes-research ]
   pull_request:
 permissions:
   contents: read

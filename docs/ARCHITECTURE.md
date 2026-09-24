@@ -1,6 +1,6 @@
 # Architecture
 
-V31 separates **maintainable/testable source** from the **single-file exam artifact**.
+V32 keeps **maintainable/testable source** separate from the **single-file exam artifact**, with research-backed content regression checks.
 
 ```text
 src/index.template.html

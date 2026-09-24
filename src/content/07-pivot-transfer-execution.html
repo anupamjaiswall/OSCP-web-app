@@ -58,6 +58,59 @@ proxychains
 scanning. Prefer service-aware enumeration when operating through a
 SOCKS pivot.</p>
 </details>
+<details id="ref-14-2a-pivot-proof-ladder">
+<summary>🧪 14.2A Pivot Proof Ladder — Prove the Broken Layer</summary>
+<p><code>[PIVOT:PROOF] [ERROR:PIVOT] [OUTPUT:TRIAGE]</code></p>
+<blockquote><p>OffSec's current FAQ says pivoting may be required in the AD set. Debug the path in layers instead of swapping tunnels blindly.</p></blockquote>
+<pre class="ref-code"><code class="language-text">0. Pivot host itself can reach destination?
+1. Agent / SSH / Chisel session alive?
+2. Local route / interface / SOCKS listener exists?
+3. ONE known TCP service reachable through the path?
+4. DNS/hostname resolving on the correct side?
+5. Reverse path/listener proven for callbacks?
+6. Only now run broader internal enumeration.
+</code></pre>
+<h3>0 — Destination truth from the pivot</h3>
+<pre class="ref-code"><code class="language-bash"># Linux pivot
+ip route
+nc -vz "$INTERNAL_IP" "$PORT"
+curl -I --max-time 5 "http://$INTERNAL_IP:$PORT/" 2&gt;/dev/null
+
+# Windows PowerShell pivot
+Test-NetConnection -ComputerName $INTERNAL_IP -Port $PORT
+route print
+</code></pre>
+<h3>1–3 — Tunnel / local route truth</h3>
+<pre class="ref-code"><code class="language-bash"># Routed/TUN
+ip route get "$INTERNAL_IP"
+ip route | grep -E 'ligolo|tun'
+nmap -Pn -n -sT -p "$PORT" "$INTERNAL_IP"
+
+# SOCKS
+ss -lntp | grep -E '1080|SOCKS'
+proxychains -q nmap -Pn -n -sT -p "$PORT" "$INTERNAL_IP"
+</code></pre>
+<h3>4–5 — Name and return path</h3>
+<pre class="ref-code"><code class="language-text">IP works; hostname fails → DNS/name problem
+Kerberos fails → DC FQDN + DNS + time before blaming tunnel
+
+Reverse callback:
+  target → pivot listener/forward → Kali listener
+Record callback IP, port, forwarding rule and Kali listener BEFORE trigger.
+</code></pre>
+<h3>Pivot route diary</h3>
+<pre class="ref-code"><code class="language-text">PIVOT HOST:
+INTERNAL SUBNET:
+TOOL / SESSION:
+LOCAL INTERFACE OR SOCKS:
+ROUTE / FORWARD:
+KNOWN-GOOD INTERNAL HOST:PORT:
+DNS METHOD:
+REVERSE-SHELL RETURN PATH:
+LAST VERIFIED:
+</code></pre>
+<p>If step 0 fails, Ligolo/Chisel cannot fix destination reachability. If step 0 works but step 3 fails, debug the tunnel/route.</p>
+</details>
 <details id="ref-14-1-pivoting-overview">
 <summary>🗺️ 14.1 Pivoting Overview</summary>
 <p><code>[PIVOT:FLOW]</code></p>

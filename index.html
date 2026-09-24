@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="31.0.0">
+<meta name="oscp-build-version" content="32.0.0">
 <meta name="oscp-build-date" content="2026-09-24">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -476,7 +476,7 @@ Return trigger:"></textarea>
 <button class="btn" id="backTopBtn" type="button" title="Back to top">↑ Top</button>
 
 <div class="top">
-  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V31 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
+  <div class="brand">🔐 OSCP Exam OS</div><div class="badge">V32 · EXAM ONLY · OFFLINE · NO AI</div><button class="topTargetContext" id="topTargetContext" type="button" title="Open current target">No target</button>
   <div class="searchbar"><span class="searchIcon">⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search: seimp, 445, clock skew, [AD:ADCS]…"><span class="kbd">Ctrl K</span></div>
   <div class="row" id="historyNavControls" style="gap:5px;flex-wrap:nowrap">
     <button class="btn" id="navBackBtn" type="button" title="Back to previous app view (Alt+Left)" aria-label="Back">Back</button>
@@ -932,7 +932,7 @@ state-changing AD abuse
 
 
 <section id="serviceRouterView" class="view">
- <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V31</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
+ <div class="hero serviceRouterHero"><div><h1>Service-First Router <span class="chip">V32</span></h1><div class="muted">Paste a strict port list or real Nmap/Masscan output. TCP/UDP, state and service names are preserved; unrelated numbers are ignored.</div></div><div class="chips"><span class="chip">ALT+Q</span><span class="chip">OFFLINE</span><span class="chip">NO BLIND SPRAY</span></div></div>
  <div class="grid">
   <div class="card span12"><h2>1 · Turn scan output into a queue</h2><div class="serviceRouterControls"><label><span class="tiny">Strict port list or scan output</span><textarea id="serviceRouterInput" spellcheck="false" placeholder="22,80,445&#10;53/udp,161/udp,445/tcp&#10;or paste Nmap / grepable / XML / Masscan output"></textarea></label><button class="btn primary" id="serviceRouterBuild" type="button">Build queue</button><button class="btn" id="serviceRouterCopy" type="button">Copy queue</button><button class="btn" id="serviceRouterLoadTarget" type="button">Load active target</button><button class="btn" id="serviceRouterSaveTarget" type="button">Save to active target</button></div><div id="serviceParseSummary" class="serviceParseSummary muted" role="status" aria-live="polite" aria-atomic="true">Parser waits for a strict port list or recognized scan format.</div><div id="serviceRoleHints"></div><div id="serviceQueue" class="serviceQueue"><div class="muted">No ports parsed yet.</div></div></div>
   <div class="card span7"><h2>2 · First-pass queue</h2><pre id="serviceFirstPassQueue" class="firstPassQueue">Paste ports above. The queue will favor identity, anonymous/default access, source/config/backups, credentials, and manual protocol truth before version-only CVE hunting.</pre><p class="tiny">If a tool fails, do not immediately swap tools. First decide whether the failure is DNS, auth format, TLS, protocol negotiation, permissions, routing, or an actual negative result.</p></div>
@@ -2645,6 +2645,7 @@ WHAT AM I ASSUMING?
 
 WHAT DID I MISS?
   full TCP
+  scan reliability / pivot path
   useful UDP
   DNS/vhosts
   source/backups/config
@@ -2653,10 +2654,51 @@ WHAT DID I MISS?
   post-shell re-enumeration
   DNS/time in AD
   writable privileged dependency
+  exact stdout/stderr / HTTP status / protocol error
 
 WRITE ONLY NEXT 3 ACTIONS.
 </code></pre>
 <p>If none of the next three actions can produce <strong>new evidence</strong>, rotate targets/surfaces.</p>
+<hr/>
+<h2 id="ref-c13-5-output-triage-before-switching-tools">C13.5 OUTPUT TRIAGE — BEFORE SWITCHING TOOLS</h2>
+<p>Search: <code>[OUTPUT:TRIAGE]</code></p>
+<p><strong>2026 passer pattern:</strong> missed information in tool output can cost more time than missing another tool. Classify the failure before changing syntax, frameworks or attack paths.</p>
+<pre class="ref-code"><code class="language-text">TIMEOUT / NO ROUTE
+  → reachability, VPN, pivot, route or firewall path
+  → says nothing about credential validity
+
+CONNECTION REFUSED
+  → host/path answered but nothing is listening on that port
+
+TLS / CERT / REDIRECT / WRONG HOST
+  → hostname, SNI, vhost, scheme or certificate-name problem
+
+401 / LOGON_FAILURE / PREAUTH_FAILED
+  → presented identity/secret was rejected
+  → check local-vs-domain form and secret provenance once
+
+403 / ACCESS_DENIED / LOGON-TYPE DENIED
+  → authentication may be valid; authorization/right is missing
+
+UNKNOWN OPTION / IMPORT / USAGE ERROR
+  → local tool/build problem
+  → read installed --help before abandoning the hypothesis
+
+EMPTY SMB / LDAP / WEB ENUMERATION
+  → first verify share/base DN/filter/Host header/path/scope
+  → "empty" is not automatically "nothing exists"
+
+AUTH SUCCESS WITHOUT ADMIN SIGNAL
+  → authentication only
+  → prove share access / WinRM / RDP / admin execution separately
+</code></pre>
+<h3 id="ref-output-triage-micro-loop">30-second output micro-loop</h3>
+<pre class="ref-code"><code class="language-text">1. Copy the exact error/status.
+2. Name the failing layer: network → name/TLS → authentication → authorization → parser/tool.
+3. Use one native/manual truth check.
+4. Correct the proved cause and retry the SAME hypothesis once.
+5. New evidence? continue. Same result? record it and rotate.
+</code></pre>
 <hr/>
 <h2 id="ref-c14-output-recognition-cheat-table">C14. OUTPUT RECOGNITION CHEAT TABLE</h2>
 <table class="ref-table">
@@ -2846,6 +2888,7 @@ WRITE ONLY NEXT 3 ACTIONS.
 [ERROR:403]
 [ERROR:SHELL]
 [ERROR:PIVOT]
+[OUTPUT:TRIAGE]
 [EXPLOIT:GATE]
 [EVIDENCE:PACKET]
 [STUCK:RESET]
@@ -3053,39 +3096,67 @@ ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u htt
 <hr/>
 <h2 id="ref-3-nmap-port-scanning">3. NMAP &amp; PORT SCANNING</h2>
 <details id="ref-3-1-nmap-workflow-fast-default-adaptive-rate">
-<summary>🔍 3.1 Nmap Workflow --- Fast Default, Adaptive Rate</summary>
+<summary>🔍 3.1 Nmap Workflow — Reliable Two-Pass Baseline</summary>
+<p><code>[SCAN:RELIABLE] [OUTPUT:TRIAGE]</code></p>
+<blockquote>
+<p><strong>Exam default:</strong> discover open ports first, then fingerprint only those ports. If the port map looks suspiciously sparse, stop noisy enumeration against that host and repeat a clean discovery pass before assuming the service is absent.</p>
+</blockquote>
 <pre class="ref-code"><code class="language-bash"># STEP 0: Create output directory once
 mkdir -p scans/nmap
 
-# STEP 1: Full TCP scan — conservative VPN baseline; adapt to packet loss
-sudo nmap -Pn -n -p- --min-rate 1000 -oA scans/nmap/tcp-all $IP &amp;
-# If results look sparse or packets drop, reduce/remove --min-rate and retry a small known set.
+# STEP 1: CLEAN FULL-TCP DISCOVERY — no -sC/-sV yet
+sudo nmap -Pn -n -p- --open -T4 --max-retries 2 -oA scans/nmap/tcp-all "$IP"
 
-# STEP 2: Meanwhile, top 1000 with scripts (quicker results while full scan runs)
-sudo nmap -Pn -n -sC -sV --top-ports 1000 -oA scans/nmap/tcp-initial $IP &amp;
-
-# STEP 3: When all-ports finishes, targeted deep scan
 ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' scans/nmap/tcp-all.nmap | paste -sd, -)
-echo "Open ports: $ports"
-test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sC -sV -p "$ports" -oA scans/nmap/tcp-detail $IP
+echo "Open TCP: $ports"
 
-# STEP 4: Targeted UDP when the host role, TCP results or remaining hypothesis justifies it
-sudo nmap -Pn -n -sU --top-ports 100 -oA scans/nmap/udp-top100 $IP &amp;
-# Critical UDP: 53,67,68,69,111,123,137,138,139,161,162,500,514,1194,1900
+# STEP 1B: SANITY RECOVERY — only if results look sparse/inconsistent
+# Stop ferox/gobuster/other noisy work against THIS SAME host while validating.
+sudo nmap -Pn -n -p- --open -T3 --max-retries 3 -oA scans/nmap/tcp-verify "$IP"
+verify_ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' scans/nmap/tcp-verify.nmap | paste -sd, -)
+echo "Verify TCP: $verify_ports"
+# If lists differ materially: inspect --reason, packet loss, VPN/pivot path and one known service.
 
-# STEP 5: Run only a selected, relevant NSE script after reviewing its behavior
+# STEP 2: TARGETED FINGERPRINT — confirmed opens only
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sC -sV -p "$ports" -oA scans/nmap/tcp-detail "$IP"
+
+# OPTIONAL ACCELERATION — only after the path behaves consistently
+# sudo nmap -Pn -n -p- --open --min-rate 1000 --max-retries 2 -oA scans/nmap/tcp-fast "$IP"
+
+# STEP 3: Targeted UDP when host role/TCP evidence justifies it
+sudo nmap -Pn -n -sU --top-ports 100 --max-retries 2 -oA scans/nmap/udp-top100 "$IP"
+# High-value UDP examples: 53,69,111,123,137,138,161,162,500,514,1194
+
+# STEP 4: Selected NSE only after reading what the script does
 SCRIPT='&lt;relevant-script&gt;'
 nmap --script-help "$SCRIPT"
-test -n "$ports" &amp;&amp; sudo nmap -Pn -n --script "$SCRIPT" -p "$ports" -oA scans/nmap/nse-selected $IP
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n --script "$SCRIPT" -p "$ports" -oA scans/nmap/nse-selected "$IP"
 
-# STEP 6: OS detection only when it will change the next decision
-test -n "$ports" &amp;&amp; sudo nmap -Pn -n -O --osscan-guess -p "$ports" -oA scans/nmap/os $IP
+# STEP 5: OS detection only if it changes the next decision
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n -O --osscan-guess -p "$ports" -oA scans/nmap/os "$IP"
 </code></pre>
+<h3>Scan sanity ladder</h3>
+<pre class="ref-code"><code class="language-text">PORT MAP LOOKS WRONG?
+  ↓
+Stop concurrent noisy enumeration against THIS host
+  ↓
+Prove route/VPN/pivot + one known service
+  ↓
+Repeat clean -p- discovery at a calmer timing
+  ↓
+Fingerprint ONLY confirmed opens
+  ↓
+Through SOCKS? use TCP connect (-sT) and smaller known port sets
+  ↓
+Still inconsistent? record it as a network/pivot problem, not "no service"
+</code></pre>
+<p>This is a reliability tactic, not a claim that one timing profile is universally best. Your current VPN/pivot and observed packet loss decide the rate.</p>
 </details>
 <details id="ref-3-2-nmap-tips-tricks">
 <summary>⚡ 3.2 Nmap Tips &amp; Tricks</summary>
-<pre class="ref-code"><code class="language-bash"># Controlled acceleration — reduce/remove the floor if results look incomplete
+<pre class="ref-code"><code class="language-bash"># Optional acceleration AFTER a stable discovery baseline
 --min-rate 1000 --max-retries 2
+# If results look incomplete, remove the rate floor and retry calmer.
 
 # If firewall dropping packets — use these
 nmap -sS -p$ports $IP              # SYN scan
@@ -3104,7 +3175,7 @@ proxychains nmap -sT -Pn -p 80,443,445,22,3389 192.168.x.x
 nmap -sC -sV -p$ports $IP -oA scans/nmap/targeted
 
 # Extract just open port numbers from result
-grep "open" scans/nmap/targeted.txt | awk '{print $1}' | cut -d'/' -f1
+grep "open" scans/nmap/targeted.nmap | awk '{print $1}' | cut -d'/' -f1
 
 # Parse nmap XML with python (automation)
 python3 -c "
@@ -5543,6 +5614,41 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
 <li>Verify the resulting identity/access, re-enumerate, and re-collect the graph.</li>
 </ol>
 <p><strong>New-session rule:</strong> a new shell, remote protocol or logon method can produce a different token, groups, profile, network reachability and credential visibility. Baseline again instead of assuming equivalence.</p>
+</details>
+<details id="ref-9-0a-1-secretsdump-credential-extraction-gate">
+<summary>🧾 9.0A.1 secretsdump / Credential Extraction — Decision Gate</summary>
+<p><code>[AD:SECRETS] [CREDS:FANOUT] [OUTPUT:TRIAGE]</code></p>
+<blockquote><p><strong>Do not run credential dumping merely because you have a credential.</strong> First prove the right that makes extraction possible. Recent pass reports mention <code>secretsdump</code> as high-value in AD; the useful lesson is the prerequisite gate, not blind dumping.</p></blockquote>
+<pre class="ref-code"><code class="language-text">WHAT RIGHT DO I ACTUALLY HAVE?
+
+Local Administrator / equivalent on a member host?
+  → remote SAM/LSA extraction may be justified
+  → collect only what advances the path
+
+Replication rights on the domain (DCSync)?
+  → retrieve one required domain account first
+
+Neither proven?
+  → DO NOT switch to secretsdump as a guess
+  → enumerate admin rights / ACLs / sessions / groups / delegation / services
+</code></pre>
+<h3>Member-host admin path</h3>
+<pre class="ref-code"><code class="language-bash"># Prove admin capability separately first.
+impacket-secretsdump "$DOMAIN/$AUTH_USER@$TARGET"
+impacket-secretsdump -hashes ":$NTLM" "$DOMAIN/$AUTH_USER@$TARGET"
+</code></pre>
+<h3>DCSync / replication-rights path</h3>
+<pre class="ref-code"><code class="language-bash"># Only after replication rights are proven; start with the account you need.
+DCSYNC_USER='Administrator'
+impacket-secretsdump -just-dc-user "$DCSYNC_USER" -dc-ip "$DC_IP" "$DOMAIN/$AUTH_USER@$DC"
+</code></pre>
+<pre class="ref-code"><code class="language-text">recovered material
+  → record source + principal + scope
+  → test relevant in-scope services
+  → prove auth vs admin/execution separately
+  → new identity/session? re-enumerate + re-collect BloodHound
+</code></pre>
+<p><strong>Failure decoder:</strong> access denied = rights; RPC/SMB failure = path/protocol; usage/import error = local tool/version. Do not label all three "bad credentials."</p>
 </details>
 <details id="ref-9-0b-ad-ten-case-sanity-map">
 <summary>🧭 9.0B AD Ten-Case Sanity Map — OSCP-Safe</summary>
@@ -8543,6 +8649,59 @@ proxychains
 scanning. Prefer service-aware enumeration when operating through a
 SOCKS pivot.</p>
 </details>
+<details id="ref-14-2a-pivot-proof-ladder">
+<summary>🧪 14.2A Pivot Proof Ladder — Prove the Broken Layer</summary>
+<p><code>[PIVOT:PROOF] [ERROR:PIVOT] [OUTPUT:TRIAGE]</code></p>
+<blockquote><p>OffSec's current FAQ says pivoting may be required in the AD set. Debug the path in layers instead of swapping tunnels blindly.</p></blockquote>
+<pre class="ref-code"><code class="language-text">0. Pivot host itself can reach destination?
+1. Agent / SSH / Chisel session alive?
+2. Local route / interface / SOCKS listener exists?
+3. ONE known TCP service reachable through the path?
+4. DNS/hostname resolving on the correct side?
+5. Reverse path/listener proven for callbacks?
+6. Only now run broader internal enumeration.
+</code></pre>
+<h3>0 — Destination truth from the pivot</h3>
+<pre class="ref-code"><code class="language-bash"># Linux pivot
+ip route
+nc -vz "$INTERNAL_IP" "$PORT"
+curl -I --max-time 5 "http://$INTERNAL_IP:$PORT/" 2&gt;/dev/null
+
+# Windows PowerShell pivot
+Test-NetConnection -ComputerName $INTERNAL_IP -Port $PORT
+route print
+</code></pre>
+<h3>1–3 — Tunnel / local route truth</h3>
+<pre class="ref-code"><code class="language-bash"># Routed/TUN
+ip route get "$INTERNAL_IP"
+ip route | grep -E 'ligolo|tun'
+nmap -Pn -n -sT -p "$PORT" "$INTERNAL_IP"
+
+# SOCKS
+ss -lntp | grep -E '1080|SOCKS'
+proxychains -q nmap -Pn -n -sT -p "$PORT" "$INTERNAL_IP"
+</code></pre>
+<h3>4–5 — Name and return path</h3>
+<pre class="ref-code"><code class="language-text">IP works; hostname fails → DNS/name problem
+Kerberos fails → DC FQDN + DNS + time before blaming tunnel
+
+Reverse callback:
+  target → pivot listener/forward → Kali listener
+Record callback IP, port, forwarding rule and Kali listener BEFORE trigger.
+</code></pre>
+<h3>Pivot route diary</h3>
+<pre class="ref-code"><code class="language-text">PIVOT HOST:
+INTERNAL SUBNET:
+TOOL / SESSION:
+LOCAL INTERFACE OR SOCKS:
+ROUTE / FORWARD:
+KNOWN-GOOD INTERNAL HOST:PORT:
+DNS METHOD:
+REVERSE-SHELL RETURN PATH:
+LAST VERIFIED:
+</code></pre>
+<p>If step 0 fails, Ligolo/Chisel cannot fix destination reachability. If step 0 works but step 3 fails, debug the tunnel/route.</p>
+</details>
 <details id="ref-14-1-pivoting-overview">
 <summary>🗺️ 14.1 Pivoting Overview</summary>
 <p><code>[PIVOT:FLOW]</code></p>
@@ -9300,211 +9459,136 @@ STAND-ALONE MACHINE POINTS:
 </code></pre>
 </details>
 <details id="ref-18-3-note-taking-template-use-per-machine">
-<summary>📝 18.3 Note-Taking Template (Use Per Machine)</summary>
-<pre class="ref-code"><code class="language-markdown"># Machine: TARGET_IP — HOSTNAME
+<summary>📝 18.3 Fast Live Notes Per Target</summary>
+<p><code>[EVIDENCE:PACKET] [OUTPUT:TRIAGE]</code></p>
+<pre class="ref-code"><code class="language-text">TARGET: IP / hostname / role
+STATUS: scanning | foothold | local | root/SYSTEM | documented
 
-## Status: [ ] Scanning [ ] Foothold [ ] Privesc [ ] Root [ ] Documented
-
-## Open Ports
-| Port | Service | Version | Notes |
-|------|---------|---------|-------|
-| 22   | SSH     | OpenSSH 7.4 | |
-| 80   | HTTP    | Apache 2.4 | WordPress |
-
-## Credentials Found
-| Username | Password | Hash | Service | Where Found |
-|----------|----------|------|---------|-------------|
-| admin    | &lt;redacted&gt; |      | SSH     | /etc/backup |
-
-## Attack Path
-1. Port 80 → WordPress 5.2.3
-2. wpscan → user: admin
-3. Recovered/validated credential → admin:&lt;redacted&gt; (record source + exact login proof)
-4. Theme editor → PHP shell
-5. Shell as www-data
-6. /etc/cron.d → root runs /opt/backup.sh
-7. /opt/backup.sh writable → reverse shell
-8. Root!
-
-## Commands Used
-```bash
-# Key commands here
+OPEN SERVICES: port/proto → service/version → decisive note
+CREDENTIAL/MATERIAL: principal → type → source → proven scope
+ATTACK PATH: observation → hypothesis → decisive command → result
+FOOTHOLD: vector → exact command/request → resulting user/session
+PRIVESC: prerequisite → validation → trigger → resulting identity
+EVIDENCE: flags submitted / screenshots / exploit URL / modified code
 </code></pre>
-<h2>Proof</h2>
-<ul>
-<li>local.txt: [CONTENT]</li>
-<li>proof.txt: [CONTENT]</li>
-<li>Screenshots: [FILENAMES]</li>
-</ul>
-<!-- -->
-<pre class="ref-code"><code>&lt;/details&gt;
+<h3>Five-line live-note rule</h3>
+<pre class="ref-code"><code class="language-text">OBSERVED:
+COMMAND / REQUEST:
+SIGNAL / ERROR:
+WHAT IT PROVES:
+NEXT DECISIVE TEST:
+</code></pre>
+<p>Write commands, provenance, decisive output and reasoning while attacking. Save polished prose for the report phase.</p>
+</details>
 
-&lt;details&gt;
-&lt;summary&gt;📊 18.4 OSCP Report Structure&lt;/summary&gt;
-</code></pre>
-<p>REQUIRED SECTIONS: 1. High-Level Summary - # of machines compromised -
-Severity of findings</p>
-<ol start="2">
-<li>Methodology
-<ul>
-<li>Tools used</li>
-<li>General approach</li>
-</ul>
-</li>
-<li>Per-Machine Writeup (for EACH machine):
-a.  Machine info (IP, OS, hostname)
-b.  Service enumeration
-c.  Exploitation (step by step, with screenshots)
-d.  Post-exploitation
-e.  Privilege escalation (step by step, with screenshots)
-f.  Proof (original-path cat/type in an interactive shell; target IP + full flag visible together)</li>
-<li>Appendix
-<ul>
-<li>Tool outputs</li>
-<li>Modified exploit code (full code)</li>
-</ul>
-</li>
-</ol>
-<p>REPORT TIPS: - Document the commands/output needed to reproduce the compromise step-by-step</p>
-<ul>
-<li>Keep screenshots readable and tied to each step</li>
-<li>For an UNMODIFIED public exploit, OffSec says provide the source URL rather than dumping pages of code</li>
-<li>For a MODIFIED exploit, include the modified code, original URL, shellcode command if applicable,
-highlight the changes, and explain why they were required</li>
-<li>Submit the PDF inside the required .7z archive within 24 hours of exam end</li>
-</ul><p>COMMON REPORT FAILURES: ✗ Proof screenshot without IP visible ✗ Steps
-not reproducible from your writeup ✗ Missing screenshots at key steps ✗
-No proof of privilege escalation method ✗ Late submission</p>
-<pre class="ref-code"><code>&lt;/details&gt;
-
-&lt;details&gt;
-</code></pre>
-<summary>⏱️ 18.5 Time Management — 2026 Rotation Strategy</summary>
-<p><code>[TIME:ROTATE]</code></p>
-<p>There is <strong>no universally correct "AD first" strategy</strong>. Recent pass reports include candidates who cleared AD early and others who passed mainly through standalones. Use evidence, not superstition.</p>
-<h3>Phase 1 — 0:00 to ~0:45: Build the board</h3>
-<ul>
-<li>Read every control-panel objective.</li>
-<li>Start full TCP/service enumeration on all targets.</li>
-<li>Record hostnames/vhosts immediately.</li>
-<li>Start issued-credential AD checks.</li>
-<li>Identify the <strong>two strongest attack signals</strong>, not the two machines you personally prefer.</li>
-</ul>
-<h3>Phase 2 — Work in 20–30 minute evidence blocks</h3>
-<p>Stay on a target while you are producing evidence:</p>
-<pre class="ref-code"><code class="language-text">new credential
-new file/share
-new service
-new privilege
-new attack edge
-new working primitive
-new validated exploit condition
-</code></pre>
-<p>If a block ends with <strong>no new evidence</strong>, write the next hypothesis and rotate.</p>
-<h3>Phase 3 — Bank points immediately</h3>
-<p>Whenever <code>local.txt</code> or <code>proof.txt</code> is obtained:</p>
+<details id="ref-18-4-oscp-report-structure">
+<summary>📊 18.4 Report Structure — Reproducible, Ordered, Unambiguous</summary>
+<p><code>[REPORT:PROOF] [EVIDENCE:PACKET]</code></p>
 <ol>
-<li>Produce the official screenshot immediately.</li>
-<li>Submit the flag in the control panel immediately.</li>
-<li>Record the exact exploit/privesc steps.</li>
-<li>Update your current point total and passing combinations.</li>
+<li>High-level summary.</li>
+<li>Concise methodology and relevant tools.</li>
+<li>One section per target in control-panel order: identity → enumeration → initial access → post-exploitation → privilege escalation → official proof.</li>
+<li>Appendix only where useful: modified exploit code, selected outputs, supporting material.</li>
 </ol>
-<h3>Phase 4 — At 70+ points</h3>
-<p>Before chasing extra points:</p>
+<p>Unmodified public exploit: preserve/provide source URL. Modified exploit: preserve changed code, original URL, relevant shellcode command and explain the changes.</p>
+<pre class="ref-code"><code class="language-text">PRE-UPLOAD
+[ ] target/IP/order matches control panel
+[ ] compromise reproducible from report alone
+[ ] official proof screenshots readable
+[ ] PDF reopened and checked
+[ ] exact required PDF filename
+[ ] unencrypted .7z created on Kali
+[ ] archive within current size limit
+[ ] upload MD5 compared
+[ ] final Submit File clicked
+</code></pre>
+</details>
+
+<details id="ref-18-5-time-management-2026-rotation-strategy">
+<summary>⏱️ 18.5 Time Management — Evidence-Driven Rotation</summary>
+<p><code>[TIME:ROTATE]</code></p>
+<p>No universal "AD first" or "standalone first" strategy: work the strongest evidence.</p>
+<h3>Opening ~45 minutes</h3>
+<ul>
+<li>Read control-panel objectives/points.</li>
+<li>Run one clean full-TCP <strong>discovery</strong> per target; fingerprint confirmed opens after the map stabilizes.</li>
+<li>Record hostnames/vhosts and start issued-credential AD checks.</li>
+<li>Choose the strongest signals, not favorite machines.</li>
+</ul>
+<h3>Stay while evidence improves</h3>
+<pre class="ref-code"><code class="language-text">new credential / file / share / source / config
+new reachable host/service
+new privilege / writable privileged object
+new AD edge / working primitive / validated exploit condition
+</code></pre>
+<p>No new evidence → record failed hypothesis + return condition → rotate. A clock is a safety rail, not a reason to abandon obvious progress.</p>
+<h3>Bank points immediately</h3>
+<ol><li>Official screenshot.</li><li>Control-panel submission.</li><li>Exact exploit/privesc steps + source URLs.</li><li>Update point/evidence board.</li></ol>
+<h3>At estimated 70+ points</h3>
 <pre class="ref-code"><code class="language-text">[ ] every earned flag submitted
-[ ] every proof screenshot valid
-[ ] IP + flag content visible
+[ ] proof screenshots valid
+[ ] IP + full flag visible
 [ ] proof read from original location via interactive shell
 [ ] exploit/privesc steps reproducible
-[ ] modified exploit code/changes preserved
+[ ] modified exploit changes preserved
+[ ] every counted screenshot reopened/readable while access exists
 </code></pre>
-<p>Several recent passers intentionally used remaining access time to verify notes/screenshots rather than risk losing a pass through poor documentation.</p>
-<h3>Break schedule</h3>
-<ul>
-<li>Short break whenever you catch yourself repeating commands.</li>
-<li>Aim for a real 10–20 minute break every ~2–3 hours.</li>
-<li>Eat, hydrate, and sleep/rest if needed.</li>
-<li>OffSec explicitly expects candidates to take rest breaks, eat, drink and sleep during the 23h45m window.</li>
-</ul>
-<h3>"Read output twice" rule</h3>
-<p>Before declaring a tool useless:</p>
-<pre class="ref-code"><code class="language-text">1. Read the summary.
-2. Search output for ERROR / FAIL / WARN / password / user / writable / service / path.
-3. Compare it with your current hypothesis.
+<p>Bank proof before breaks. Eat, hydrate and rest; repeated commands/skipped output are fatigue signals.</p>
+<h3>Read output twice</h3>
+<pre class="ref-code"><code class="language-text">1. Read summary + exact error/status.
+2. Search ERROR / FAIL / WARN / password / user / writable / service / path.
+3. Compare with hypothesis.
+4. Classify failing layer before changing tools.
 </code></pre>
-<p>One July 2026 passer specifically attributed long delays to not paying enough attention to tool output.</p>
 </details>
-<pre class="ref-code"><code>---
 
-## 19. QUICK REFERENCE
+<hr/>
+<h2 id="ref-19-quick-reference">19. QUICK REFERENCE</h2>
+<blockquote><p>Recall aid only. Cockpit + Service Router remain the primary exam navigation.</p></blockquote>
+<details id="ref-19-1-ports-services-reference">
+<summary>🔌 19.1 Ports &amp; Services — Recognition Reference</summary>
+<pre class="ref-code"><code class="language-text">21 FTP          22 SSH          25 SMTP          53 DNS
+80/443 HTTP/S   88 Kerberos     111 RPCbind      135 MSRPC
+139/445 SMB     161 UDP SNMP    389/636 LDAP     1433 MSSQL
+1521 Oracle     2049 NFS        2375 Docker API  3268/3269 GC
+3306 MySQL      3389 RDP        5432 PostgreSQL  5985/5986 WinRM
+6379 Redis      8080/8443 Web   9200 Elasticsearch
+11211 Memcached 27017 MongoDB
 </code></pre>
-<blockquote>
-<p><strong>Before using this section:</strong> for clue-driven troubleshooting and immediate next actions, jump to <strong>Section 0 — Rapid-Response Layer</strong>. CARD</p>
-</blockquote>
-<pre class="ref-code"><code>&lt;details&gt;
-&lt;summary&gt;🔌 19.1 Ports &amp; Services Reference&lt;/summary&gt;
+</details>
+<details id="ref-19-2-impacket-complete-toolkit">
+<summary>🛠️ 19.2 Impacket — Exam-Time Command Families</summary>
+<p>Installed <code>-h</code> wins if syntax differs. Authentication does not imply authorization/admin execution.</p>
+<pre class="ref-code"><code class="language-bash"># EXECUTION — after rights are proven
+impacket-psexec  "$DOMAIN/$AUTH_USER@$TARGET"
+impacket-smbexec "$DOMAIN/$AUTH_USER@$TARGET"
+impacket-wmiexec "$DOMAIN/$AUTH_USER@$TARGET"
+impacket-atexec  "$DOMAIN/$AUTH_USER@$TARGET" 'whoami'
+
+# KERBEROS
+impacket-GetNPUsers "$DOMAIN/" -dc-ip "$DC_IP" -usersfile users.txt -request -no-pass
+impacket-GetUserSPNs "$DOMAIN/$AUTH_USER" -dc-ip "$DC_IP" -request
+impacket-getTGT "$DOMAIN/$AUTH_USER"
+impacket-getST "$DOMAIN/$AUTH_USER" -spn "cifs/$TARGET"
+
+# CREDENTIAL EXTRACTION — read [AD:SECRETS] first
+impacket-secretsdump "$DOMAIN/$AUTH_USER@$TARGET"
+impacket-secretsdump -just-dc-user Administrator -dc-ip "$DC_IP" "$DOMAIN/$AUTH_USER@$DC"
+
+# ENUM / CLIENTS
+impacket-lookupsid "$DOMAIN/$AUTH_USER@$TARGET"
+impacket-rpcdump "$TARGET"
+impacket-smbclient "$DOMAIN/$AUTH_USER@$TARGET"
+impacket-mssqlclient "$DOMAIN/$AUTH_USER@$TARGET"
+
+# PASS-THE-HASH
+impacket-wmiexec -hashes ":$NTLM" "$DOMAIN/$AUTH_USER@$TARGET"
+
+# KERBEROS CACHE
+export KRB5CCNAME=/absolute/path/user.ccache
+impacket-wmiexec -k -no-pass "$DOMAIN/$AUTH_USER@$TARGET"
 </code></pre>
-<p>TCP PORTS: 21 FTP | 1080 SOCKS 22 SSH | 1099 Java RMI 23 Telnet |
-1433 MSSQL 25 SMTP | 1521 Oracle TNS 53 DNS | 2049 NFS 80 HTTP | 2375
-Docker API 88 Kerberos | 3268 LDAP GC 110 POP3 | 3306 MySQL 111
-RPCbind | 3389 RDP 119 NNTP | 3690 SVN 135 MSRPC | 4444 Metasploit
-default 139 NetBIOS | 5432 PostgreSQL 143 IMAP | 5900 VNC 161 SNMP
-(UDP) | 5985 WinRM HTTP 389 LDAP | 5986 WinRM HTTPS 443 HTTPS | 6379
-Redis 445 SMB | 6667 IRC 465 SMTPS | 8080 HTTP Alt 512 rexec | 8443
-HTTPS Alt 513 rlogin | 8888 HTTP Alt 514 rsyslog | 9200 Elasticsearch
-515 LPD/LPR | 27017 MongoDB 631 CUPS | 11211 Memcached 636 LDAPS |
-873 rsync |</p>
-<pre class="ref-code"><code>&lt;/details&gt;
-
-&lt;details&gt;
-&lt;summary&gt;🛠️ 19.2 Impacket Complete Toolkit&lt;/summary&gt;
-
-```bash
-# ── EXECUTION ─────────────────────────────────────────────────
-impacket-psexec     DOMAIN/user@IP          # SMB exec → SYSTEM
-impacket-smbexec    DOMAIN/user@IP          # SMB exec → service shell
-impacket-wmiexec    DOMAIN/user@IP          # WMI exec → no service
-impacket-atexec     DOMAIN/user@IP 'whoami' # Task scheduler
-impacket-dcomexec   DOMAIN/user@IP 'whoami' # DCOM exec
-
-# ── KERBEROS ──────────────────────────────────────────────────
-impacket-GetNPUsers    DOMAIN/ -dc-ip IP -request           # AS-REP roast
-impacket-GetUserSPNs   DOMAIN/user -dc-ip IP -request  # Kerberoast
-impacket-ticketer      -nthash HASH -domain-sid SID -domain DOMAIN user  # Ticket forge
-impacket-getTGT        DOMAIN/user                      # Get TGT
-impacket-getST         DOMAIN/user -spn cifs/target     # Get service ticket
-
-# ── CREDENTIAL DUMPING ────────────────────────────────────────
-impacket-secretsdump   DOMAIN/user@IP                   # Remote dump
-impacket-secretsdump   DOMAIN/user@IP -just-dc-ntlm     # NTDS only
-impacket-secretsdump   -sam SAM -system SYSTEM LOCAL         # Local files
-impacket-secretsdump   -ntds ntds.dit -system SYSTEM LOCAL   # NTDS.dit
-
-# ── ENUMERATION ───────────────────────────────────────────────
-impacket-lookupsid     DOMAIN/user@IP                   # SID enum
-impacket-samrdump      DOMAIN/user@IP                   # SAR dump
-impacket-rpcdump       IP                                    # RPC endpoints
-impacket-reg           DOMAIN/user@IP query -keyName HKU # Remote registry
-
-# ── FILE OPERATIONS ───────────────────────────────────────────
-impacket-smbclient     DOMAIN/user@IP                   # SMB client
-impacket-smbserver     share /path/to/share -smb2support     # Host SMB share
-
-# ── DATABASE ──────────────────────────────────────────────────
-impacket-mssqlclient   DOMAIN/user@IP                   # MSSQL client
-
-# ── NETWORK ───────────────────────────────────────────────────
-
-# ── WITH HASH (PtH) ───────────────────────────────────────────
-impacket-psexec    DOMAIN/user@IP -hashes :NTLMHASH
-impacket-wmiexec   DOMAIN/user@IP -hashes :NTLMHASH
-impacket-secretsdump DOMAIN/user@IP -hashes :NTLMHASH
-
-# ── WITH KERBEROS TICKET ──────────────────────────────────────
-export KRB5CCNAME=user.ccache
-impacket-psexec    DOMAIN/user@IP -no-pass -k
-</code></pre>
-
+</details>
 <details id="ref-19-3-nxc-full-reference">
 <summary>⚡ 19.3 nxc Full Reference</summary>
 <pre class="ref-code"><code class="language-bash"># ── SMB ───────────────────────────────────────────────────────
@@ -9745,15 +9829,22 @@ and enumerate a different layer.</p>
 # Read the control panel before touching a target.
 
 # ── LAUNCH INITIAL ENUMERATION ────────────────────────────────
-# Enumerate every issued target, but keep one output set per IP and READ each result.
-# Put only the exact in-scope addresses in scope-ips.txt, one per line.
+# Parallel ACROSS hosts is fine; do not stack noisy scanners against one host before discovery is trustworthy.
 while IFS= read -r IP; do
   mkdir -p "$HOME/oscp/$IP"/{scans,loot,exploit,evidence}
-  sudo nmap -Pn -n --top-ports 1000 "$IP" -oA "$HOME/oscp/$IP/scans/tcp-top" &amp;
-  sudo nmap -Pn -n -p- --min-rate 1000 "$IP" -oA "$HOME/oscp/$IP/scans/tcp-all" &amp;
+  sudo nmap -Pn -n -p- --open -T4 --max-retries 2 "$IP" -oA "$HOME/oscp/$IP/scans/tcp-all" &amp;
 done &lt; scope-ips.txt
 wait
-# If packets look dropped or expected services are missing, lower/remove --min-rate and rescan.
+
+# Fingerprint confirmed opens only.
+while IFS= read -r IP; do
+  ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' "$HOME/oscp/$IP/scans/tcp-all.nmap" | paste -sd, -)
+  echo "[$IP] open TCP: $ports"
+  test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sC -sV -p "$ports" "$IP" -oA "$HOME/oscp/$IP/scans/tcp-detail" &amp;
+done &lt; scope-ips.txt
+wait
+
+# Suspiciously sparse host? Stop noisy work against THAT host and rerun discovery calmer.
 
 # AutoRecon is optional for one unresolved target after manual review; do not let it replace reading output.
 # autorecon "$IP" --single-target --output "$HOME/oscp/$IP/autorecon"
@@ -9812,6 +9903,9 @@ STEP 4: IF YOU GET STUCK
 <details id="ref-20-4-common-exam-mistakes-avoid-all-of-these">
 <summary>🚨 20.4 Common Exam Mistakes --- Avoid All of These</summary>
 <pre class="ref-code"><code>TECHNICAL MISTAKES:
+  ✗ Running several noisy enumerators against one host before its port map is trustworthy
+  ✗ Switching tools before classifying the exact error/output
+  ✗ Treating a failed pivot as a tunnel-tool problem before proving each route layer
   ✗ Forgetting to check UDP ports (161 SNMP especially)
   ✗ Not trying anonymous/null session on SMB and FTP
   ✗ Not checking an evidence-based vendor/application default where lockout risk permits
@@ -10111,13 +10205,25 @@ GOOD LUCK. YOU'VE GOT THIS.
 <h2 id="ref-2026-maintenance-primary-references">📚 2026 MAINTENANCE &amp; PRIMARY REFERENCES</h2>
 <h3 id="ref-current-oscp-exam-rules">Current OSCP+ Exam Rules</h3>
 <ul>
-<li>OSCP+ Exam Guide (page updated 20 Apr 2026): https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide</li>
-<li>OSCP+ Exam FAQ (page updated 31 Jul 2026): https://help.offsec.com/hc/en-us/articles/4412170923924-OSCP-Exam-FAQ</li>
+<li>OSCP+ Exam Guide: https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide</li>
+<li>OSCP+ Exam FAQ: https://help.offsec.com/hc/en-us/articles/4412170923924-OSCP-Exam-FAQ</li>
+<li>OSCP+ Body of Knowledge: https://help.offsec.com/hc/en-us/articles/38543335188756-OSCP-Body-of-knowledge</li>
+<li>Authoritative References List — OSCP+: https://help.offsec.com/hc/en-us/articles/37192004980628-Authoritative-References-List-OSCP</li>
 <li>AI Usage Policy (page updated 01 Jul 2026): https://help.offsec.com/hc/en-us/articles/35549468971156-AI-Usage-Policy-in-OffSec-Exams</li>
 <li>OSCP Candidate Handbook (page updated 31 Jul 2026): https://help.offsec.com/hc/en-us/articles/40393367449108-OSCP-Candidate-Handbook</li>
 <li>OSCP Reporting Requirements (page updated 06 Aug 2026): https://help.offsec.com/hc/en-us/articles/360046787731-OSCP-Reporting-Requirements</li>
 </ul>
 <p><strong>Rule snapshot verified 24 Sep 2026.</strong> Re-check the official guide, FAQ and AI policy immediately before your exam. If these notes conflict with OffSec's current pages or your control-panel instructions, those current sources win.</p>
+<h3 id="ref-2026-passer-feedback-synthesis">2026 Passer Feedback Synthesis — Anecdotal, Not Authority</h3>
+<p>Experience reports informed V32; they are <strong>not exam rules</strong>.</p>
+<ul>
+<li><strong>Sep 2026 — 100/100:</strong> port discovery before targeted fingerprinting; service-oriented notes.</li>
+<li><strong>Jul 2026 — 90/100:</strong> not reading tool output carefully cost hours.</li>
+<li><strong>Mar 2026 — retake pass:</strong> pivot failure had stalled AD lateral movement; retake drilled repeatable pivot recipes.</li>
+<li><strong>Apr 2026 — 80/100:</strong> remaining access time used to organize notes/screenshots rather than chase another box.</li>
+<li><strong>Aug/Sep 2026 passes:</strong> repeatable methodology, Ligolo/NetExec/BloodHound, breaks and concise notes repeatedly mattered more than exotic tricks.</li>
+</ul>
+<p><strong>V32 result:</strong> two-pass scanning, output triage, pivot proof ladder, rights-gated extraction, concise live notes and stronger evidence audits.</p>
 <h3 id="ref-vulnerability-intelligence">Vulnerability Intelligence</h3>
 <ul>
 <li>NVD: https://nvd.nist.gov/</li>
@@ -10221,8 +10327,8 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'31.0.0',
-  label:'V31',
+  version:'32.0.0',
+  label:'V32',
   date:'2026-09-24'
 });</script>
 <script id="coreUtilsScript">/* V30 shared pure utilities. Keep this file DOM-free so CI can execute it in Node. */

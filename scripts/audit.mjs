@@ -20,6 +20,7 @@ const manifest=JSON.parse(read('src/content/manifest.json'));
 for(const file of manifest.files){
   const s=read('src/content/'+file);
   if(/<script\b|<style\b/i.test(s)) fail('Executable/style tag found in content fragment '+file);
+  if(/&lt;\/?details&gt;|```/.test(s)) fail('Markdown/HTML conversion debris found in content fragment '+file);
   for(const tag of ['details','pre','code']){
     const open=(s.match(new RegExp('<'+tag+'\\b','gi'))||[]).length;
     const close=(s.match(new RegExp('</'+tag+'>','gi'))||[]).length;

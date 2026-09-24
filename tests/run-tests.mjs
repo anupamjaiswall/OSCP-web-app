@@ -15,7 +15,7 @@ vm.runInContext(read('src/js/00-core-utils.js'),sandbox);
 vm.runInContext(read('src/js/00-service-router-core.js'),sandbox);
 const u=sandbox.window.OSCP_UTILS,r=sandbox.window.OSCP_SERVICE_CORE;
 
-test('build version consistency',()=>{const m=JSON.parse(read('src/meta/build.json')),p=JSON.parse(read('package.json'));eq(p.version,m.version);eq(m.label,'V31')});
+test('build version consistency',()=>{const m=JSON.parse(read('src/meta/build.json')),p=JSON.parse(read('package.json'));eq(p.version,m.version);eq(m.label,'V'+m.version.split('.')[0])});
 test('escapeHtml',()=>eq(u.escapeHtml(`<a x='y'>&"`),'&lt;a x=&#39;y&#39;&gt;&amp;&quot;'));
 test('escapeHtml null-safe',()=>eq(u.escapeHtml(null),''));
 test('clampExamPoints',()=>eq([u.clampExamPoints(-2),u.clampExamPoints(69.6),u.clampExamPoints(120),u.clampExamPoints('x')],[0,70,100,0]));
@@ -34,4 +34,12 @@ test('Service Router leaves unknown ports unclassified',()=>eq(r.classify([31337
 
 test('generated artifact',()=>{const m=JSON.parse(read('src/meta/build.json')),h=read('index.html');ok(!/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(h));ok(h.includes(m.label+' · EXAM ONLY · OFFLINE · NO AI'))});
 test('browser Service Router delegates pure core',()=>ok(read('src/js/09-v20-service-router.js').includes('window.OSCP_SERVICE_CORE')));
+test('research-backed scan workflow stays two-pass',()=>{
+  const s=read('src/content/02-enumeration.html');
+  ok(s.includes('Reliable Two-Pass Baseline'));
+  ok(s.includes('CLEAN FULL-TCP DISCOVERY'));
+  ok(!s.includes('Meanwhile, top 1000 with scripts'));
+});
+test('pivot proof ladder stays present',()=>ok(read('src/content/07-pivot-transfer-execution.html').includes('[PIVOT:PROOF]')));
+test('output triage stays present',()=>ok(read('src/content/01-cockpit.html').includes('[OUTPUT:TRIAGE]')));
 console.log('\n'+passed+' tests passed');

