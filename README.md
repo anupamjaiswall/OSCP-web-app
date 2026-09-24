@@ -1,6 +1,6 @@
 # 🔐 OSCP Exam OS
 
-**V32 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V33 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
 
@@ -14,6 +14,16 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+## V33 integration upgrades
+
+V33 keeps the V32 research-backed methodology and makes the exam workflow more connected:
+
+- **Active-target Service Dossier:** imported ports are classified against the tested Service Router core and shown with first-pass methodology, a manual/native truth check, failure fallback, and direct note search.
+- **Selected Scan Handoff:** every Scan Intake preview host gains **Import + Route**, which imports only that host, makes it active, and opens Service Router with its real TCP/UDP endpoints.
+- **Exam App Preflight:** checks build identity, localStorage, offline isolation/CSP, critical controls, duplicate IDs, Service Router parsing, search-index health, runtime boot integrity, local-file usage, and active-target state.
+- **Fast access:** Service Dossier is available from the active-work strip/workspace and **Alt+D**; Preflight is visible on Start/top bar and **Alt+F**.
+- These additions reuse live target state and the existing methodology rather than adding a second command cheatsheet.
 
 ## V32 research-backed note upgrades
 

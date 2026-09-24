@@ -42,4 +42,16 @@ test('research-backed scan workflow stays two-pass',()=>{
 });
 test('pivot proof ladder stays present',()=>ok(read('src/content/07-pivot-transfer-execution.html').includes('[PIVOT:PROOF]')));
 test('output triage stays present',()=>ok(read('src/content/01-cockpit.html').includes('[OUTPUT:TRIAGE]')));
+test('V33 integration source stays connected to live state',()=>{
+  const s=read('src/js/19-v33-exam-integration.js');
+  ok(s.includes('OSCP_SERVICE_CORE'));
+  ok(s.includes('scanPreviewHosts'));
+  ok(s.includes('importHostAndRoute'));
+  ok(s.includes('preflightChecks'));
+});
+test('V33 template injects integration layer',()=>{
+  const t=read('src/index.template.html');
+  ok(t.includes('@inject:style:13-v33-exam-integration.css'));
+  ok(t.includes('@inject:script:19-v33-exam-integration.js'));
+});
 console.log('\n'+passed+' tests passed');

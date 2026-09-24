@@ -1,5 +1,15 @@
 # Changelog
 
+## V33.0.0 — 2026-09-24
+
+### Workflow integration
+- Added an active-target Service Dossier combining imported endpoints with tested service methodology and deep-note search.
+- Added one-click selected-host Scan Intake → target import → Service Router handoff.
+- Added a local app preflight covering build identity, storage, offline isolation, critical controls, parser/search health and runtime integrity.
+- Added Alt+D / Alt+F access and command-palette entries for dossier/preflight.
+- Kept the generated single-file artifact synchronized with modular source.
+
+
 ## V32.0.0 — 2026-09-24
 
 ### Research-backed exam notes

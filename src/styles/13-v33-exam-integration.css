@@ -1,0 +1,17 @@
+/* V33 integration layer: target service dossier, selected scan handoff, app preflight. */
+.v33Backdrop{position:fixed;inset:0;z-index:1620;background:rgba(2,5,10,.86);display:none;place-items:center;padding:18px;backdrop-filter:blur(6px)}
+.v33Backdrop.open{display:grid}.v33Dialog{width:min(980px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid #49627b;border-radius:14px;box-shadow:0 25px 80px rgba(0,0,0,.62);padding:16px}
+.v33Head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.v33Head h2{margin:0 0 3px}
+.v33Toolbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.v33Toolbar select{min-width:240px;max-width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px}
+.v33TargetSummary{border-left:4px solid var(--accent);background:var(--panel2);border-radius:8px;padding:9px 11px;margin-bottom:10px}
+.v33ServiceGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.v33ServiceCard{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:11px;min-width:0}
+.v33ServiceCard h3{margin:0 0 5px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.v33Endpoint{font:700 11px ui-monospace,SFMono-Regular,Consolas,monospace;color:#9dd8fb}
+.v33ServicePart{margin-top:7px;font-size:12px;line-height:1.48}.v33ServicePart b{color:#dce8f7}.v33Actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.v33Unknown{border-color:#725d32}
+.v33NoPorts{padding:20px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}.scanRouteBtn{margin-left:8px;font-size:11px;padding:5px 8px}
+.v33PreflightGrid{display:grid;gap:7px}.v33Check{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;align-items:start;border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:9px}
+.v33CheckMark{font-weight:900;min-width:24px}.v33Check.pass .v33CheckMark{color:var(--good)}.v33Check.warn .v33CheckMark{color:var(--warn)}.v33Check.fail{border-color:#77424a}.v33Check.fail .v33CheckMark{color:var(--bad)}
+.v33CheckTitle{font-weight:800;font-size:13px}.v33CheckDetail{color:var(--muted);font-size:11px;margin-top:2px}.v33PreflightSummary{font-weight:800;border-radius:9px;padding:10px;margin:10px 0}
+.v33PreflightSummary.pass{background:#10251b;color:#9beac0}.v33PreflightSummary.warn{background:#302812;color:#f2d37b}.v33PreflightSummary.fail{background:#35191d;color:#ffadb5}.v33StartCard{border-color:#405c73}
+.v33StartCard .row{justify-content:space-between;align-items:center}#v33TopCheck{white-space:nowrap}
+@media(max-width:800px){.v33ServiceGrid{grid-template-columns:1fr}.v33Toolbar select{min-width:0;flex:1}.v33Dialog{padding:12px}}
+@media print{.v33Backdrop,#v33TopCheck,.scanRouteBtn{display:none!important}}
