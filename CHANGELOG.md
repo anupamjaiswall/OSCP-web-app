@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.27.0 — 2026-09-24
+
+### Batch 27 — original 100-item implementation tracker
+- Added a numbered tracker for all 100 reviewed suggestions.
+- Each item is marked implemented, satisfied with a safer/modified approach, intentionally rejected, or still pending.
+- The tracker identifies the small remaining high-value backlog and records reasons for rejected complexity.
+- Runtime app behavior is unchanged.
+
+
 ## V34.26.0 — 2026-09-24
 
 ### Batch 26 — quick safety rollback

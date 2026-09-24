@@ -1,6 +1,13 @@
 # 🔐 OSCP Exam OS
 
-**V34.26 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.27 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.27 Batch 27 — original 100-item tracker
+
+- Added `docs/IMPROVEMENT-TRACKER.md` mapping all 100 reviewed suggestions to **implemented / safer-modified / intentionally skipped / still pending**.
+- The tracker prevents duplicated work and makes the remaining high-value backlog explicit.
+- Rejected items stay documented with the reason instead of silently disappearing from the plan.
+- Documentation-only batch; runtime behavior is unchanged.
 
 ## V34.26 Batch 26 — quick safety rollback
 
@@ -104,7 +111,7 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
 
 
-Preflight: `docs/EXAM-PREFLIGHT.md` · Limitations: `docs/KNOWN-LIMITATIONS.md`
+Preflight: `docs/EXAM-PREFLIGHT.md` · Limitations: `docs/KNOWN-LIMITATIONS.md` · 100-item tracker: `docs/IMPROVEMENT-TRACKER.md`
 
 ## V34.12 Batch 12 — lazy deep-reference hydration
 
