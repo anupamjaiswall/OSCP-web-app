@@ -1969,7 +1969,7 @@ if(!autosnapshots.length&&targets.length){
  setTimeout(()=>{if(!autosnapshots.length)snapshotNow('initial state')},1500);
 }
 
-renderSettings();renderPlaceholders();prepareCode();renderTargets();refreshTimerTargets();renderPlaybooks();renderDecoder();renderSearch('');renderEvidenceTemplate();updateTimer();
+renderSettings();renderPlaceholders();prepareCode();renderTargets();refreshTimerTargets();renderPlaybooks();renderDecoder();renderEvidenceTemplate();updateTimer();
 renderAllV7();
 
 

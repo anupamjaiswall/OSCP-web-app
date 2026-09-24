@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.8.1 — 2026-09-24
+
+### Lazy-index boot leak fix
+- Removed the legacy `renderSearch('')` boot call that accidentally forced the new lazy deep-search index to build during startup.
+- Added a regression test preventing empty-search rendering from re-entering the boot path.
+- No storage schema or exam workflow behavior changed.
+
+
 ## V34.8.0 — 2026-09-24
 
 ### Batch 8 — lazy search indexing
