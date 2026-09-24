@@ -74,7 +74,7 @@ async function main(){
     let lastState=null,lastProbeError='';
     const ready=await waitFor(async()=>{
       try{
-        const out=await rpc.send('Runtime.evaluate',{expression:`JSON.stringify({ready:document.readyState,stage:window.__OSCP_BOOT_STAGE__||'unset',controls:['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'].map(id=>[id,!!document.getElementById(id)]),boot:window.OSCP_BOOT_HEALTH||null,searchReady:window.OSCP_SEARCH_INDEX_READY===true,codeReady:window.OSCP_CODE_BLOCKS_READY===true,initialRender:window.OSCP_INITIAL_RENDER_READY===true})`,returnByValue:true});
+        const out=await rpc.send('Runtime.evaluate',{expression:`JSON.stringify({ready:document.readyState,stage:window.__OSCP_BOOT_STAGE__||'unset',coreStage:window.__OSCP_CORE_STAGE__||'unset',controls:['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'].map(id=>[id,!!document.getElementById(id)]),boot:window.OSCP_BOOT_HEALTH||null,searchReady:window.OSCP_SEARCH_INDEX_READY===true,codeReady:window.OSCP_CODE_BLOCKS_READY===true,initialRender:window.OSCP_INITIAL_RENDER_READY===true})`,returnByValue:true});
         const raw=out?.result?.value;if(!raw)return false;lastState=JSON.parse(raw);lastProbeError='';
         const controlsOk=lastState.controls.every(x=>x[1]);
         return lastState.ready==='complete'&&controlsOk&&lastState.boot?.ok!==false?lastState:false;

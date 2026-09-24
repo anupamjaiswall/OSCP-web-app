@@ -1,3 +1,4 @@
+window.__OSCP_CORE_STAGE__='base';
 
 const PLAYBOOKS=[{"name": "Linux Web → Root", "icon": "🐧", "signal": "80/443 + Linux host", "flow": ["Web/vhost enumeration", "Config/source/backup disclosure", "Credential reuse → SSH or app foothold", "Re-enumerate local host", "sudo → SUID → caps → cron/systemd → services → creds", "Containers/NFS/custom app", "Kernel/package CVE LAST"], "tags": ["[WEB:ENUM]", "[LINUX:TREE]", "[CREDS:FANOUT]"]}, {"name": "Windows Standalone", "icon": "▣", "signal": "445/3389/5985 or Windows shell", "flow": ["Validate credentials across SMB/WinRM/RDP", "Get stable shell", "whoami /priv + groups", "SYSTEM services/tasks", "Writable ACL / registry / DLL-PATH", "DPAPI / saved credentials / LAPS", "Driver/kernel LAST"], "tags": ["[PORT:445]", "[WIN:TREE]", "[WIN:SEIMPERSONATE]"]}, {"name": "AD Set → DC", "icon": "🏰", "signal": "88 + 389 + 445 + domain context", "flow": ["Confirm domain/DC/DNS/time", "SMB shares + LDAP users/groups/computers", "AS-REP / SPNs", "BloodHound graph", "ACL / delegation / AD CS", "Lateral movement → new host", "Local privesc + credential discovery", "Re-enumerate graph until DC path"], "tags": ["[AD:FLOW]", "[AD:KERBEROS]", "[AD:BLOODHOUND]", "[AD:ADCS]"]}, {"name": "Credential Reuse Cascade", "icon": "🔑", "signal": "Any password/hash/key/token", "flow": ["Classify local vs domain", "SMB → shares/admin", "WinRM / RDP", "MSSQL / SSH / web", "LDAP/Kerberos visibility", "New host or privilege?", "Re-enumerate immediately"], "tags": ["[CREDS:FANOUT]"]}, {"name": "Pivoted Internal Host", "icon": "🛣️", "signal": "New route/internal-only service", "flow": ["Can pivot host reach destination?", "Choose Ligolo/Chisel/SSH/Socat", "Add exact subnet route/forward", "Verify IP reachability before DNS", "Run normal service enumeration", "Treat new host as fresh machine", "Record route + session in tracker"], "tags": ["[PIVOT:FLOW]", "[PIVOT:LIGOLO]", "[ERROR:PIVOT]"]}, {"name": "Web Foothold Decision", "icon": "🌐", "signal": "HTTP service with no obvious exploit", "flow": ["Correct host/vhost first", "Source/robots/sitemap/headers", "Content + files + backups", "Authentication/reset/session", "Parameters/API/upload", "Map clue to SQLi/LFI/upload/SSRF/SSTI/etc.", "Exploit only after prerequisite validation"], "tags": ["[WEB:ENUM]", "[EXPLOIT:GATE]"]}, {"name": "Custom Linux Binary", "icon": "⚙️", "signal": "Unknown SUID/root-run app", "flow": ["file + permissions + owner", "strings + --help", "ldd/readelf", "strace/ltrace", "Relative command? config? library? plugin? temp file?", "Writable dependency + privileged trigger?", "Validate harmlessly → exploit"], "tags": ["[LINUX:SUID]", "[LINUX:PATH]", "[LINUX:PLUGIN]"]}, {"name": "Windows Service PrivEsc", "icon": "🛠️", "signal": "Privileged service + weak dependency", "flow": ["Confirm service account", "Check change-config rights", "Check executable/parent ACL", "Check unquoted candidate path", "Check DLL load/search path", "Can start/restart/trigger?", "Validate + preserve rollback path"], "tags": ["[WIN:SERVICE]", "[WIN:DLL]"]}];
 const DECODER=[["sudo -l shows NOPASSWD binary", "High-priority privileged execution candidate", "Search GTFOBins/manual features; check env/args/files it controls", "Do not jump to kernel", "[LINUX:SUDO]"], ["Unknown SUID binary", "Custom privileged application", "file → strings → ldd → strace/ltrace → writable dependency", "Do not assume unknown means exploitable", "[LINUX:SUID]"], ["Unusual Linux capability", "Capability may cross a security boundary", "Confirm exact binary + capability semantics + controllable arguments", "Capability name alone is not root", "[LINUX:CAPABILITIES]"], ["Root cron/systemd executes writable target", "High-signal scheduled privileged execution", "Confirm owner/ACL + trigger/timing + exact executed target", "Avoid modifying before proof/rollback plan", "[LINUX:SYSTEMD]"], ["docker/lxd group", "Possible host-resource control", "Check socket/group/mount/privileged container access", "Docker installed ≠ root", "[LINUX:CONTAINER]"], ["no_root_squash on writable NFS export", "Strong NFS privilege path candidate", "Confirm mount/write/UID behavior and target trust model", "NFS export alone is not enough", "[LINUX:NFS]"], ["SeImpersonatePrivilege Enabled", "Token impersonation path candidate", "Exact Windows build + service context + required RPC/service primitive", "Do not run every Potato blindly", "[WIN:SEIMPERSONATE]"], ["SYSTEM service + writable executable/dir", "High-signal service privesc", "Confirm ACL + account + restart/trigger", "Unquoted path is irrelevant if no candidate is writable", "[WIN:SERVICE]"], ["SYSTEM scheduled task + writable script/binary", "Scheduled privileged execution", "Confirm exact target + ACL + trigger", "Do not alter unrelated task files", "[WIN:TASK]"], ["SeBackupPrivilege", "Protected file-read capability", "Confirm enabled privilege and usable backup/read path", "Privilege ≠ SYSTEM automatically", "[WIN:BACKUP]"], ["Procmon shows NAME NOT FOUND for DLL", "Potential DLL search-order opportunity", "Confirm privileged process + writable load directory + architecture/name", "Missing DLL alone is not exploitable", "[WIN:DLL]"], ["LAPS deployed", "Local admin password management exists", "Check whether your principal can actually read relevant attribute", "Deployment ≠ readable password", "[WIN:LAPS]"], ["88 + 389 + 445 + 53", "Strong AD/DC signature", "Treat services as one domain environment; confirm DC/DNS/time", "Do not enumerate each port in isolation", "[AD:FLOW]"], ["AS-REP roastable user", "Offline Kerberos credential path", "Request material, crack offline if appropriate, reuse result", "Do not assume crackability", "[AD:KERBEROS]"], ["SPN on service account", "Kerberoast candidate", "Request service ticket and evaluate password strength offline", "SPN ≠ guaranteed weak password", "[AD:KERBEROS]"], ["BloodHound GenericAll / GenericWrite", "Potential object control", "Validate exact source→target edge and allowed action", "Graph edge ≠ automatic DA", "[AD:ACL]"], ["AD CS installed", "Certificate Services exist", "Enumerate enabled/vulnerable templates and effective rights", "AD CS installed ≠ ESC path", "[AD:ADCS]"], ["nxc SMB indicates admin/Pwn3d", "Remote administrative capability likely", "Confirm remote-exec path and scope/local-vs-domain context", "Authentication success alone is not admin", "[AD:LATERAL]"], ["KRB_AP_ERR_SKEW", "Kerberos clock mismatch", "Compare attacker/DC time; fix DNS/DC identification and time sync", "Do not debug attack syntax first", "[ERROR:KRB_SKEW]"], ["SMB works but WinRM fails", "Credentials may be valid but WinRM unauthorized/unreachable", "Check 5985/5986 + Remote Management Users/admin policy", "Do not discard password immediately", "[ERROR:WINRM]"], ["HTTP 403", "Resource may exist but access context is blocked", "Verify vhost/auth/path/method/normalization/backend differences", "Do not spend 30m random-header spraying", "[ERROR:403]"], ["TLS certificate reveals another hostname", "Likely vhost/application clue", "Add hostname resolution and enumerate that host", "Do not keep testing only raw IP", "[WEB:ENUM]"], ["Internal-only listener after shell", "New attack surface", "Access locally or route through pivot; identify owning process/service", "External Nmap absence is expected", "[PIVOT:FLOW]"], ["Version-only CVE hit", "Hypothesis only", "Exact build/config/module/arch/prerequisites + matching PoC", "Never equate version string with exploitability", "[EXPLOIT:GATE]"]];
@@ -197,6 +198,7 @@ const dark=document.createElement('style');dark.textContent='.reference.darkRef{
 
 
 /* ===== V7 Operations Layer ===== */
+window.__OSCP_CORE_STAGE__='v7';
 const V7_SERVICES=['SMB','WINRM','RDP','SSH','MSSQL','LDAP','KERBEROS','WEB'];
 const V7_MATRIX_STATES=['untested','valid','admin','failed','blocked'];
 const V7_SIGNALS=[
@@ -354,6 +356,7 @@ switchView=function(id){oldSwitchView(id);if(id==='workspaceView')renderWorkspac
 
 
 /* ===== V8 Scan Intake / Command Builder / Exam Board / Timeline ===== */
+window.__OSCP_CORE_STAGE__='v8';
 const V8_SERVICE_MAP={
   21:{name:'FTP',tag:'[PORT:21]'},22:{name:'SSH',tag:'[PORT:22]'},23:{name:'TELNET',tag:'[PORT:23]'},25:{name:'SMTP',tag:'[PORT:25]'},
   53:{name:'DNS',tag:'[PORT:53]'},80:{name:'HTTP',tag:'[WEB:ENUM]'},88:{name:'KERBEROS',tag:'[AD:KERBEROS]'},110:{name:'POP3',tag:'[PORT:110]'},
@@ -806,6 +809,7 @@ const v8Switch=switchView;
 switchView=function(id){v8Switch(id);if(id==='intakeView')renderScanPreview();if(id==='boardView')renderBoard();if(id==='commandsView')renderCommandSelectors()};
 
 /* ===== V9 Output Analyzer / Evidence Vault / Encrypted Recovery ===== */
+window.__OSCP_CORE_STAGE__='v9';
 let evidenceVault=safeStoredArray(STORE+'evidenceVault');
 let analyzerDetections=[];
 let autosnapshots=safeStoredArray(STORE+'autosnapshots');
@@ -1083,6 +1087,7 @@ const v9SwitchView=switchView;
 switchView=function(id){v9SwitchView(id);if(id==='analyzerView'){renderAnalyzerTarget();renderAnalyzer()}if(id==='vaultView'){renderVaultSelectors();renderVault()}if(id==='sessionView'){renderSnapshots();renderSessionHealth()}};
 
 /* ===== V10 Scope Guard / Command Journal ===== */
+window.__OSCP_CORE_STAGE__='v10';
 let guardConfig=safeStoredRecord(STORE+'guardConfig',{entries:[],requireScope:true,checkPlaceholders:true,lhost:'',msfTargetId:''});
 function normalizeGuardConfig(v){v=plainRecord(v)?v:{};return{entries:Array.isArray(v.entries)?v.entries.map(x=>String(x??'').trim()).filter(Boolean):[],requireScope:v.requireScope!==false,checkPlaceholders:v.checkPlaceholders!==false,lhost:typeof v.lhost==='string'?v.lhost:'',msfTargetId:typeof v.msfTargetId==='string'?v.msfTargetId:''}}
 guardConfig=normalizeGuardConfig(guardConfig);
@@ -1132,6 +1137,7 @@ function journalCount(){return targets.reduce((n,t)=>n+(t.journal?.length||0),0)
 function renderAllV10(){renderAllV9();renderGuard();renderJournalSelectors();renderJournalPreview();renderJournal();renderReportJournalSummary();renderCockpitGuard()}const v10Switch=switchView;switchView=function(id){v10Switch(id);if(id==='guardView')renderGuard();if(id==='journalView'){renderJournalSelectors();renderJournal();renderJournalPreview()}};
 
 /* ===== V11 Expert Operator / Coverage / Credential Debt ===== */
+window.__OSCP_CORE_STAGE__='v11';
 let expertPrefs=safeStoredRecord(STORE+'expertPrefs',{rotation:30,break:120});expertPrefs={...expertPrefs,rotation:Number.isFinite(+expertPrefs.rotation)?Math.min(240,Math.max(5,Math.round(+expertPrefs.rotation))):30,break:Number.isFinite(+expertPrefs.break)?Math.min(360,Math.max(15,Math.round(+expertPrefs.break))):120};
 const SERVICE_PLAYBOOKS={
  FTP:{ports:[21],tag:'[PORT:21]',checks:[['banner','Capture banner/version',/ftp|21\/tcp/i],['anon','Try anonymous/login path',/ftp.*anonymous|anonymous.*ftp|ftp\s+.*@/i],['list','List recursively / inspect files',/ftp.*ls|ftp.*dir|wget.*ftp:|curl.*ftp:/i],['write','Check writable upload only if appropriate',/ftp.*put\s|ftp.*upload/i]]},
@@ -1286,6 +1292,7 @@ function renderAllV11(){renderAllV10();renderOperatorSelectors();renderOperator(
 const v11Switch=switchView;switchView=function(id){v11Switch(id);if(id==='operatorView')renderOperator();if(id==='coverageView')renderCoverage();if(id==='debtView')renderDebt()};
 
 /* ===== V12 Exam Closer: hypotheses / correlation / consistency ===== */
+window.__OSCP_CORE_STAGE__='v12';
 function upgradeV12Target(t){
  t=upgradeV11Target(t);
  t.hypothesisState=plainRecord(t.hypothesisState)?t.hypothesisState:{};
@@ -1530,6 +1537,7 @@ function renderAllV12(){renderAllV11();renderHypSelectors();renderHypotheses();r
 const v12Switch=switchView;switchView=function(id){v12Switch(id);if(id==='hypothesisView')renderHypotheses();if(id==='correlationView')renderCorrelation();if(id==='auditView')renderAudit()};
 
 /* ===== V13 Battle-Tested: sanity / regression / freshness ===== */
+window.__OSCP_CORE_STAGE__='v13';
 const V13_RULE_DEFAULT='2026-09-23';
 const V13_TOOL_SNAPSHOTS=[
  {name:'NetExec / nxc',verified:'2026-09-16',tag:'[CREDS:FANOUT]',maxDays:90},
@@ -1705,6 +1713,7 @@ function renderAllV13(){renderAllV12();renderSanity();renderRegression();renderF
 const v13Switch=switchView;switchView=function(id){v13Switch(id);if(id==='sanityView')renderSanity();if(id==='regressionView')renderRegression();if(id==='freshnessView')renderFreshness()};
 
 /* ===== V14 Exam-Hardened Layer ===== */
+window.__OSCP_CORE_STAGE__='v14';
 let examClock=safeStoredRecord(STORE+'examClock',{start:''});
 let revertState=safeStoredRecord(STORE+'revertState',{bankUsed:0,resetUsed:false,ledger:[]});
 function normalizeRevertState(v){v=plainRecord(v)?v:{};return{...v,bankUsed:Number.isFinite(+v.bankUsed)?Math.min(24,Math.max(0,+v.bankUsed)):0,resetUsed:!!v.resetUsed,ledger:Array.isArray(v.ledger)?v.ledger.filter(plainRecord):[]}}
@@ -1963,6 +1972,7 @@ renderSettings();renderPlaceholders();prepareCode();renderTargets();refreshTimer
 
 
 /* ===== V19 FAILURE-RESISTANT RELIABILITY LAYER ===== */
+window.__OSCP_CORE_STAGE__='v19';
 const V16_RULE_VERIFIED='2026-09-23';
 const V16_CHAIN_KEYS=['observation','prerequisite','validation','primitive','identity','evidence'];
 function v15Uuid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(16).slice(2)}
@@ -2183,3 +2193,5 @@ function scheduleInitialHeavyRenders(){
  if(document.readyState==='complete')run();else window.addEventListener('load',run,{once:true});
 }
 scheduleInitialHeavyRenders();
+
+window.__OSCP_CORE_STAGE__='complete';
