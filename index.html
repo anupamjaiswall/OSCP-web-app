@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.28.0">
+<meta name="oscp-build-version" content="34.29.0">
 <meta name="oscp-build-date" content="2026-09-25">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -1464,7 +1464,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.28.0',
+  version:'34.29.0',
   label:'V34',
   date:'2026-09-25'
 });</script>
@@ -1753,7 +1753,29 @@ function renderSearch(q){
  $('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));
  $('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});
 }
-function openRef(anchor){switchView('referenceView');setTimeout(()=>{const el=document.getElementById(anchor);if(!el)return;let d=el.closest('details');if(d)d.open=true;el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1800)},30)}
+async function resolveReferenceAnchor(anchor,timeout=12000){
+ const direct=document.getElementById(anchor);if(direct)return direct;
+ const deadline=Date.now()+Math.max(500,Number(timeout)||12000);
+ while(Date.now()<deadline){
+  const now=document.getElementById(anchor);if(now)return now;
+  try{
+   const api=window.OSCP_REFERENCE;
+   if(api?.waitForAnchor){const el=await api.waitForAnchor(anchor,{timeout:Math.max(500,deadline-Date.now())});if(el)return el;if(api.error?.())break}
+   else api?.start?.();
+  }catch(_){}
+  await new Promise(r=>setTimeout(r,40));
+ }
+ return document.getElementById(anchor);
+}
+function openRef(anchor){
+ switchView('referenceView');
+ return resolveReferenceAnchor(anchor).then(el=>{
+  if(!el){toast('Reference section could not be loaded: '+anchor);return false}
+  let d=el.closest('details');if(d)d.open=true;
+  el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1800);
+  return true;
+ }).catch(e=>{console.error('[OSCP] openRef failed',e);toast('Reference navigation failed');return false});
+}
 
 const quick=[['🐧','Linux shell','[LINUX:TREE]'],['▣','Windows shell','[WIN:WORKFLOW]'],['🏰','Domain creds','[AD:FLOW]'],['🎫','Rubeus / tickets','Rubeus'],['👤','AD usernames','[AD:USERNAMES]'],['🔑','Password / hash','[CREDS:FANOUT]'],['🌐','Web target','[WEB:ENUM]'],['🛣️','Internal subnet','[PIVOT:FLOW]'],['POTATO','SeImpersonate','[WIN:SEIMPERSONATE]'],['⚙️','Custom SUID','[LINUX:SUID]'],['📸','Need proof','[EVIDENCE:PACKET]']];
 $('#quickActions').innerHTML=quick.map(x=>`<button class="quick" data-q="${x[2]}"><b>${x[0]} ${x[1]}</b><br><span class="muted">${x[2]}</span></button>`).join('');$$('.quick').forEach(b=>b.onclick=()=>{$('#globalSearch').value=b.dataset.q;switchView('searchView');renderSearch(b.dataset.q)});
@@ -3891,8 +3913,7 @@ function scheduleInitialHeavyRenders(){
 }
 scheduleInitialHeavyRenders();
 
-window.__OSCP_CORE_STAGE__='complete';
-</script>
+window.__OSCP_CORE_STAGE__='complete';</script>
 <script>window.__OSCP_BOOT_STAGE__='03-core-app';console.log('[OSCP_BOOT_STAGE]','03-core-app');</script>
 
 <script>
@@ -4656,15 +4677,26 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     }
     updateHistoryButtons();
   }
-  function openReferenceAnchor(anchor,restoreScroll){
+  async function waitForReferenceAnchor(anchor,timeout=12000){
+    const deadline=Date.now()+Math.max(500,Number(timeout)||12000);
+    while(Date.now()<deadline){
+      const direct=document.getElementById(anchor);if(direct)return direct;
+      try{
+        const api=window.OSCP_REFERENCE;
+        if(api?.waitForAnchor){const el=await api.waitForAnchor(anchor,{timeout:Math.max(500,deadline-Date.now())});if(el)return el;if(api.error?.())return null}
+        else api?.start?.();
+      }catch(_){}
+      await new Promise(r=>setTimeout(r,40));
+    }
+    return document.getElementById(anchor);
+  }
+  async function openReferenceAnchor(anchor,restoreScroll){
     if(!anchor)return;
-    setTimeout(()=>{
-      const el=document.getElementById(anchor);if(!el)return;
-      let d=el.closest('details');if(d)d.open=true;
-      if(Number.isFinite(restoreScroll))window.scrollTo({top:restoreScroll,behavior:'auto'});
-      else el.scrollIntoView({behavior:'auto',block:'start'});
-      el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1200);
-    },35);
+    const el=await waitForReferenceAnchor(anchor);if(!el)return;
+    let d=el.closest('details');if(d)d.open=true;
+    if(Number.isFinite(restoreScroll))window.scrollTo({top:restoreScroll,behavior:'auto'});
+    else el.scrollIntoView({behavior:'auto',block:'start'});
+    el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1200);
   }
 
   // Final wrapper: all inherited view render hooks still execute through baseSwitch.
@@ -4796,8 +4828,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
       );
     }
   }catch(e){}
-})();
-</script>
+})();</script>
 <script>window.__OSCP_BOOT_STAGE__='07-navigation-reliability';console.log('[OSCP_BOOT_STAGE]','07-navigation-reliability');</script>
 
 <script id="adUsernameGeneratorScript">
@@ -5362,7 +5393,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  function loadRecent(){try{const a=JSON.parse(localStorage.getItem(RECENT_STORE)||'[]');recent=Array.isArray(a)?a.slice(0,MAX_RECENT):[]}catch(_){recent=[]}}
  function saveRecent(){try{localStorage.setItem(RECENT_STORE,JSON.stringify(recent.slice(0,MAX_RECENT)))}catch(_){}}
  function cleanTitle(s){return String(s||'').replace(/\s+/g,' ').trim().slice(0,90)}
- function searchItem(anchor){try{return typeof SEARCH_ITEMS!=='undefined'&&SEARCH_ITEMS.length?SEARCH_ITEMS.find(x=>x.anchor===anchor):null}catch(_){return null}}
+ function searchItem(anchor){try{const items=typeof ensureSearchItems==='function'?ensureSearchItems():(typeof SEARCH_ITEMS!=='undefined'?SEARCH_ITEMS:[]);return Array.isArray(items)&&items.length?items.find(x=>x.anchor===anchor):null}catch(_){return null}}
  function addRecent(entry){
    if(!entry||(!entry.anchor&&!entry.tag))return;
    const key=entry.tag?'t:'+entry.tag:'a:'+entry.anchor;
@@ -5562,8 +5593,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
    window.OSCP_V24={recent:()=>[...recent],help,renderReaderQuick,refEntries:()=>refEntries.map(x=>({anchor:x.anchor,title:x.title}))};
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-})();
-</script>
+})();</script>
 <script>window.__OSCP_BOOT_STAGE__='14-v24-exam-navigator';console.log('[OSCP_BOOT_STAGE]','14-v24-exam-navigator');</script>
 
 <script id="v25ExamCommandLayerScript">
@@ -6256,7 +6286,8 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
 <script id="referenceHydratorScript">(()=>{
  'use strict';
  const root=document.getElementById('referenceRoot'),payload=document.getElementById('referencePayload'),status=document.getElementById('referenceLoading');
- let parts=null,index=0,running=false,ready=false,decodePromise=null;
+ let parts=null,index=0,running=false,ready=false,decodePromise=null,lastError=null;
+ const nextTick=()=>new Promise(r=>setTimeout(r,0));
  async function parsePayload(){
    if(parts)return parts;
    if(decodePromise)return decodePromise;
@@ -6277,29 +6308,55 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
    const range=document.createRange();range.selectNodeContents(root);root.appendChild(range.createContextualFragment(String(html||'')));
  }
  function finish(){
-   ready=true;running=false;window.OSCP_REFERENCE_READY=true;status?.remove();
+   if(ready)return;
+   ready=true;running=false;lastError=null;window.OSCP_REFERENCE_READY=true;status?.remove();
    try{if(typeof prepareCode==='function')prepareCode()}catch(_){}
    document.dispatchEvent(new CustomEvent('oscp-reference-ready'));
  }
  function fail(e){
-   running=false;console.error('[OSCP] Reference hydration failed',e);
+   running=false;lastError=e instanceof Error?e:new Error(String(e));console.error('[OSCP] Reference hydration failed',e);
    if(status){status.className='card';status.replaceChildren();const b=document.createElement('b');b.textContent='Deep reference could not load.';const d=document.createElement('div');d.className='tiny';d.textContent=String(e?.message||e);status.append(b,d)}
+   document.dispatchEvent(new CustomEvent('oscp-reference-failed',{detail:{message:String(e?.message||e)}}));
+ }
+ function appendBatch(count=1){
+   let added=0;
+   while(parts&&index<parts.length&&added<count){appendHtml(parts[index++]);added++}
+   if(status&&parts)status.textContent='Loading deep reference… '+index+'/'+parts.length;
+   if(parts&&index>=parts.length)finish();
+   return added;
  }
  function schedule(){
    if(ready||!running)return;
-   const run=()=>{
-     if(index>=parts.length){finish();return}
-     appendHtml(parts[index++]);if(status)status.textContent='Loading deep reference… '+index+'/'+parts.length;
-     setTimeout(schedule,0);
-   };
-   if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:250});else setTimeout(run,0);
+   const run=()=>{if(ready||!running)return;appendBatch(1);if(!ready)setTimeout(schedule,0)};
+   if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:180});else setTimeout(run,0);
  }
  async function start(){
-   if(ready||running||!root)return;
+   if(ready||!root)return ready;
+   if(running)return true;
    running=true;
-   try{await parsePayload();if(!parts.length){finish();return}schedule()}catch(e){fail(e)}
+   try{await parsePayload();if(!parts.length){finish();return true}schedule();return true}catch(e){fail(e);return false}
  }
- window.OSCP_REFERENCE={start,ready:()=>ready,progress:()=>({loaded:index,total:parts?.length||0})};
+ async function waitForAnchor(anchor,{timeout=12000}={}){
+   anchor=String(anchor||'').trim();if(!anchor)return null;
+   let el=document.getElementById(anchor);if(el)return el;
+   const deadline=Date.now()+Math.max(500,Number(timeout)||12000);
+   try{
+     await parsePayload();
+     if(!running&&!ready){running=true;schedule()}
+     while(Date.now()<deadline){
+       el=document.getElementById(anchor);if(el)return el;
+       if(lastError)return null;
+       if(parts&&index<parts.length){
+         appendBatch(3);
+         el=document.getElementById(anchor);if(el)return el;
+       }
+       if(ready)break;
+       await nextTick();
+     }
+   }catch(e){fail(e);return null}
+   return document.getElementById(anchor);
+ }
+ window.OSCP_REFERENCE={start,waitForAnchor,ready:()=>ready,progress:()=>({loaded:index,total:parts?.length||0}),error:()=>lastError};
  window.OSCP_REFERENCE_READY=false;
  if(document.readyState==='complete')setTimeout(()=>start(),250);else window.addEventListener('load',()=>setTimeout(()=>start(),250),{once:true});
 })();</script>
