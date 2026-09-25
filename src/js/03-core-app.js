@@ -127,7 +127,29 @@ function renderSearch(q){
  $('[data-open]').forEach(b=>b.onclick=()=>openRef(b.dataset.open));
  $('[data-tag]').forEach(c=>c.onclick=()=>{$('#globalSearch').value=c.dataset.tag;renderSearch(c.dataset.tag)});
 }
-function openRef(anchor){switchView('referenceView');setTimeout(()=>{const el=document.getElementById(anchor);if(!el)return;let d=el.closest('details');if(d)d.open=true;el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1800)},30)}
+async function resolveReferenceAnchor(anchor,timeout=12000){
+ const direct=document.getElementById(anchor);if(direct)return direct;
+ const deadline=Date.now()+Math.max(500,Number(timeout)||12000);
+ while(Date.now()<deadline){
+  const now=document.getElementById(anchor);if(now)return now;
+  try{
+   const api=window.OSCP_REFERENCE;
+   if(api?.waitForAnchor){const el=await api.waitForAnchor(anchor,{timeout:Math.max(500,deadline-Date.now())});if(el)return el;if(api.error?.())break}
+   else api?.start?.();
+  }catch(_){}
+  await new Promise(r=>setTimeout(r,40));
+ }
+ return document.getElementById(anchor);
+}
+function openRef(anchor){
+ switchView('referenceView');
+ return resolveReferenceAnchor(anchor).then(el=>{
+  if(!el){toast('Reference section could not be loaded: '+anchor);return false}
+  let d=el.closest('details');if(d)d.open=true;
+  el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1800);
+  return true;
+ }).catch(e=>{console.error('[OSCP] openRef failed',e);toast('Reference navigation failed');return false});
+}
 
 const quick=[['🐧','Linux shell','[LINUX:TREE]'],['▣','Windows shell','[WIN:WORKFLOW]'],['🏰','Domain creds','[AD:FLOW]'],['🎫','Rubeus / tickets','Rubeus'],['👤','AD usernames','[AD:USERNAMES]'],['🔑','Password / hash','[CREDS:FANOUT]'],['🌐','Web target','[WEB:ENUM]'],['🛣️','Internal subnet','[PIVOT:FLOW]'],['POTATO','SeImpersonate','[WIN:SEIMPERSONATE]'],['⚙️','Custom SUID','[LINUX:SUID]'],['📸','Need proof','[EVIDENCE:PACKET]']];
 $('#quickActions').innerHTML=quick.map(x=>`<button class="quick" data-q="${x[2]}"><b>${x[0]} ${x[1]}</b><br><span class="muted">${x[2]}</span></button>`).join('');$$('.quick').forEach(b=>b.onclick=()=>{$('#globalSearch').value=b.dataset.q;switchView('searchView');renderSearch(b.dataset.q)});

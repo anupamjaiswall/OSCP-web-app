@@ -13,7 +13,7 @@ Then perform this manual drill on the exact `index.html`:
 1. **Cold start:** open it in the same modern browser/profile you plan to use. Confirm the cockpit becomes responsive and the deep reference finishes loading.
 2. **Offline start:** disconnect networking and reopen it. Search, Service Router, Method Trees, target workspace, evidence/report UI, Session recovery and Exam Clock must still work.
 3. **Search:** test an exact tag and one typo, for example `[WIN:SEIMPERSONATE]` and `seimpersonte`.
-4. **Navigation:** verify bracket tags, the Reference breadcrumb, keyboard skip link, Back/Forward and command palette.
+4. **Navigation:** immediately after a cold open, click a deep-reference button before waiting for the reference to finish loading; it must still land on the requested section. Then verify bracket tags, the Reference breadcrumb/section picker, Back/Forward and command palette.
 5. **Display:** check 100%, 125% and 150% browser zoom. Test your preferred readability/high-contrast setting.
 6. **Persistence:** create a temporary target, reload the page, confirm it survives, then delete it.
 7. **Recovery:** export a secret-free full session. If you need secrets preserved, also export an encrypted backup and verify the passphrase.

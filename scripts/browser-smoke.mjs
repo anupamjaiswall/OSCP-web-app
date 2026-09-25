@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawn,execFileSync} from 'node:child_process';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 import http from 'node:http';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -121,6 +121,17 @@ async function main(){
       return out?.result?.value;
     }
 
+    // Real interaction 0: direct reference navigation must work even if hydration is still in progress.
+    const directAnchor='ref-c4-i-have-a-linux-shell-what-now';
+    await evalValue("(()=>{window.openRef('"+directAnchor+"');return true})()");
+    const directReference=await waitFor(async()=>{
+      const x=await evalValue("JSON.stringify({view:document.getElementById('referenceView')?.classList.contains('active')===true,anchor:!!document.getElementById('"+directAnchor+"'),ready:window.OSCP_REFERENCE_READY===true})");
+      const s=JSON.parse(x||'{}');return s.view&&s.anchor?s:false;
+    },20000,100);
+    if(!directReference)throw new Error('direct deep-reference navigation failed during/after lazy hydration');
+    const referenceNavigator=await waitFor(async()=>{const n=await evalValue("document.querySelectorAll('#refSectionSelect option').length");return n>20?n:false},12000,100);
+    if(!referenceNavigator)throw new Error('reference navigator did not repopulate after lazy hydration');
+
     // Real interaction 1: typo-tolerant search must produce results after lazy reference hydration.
     await evalValue(`(()=>{const i=document.getElementById('globalSearch');i.value='seimpersonte';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
     const typoSearch=await waitFor(async()=>{
@@ -145,6 +156,20 @@ async function main(){
       if(buf.length<20000||buf[0]!==0x89||buf[1]!==0x50||buf[2]!==0x4e||buf[3]!==0x47)throw new Error('invalid browser render at scale '+scale);
       renders.push({scale,bytes:buf.length});
     }
+    // Local-file gate: this is the intended exam deployment mode.
+    const fileUrl=pathToFileURL(appFile).href;
+    await rpc.send('Page.navigate',{url:fileUrl});
+    const localReady=await waitFor(async()=>{
+      try{
+        const x=await evalValue("JSON.stringify({ready:document.readyState,boot:window.OSCP_BOOT_HEALTH||null,controls:['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'].every(id=>!!document.getElementById(id))})");
+        const s=JSON.parse(x||'{}');return s.ready==='complete'&&s.controls&&s.boot?.ok!==false?s:false;
+      }catch(_){return false}
+    },25000,150);
+    if(!localReady)throw new Error('file:// offline artifact did not reach a usable state');
+    await evalValue("(()=>{window.openRef('"+directAnchor+"');return true})()");
+    const localRef=await waitFor(async()=>await evalValue("!!document.getElementById('"+directAnchor+"')&&document.getElementById('referenceView')?.classList.contains('active')===true"),20000,100);
+    if(!localRef)throw new Error('file:// deep-reference navigation failed');
+
     const exceptions=rpc.events.filter(e=>e.method==='Runtime.exceptionThrown');
     if(exceptions.length)throw new Error('uncaught browser exception: '+JSON.stringify(exceptions[0].params?.exceptionDetails||{}).slice(0,1500));
     ws.close();

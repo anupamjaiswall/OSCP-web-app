@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.29.0 — 2026-09-25
+
+### Runtime fix — lazy-reference navigation
+- Fixed deep-reference buttons that could silently miss their destination while the compressed reference was still hydrating.
+- Added a wait-for-anchor contract to the reference hydrator and routed direct/reference-history jumps through it.
+- Deep-reference requests now actively accelerate hydration toward the requested section instead of assuming the anchor exists after 30–35 ms.
+- Kept pinned/recent lookups synchronized with the live lazy search index.
+- Expanded the browser smoke gate to exercise direct deep-reference navigation, populated reference navigation, and the real local file:// artifact.
+- Added regression assertions so lazy-hydration navigation cannot return unnoticed.
+
 ## V34.28.0 — 2026-09-25
 
 ### Batch 28 — finish the safe 100-item backlog

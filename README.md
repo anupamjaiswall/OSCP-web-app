@@ -1,6 +1,10 @@
 # 🔐 OSCP Exam OS
 
-**V34.28 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.29 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.29 runtime reliability fix
+
+V34.29 fixes a real lazy-reference race: exam controls could request a deep-reference anchor before the compressed reference had inserted that section into the DOM. Deep links now wait for the actual anchor, hydration can prioritize a requested section, and CI tests the same single-file artifact through file:// as well as localhost.
 
 ## V34.28 Batch 28 — finish the safe 100-item backlog
 

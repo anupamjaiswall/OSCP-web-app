@@ -126,6 +126,12 @@ test('research-backed scan workflow stays two-pass',()=>{
 });
 test('pivot proof ladder stays present',()=>ok(read('src/content/07-pivot-transfer-execution.html').includes('[PIVOT:PROOF]')));
 test('output triage stays present',()=>ok(read('src/content/01-cockpit.html').includes('[OUTPUT:TRIAGE]')));
+test('lazy reference exposes anchor wait contract',()=>{
+  const h=read('src/js/20-reference-hydrator.js'),c=read('src/js/03-core-app.js'),n=read('src/js/07-navigation-reliability.js');
+  ok(h.includes('waitForAnchor'));ok(c.includes('resolveReferenceAnchor'));ok(n.includes('waitForReferenceAnchor'));
+});
+test('reader quick access builds lazy search index',()=>ok(read('src/js/14-v24-exam-navigator.js').includes("typeof ensureSearchItems==='function'?ensureSearchItems()")));
+
 test('V33 integration source stays connected to live state',()=>{
   const s=read('src/js/19-v33-exam-integration.js');
   ok(s.includes('OSCP_SERVICE_CORE'));

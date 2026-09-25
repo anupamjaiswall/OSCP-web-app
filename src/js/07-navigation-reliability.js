@@ -61,15 +61,26 @@
     }
     updateHistoryButtons();
   }
-  function openReferenceAnchor(anchor,restoreScroll){
+  async function waitForReferenceAnchor(anchor,timeout=12000){
+    const deadline=Date.now()+Math.max(500,Number(timeout)||12000);
+    while(Date.now()<deadline){
+      const direct=document.getElementById(anchor);if(direct)return direct;
+      try{
+        const api=window.OSCP_REFERENCE;
+        if(api?.waitForAnchor){const el=await api.waitForAnchor(anchor,{timeout:Math.max(500,deadline-Date.now())});if(el)return el;if(api.error?.())return null}
+        else api?.start?.();
+      }catch(_){}
+      await new Promise(r=>setTimeout(r,40));
+    }
+    return document.getElementById(anchor);
+  }
+  async function openReferenceAnchor(anchor,restoreScroll){
     if(!anchor)return;
-    setTimeout(()=>{
-      const el=document.getElementById(anchor);if(!el)return;
-      let d=el.closest('details');if(d)d.open=true;
-      if(Number.isFinite(restoreScroll))window.scrollTo({top:restoreScroll,behavior:'auto'});
-      else el.scrollIntoView({behavior:'auto',block:'start'});
-      el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1200);
-    },35);
+    const el=await waitForReferenceAnchor(anchor);if(!el)return;
+    let d=el.closest('details');if(d)d.open=true;
+    if(Number.isFinite(restoreScroll))window.scrollTo({top:restoreScroll,behavior:'auto'});
+    else el.scrollIntoView({behavior:'auto',block:'start'});
+    el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1200);
   }
 
   // Final wrapper: all inherited view render hooks still execute through baseSwitch.
