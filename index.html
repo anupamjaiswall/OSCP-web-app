@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.27.0">
-<meta name="oscp-build-date" content="2026-09-24">
+<meta name="oscp-build-version" content="34.28.0">
+<meta name="oscp-build-date" content="2026-09-25">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#0b0e14;--panel:#121722;--panel2:#171e2b;--text:#e9eef7;--muted:#96a2b4;--line:#293244;--accent:#71d3ff;--good:#72e3a6;--warn:#ffd166;--bad:#ff7b86;--chip:#202a3a;--shadow:0 16px 40px rgba(0,0,0,.25)}
@@ -402,6 +402,19 @@ body.examFocus .activeWorkStrip{top:63px}
 @media(max-width:1000px){.attemptEntryGrid{grid-template-columns:1fr 1fr}.attemptEntryGrid input:nth-of-type(2){grid-column:1/-1}.attemptRow{grid-template-columns:auto 1fr auto}.attemptResult{grid-column:2/-1}}
 @media(max-width:620px){.attemptEntryGrid{grid-template-columns:1fr}.attemptEntryGrid input:nth-of-type(2){grid-column:auto}.attemptRow{grid-template-columns:1fr}.attemptResult{grid-column:auto}.attemptTime{white-space:normal}}
 </style>
+<style id="v34RuntimeDiagnosticsStyles">/* V34.28 runtime diagnostics + multi-tab warning */
+.runtimeDiagStatus{display:grid;gap:7px;margin-top:8px}
+.runtimeDiagLine{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:9px 10px}
+.runtimeDiagLine b{font-size:12px}.runtimeDiagLine span{font-size:11px;color:var(--muted);text-align:right}
+.runtimeDiagErrors{display:grid;gap:6px;margin-top:9px;max-height:260px;overflow:auto}
+.runtimeDiagError{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:start;border:1px solid var(--line);background:#0d1119;border-radius:8px;padding:8px}
+.runtimeDiagError .type{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--bad);text-transform:uppercase}
+.runtimeDiagError .msg{font:12px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.runtimeDiagError .at{font-size:10px;color:var(--muted);white-space:nowrap}
+.multiTabWarning{position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:1800;width:min(760px,calc(100vw - 28px));display:flex;gap:10px;align-items:center;justify-content:space-between;background:#3b2612;color:#ffe2a8;border:1px solid #8b652b;border-radius:10px;padding:9px 11px;box-shadow:0 14px 38px rgba(0,0,0,.42)}
+.multiTabWarning[hidden]{display:none}.multiTabWarning b{font-size:12px}.multiTabWarning span{font-size:11px}
+@media(max-width:680px){.runtimeDiagLine{display:grid}.runtimeDiagLine span{text-align:left}.runtimeDiagError{grid-template-columns:auto minmax(0,1fr)}.runtimeDiagError .at{grid-column:2}}
+@media print{.multiTabWarning{display:none!important}}</style>
 <style id="v33ExamIntegrationStyles">/* V33 integration layer: target service dossier, selected scan handoff, app preflight. */
 .v33Backdrop{position:fixed;inset:0;z-index:1620;background:rgba(2,5,10,.86);display:none;place-items:center;padding:18px;backdrop-filter:blur(6px)}
 .v33Backdrop.open{display:grid}.v33Dialog{width:min(980px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid #49627b;border-radius:14px;box-shadow:0 25px 80px rgba(0,0,0,.62);padding:16px}
@@ -1374,6 +1387,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  </div></div>
  <div class="card opsSpan6"><h2>🕘 Autosnapshots</h2><div class="row"><button class="btn primary" id="manualSnapshot">Create now</button><span class="muted">Secret-field-free restore points, max 8; known journal/report secrets are redacted.</span></div><div id="snapshotList"></div></div>
  <div class="card opsSpan12"><h2>⚕ Session Health</h2><div id="sessionHealth" class="health"></div></div>
+ <div class="card opsSpan12"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>🧪 Runtime Diagnostics</h2><div class="muted">Bounded, secret-free browser diagnostics. Errors are retained locally so a reload does not erase the clue.</div></div><div class="row"><button class="btn" id="runtimeDiagRefresh" type="button">Refresh</button><button class="btn" id="runtimeDiagCopy" type="button">Copy diagnostics</button><button class="btn bad" id="runtimeDiagClear" type="button">Clear error log</button></div></div><div id="runtimeDiagSummary" class="runtimeDiagStatus" role="status" aria-live="polite"><div class="runtimeDiagLine"><b>Build</b><span id="runtimeDiagBuild">Loading…</span></div><div class="runtimeDiagLine"><b>Runtime errors</b><span id="runtimeDiagErrorCount">Loading…</span></div><div class="runtimeDiagLine"><b>Multi-tab safety</b><span id="runtimeDiagTabStatus">Loading…</span></div></div><div id="runtimeErrorList" class="runtimeDiagErrors"></div></div>
 <div class="card opsSpan12"><h2>Browser-resident state</h2><div id="storageSummary"></div><div class="row" style="margin-top:10px"><button class="btn bad" id="clearV7Ops" title="Clears ALL targets, credentials, favorites and preflight after creating a recovery snapshot">Clear ALL operations state</button></div></div></div>
 </section>
 
@@ -1445,13 +1459,14 @@ Metasploit restricted functionality: one selected target; no Metasploit pivoting
 Re-check official OffSec rules immediately before exam day.</pre></div></section>
 </main>
 </div>
+<div id="multiTabWarning" class="multiTabWarning" role="status" aria-live="assertive" hidden><div><b>Multi-tab edit warning</b><br><span id="multiTabWarningText">Another OSCP Exam OS tab/window is active.</span></div><button class="btn" id="multiTabDismiss" type="button">Dismiss</button></div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.27.0',
+  version:'34.28.0',
   label:'V34',
-  date:'2026-09-24'
+  date:'2026-09-25'
 });</script>
 <script>window.__OSCP_BOOT_STAGE__='00-build-meta';console.log('[OSCP_BOOT_STAGE]','00-build-meta');</script>
 <script id="coreUtilsScript">/* V30 shared pure utilities. Keep this file DOM-free so CI can execute it in Node. */
@@ -6103,6 +6118,56 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
+<script id="v34RuntimeDiagnosticsScript">/* V34.28: bounded runtime error log + on-demand diagnostics + event-driven multi-tab warning. */
+(()=>{
+ 'use strict';
+ const ERROR_KEY='oscp:runtime-errors:v34';
+ const TAB_KEY='oscp:tab-claim:v34';
+ const MAX_ERRORS=30;
+ const TAB_ID=(globalThis.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2);
+ let errors=loadErrors(),conflict=null,lastClaim=0;
+ const $id=id=>document.getElementById(id);
+ const clean=(v,max=420)=>String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max);
+ function safeSet(key,value){try{localStorage.setItem(key,value);return true}catch(_){return false}}
+ function loadErrors(){try{const x=JSON.parse(localStorage.getItem(ERROR_KEY)||'[]');return Array.isArray(x)?x.slice(-MAX_ERRORS):[]}catch(_){return[]}}
+ function persistErrors(){safeSet(ERROR_KEY,JSON.stringify(errors.slice(-MAX_ERRORS)))}
+ function record(kind,message,source='',line=0,col=0){
+   errors.push({at:Date.now(),kind:clean(kind,24),message:clean(message)||'Unknown runtime error',source:clean(source,180),line:+line||0,col:+col||0});
+   errors=errors.slice(-MAX_ERRORS);persistErrors();
+   /* Deliberately do not render from the error handler. */
+ }
+ window.addEventListener('error',e=>record('error',e.message,e.filename,e.lineno,e.colno),true);
+ window.addEventListener('unhandledrejection',e=>{const r=e.reason;record('rejection',r instanceof Error?r.message:(typeof r==='string'?r:JSON.stringify(r??'Unhandled rejection')))});
+ function diagnosticPayload(){return{build:window.OSCP_BUILD||null,bootHealth:window.OSCP_BOOT_HEALTH||null,capturedAt:new Date().toISOString(),runtimeErrors:[...errors],multiTabConflict:conflict,storageRecoveryCount:Array.isArray(window.__OSCP_CORRUPT_STORAGE__)?window.__OSCP_CORRUPT_STORAGE__.length:0}}
+ function make(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el}
+ function renderErrors(){
+   const root=$id('runtimeErrorList');if(!root)return;root.replaceChildren();
+   if(!errors.length){root.appendChild(make('div','muted','No captured runtime errors in this browser profile.'));return}
+   for(const e of [...errors].reverse()){const row=make('div','runtimeDiagError');row.appendChild(make('span','type',e.kind));const loc=e.source?(' · '+e.source.split('/').pop()+(e.line?':'+e.line:'')):'';row.appendChild(make('span','msg',e.message+loc));row.appendChild(make('span','at',new Date(e.at).toLocaleString()));root.appendChild(row)}
+ }
+ function render(){
+   const build=$id('runtimeDiagBuild'),err=$id('runtimeDiagErrorCount'),tab=$id('runtimeDiagTabStatus'),warn=$id('multiTabWarning'),warnText=$id('multiTabWarningText');
+   if(build)build.textContent=(window.OSCP_BUILD?.label||'build?')+' · '+(window.OSCP_BUILD?.version||'unknown');
+   if(err)err.textContent=errors.length?errors.length+' retained runtime error'+(errors.length===1?'':'s'):'No retained runtime errors';
+   if(tab)tab.textContent=conflict?('Another tab/window was active at '+new Date(conflict.at).toLocaleTimeString()):'No competing tab/window observed this session';
+   if(warn){warn.hidden=!conflict;if(warnText&&conflict)warnText.textContent='Another OSCP Exam OS tab/window became active at '+new Date(conflict.at).toLocaleTimeString()+'. Avoid editing exam state in two tabs.'}
+   renderErrors();
+ }
+ function claim(reason){const now=Date.now();if(now-lastClaim<900)return;lastClaim=now;safeSet(TAB_KEY,JSON.stringify({id:TAB_ID,at:now,reason:clean(reason,30),build:window.OSCP_BUILD?.version||''}))}
+ window.addEventListener('storage',e=>{if(e.key!==TAB_KEY||!e.newValue)return;try{const x=JSON.parse(e.newValue);if(x&&x.id&&x.id!==TAB_ID&&document.visibilityState==='visible'){conflict={at:+x.at||Date.now(),reason:clean(x.reason,30),build:clean(x.build,30)};queueMicrotask(render)}}catch(_){}});
+ window.addEventListener('focus',()=>claim('focus'));
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')claim('visible')});
+ function start(){
+   $id('runtimeDiagRefresh')?.addEventListener('click',render);
+   $id('runtimeDiagClear')?.addEventListener('click',()=>{if(!confirm('Clear the retained runtime error log?'))return;errors=[];persistErrors();render()});
+   $id('runtimeDiagCopy')?.addEventListener('click',async()=>{const text=JSON.stringify(diagnosticPayload(),null,2);const ok=typeof copyText==='function'?await copyText(text):false;if(typeof toast==='function')toast(ok?'Diagnostics copied':'Copy blocked')});
+   $id('multiTabDismiss')?.addEventListener('click',()=>{conflict=null;render()});
+   claim('startup');render();
+   try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['V34 runtime diagnostics',()=>[!!$id('runtimeDiagSummary')&&typeof diagnosticPayload==='function','diagnostics panel']],['V34 multi-tab warning',()=>[!!$id('multiTabWarning'),'event-driven tab warning']])}catch(_){}
+   window.OSCP_RUNTIME_DIAGNOSTICS={errors:()=>[...errors],payload:diagnosticPayload,render,claim};
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();</script>
 <script>window.__OSCP_BOOT_STAGE__='18-v28-competitive-core';console.log('[OSCP_BOOT_STAGE]','18-v28-competitive-core');</script>
 <script id="v33ExamIntegrationScript">(()=>{
  'use strict';
