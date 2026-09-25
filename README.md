@@ -1,6 +1,15 @@
 # 🔐 OSCP Exam OS
 
-**V34.27 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.28 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.28 Batch 28 — finish the safe 100-item backlog
+
+- Added a zero-dependency **WCAG AA contrast-ratio audit** to the required `npm run check` chain.
+- Added a bounded **persistent runtime error/rejection log** and on-demand Session diagnostics panel; handlers only record, never recursively render.
+- Added an **event-driven multi-tab edit warning** using storage/focus/visibility events with no polling or state merging.
+- Added deeper Windows/access-truth regressions preserving transport, authentication, resource access, execution, shell and admin as distinct states.
+- Added `docs/CONVENTIONS.md`, prepared repository metadata, and documented stable release/tag discipline.
+- The 100-item tracker now leaves only the high-risk legacy-core split as genuinely pending; repository metadata/tag actions are documented because they are not normal source-file pushes.
 
 ## V34.27 Batch 27 — original 100-item tracker
 
@@ -111,7 +120,7 @@ GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
 
 
-Preflight: `docs/EXAM-PREFLIGHT.md` · Limitations: `docs/KNOWN-LIMITATIONS.md` · 100-item tracker: `docs/IMPROVEMENT-TRACKER.md`
+Preflight: `docs/EXAM-PREFLIGHT.md` · Limitations: `docs/KNOWN-LIMITATIONS.md` · 100-item tracker: `docs/IMPROVEMENT-TRACKER.md` · Conventions: `docs/CONVENTIONS.md` · Releases: `docs/RELEASE-PROCESS.md`
 
 ## V34.12 Batch 12 — lazy deep-reference hydration
 

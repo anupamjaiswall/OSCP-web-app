@@ -33,6 +33,7 @@
 <style id="v27PasserResearchStyles">/* @inject:style:11-v27-passer-research.css */</style>
 
 <style id="v28CompetitiveCoreStyles">/* @inject:style:12-v28-competitive-core.css */</style>
+<style id="v34RuntimeDiagnosticsStyles">/* @inject:style:13-v34-runtime-diagnostics.css */</style>
 <style id="v33ExamIntegrationStyles">/* @inject:style:13-v33-exam-integration.css */</style>
 </head>
 <body>\n<script>window.__OSCP_PARSE_STAGE__='body-start';</script>
@@ -989,6 +990,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  </div></div>
  <div class="card opsSpan6"><h2>🕘 Autosnapshots</h2><div class="row"><button class="btn primary" id="manualSnapshot">Create now</button><span class="muted">Secret-field-free restore points, max 8; known journal/report secrets are redacted.</span></div><div id="snapshotList"></div></div>
  <div class="card opsSpan12"><h2>⚕ Session Health</h2><div id="sessionHealth" class="health"></div></div>
+ <div class="card opsSpan12"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>🧪 Runtime Diagnostics</h2><div class="muted">Bounded, secret-free browser diagnostics. Errors are retained locally so a reload does not erase the clue.</div></div><div class="row"><button class="btn" id="runtimeDiagRefresh" type="button">Refresh</button><button class="btn" id="runtimeDiagCopy" type="button">Copy diagnostics</button><button class="btn bad" id="runtimeDiagClear" type="button">Clear error log</button></div></div><div id="runtimeDiagSummary" class="runtimeDiagStatus" role="status" aria-live="polite"><div class="runtimeDiagLine"><b>Build</b><span id="runtimeDiagBuild">Loading…</span></div><div class="runtimeDiagLine"><b>Runtime errors</b><span id="runtimeDiagErrorCount">Loading…</span></div><div class="runtimeDiagLine"><b>Multi-tab safety</b><span id="runtimeDiagTabStatus">Loading…</span></div></div><div id="runtimeErrorList" class="runtimeDiagErrors"></div></div>
 <div class="card opsSpan12"><h2>Browser-resident state</h2><div id="storageSummary"></div><div class="row" style="margin-top:10px"><button class="btn bad" id="clearV7Ops" title="Clears ALL targets, credentials, favorites and preflight after creating a recovery snapshot">Clear ALL operations state</button></div></div></div>
 </section>
 
@@ -1060,6 +1062,7 @@ Metasploit restricted functionality: one selected target; no Metasploit pivoting
 Re-check official OffSec rules immediately before exam day.</pre></div></section>
 </main>
 </div>
+<div id="multiTabWarning" class="multiTabWarning" role="status" aria-live="assertive" hidden><div><b>Multi-tab edit warning</b><br><span id="multiTabWarningText">Another OSCP Exam OS tab/window is active.</span></div><button class="btn" id="multiTabDismiss" type="button">Dismiss</button></div>
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* @inject:script:00-build-meta.js */</script>
@@ -1150,6 +1153,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_BOOT_STAGE__='17-v27-passer-research';console.log('[OSCP_BOOT_STAGE]','17-v27-passer-research');</script>
 
 <script id="v28CompetitiveCoreScript">/* @inject:script:18-v28-competitive-core.js */</script>
+<script id="v34RuntimeDiagnosticsScript">/* @inject:script:19-v34-runtime-diagnostics.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='18-v28-competitive-core';console.log('[OSCP_BOOT_STAGE]','18-v28-competitive-core');</script>
 <script id="v33ExamIntegrationScript">/* @inject:script:19-v33-exam-integration.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='19-v33-exam-integration';console.log('[OSCP_BOOT_STAGE]','19-v33-exam-integration');</script>

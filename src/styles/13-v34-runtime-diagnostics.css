@@ -1,0 +1,13 @@
+/* V34.28 runtime diagnostics + multi-tab warning */
+.runtimeDiagStatus{display:grid;gap:7px;margin-top:8px}
+.runtimeDiagLine{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:9px 10px}
+.runtimeDiagLine b{font-size:12px}.runtimeDiagLine span{font-size:11px;color:var(--muted);text-align:right}
+.runtimeDiagErrors{display:grid;gap:6px;margin-top:9px;max-height:260px;overflow:auto}
+.runtimeDiagError{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:start;border:1px solid var(--line);background:#0d1119;border-radius:8px;padding:8px}
+.runtimeDiagError .type{font:800 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--bad);text-transform:uppercase}
+.runtimeDiagError .msg{font:12px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+.runtimeDiagError .at{font-size:10px;color:var(--muted);white-space:nowrap}
+.multiTabWarning{position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:1800;width:min(760px,calc(100vw - 28px));display:flex;gap:10px;align-items:center;justify-content:space-between;background:#3b2612;color:#ffe2a8;border:1px solid #8b652b;border-radius:10px;padding:9px 11px;box-shadow:0 14px 38px rgba(0,0,0,.42)}
+.multiTabWarning[hidden]{display:none}.multiTabWarning b{font-size:12px}.multiTabWarning span{font-size:11px}
+@media(max-width:680px){.runtimeDiagLine{display:grid}.runtimeDiagLine span{text-align:left}.runtimeDiagError{grid-template-columns:auto minmax(0,1fr)}.runtimeDiagError .at{grid-column:2}}
+@media print{.multiTabWarning{display:none!important}}

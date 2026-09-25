@@ -51,7 +51,7 @@ This tracker maps the earlier 1–100 review to the current app. Labels are conc
 | 43 | ✅ | Skip-to-content | V34.16 keyboard-visible skip link. |
 | 44 | ⏭ | Automatically follow OS theme | Skipped; explicit/predictable exam appearance preferred. |
 | 45 | ✅ | High-contrast mode | V34.1. |
-| 46 | 🔜 | Formal contrast-ratio audit | Still useful as a static/design audit. |
+| 46 | ✅ | Formal contrast-ratio audit | V34.28 adds a zero-dependency WCAG AA contrast audit to `npm run check`. |
 | 47 | ✅ | Strong focus-visible styling | V34.1. |
 | 48 | ✅ | Font-size controls | Existing readability panel. |
 | 49 | ✅ | Keyboard-order / control semantics | V34.20 + V34.24. |
@@ -60,7 +60,7 @@ This tracker maps the earlier 1–100 review to the current app. Labels are conc
 | 52 | ✅ | Glanceable target status | Exam Board / active-target summaries. |
 | 53 | ✅ | Copy buttons for commands | Existing reference code copy controls, chunked after boot. |
 | 54 | ✅ | Destructive confirmations | Target/snapshot/clear/import safety layers. |
-| 55 | 🔜 | Persistent runtime error log | Still useful if implemented without rendering from the error handler. |
+| 55 | ✅ | Persistent runtime error log | V34.28 retains a bounded 30-entry secret-free error/rejection log without rendering from handlers. |
 | 56 | ✅ | Sticky active-target identity | Top target context / active-work strip. |
 | 57 | 🟡 | Empty-state audit | Major views have empty states; a full consistency pass is still optional. |
 | 58 | 🟡 | Print CSS | Basic print hiding exists; app is not intended to be the final report editor. |
@@ -71,10 +71,10 @@ This tracker maps the earlier 1–100 review to the current app. Labels are conc
 | 63 | 🟡 | Modularize monolith | V30 modularized source; generated exam artifact intentionally stays one file. |
 | 64 | ⏭ | Add ESLint dependency | Skipped to preserve zero-dependency build; custom audits cover critical invariants. |
 | 65 | ✅ | Generated artifact size budget | V34.2, 1.5 MB ceiling. |
-| 66 | 🔜 | Naming/contribution conventions doc | Low-risk maintainability item still open. |
+| 66 | ✅ | Naming/contribution conventions doc | V34.28 adds `docs/CONVENTIONS.md` covering modules, DOM IDs, storage, versioning and content rules. |
 | 67 | ✅ | Real browser smoke test | Required CI gate. |
 | 68 | ✅ | V33 live-state regressions | Static wiring + browser behavior coverage. |
-| 69 | 🔜 | Deeper Windows/access-truth behavior tests | Still worthwhile. |
+| 69 | ✅ | Deeper Windows/access-truth behavior tests | V34.28 locks the transport→auth→resource→command→shell→admin ladder, protocol set and revert-staleness semantics. |
 | 70 | ✅ | Critical section-anchor assertions | V34.2. |
 | 71 | ✅ | Artifact size regression | V34.2 size budget. |
 | 72 | ✅ | Strict CSP validation | V34.2. |
@@ -82,9 +82,9 @@ This tracker maps the earlier 1–100 review to the current app. Labels are conc
 | 74 | ⏭ | Self-verifying embedded app hash | Skipped: same-file expected hash is not a trustworthy tamper boundary. |
 | 75 | ✅ | Reject eval/new Function | V34.2. |
 | 76 | ⏭ | Choose/add LICENSE automatically | Skipped until reuse rights are deliberately chosen. |
-| 77 | 🔜 | Repository description/topics polish | Useful but lower priority than exam behavior. |
+| 77 | 🟡 | Repository description/topics polish | Pushable metadata copy is prepared in `docs/REPO-METADATA.md`; actual GitHub repository settings are outside the current connector write surface. |
 | 78 | ⏭ | CONTRIBUTING.md for personal exam repo | Skipped unless collaboration becomes a goal. |
-| 79 | 🔜 | Release/tag discipline | Useful after the current batch series stabilizes. |
+| 79 | 🟡 | Release/tag discipline | V34.28 documents the stable tag/release process; actual tag creation waits for a final tested generated-artifact commit. |
 | 80 | ⏭ | SECURITY.md | Low value for this personal offline exam reference. |
 | 81 | ✅ | Repo hygiene/build docs | V30+ README, .gitignore, architecture/content docs. |
 | 82 | ✅ | Lazy deep rendering/indexing | V34.8 + V34.12. |
@@ -95,11 +95,11 @@ This tracker maps the earlier 1–100 review to the current app. Labels are conc
 | 87 | 🟡 | Consolidated settings experience | Readability + local settings are already centralized enough for exam use. |
 | 88 | ✅ | Reset settings without deleting exam state | V34.17. |
 | 89 | 🟡 | Hide irrelevant sections | Focus mode/tree soloing exists; automatic hiding is intentionally limited. |
-| 90 | 🔜 | Global JS runtime diagnostics panel | Still useful; must be non-recursive and on-demand. |
+| 90 | ✅ | Global JS runtime diagnostics panel | V34.28 adds an on-demand Session diagnostics panel with copy/clear/refresh controls. |
 | 91 | ⏭ | Support old browsers | Skipped; modern browser/WebCrypto/DecompressionStream are documented requirements. |
 | 92 | ✅ | 100/125/150% zoom testing | Required browser screenshots. |
 | 93 | ✅ | Clear-target vs wipe-all distinction | V34.3/V34.5/V34.17. |
-| 94 | 🔜 | Multi-tab write conflict warning | Still useful if implemented without localStorage chatter/polling. |
+| 94 | ✅ | Multi-tab write conflict warning | V34.28 uses storage/focus/visibility events only; no polling or cross-tab state merging. |
 | 95 | 🟡 | Force Save button | Existing manual snapshot + full backup are safer/more explicit equivalents. |
 | 96 | ✅ | Visible build/version identity | Top badge + build metadata + checksum. |
 | 97 | ✅ | Known Limitations document | V34.19. |
@@ -109,6 +109,6 @@ This tracker maps the earlier 1–100 review to the current app. Labels are conc
 
 ## Remaining applicable work
 
-The remaining high-value items are deliberately small in number: formal contrast auditing, a non-recursive runtime diagnostics panel, deeper Windows/access-truth browser regressions, naming conventions, optional repository metadata/releases, and an event-driven multi-tab conflict warning. Splitting the legacy core is deferred until behavioral coverage is strong enough to make that refactor low-risk.
+All safe, source-pushable items from the original 100-item review are now implemented or satisfied with a documented safer approach. The only item still marked 🔜 is #61, splitting the oversized legacy core: it remains deliberately deferred because that refactor can destabilize exam behavior and should follow still deeper behavioral coverage. Repository description/topics and stable tag creation are prepared/documented but require repository-level metadata/tag actions rather than a normal source push.
 
 Items marked ⏭ are not backlog debt: they were intentionally rejected because they add exam-day complexity, rely on an incorrect premise, weaken the zero-dependency/offline model, or provide little value for this personal exam artifact.

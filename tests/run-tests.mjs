@@ -138,4 +138,30 @@ test('V33 template injects integration layer',()=>{
   ok(t.includes('@inject:style:13-v33-exam-integration.css'));
   ok(t.includes('@inject:script:19-v33-exam-integration.js'));
 });
+
+test('critical contrast audit is wired into check',()=>{
+  const p=JSON.parse(read('package.json'));
+  ok(p.scripts['contrast-audit']==='node scripts/contrast-audit.mjs');
+  ok(p.scripts.check.includes('npm run contrast-audit'));
+  ok(read('scripts/contrast-audit.mjs').includes('contrast pair(s) below required WCAG AA text threshold'));
+});
+test('Windows access truth preserves distinct privilege semantics',()=>{
+  const a=read('src/js/06-handoff-access-truth.js');
+  const rank=id=>Number(a.match(new RegExp("\\{id:'"+id+"'[^}]*rank:(-?\\d+)"))?.[1]);
+  ok(rank('transport')<rank('rejected'));ok(rank('rejected')<rank('authenticated'));ok(rank('authenticated')<rank('resource'));ok(rank('resource')<rank('command'));ok(rank('command')<rank('shell'));ok(rank('shell')<rank('admin'));
+  for(const id of ['smb','ldap','winrm','rdp','mssql','wmi'])ok(a.includes("{id:'"+id+"'"),id);
+  ok(a.includes("if(status==='transport')"));ok(a.includes("if(status==='rejected')"));ok(a.includes('accessRecordStale'));ok(a.includes('revertEpoch'));
+});
+test('runtime diagnostics stay bounded and non-recursive',()=>{
+  const d=read('src/js/19-v34-runtime-diagnostics.js');
+  ok(d.includes('const MAX_ERRORS=30'));ok(d.includes("window.addEventListener('error'"));ok(d.includes("window.addEventListener('unhandledrejection'"));ok(d.includes('Deliberately do not render from the error handler'));ok(!d.includes('setInterval('));
+});
+test('multi-tab conflict warning is event-driven',()=>{
+  const d=read('src/js/19-v34-runtime-diagnostics.js');
+  ok(d.includes("window.addEventListener('storage'"));ok(d.includes("window.addEventListener('focus'"));ok(d.includes("document.addEventListener('visibilitychange'"));ok(!d.includes('BroadcastChannel'));
+});
+test('conventions and release metadata docs are present',()=>{
+  ok(read('docs/CONVENTIONS.md').includes('Version/build workflow'));ok(read('docs/REPO-METADATA.md').includes('Suggested topics'));ok(read('docs/RELEASE-PROCESS.md').includes('Stable release checklist'));
+});
+
 console.log('\n'+passed+' tests passed');

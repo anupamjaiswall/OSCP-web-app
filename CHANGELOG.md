@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.28.0 — 2026-09-25
+
+### Batch 28 — finish the safe 100-item backlog
+- Added required WCAG AA contrast-ratio audit for critical exam UI color pairs.
+- Added a bounded persistent runtime error/unhandled-rejection log and Session diagnostics panel.
+- Added an event-driven multi-tab edit conflict warning without polling or automatic state merging.
+- Added deeper Windows/access-truth regressions around privilege-state separation and revert staleness.
+- Added source/naming conventions plus prepared repository metadata and stable release/tag process docs.
+- Updated the original 100-item tracker: only the high-risk legacy-core split remains genuinely pending.
+
 ## V34.27.0 — 2026-09-24
 
 ### Batch 27 — original 100-item implementation tracker
