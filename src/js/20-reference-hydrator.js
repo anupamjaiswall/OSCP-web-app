@@ -9,11 +9,9 @@
    decodePromise=(async()=>{
      const raw=String(payload?.textContent||'').trim();
      if(!raw){parts=[];return parts}
-     if(typeof DecompressionStream!=='function')throw new Error('This browser lacks DecompressionStream support required for the embedded offline reference.');
-     const bin=atob(raw),bytes=new Uint8Array(bin.length);
-     for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-     const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-     const html=await new Response(stream).text();
+     let html='';
+     try{html=JSON.parse(raw)}catch(e){throw new Error('Embedded reference payload is invalid: '+String(e?.message||e))}
+     if(typeof html!=='string')throw new Error('Embedded reference payload did not decode to text.');
      parts=html.split(/(?=<h2\s+id=)/i).filter(Boolean);
      return parts;
    })();

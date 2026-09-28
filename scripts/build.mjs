@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {gzipSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -17,7 +16,9 @@ html=html.replace(/\/\* @inject:style:([^*]+?) \*\//g,(_,f)=>read('src/styles/'+
 html=html.replace(/\/\* @inject:script:([^*]+?) \*\//g,(_,f)=>read('src/js/'+f.trim()));
 const manifest=JSON.parse(read('src/content/manifest.json'));
 const referenceHtml=manifest.files.map(f=>read('src/content/'+f)).join('');
-const referencePayload=gzipSync(Buffer.from(referenceHtml,'utf8'),{level:9}).toString('base64');
+// Keep reference inert during parser boot without relying on optional browser decompression APIs.
+// Escaping '<' prevents literal </script> text inside examples from terminating the payload element.
+const referencePayload=JSON.stringify(referenceHtml).replace(/</g,'\\u003c');
 html=html.replace('<!-- @inject:reference-payload -->',()=>referencePayload);
 
 html=html

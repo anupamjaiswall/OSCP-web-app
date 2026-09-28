@@ -157,15 +157,17 @@ async function main(){
       renders.push({scale,bytes:buf.length});
     }
     // Local-file gate: this is the intended exam deployment mode.
+    // Simulate a browser/profile without DecompressionStream. The artifact must still work.
+    await rpc.send('Page.addScriptToEvaluateOnNewDocument',{source:"try{Object.defineProperty(globalThis,'DecompressionStream',{value:undefined,writable:true,configurable:true})}catch(_){try{globalThis.DecompressionStream=undefined}catch(__){}}"});
     const fileUrl=pathToFileURL(appFile).href;
     await rpc.send('Page.navigate',{url:fileUrl});
     const localReady=await waitFor(async()=>{
       try{
-        const x=await evalValue("JSON.stringify({ready:document.readyState,boot:window.OSCP_BOOT_HEALTH||null,controls:['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'].every(id=>!!document.getElementById(id))})");
-        const s=JSON.parse(x||'{}');return s.ready==='complete'&&s.controls&&s.boot?.ok!==false?s:false;
+        const x=await evalValue("JSON.stringify({ready:document.readyState,boot:window.OSCP_BOOT_HEALTH||null,noDecompressionStream:typeof globalThis.DecompressionStream==='undefined',controls:['globalSearch','serviceRouterView','examBankBtn','examStuckBtn'].every(id=>!!document.getElementById(id))})");
+        const s=JSON.parse(x||'{}');return s.ready==='complete'&&s.controls&&s.noDecompressionStream&&s.boot?.ok!==false?s:false;
       }catch(_){return false}
     },25000,150);
-    if(!localReady)throw new Error('file:// offline artifact did not reach a usable state');
+    if(!localReady)throw new Error('file:// offline artifact did not reach a usable state without DecompressionStream');
     await evalValue("(()=>{window.openRef('"+directAnchor+"');return true})()");
     const localRef=await waitFor(async()=>await evalValue("!!document.getElementById('"+directAnchor+"')&&document.getElementById('referenceView')?.classList.contains('active')===true"),20000,100);
     if(!localRef)throw new Error('file:// deep-reference navigation failed');

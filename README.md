@@ -1,6 +1,12 @@
 # 🔐 OSCP Exam OS
 
-**V34.29 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.30 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.30 compatibility hotfix
+
+V34.30 removes the deep reference's hard dependency on the browser-native `DecompressionStream` API. The reference remains inert/lazy during startup, but is now embedded as a script-safe JSON string and decoded with built-in `JSON.parse()`. This fixes browsers/profiles where the app shell loaded while the reference/navigation layer failed or stayed on “loading”.
+
+CI now deliberately disables `DecompressionStream` before opening the real local `file://` artifact and still requires deep-reference navigation to succeed. The stray literal `\\n` emitted immediately after `<body>` is also removed.
 
 ## V34.29 runtime reliability fix
 
@@ -84,7 +90,7 @@ The repository ships one self-contained **`index.html`** for exam use while keep
 ## V34.19 Batch 19 — exam preflight and limitations
 
 - Expanded the exam-day preflight into a cold-start, offline, persistence, backup-test and restore rehearsal.
-- Added explicit Known Limitations covering browser/origin storage, compressed reference support, backup boundaries, secret-free exports and tool-version drift.
+- Added explicit Known Limitations covering browser/origin storage, lazy embedded reference support, backup boundaries, secret-free exports and tool-version drift.
 - Documentation-only batch; app runtime behavior is unchanged.
 
 ## V34.18 Batch 18 — emergency clipboard recovery

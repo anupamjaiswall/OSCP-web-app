@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.30.0 — 2026-09-28
+
+### Compatibility hotfix — reference loading
+- Removed the runtime dependency on browser `DecompressionStream`.
+- Replaced gzip/base64 reference transport with an inert script-safe JSON payload.
+- Kept lazy section hydration and direct-anchor waiting behavior.
+- Browser smoke now disables `DecompressionStream` before the real `file://` test and still requires deep-reference navigation to work.
+- Removed the stray literal `\\n` after `<body>`.
+
 ## V34.29.0 — 2026-09-25
 
 ### Runtime fix — lazy-reference navigation
