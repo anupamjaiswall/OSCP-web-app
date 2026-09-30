@@ -89,6 +89,9 @@ test('browser render is a required bounded CI gate',()=>{const ci=read('.github/
 
 test('browser gate covers deployed hash route and full navigation sweep',()=>{const smoke=read('scripts/browser-smoke.mjs');ok(smoke.includes("#view=simpleExamView"));ok(smoke.includes("document.querySelectorAll('#nav .navbtn[data-view]')"));ok(smoke.includes("runV16SelfTests"));ok(smoke.includes("dialog audit failed"));});
 
+test('browser Service Router self-tests use real multiline fixtures',()=>{const src=read('src/js/09-v20-service-router.js');ok(src.includes("22/tcp open ssh\\n53/udp open domain\\n161/udp open|filtered snmp"));ok(!src.includes("22/tcp open ssh\\\\n53/udp"));});
+test('navigation wrapper preserves openRef result contract',()=>{const src=read('src/js/07-navigation-reliability.js');ok(src.includes('const result=baseOpenRef(anchor)'));ok(src.includes('return result;'));});
+
 test('bracket links are incremental and non-blocking at startup',()=>{const src=read('src/js/12-v22-bracket-links.js');const start=src.slice(src.indexOf('function start()'),src.indexOf("if(document.readyState==='loading')"));ok(src.includes('function linkifyIncremental'));ok(src.includes('setTimeout(pump,0)'));ok(start.includes('linkifyIncremental(root'));ok(!start.includes('linkify(root)'));ok(src.includes('window.OSCP_TAG_LINKS.complete=true'))});
 
 test('historical render layers do not rerender repeatedly during boot',()=>{const src=read('src/js/03-core-app.js');const calls=src.split('\n').map(x=>x.trim()).filter(x=>/^renderAllV(?:7|8|9|10|11|12|13|14)\(\);$/.test(x));eq(calls,[])});
