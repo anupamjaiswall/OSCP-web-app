@@ -14,7 +14,7 @@ function buildSearchItems(){
   let context=[node];
   if(heading){
    let cur=node.nextElementSibling;
-   while(cur&&!/^H[2-4]$/.test(cur.tagName||'')){context.push(cur);cur=cur.nextElementSibling}
+   while(cur&&!/^H[2-4]$/.test(cur.tagName||'')&&!cur.matches?.('details[id]')){context.push(cur);cur=cur.nextElementSibling}
   }
   const text=context.map(x=>x.textContent||'').join('\n').trim();
   items.push({
@@ -141,11 +141,17 @@ async function resolveReferenceAnchor(anchor,timeout=12000){
  }
  return document.getElementById(anchor);
 }
+function expandReferenceAncestors(el){
+ const details=[];let cur=el;
+ while(cur){if(cur.tagName==='DETAILS')details.push(cur);cur=cur.parentElement}
+ details.reverse().forEach(d=>{d.open=true});
+ return details.length;
+}
 function openRef(anchor){
  switchView('referenceView');
  return resolveReferenceAnchor(anchor).then(el=>{
   if(!el){toast('Reference section could not be loaded: '+anchor);return false}
-  let d=el.closest('details');if(d)d.open=true;
+  expandReferenceAncestors(el);
   el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1800);
   return true;
  }).catch(e=>{console.error('[OSCP] openRef failed',e);toast('Reference navigation failed');return false});
