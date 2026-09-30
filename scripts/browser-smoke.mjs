@@ -158,7 +158,7 @@ async function main(){
     const dialogAuditRaw=await evalValue(`(()=>{
       const out=[];
       const checks=[
-        ['examStuckBtn','examStuckBackdrop','examStuckClose'],
+        ['examStuckBtn','examResetModal','examResetClose'],
         ['examBankBtn','examBankModal','examBankClose'],
         ['readabilityBtn','readabilityPanel','readabilityClose']
       ];
