@@ -395,7 +395,10 @@ async function main(){
           const v=document.getElementById(id),r=v?.getBoundingClientRect(),cs=v?getComputedStyle(v):null;
           const overflow=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-window.innerWidth;
           const ok=!!v&&v.classList.contains('active')&&cs?.display!=='none'&&r&&r.width>Math.min(260,window.innerWidth-30)&&r.left>=-2&&r.right<=window.innerWidth+8&&overflow<=8;
-          if(!ok)failures.push({id,display:cs?.display||'',rect:r?{left:r.left,right:r.right,w:r.width,h:r.height}:null,innerWidth:window.innerWidth,overflow});
+          if(!ok){
+            const offenders=[...v.querySelectorAll('*')].map(el=>{const q=el.getBoundingClientRect();return{tag:el.tagName.toLowerCase(),id:el.id||'',cls:String(el.className||'').slice(0,100),text:String(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,90),left:Math.round(q.left),right:Math.round(q.right),w:Math.round(q.width),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}}).filter(x=>x.right>window.innerWidth+8||x.w>(r?.width||window.innerWidth)+8||x.scrollWidth>x.clientWidth+8).sort((a,b)=>(b.right-window.innerWidth)-(a.right-window.innerWidth)||b.w-a.w).slice(0,10);
+            failures.push({id,display:cs?.display||'',rect:r?{left:r.left,right:r.right,w:r.width,h:r.height}:null,innerWidth:window.innerWidth,overflow,offenders});
+          }
         }
         return JSON.stringify({width:window.innerWidth,count:ids.length,failures});
       })()`);
