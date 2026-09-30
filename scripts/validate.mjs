@@ -25,6 +25,10 @@ if(structuralEscapedNewline.test(read('src/index.template.html'))) fail('Templat
 const idManifest=JSON.parse(read('src/content/manifest.json'));
 const idReference=idManifest.files.map(f=>read('src/content/'+f)).join('');
 const staticAuditHtml=read('src/index.template.html')+idReference;
+const baseCss=read('src/styles/00-base.css');
+const usedGridSpans=[...new Set([...staticAuditHtml.matchAll(/\bclass=["'][^"']*\b(span\d+)\b[^"']*["']/gi)].map(m=>m[1].toLowerCase()))];
+const missingGridSpans=usedGridSpans.filter(cls=>{const n=cls.replace('span','');return !baseCss.includes('.'+cls+'{grid-column:span '+n+'}')});
+if(missingGridSpans.length) fail('Undefined base grid span class(es): '+missingGridSpans.join(', '));
 const idMatches=[...staticAuditHtml.matchAll(/\bid=["']([^"']+)["']/gi)],ids=idMatches.map(m=>m[1]),seen=new Set(),dupes=[];
 for(const id of ids){if(seen.has(id))dupes.push(id);seen.add(id)}
 if(dupes.length) fail('Duplicate static IDs: '+[...new Set(dupes)].join(', '));
