@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.35.0">
+<meta name="oscp-build-version" content="34.36.0">
 <meta name="oscp-build-date" content="2026-09-30">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -20,7 +20,7 @@ a{color:var(--accent)}
 .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:8px;padding:9px 12px;min-height:40px}.btn:hover{border-color:#53627a}.btn.primary{border-color:#2c7899;background:#143347;color:#dff6ff}.btn.good{border-color:#2f7a55;background:#153929;color:#dcffeb}.btn.bad{border-color:#783b42;background:#3b1d22;color:#ffdce0}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0;max-width:100%}.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:14px;color:var(--muted)}input,select,textarea{background:#0d1119;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:9px 10px;outline:none;max-width:100%;min-width:0}textarea{min-height:90px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:#3e8eb0}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .quickgrid{min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.quick{padding:12px;border:1px solid var(--line);background:var(--panel2);border-radius:10px;text-align:left;color:var(--text)}.quick:hover{border-color:#4d7389}.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.flow .step{background:#0e141e;border:1px solid var(--line);padding:7px 9px;border-radius:7px}.arrow{color:var(--muted)}
 pre{position:relative;background:#090c12;border:1px solid var(--line);border-radius:9px;padding:13px;overflow:auto;color:#d7e5f6}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.copybtn{position:absolute;right:7px;top:7px;border:1px solid var(--line);background:#151c28;color:var(--muted);border-radius:6px;padding:4px 7px;font-size:11px}.copybtn:hover{color:var(--text)}
-.searchResults{display:grid;gap:9px}.result{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:13px}.resultTitle{font-weight:700;font-size:16px}.resultText{color:var(--muted);margin:7px 0;font-size:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.score{font-size:12px;color:#7990a8}
+.searchResults{display:grid;gap:9px;min-width:0;max-width:100%}.result{min-width:0;max-width:100%;overflow:hidden;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:13px}.result>.row{min-width:0}.resultTitle{min-width:0;font-weight:700;font-size:16px;overflow-wrap:anywhere}.resultText{min-width:0;max-width:100%;color:var(--muted);margin:7px 0;font-size:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;word-break:break-word}.score{flex:0 0 auto;font-size:12px;color:#7990a8}
 .targetList{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}.target{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px}.targetHead{display:flex;justify-content:space-between;gap:8px}.targetTitle{font-weight:800}.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin:10px 0}.check{font-size:14px;color:#cad3df}.check input{vertical-align:middle}.actions3{margin:8px 0;padding-left:22px}.secretNote{font-size:12px;color:var(--warn)}
 .playbook{display:grid;gap:8px}.playhead{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px}.decoderGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}.decoder{min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:13px}.decoder .obs{font-weight:800;overflow-wrap:anywhere}.decoder dl{margin:8px 0;min-width:0}.decoder dt{color:var(--muted);font-size:11px;text-transform:uppercase}.decoder dd{margin:1px 0 8px;overflow-wrap:anywhere;word-break:break-word}
 .timer{font:800 44px/1 ui-monospace,Consolas,monospace;letter-spacing:2px}.progress{height:8px;background:#0b0e14;border:1px solid var(--line);border-radius:999px;overflow:hidden}.bar{height:100%;width:0;background:var(--accent);transition:width .3s}.bar.warn{background:var(--warn)}.bar.bad{background:var(--bad)}
@@ -1469,7 +1469,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.35.0',
+  version:'34.36.0',
   label:'V34',
   date:'2026-09-30'
 });</script>
@@ -1645,7 +1645,7 @@ function buildSearchItems(){
   let context=[node];
   if(heading){
    let cur=node.nextElementSibling;
-   while(cur&&!/^H[2-4]$/.test(cur.tagName||'')){context.push(cur);cur=cur.nextElementSibling}
+   while(cur&&!/^H[2-4]$/.test(cur.tagName||'')&&!cur.matches?.('details[id]')){context.push(cur);cur=cur.nextElementSibling}
   }
   const text=context.map(x=>x.textContent||'').join('\n').trim();
   items.push({
@@ -1772,11 +1772,17 @@ async function resolveReferenceAnchor(anchor,timeout=12000){
  }
  return document.getElementById(anchor);
 }
+function expandReferenceAncestors(el){
+ const details=[];let cur=el;
+ while(cur){if(cur.tagName==='DETAILS')details.push(cur);cur=cur.parentElement}
+ details.reverse().forEach(d=>{d.open=true});
+ return details.length;
+}
 function openRef(anchor){
  switchView('referenceView');
  return resolveReferenceAnchor(anchor).then(el=>{
   if(!el){toast('Reference section could not be loaded: '+anchor);return false}
-  let d=el.closest('details');if(d)d.open=true;
+  expandReferenceAncestors(el);
   el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1800);
   return true;
  }).catch(e=>{console.error('[OSCP] openRef failed',e);toast('Reference navigation failed');return false});

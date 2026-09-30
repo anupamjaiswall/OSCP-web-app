@@ -1,6 +1,10 @@
 # 🔐 OSCP Exam OS
 
-**V34.35 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.36 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.36 search navigation hotfix
+
+Global search now routes body-text matches to the exact collapsed reference section instead of letting a broad parent heading absorb text from child `<details>` blocks. Opening a search result expands every ancestor `<details>` before scrolling/highlighting. Browser CI searches `subdomain`, opens `2.2 /etc/hosts Management`, and requires that section to be expanded.
 
 ## V34.35 cross-application reliability audit
 
