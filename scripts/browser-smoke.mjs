@@ -92,7 +92,7 @@ async function main(){
     await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(new Error('DevTools websocket timed out')),8000);ws.onopen=()=>{clearTimeout(t);resolve()};ws.onerror=e=>{clearTimeout(t);reject(e instanceof Error?e:new Error('DevTools websocket failed'))}});
     const rpc=makeRpc(ws);
     await rpc.send('Runtime.enable');await rpc.send('Page.enable');await rpc.send('Debugger.enable');
-    await rpc.send('Page.navigate',{url:appUrl});
+    await rpc.send('Page.navigate',{url:appUrl+'#view=simpleExamView'});
 
     let lastState=null,lastProbeError='';
     const ready=await waitFor(async()=>{
@@ -122,6 +122,59 @@ async function main(){
       if(out?.exceptionDetails)throw new Error('browser evaluation exception: '+JSON.stringify(out.exceptionDetails).slice(0,1200));
       return out?.result?.value;
     }
+
+    // Reliability audit: the exact hash route used on GitHub Pages must restore the visible Start view.
+    const hashBoot=await evalValue(`JSON.stringify({hash:location.hash,active:document.querySelector('.view.active')?.id||'',start:document.getElementById('simpleExamView')?.classList.contains('active')===true})`);
+    const hashBootState=JSON.parse(hashBoot||'{}');
+    if(hashBootState.hash!=='#view=simpleExamView'||!hashBootState.start)throw new Error('hash deep-link boot did not restore simpleExamView: '+hashBoot);
+
+    // Reliability audit: every nav destination must exist, become active, and occupy real layout space.
+    const navSweepRaw=await evalValue(`(async()=>{
+      window.OSCP_NAV?.setAdvancedMode?.(true);
+      const failures=[],visited=[];
+      const buttons=[...document.querySelectorAll('#nav .navbtn[data-view]')];
+      for(const b of buttons){
+        const id=b.dataset.view||'';
+        b.click();
+        await new Promise(r=>setTimeout(r,12));
+        const v=document.getElementById(id),r=v?.getBoundingClientRect();
+        const cs=v?getComputedStyle(v):null;
+        const ok=!!v&&v.classList.contains('active')&&cs?.display!=='none'&&!!r&&r.width>300&&r.height>20;
+        visited.push(id);
+        if(!ok)failures.push({id,active:!!v?.classList.contains('active'),display:cs?.display||'',rect:r?{w:r.width,h:r.height,left:r.left,top:r.top}:null});
+      }
+      window.switchView('simpleExamView',{history:false});
+      return JSON.stringify({count:visited.length,failures,active:document.querySelector('.view.active')?.id||''});
+    })()`);
+    const navSweep=JSON.parse(navSweepRaw||'{}');
+    if(!navSweep.count||navSweep.failures?.length||navSweep.active!=='simpleExamView')throw new Error('navigation sweep failed: '+navSweepRaw);
+
+    // Reliability audit: run the app's own deterministic self-test suite in the real browser.
+    const selfTestsRaw=await evalValue(`(()=>{if(typeof runV16SelfTests!=='function')return JSON.stringify({missing:true});const s=runV16SelfTests();return JSON.stringify({total:s.total,pass:s.pass,fail:s.fail,failed:s.rows.filter(x=>!x.pass).map(x=>({name:x.name,observed:x.observed}))})})()`);
+    const selfTests=JSON.parse(selfTestsRaw||'{}');
+    if(selfTests.missing||selfTests.fail>0)throw new Error('built-in browser self-tests failed: '+selfTestsRaw);
+
+    // Reliability audit: safety/readability dialogs must open and close without trapping the UI.
+    const dialogAuditRaw=await evalValue(`(()=>{
+      const out=[];
+      const checks=[
+        ['examStuckBtn','examStuckBackdrop','examStuckClose'],
+        ['examBankBtn','examBankModal','examBankClose'],
+        ['readabilityBtn','readabilityPanel','readabilityClose']
+      ];
+      for(const [openId,panelId,closeId] of checks){
+        const open=document.getElementById(openId),panel=document.getElementById(panelId),close=document.getElementById(closeId);
+        if(!open||!panel||!close){out.push({openId,missing:true});continue}
+        open.click();
+        const opened=panel.hidden===false||panel.classList.contains('open')||panel.getAttribute('aria-hidden')==='false';
+        close.click();
+        const closed=panel.hidden===true||!panel.classList.contains('open')||panel.getAttribute('aria-hidden')==='true';
+        out.push({openId,opened,closed});
+      }
+      return JSON.stringify(out);
+    })()`);
+    const dialogAudit=JSON.parse(dialogAuditRaw||'[]');
+    if(dialogAudit.some(x=>x.missing||!x.opened||!x.closed))throw new Error('dialog audit failed: '+dialogAuditRaw);
 
     // Real interaction 0: direct reference navigation must work even if hydration is still in progress.
     const directAnchor='ref-c4-i-have-a-linux-shell-what-now';
