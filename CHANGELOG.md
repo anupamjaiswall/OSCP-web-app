@@ -1,5 +1,12 @@
 # Changelog
 
+## V34.36.0 — 2026-09-30
+
+### Search-to-reference collapsed-section fix
+- Parent heading search records no longer absorb text from child `details[id]` blocks.
+- Reference navigation expands every ancestor `<details>` before scroll/highlight.
+- Added a browser regression for `subdomain` → `2.2 /etc/hosts Management`.
+
 ## V34.35.0 — 2026-09-30
 
 ### Cross-application functional and responsive reliability audit
