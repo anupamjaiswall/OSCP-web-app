@@ -143,7 +143,7 @@ async function main(){
         visited.push(id);
         if(!ok)failures.push({id,active:!!v?.classList.contains('active'),display:cs?.display||'',rect:r?{w:r.width,h:r.height,left:r.left,top:r.top}:null});
       }
-      await evalValue("(()=>{window.switchView('simpleExamView',{history:false});return true})()");
+      window.switchView('simpleExamView',{history:false});
       return JSON.stringify({count:visited.length,failures,active:document.querySelector('.view.active')?.id||''});
     })()`);
     const navSweep=JSON.parse(navSweepRaw||'{}');
@@ -198,7 +198,7 @@ async function main(){
     })()`);
     const serviceLayout=JSON.parse(serviceLayoutRaw||'{}');
     if(!serviceLayout.first||!serviceLayout.runway||serviceLayout.first.w<500||serviceLayout.runway.w<300||serviceLayout.buttons.length!==4||serviceLayout.buttons.some(x=>x.w<120)||serviceLayout.overflow>8)throw new Error('Service Router layout regression: '+serviceLayoutRaw);
-    window.switchView('simpleExamView',{history:false});
+    await evalValue("(()=>{window.switchView('simpleExamView',{history:false});return true})()");
 
     // Real interaction 0: direct reference navigation must work even if hydration is still in progress.
     const directAnchor='ref-c4-i-have-a-linux-shell-what-now';
