@@ -220,6 +220,16 @@ async function main(){
     },20000,150);
     if(!typoSearch)throw new Error('typo-tolerant browser search did not return a result');
 
+    // Real interaction 1B: a body-text search hit inside collapsed notes must open that exact details section.
+    await evalValue(`(()=>{const i=document.getElementById('globalSearch');i.value='subdomain';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
+    const subdomainSearch=await waitFor(async()=>{
+      const x=await evalValue(`JSON.stringify({ready:window.OSCP_REFERENCE_READY===true,first:document.querySelector('#searchResults [data-open]')?.dataset.open||'',hosts:!!document.querySelector('#searchResults [data-open="ref-2-2-etc-hosts-management"]')})`);
+      const s=JSON.parse(x||'{}');return s.ready&&s.hosts?s:false;
+    },20000,150);
+    if(!subdomainSearch)throw new Error('subdomain search did not surface /etc/hosts management');
+    const hostsOpened=await evalValue(`(async()=>{const b=document.querySelector('#searchResults [data-open="ref-2-2-etc-hosts-management"]');if(!b)return false;b.click();await new Promise(r=>setTimeout(r,100));const d=document.getElementById('ref-2-2-etc-hosts-management');return !!d&&d.open===true&&document.getElementById('referenceView')?.classList.contains('active')===true})()`);
+    if(!hostsOpened)throw new Error('search result did not expand collapsed /etc/hosts management section');
+
     // Real interaction 2: readability/high-contrast control must change the live body state.
     const contrast=await evalValue(`(()=>{const b=document.getElementById('readerContrastToggle');if(!b)return false;b.click();return document.body.classList.contains('examHighContrast')})()`);
     if(!contrast)throw new Error('high-contrast browser toggle did not activate');
