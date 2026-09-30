@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.31.0 — 2026-09-30
+
+### Reliability hotfix — deterministic reference hydration
+- Replaced the repeated requestIdleCallback/setTimeout hydration loop with a single deterministic post-load hydration pass.
+- Added a watchdog fallback so the deep reference cannot remain indefinitely queued behind an idle callback.
+- Kept the reference inert during parser-critical startup and preserved on-demand search/direct-anchor loading.
+- Updated regression tests to reject the old idle-callback hydration path.
+
 ## V34.30.0 — 2026-09-28
 
 ### Compatibility hotfix — reference loading
