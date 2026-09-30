@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.34.0 — 2026-09-30
+
+### Service Router layout hotfix
+- Added the missing global `.span5` and `.span7` grid rules used by Service Router and other dashboard cards.
+- Added responsive collapse for 5/7-column cards below 900 px.
+- Reworked Service Router controls into a full-width scan-input row plus four equal action buttons.
+- Added a real-browser layout regression that checks Service Router card widths, button usability, and horizontal overflow.
+
 ## V34.33.0 — 2026-09-30
 
 ### Full browser reliability audit
