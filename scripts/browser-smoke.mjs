@@ -384,26 +384,6 @@ async function main(){
     if(targetFeatureAudit.fail?.length)throw new Error('target-state functional audit failed: '+JSON.stringify(targetFeatureAudit.fail));
 
     // Whole-app responsive sweep: every navigation view must stay within the page viewport.
-    const responsiveSweepRaw=await evalValue(`(async()=>{
-      const widths=[1440,900,560,390],failures=[],checked=[];
-      const viewIds=[...new Set([...document.querySelectorAll('#nav .navbtn[data-view]')].map(b=>b.dataset.view).filter(Boolean))];
-      for(const width of widths){
-        // viewport width is supplied by the outer DevTools metrics call before each pass
-        if(window.innerWidth!==width)await new Promise(r=>setTimeout(r,20));
-        for(const id of viewIds){
-          window.switchView(id,{history:false});
-          await new Promise(r=>setTimeout(r,8));
-          const v=document.getElementById(id),r=v?.getBoundingClientRect(),cs=v?getComputedStyle(v):null;
-          const docOverflow=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-window.innerWidth;
-          const ok=!!v&&v.classList.contains('active')&&cs?.display!=='none'&&r&&r.width>Math.min(260,window.innerWidth-30)&&r.left>=-2&&r.right<=window.innerWidth+8&&docOverflow<=8;
-          checked.push({width,id});
-          if(!ok)failures.push({width,id,display:cs?.display||'',rect:r?{left:r.left,right:r.right,w:r.width,h:r.height}:null,innerWidth:window.innerWidth,docOverflow});
-        }
-      }
-      window.switchView('simpleExamView',{history:false});
-      return JSON.stringify({checked:checked.length,failures});
-    })()`);
-    // The browser expression above runs once per current viewport; repeat with DevTools metrics outside it.
     const responsivePasses=[];
     for(const width of [1440,900,560,390]){
       await rpc.send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});
