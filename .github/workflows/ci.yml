@@ -1,7 +1,7 @@
 name: V34.36 build and validation
 on:
   push:
-    branches: [ main, fix-search-details-v34-36 ]
+    branches: [ main ]
   pull_request:
 permissions:
   contents: write
@@ -19,7 +19,7 @@ jobs:
         timeout-minutes: 2
         run: node scripts/browser-smoke.mjs
       - name: Sync generated exam artifact on main
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fix-search-details-v34-36')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           if ! git diff --quiet -- index.html; then
             git config user.name "github-actions[bot]"
