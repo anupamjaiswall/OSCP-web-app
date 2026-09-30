@@ -176,6 +176,30 @@ async function main(){
     const dialogAudit=JSON.parse(dialogAuditRaw||'[]');
     if(dialogAudit.some(x=>x.missing||!x.opened||!x.closed))throw new Error('dialog audit failed: '+dialogAuditRaw);
 
+    // Service Router layout regression: verify real 7/5 desktop columns and usable control widths.
+    await rpc.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+    const serviceLayoutRaw=await evalValue(`(()=>{
+      window.switchView('serviceRouterView',{history:false});
+      const view=document.getElementById('serviceRouterView');
+      const cards=[...view.querySelectorAll(':scope > .grid > .card')];
+      const first=cards.find(x=>x.querySelector('#serviceFirstPassQueue'));
+      const runway=cards.find(x=>x.querySelector('#scoreSummary'));
+      const controls=document.querySelector('.serviceRouterControls');
+      const buttons=[...controls?.querySelectorAll(':scope > .btn')||[]];
+      const fr=first?.getBoundingClientRect(),rr=runway?.getBoundingClientRect(),cr=controls?.getBoundingClientRect();
+      const br=buttons.map(b=>b.getBoundingClientRect());
+      return JSON.stringify({
+        first:fr?{w:fr.width,left:fr.left}:null,
+        runway:rr?{w:rr.width,left:rr.left}:null,
+        controls:cr?{w:cr.width}:null,
+        buttons:br.map(r=>({w:r.width,left:r.left,top:r.top})),
+        overflow:Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-window.innerWidth
+      });
+    })()`);
+    const serviceLayout=JSON.parse(serviceLayoutRaw||'{}');
+    if(!serviceLayout.first||!serviceLayout.runway||serviceLayout.first.w<500||serviceLayout.runway.w<300||serviceLayout.buttons.length!==4||serviceLayout.buttons.some(x=>x.w<120)||serviceLayout.overflow>8)throw new Error('Service Router layout regression: '+serviceLayoutRaw);
+    await evalValue("(()=>{window.switchView('simpleExamView',{history:false});return true})()");
+
     // Real interaction 0: direct reference navigation must work even if hydration is still in progress.
     const directAnchor='ref-c4-i-have-a-linux-shell-what-now';
     const directOpenResult=await evalValue("window.openRef('"+directAnchor+"')");
