@@ -111,7 +111,7 @@
       if(before==='referenceView'&&hpBefore.ref&&hpBefore.ref!==anchor){
         try{history.replaceState({...currentState(hpBefore.ref),view:'referenceView',ref:hpBefore.ref,scrollY:scrolls.referenceView||window.scrollY||0},'',navURL('referenceView',hpBefore.ref));}catch(e){}
       }
-      baseOpenRef(anchor);
+      const result=baseOpenRef(anchor);
       setTimeout(()=>{
         try{
           const st={...(history.state||{}),oscpNav:1,view:'referenceView',ref:anchor||'',scrollY:window.scrollY||0};
@@ -121,6 +121,7 @@
           updateHistoryButtons();
         }catch(e){}
       },45);
+      return result;
     };
   }
 
