@@ -228,6 +228,187 @@ async function main(){
     const targetCreated=await evalValue(`(()=>{const before=document.querySelectorAll('#targetList .target').length;document.getElementById('addTarget')?.click();const after=document.querySelectorAll('#targetList .target').length;return after===before+1})()`);
     if(!targetCreated)throw new Error('target creation did not render exactly one new target');
 
+    // Cross-application functional audit: exercise critical controls with real browser state.
+    const functionalAuditRaw=await evalValue(`(async()=>{
+      const fail=[],ok=[];
+      const record=(name,pass,detail='')=>{(pass?ok:fail).push({name,detail})};
+      const click=id=>{const el=document.getElementById(id);if(!el)return false;el.click();return true};
+
+      // Theme toggle must actually change the reference theme and be reversible.
+      window.switchView('referenceView',{history:false});
+      await window.OSCP_REFERENCE?.start?.();
+      const ref=document.getElementById('referenceRoot');
+      const themeBefore=!!ref?.classList.contains('darkRef');
+      click('themeBtn');const themeAfter=!!ref?.classList.contains('darkRef');
+      click('themeBtn');const themeRestored=!!ref?.classList.contains('darkRef')===themeBefore;
+      record('theme toggle',themeAfter!==themeBefore&&themeRestored,JSON.stringify({themeBefore,themeAfter,themeRestored}));
+
+      // Evidence rotation timer: start -> advances, pause -> stable, reset -> zero.
+      window.switchView('simpleExamView',{history:false});
+      click('simpleTimerReset');click('simpleTimerStart');
+      await new Promise(r=>setTimeout(r,1100));
+      const timerRunning=document.getElementById('simpleTimerDisplay')?.textContent||'';
+      click('simpleTimerPause');
+      const timerPausedA=document.getElementById('simpleTimerDisplay')?.textContent||'';
+      await new Promise(r=>setTimeout(r,700));
+      const timerPausedB=document.getElementById('simpleTimerDisplay')?.textContent||'';
+      click('simpleTimerReset');
+      const timerReset=document.getElementById('simpleTimerDisplay')?.textContent||'';
+      record('evidence rotation timer',timerRunning!=='00:00'&&timerPausedA===timerPausedB&&timerReset==='00:00',JSON.stringify({timerRunning,timerPausedA,timerPausedB,timerReset}));
+
+      // Method tree selector must isolate one tree and restore all.
+      window.switchView('methodTreesView',{history:false});
+      window.OSCP_TREE_READER?.show?.('windows');
+      const treeCards=[...document.querySelectorAll('#methodTreesView .methodTreeCard')];
+      const win=treeCards.find(x=>x.dataset.treeKind==='windows');
+      const hiddenOthers=treeCards.filter(x=>x!==win).every(x=>x.classList.contains('treeHidden'));
+      const winVisible=!!win&&!win.classList.contains('treeHidden')&&win.classList.contains('treeSolo');
+      window.OSCP_TREE_READER?.show?.('all');
+      const allVisible=treeCards.length>=3&&treeCards.every(x=>!x.classList.contains('treeHidden'));
+      record('method tree selector',winVisible&&hiddenOthers&&allVisible,JSON.stringify({cards:treeCards.length,winVisible,hiddenOthers,allVisible}));
+
+      // Service Router must parse and classify a realistic mixed service set and update score runway.
+      window.switchView('serviceRouterView',{history:false});
+      const sri=document.getElementById('serviceRouterInput');
+      if(sri){sri.value='22/tcp open ssh OpenSSH 9.2\\n80/tcp open http nginx\\n445/tcp open microsoft-ds';click('serviceRouterBuild')}
+      const srSummary=document.getElementById('serviceParseSummary')?.textContent||'';
+      const srQueue=document.getElementById('serviceQueue')?.textContent||'';
+      const scoreAD=document.getElementById('scoreAD'),scores=[...document.querySelectorAll('.scoreStandalone')];
+      if(scoreAD){scoreAD.value='40';scoreAD.dispatchEvent(new Event('change',{bubbles:true}))}
+      if(scores[0]){scores[0].value='20';scores[0].dispatchEvent(new Event('change',{bubbles:true}))}
+      if(scores[1]){scores[1].value='20';scores[1].dispatchEvent(new Event('change',{bubbles:true}))}
+      const scoreText=document.getElementById('scoreSummary')?.textContent||'';
+      record('Service Router functional parse',/3 endpoint/.test(srSummary)&&/SSH/.test(srQueue)&&srQueue.includes('RPC/SMB')&&srQueue.includes('HTTP/S')&&scoreText.includes('80/100'),JSON.stringify({srSummary,scoreText}));
+
+      // AD username generator: evidence-derived names should produce non-empty candidates.
+      window.switchView('windowsStrategyView',{history:false});
+      const names=document.getElementById('adUsernameNames');
+      if(names)names.value='John Smith\\nAlice Brown';
+      click('adUsernameCore');click('adUsernameGenerate');
+      const userOut=document.getElementById('adUsernameOutput')?.textContent||'';
+      const candidateLines=userOut.split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+      record('AD username generator',candidateLines.length>=4&&!/Paste names/i.test(userOut),candidateLines.slice(0,8).join('|'));
+
+      // Scan Intake: parse normal Nmap text without importing it.
+      window.switchView('intakeView',{history:false});
+      const scan=document.getElementById('scanPaste');
+      if(scan)scan.value='Nmap scan report for 10.10.10.20\\nHost is up.\\nPORT   STATE SERVICE\\n22/tcp open  ssh\\n80/tcp open  http';
+      click('parsePastedScan');
+      const scanPreview=document.getElementById('scanPreview')?.textContent||'';
+      const scanImport=document.getElementById('importScanTargets');
+      record('scan intake parser',/10\.10\.10\.20/.test(scanPreview)&&/22/.test(scanPreview)&&/80/.test(scanPreview)&&scanImport?.disabled===false,scanPreview.slice(0,300));
+
+      // Deterministic analyzer: explicit root evidence must be recognized.
+      window.switchView('analyzerView',{history:false});
+      const ai=document.getElementById('analyzerInput');
+      if(ai)ai.value='uid=0(root) gid=0(root) groups=0(root)';
+      click('analyzeOutput');
+      const analyzerText=document.getElementById('analyzerResults')?.textContent||'';
+      record('output analyzer',/root identity explicitly confirmed/i.test(analyzerText),analyzerText.slice(0,300));
+
+      // Unicode sanitizer must remove smart quotes and lint the normalized command.
+      window.switchView('guardView',{history:false});
+      const gc=document.getElementById('guardCommand');
+      if(gc)gc.value='curl “http://10.10.10.20/”';
+      click('sanitizeGuardCommand');
+      const guardValue=gc?.value||'',guardResult=document.getElementById('unicodeSanitizeResult')?.textContent||'';
+      record('command Unicode sanitizer',!/[“”]/.test(guardValue)&&guardValue.includes('curl "http://10.10.10.20/"')&&/Detected|No risky Unicode/.test(guardResult),JSON.stringify({guardValue,guardResult}));
+
+      // Command palette must open, filter, expose results, and close.
+      window.OSCP_V26?.openPalette?.('linux');
+      await new Promise(r=>setTimeout(r,30));
+      const palette=document.getElementById('commandPaletteBackdrop');
+      const paletteResults=document.querySelectorAll('#commandPaletteResults [data-palette-index]').length;
+      const paletteOpen=!!palette?.classList.contains('open')&&paletteResults>0;
+      click('commandPaletteClose');
+      record('command palette',paletteOpen&&!palette?.classList.contains('open'),'results='+paletteResults);
+
+      // Quick note must autosave input and append a timestamp/context block.
+      window.OSCP_V25?.note?.(true);
+      const note=document.getElementById('quickNoteText');
+      if(note){note.value='functional-audit-note';note.dispatchEvent(new Event('input',{bubbles:true}));note.selectionStart=note.selectionEnd=note.value.length}
+      click('quickNoteStamp');
+      const noteValue=note?.value||'';
+      const noteOpen=document.getElementById('quickNoteBackdrop')?.classList.contains('open');
+      click('quickNoteClose');
+      record('quick note',!!noteOpen&&noteValue.includes('functional-audit-note')&&noteValue.includes('[')&&noteValue.includes(']'),noteValue.slice(0,240));
+
+      return JSON.stringify({ok,fail});
+    })()`);
+    const functionalAudit=JSON.parse(functionalAuditRaw||'{}');
+    if(functionalAudit.fail?.length)throw new Error('cross-application functional audit failed: '+JSON.stringify(functionalAudit.fail));
+
+    // Stateful feature audit after a target exists.
+    const targetFeatureAuditRaw=await evalValue(`(async()=>{
+      const fail=[],ok=[];const record=(name,pass,detail='')=>{(pass?ok:fail).push({name,detail})};const click=id=>{const el=document.getElementById(id);if(!el)return false;el.click();return true};
+
+      // Attempt ledger should persist a result for the active target.
+      window.OSCP_V26?.openWork?.();
+      await new Promise(r=>setTimeout(r,20));
+      const aa=document.getElementById('attemptAction'),ar=document.getElementById('attemptResult');
+      if(aa)aa.value='Functional audit SMB auth';
+      if(ar)ar.value='STATUS_LOGON_FAILURE proved auth negative';
+      click('attemptAdd');
+      const ledger=document.getElementById('attemptLedgerList')?.textContent||'';
+      record('attempt ledger',/Functional audit SMB auth/.test(ledger)&&/STATUS_LOGON_FAILURE/.test(ledger),ledger.slice(0,300));
+      window.OSCP_V26?.closeWork?.(true);
+
+      // Credential Matrix add flow must create a row.
+      window.switchView('credentialsView',{history:false});
+      click('showAddCred');
+      const cu=document.getElementById('credUser'),cs=document.getElementById('credSecret');
+      if(cu)cu.value='audit-user';if(cs)cs.value='AuditSecret!';
+      const beforeCred=document.querySelectorAll('#credBody tr[data-cid]').length;
+      click('addCredential');
+      const afterCred=document.querySelectorAll('#credBody tr[data-cid]').length;
+      const credText=document.getElementById('credBody')?.textContent||'';
+      record('credential add flow',afterCred===beforeCred+1&&credText.includes('audit-user'),JSON.stringify({beforeCred,afterCred,credText:credText.slice(0,180)}));
+
+      // Report generator must produce Markdown for the active target.
+      window.switchView('reportsView',{history:false});
+      click('generateReport');
+      const report=document.getElementById('reportPreview')?.value||'';
+      record('report generator',report.length>80&&/^#|##/m.test(report),report.slice(0,200));
+
+      // Browser history buttons: two app views then Back should restore the previous one.
+      window.switchView('methodologyView');
+      window.switchView('toolArsenalView');
+      history.back();
+      await new Promise(r=>setTimeout(r,80));
+      const backView=document.querySelector('.view.active')?.id||'';
+      record('browser history restore',backView==='methodologyView',backView);
+
+      return JSON.stringify({ok,fail});
+    })()`);
+    const targetFeatureAudit=JSON.parse(targetFeatureAuditRaw||'{}');
+    if(targetFeatureAudit.fail?.length)throw new Error('target-state functional audit failed: '+JSON.stringify(targetFeatureAudit.fail));
+
+    // Whole-app responsive sweep: every navigation view must stay within the page viewport.
+    const responsivePasses=[];
+    for(const width of [1440,900,560,390]){
+      await rpc.send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});
+      const raw=await evalValue(`(async()=>{
+        const failures=[],ids=[...new Set([...document.querySelectorAll('#nav .navbtn[data-view]')].map(b=>b.dataset.view).filter(Boolean))];
+        for(const id of ids){
+          window.switchView(id,{history:false});
+          await new Promise(r=>setTimeout(r,6));
+          const v=document.getElementById(id),r=v?.getBoundingClientRect(),cs=v?getComputedStyle(v):null;
+          const overflow=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-window.innerWidth;
+          const ok=!!v&&v.classList.contains('active')&&cs?.display!=='none'&&r&&r.width>Math.min(260,window.innerWidth-30)&&r.left>=-2&&r.right<=window.innerWidth+8&&overflow<=8;
+          if(!ok){
+            const offenders=[...v.querySelectorAll('*')].map(el=>{const q=el.getBoundingClientRect();return{tag:el.tagName.toLowerCase(),id:el.id||'',cls:String(el.className||'').slice(0,100),text:String(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,90),left:Math.round(q.left),right:Math.round(q.right),w:Math.round(q.width),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}}).filter(x=>x.right>window.innerWidth+8||x.w>(r?.width||window.innerWidth)+8||x.scrollWidth>x.clientWidth+8).sort((a,b)=>(b.right-window.innerWidth)-(a.right-window.innerWidth)||b.w-a.w).slice(0,10);
+            failures.push({id,display:cs?.display||'',rect:r?{left:r.left,right:r.right,w:r.width,h:r.height}:null,innerWidth:window.innerWidth,overflow,offenders});
+          }
+        }
+        return JSON.stringify({width:window.innerWidth,count:ids.length,failures});
+      })()`);
+      responsivePasses.push(JSON.parse(raw||'{}'));
+    }
+    const responsiveFailures=responsivePasses.flatMap(x=>(x.failures||[]).map(f=>({width:x.width,...f})));
+    if(responsiveFailures.length)throw new Error('whole-app responsive sweep failed: '+JSON.stringify(responsiveFailures.slice(0,20)));
+    await rpc.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+    await evalValue("(()=>{window.switchView('simpleExamView',{history:false});return true})()");
+
     const renders=[];
     for(const scale of [1,1.25,1.5]){
       await rpc.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:scale,mobile:false});

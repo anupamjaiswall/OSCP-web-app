@@ -38,6 +38,18 @@ if(missing.length) fail('Broken anchors: '+missing.join(', '));
 
 const jsFiles=fs.readdirSync(path.join(root,'src/js')).filter(x=>x.endsWith('.js')).sort();
 const js=jsFiles.map(f=>read('src/js/'+f)).join('\n');
+const templateHtml=read('src/index.template.html');
+const callableStatic=templateHtml+'\n'+js;
+const viewIds=new Set([...templateHtml.matchAll(/<section\b[^>]*>/gi)].map(m=>{const tag=m[0],id=tag.match(/\bid=["']([^"']+)["']/i)?.[1]||'',cls=tag.match(/\bclass=["']([^"']+)["']/i)?.[1]||'';return /(?:^|\s)view(?:\s|$)/.test(cls)?id:''}).filter(Boolean));
+const literalViewTargets=[...new Set([...callableStatic.matchAll(/\bswitchView\(\s*["']([^"']+)["']/g)].map(m=>m[1]))];
+const brokenViewTargets=literalViewTargets.filter(id=>!viewIds.has(id));
+if(brokenViewTargets.length) fail('Broken switchView target(s): '+brokenViewTargets.join(', '));
+const literalRefTargets=[...new Set([...callableStatic.matchAll(/\bopenRef\(\s*["']([^"']+)["']/g)].map(m=>m[1]))];
+const brokenRefTargets=literalRefTargets.filter(id=>!seen.has(id));
+if(brokenRefTargets.length) fail('Broken openRef target(s): '+brokenRefTargets.join(', '));
+const ariaIdRefs=[...staticAuditHtml.matchAll(/\b(?:aria-controls|aria-labelledby|aria-describedby|for)=["']([^"']+)["']/gi)].flatMap(m=>m[1].split(/\s+/).filter(Boolean));
+const brokenAriaRefs=[...new Set(ariaIdRefs.filter(id=>!seen.has(id)))];
+if(brokenAriaRefs.length) fail('Broken ARIA/label target(s): '+brokenAriaRefs.join(', '));
 const inner=(js.match(/\.innerHTML\s*=/g)||[]).length;
 if(inner>174) fail('innerHTML assignments increased above audited baseline: '+inner);
 

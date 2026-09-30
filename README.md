@@ -1,6 +1,12 @@
 # 🔐 OSCP Exam OS
 
-**V34.34 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.35 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.35 cross-application reliability audit
+
+V34.35 expands the required real-browser gate from page-level rendering into functional workflows across the application: theme/readability, evidence timer, method trees, Service Router parsing and score runway, AD username generation, scan intake, output analysis, Unicode command sanitization, command palette, quick notes, target creation, attempt ledger, credential creation, report generation, and browser-history restoration. It also sweeps every navigation view at 1440, 900, 560 and 390 px and rejects document-level horizontal overflow.
+
+That sweep found and fixed three real layout defects: Settings used content-sized 3-column tracks, the shared operations grid used content-sized 12-column tracks, and Session Health leaked an `opsSpan12` class into a four-column nested grid, creating implicit columns. Workspace resume-packet components also received explicit shrink containment for narrow screens. Static validation now rejects broken literal `switchView()` destinations, broken `openRef()` anchors, and missing ARIA/label ID targets.
 
 ## V34.34 Service Router layout hotfix
 
