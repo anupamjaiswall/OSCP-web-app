@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.32.0">
+<meta name="oscp-build-version" content="34.33.0">
 <meta name="oscp-build-date" content="2026-09-30">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -1469,7 +1469,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.32.0',
+  version:'34.33.0',
   label:'V34',
   date:'2026-09-30'
 });</script>
@@ -4635,7 +4635,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   const NAV_STORE='oscp_v16_last_view';
   const NAV_SCROLL='oscp_v16_view_scrolls';
   const MODE_STORE='oscp_v16_advanced_mode';
-  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','windowsStrategyView','workspaceView','reportsView','referenceView']);
+  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','windowsStrategyView','workspaceView','reportsView','referenceView']);
   const baseSwitch=window.switchView || switchView;
   let historyReplay=false;
   let navSerial=Number(history.state?.serial)||0;
@@ -4732,7 +4732,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
       if(before==='referenceView'&&hpBefore.ref&&hpBefore.ref!==anchor){
         try{history.replaceState({...currentState(hpBefore.ref),view:'referenceView',ref:hpBefore.ref,scrollY:scrolls.referenceView||window.scrollY||0},'',navURL('referenceView',hpBefore.ref));}catch(e){}
       }
-      baseOpenRef(anchor);
+      const result=baseOpenRef(anchor);
       setTimeout(()=>{
         try{
           const st={...(history.state||{}),oscpNav:1,view:'referenceView',ref:anchor||'',scrollY:window.scrollY||0};
@@ -4742,6 +4742,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
           updateHistoryButtons();
         }catch(e){}
       },45);
+      return result;
     };
   }
 
@@ -5032,7 +5033,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   if(typeof toast==='function')toast('Merged '+parsed.endpoints.length+' endpoint(s) into active target')
  }
  function score(){const ad=Number($('scoreAD')?.value||0),ss=[...document.querySelectorAll('.scoreStandalone')].map(x=>Number(x.value||0)),scoreState=window.OSCP_UTILS.examScore(ad,ss,70),total=scoreState.total,need=scoreState.need,el=$('scoreSummary');if(!el)return;el.className='scoreSummary '+(total>=70?'good':'warn');let next='Bank every earned flag/evidence now.';if(total<70){const o=[];ss.forEach((v,i)=>{if(v===0)o.push(`S${i+1} local +10`);if(v===10)o.push(`S${i+1} privesc +10`)});if(ad<40)o.push(`AD remaining up to +${40-ad}`);next=o.length?`Nearest remaining point units: ${o.join(' · ')}`:'Re-check the Exam Control Panel objectives.'}el.innerHTML=`<div class="scoreBig">${total}/100</div><div><b>${total>=70?'Pass threshold reached in this planner':need+' more points to 70'}</b></div><div class="tiny" style="margin-top:6px">${esc(next)}</div>`}
- $('serviceRouterBuild')?.addEventListener('click',render);$('serviceRouterInput')?.addEventListener('input',()=>{clearTimeout(window.__oscpServiceTimer);window.__oscpServiceTimer=setTimeout(render,180)});$('serviceRouterCopy')?.addEventListener('click',async()=>{render();const txt=$('serviceFirstPassQueue')?.textContent||'';try{await navigator.clipboard.writeText(txt);toast('First-pass queue copied')}catch(e){}});$('serviceRouterLoadTarget')?.addEventListener('click',loadActiveTargetPorts);$('serviceRouterSaveTarget')?.addEventListener('click',saveParsedToTarget);$('scoreAD')?.addEventListener('change',score);document.querySelectorAll('.scoreStandalone').forEach(x=>x.addEventListener('change',score));score();window.OSCP_SERVICE_ROUTER={parsePorts,parseServices,classify,render,score,loadActiveTargetPorts,saveParsedToTarget};try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['Service router parses Nmap TCP/UDP',()=>{const r=parseServices('22/tcp open ssh\\n53/udp open domain\\n161/udp open|filtered snmp');return[r.endpoints.length===3&&r.endpoints.some(x=>x.port===53&&x.proto==='udp'),'count='+r.endpoints.length]}],['Service router ignores unrelated numbers',()=>{const p=parsePorts('Nmap scan report for 10.10.10.123\\nHost is up (0.021s latency).\\n22/tcp open ssh OpenSSH 8.9p1');return[p.length===1&&p[0]===22,p.join(',')]}],['Service router explicit list stays strict',()=>{const p=parsePorts('22,80,445');return[p.join(',')==='22,80,445',p.join(',')]}],['Service router arbitrary numeric prose is not ports',()=>{const p=parsePorts('target 10.10.10.10 latency 21 ms version 8.9');return[p.length===0,p.join(',')||'none']}],['Service router prioritizes SMB before SSH',()=>{const r=classify([22,445]).map(x=>x.name);return[r[0]==='RPC/SMB',r.join(' > ')]}],['Service router does not map unknown port to a CVE',()=>{const r=classify([31337]);return[r.length===0,'unknown remains manual-identification path']}])}catch(e){}
+ $('serviceRouterBuild')?.addEventListener('click',render);$('serviceRouterInput')?.addEventListener('input',()=>{clearTimeout(window.__oscpServiceTimer);window.__oscpServiceTimer=setTimeout(render,180)});$('serviceRouterCopy')?.addEventListener('click',async()=>{render();const txt=$('serviceFirstPassQueue')?.textContent||'';try{await navigator.clipboard.writeText(txt);toast('First-pass queue copied')}catch(e){}});$('serviceRouterLoadTarget')?.addEventListener('click',loadActiveTargetPorts);$('serviceRouterSaveTarget')?.addEventListener('click',saveParsedToTarget);$('scoreAD')?.addEventListener('change',score);document.querySelectorAll('.scoreStandalone').forEach(x=>x.addEventListener('change',score));score();window.OSCP_SERVICE_ROUTER={parsePorts,parseServices,classify,render,score,loadActiveTargetPorts,saveParsedToTarget};try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['Service router parses Nmap TCP/UDP',()=>{const r=parseServices('22/tcp open ssh\n53/udp open domain\n161/udp open|filtered snmp');return[r.endpoints.length===3&&r.endpoints.some(x=>x.port===53&&x.proto==='udp'),'count='+r.endpoints.length]}],['Service router ignores unrelated numbers',()=>{const p=parsePorts('Nmap scan report for 10.10.10.123\nHost is up (0.021s latency).\n22/tcp open ssh OpenSSH 8.9p1');return[p.length===1&&p[0]===22,p.join(',')]}],['Service router explicit list stays strict',()=>{const p=parsePorts('22,80,445');return[p.join(',')==='22,80,445',p.join(',')]}],['Service router arbitrary numeric prose is not ports',()=>{const p=parsePorts('target 10.10.10.10 latency 21 ms version 8.9');return[p.length===0,p.join(',')||'none']}],['Service router prioritizes SMB before SSH',()=>{const r=classify([22,445]).map(x=>x.name);return[r[0]==='RPC/SMB',r.join(' > ')]}],['Service router does not map unknown port to a CVE',()=>{const r=classify([31337]);return[r.length===0,'unknown remains manual-identification path']}])}catch(e){}
 })();
 </script>
 <script>window.__OSCP_BOOT_STAGE__='09-v20-service-router';console.log('[OSCP_BOOT_STAGE]','09-v20-service-router');</script>

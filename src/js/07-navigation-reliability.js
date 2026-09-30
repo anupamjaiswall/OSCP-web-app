@@ -14,7 +14,7 @@
   const NAV_STORE='oscp_v16_last_view';
   const NAV_SCROLL='oscp_v16_view_scrolls';
   const MODE_STORE='oscp_v16_advanced_mode';
-  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','windowsStrategyView','workspaceView','reportsView','referenceView']);
+  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','windowsStrategyView','workspaceView','reportsView','referenceView']);
   const baseSwitch=window.switchView || switchView;
   let historyReplay=false;
   let navSerial=Number(history.state?.serial)||0;
@@ -111,7 +111,7 @@
       if(before==='referenceView'&&hpBefore.ref&&hpBefore.ref!==anchor){
         try{history.replaceState({...currentState(hpBefore.ref),view:'referenceView',ref:hpBefore.ref,scrollY:scrolls.referenceView||window.scrollY||0},'',navURL('referenceView',hpBefore.ref));}catch(e){}
       }
-      baseOpenRef(anchor);
+      const result=baseOpenRef(anchor);
       setTimeout(()=>{
         try{
           const st={...(history.state||{}),oscpNav:1,view:'referenceView',ref:anchor||'',scrollY:window.scrollY||0};
@@ -121,6 +121,7 @@
           updateHistoryButtons();
         }catch(e){}
       },45);
+      return result;
     };
   }
 

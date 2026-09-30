@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.33.0 — 2026-09-30
+
+### Full browser reliability audit
+- Browser CI now boots from the same `#view=simpleExamView` route used by GitHub Pages.
+- Added a real-browser sweep of every navigation destination, visible-layout checks, the complete in-browser self-test suite, and critical dialog open/close checks.
+- Fixed two malformed Service Router browser self-test fixtures that used literal `\\n` text instead of newline escapes.
+- Fixed the navigation/history wrapper discarding the Promise/boolean returned by `openRef()`; real browser CI now requires a successful return value.
+- Added Service Router and Method Trees to the simple-mode last-view restore allowlist.
+
 ## V34.32.0 — 2026-09-30
 
 ### Layout hotfix — visible \\n / blank main pane

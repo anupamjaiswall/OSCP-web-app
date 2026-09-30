@@ -1,6 +1,10 @@
 # 🔐 OSCP Exam OS
 
-**V34.32 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.33 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.33 reliability audit
+
+V34.33 expands the required real-browser gate to boot from the deployed `#view=simpleExamView` route, sweep every navigation destination, require real visible layout dimensions, run the complete in-browser self-test suite, and exercise the critical dialogs. The audit fixed malformed multiline Service Router self-test fixtures, preserved the asynchronous `openRef()` success contract through the history wrapper, and added Service Router/Method Trees to simple-mode last-view restoration.
 
 ## V34.32 layout hotfix
 
