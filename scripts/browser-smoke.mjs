@@ -331,7 +331,7 @@ async function main(){
       const noteValue=note?.value||'';
       const noteOpen=document.getElementById('quickNoteBackdrop')?.classList.contains('open');
       click('quickNoteClose');
-      record('quick note',!!noteOpen&&/functional-audit-note/.test(noteValue)&&/\[[^\]]+\]/.test(noteValue),noteValue.slice(0,240));
+      record('quick note',!!noteOpen&&noteValue.includes('functional-audit-note')&&noteValue.includes('[')&&noteValue.includes(']'),noteValue.slice(0,240));
 
       return JSON.stringify({ok,fail});
     })()`);
