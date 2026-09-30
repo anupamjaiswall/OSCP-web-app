@@ -143,7 +143,7 @@ async function main(){
         visited.push(id);
         if(!ok)failures.push({id,active:!!v?.classList.contains('active'),display:cs?.display||'',rect:r?{w:r.width,h:r.height,left:r.left,top:r.top}:null});
       }
-      window.switchView('simpleExamView',{history:false});
+      await evalValue("(()=>{window.switchView('simpleExamView',{history:false});return true})()");
       return JSON.stringify({count:visited.length,failures,active:document.querySelector('.view.active')?.id||''});
     })()`);
     const navSweep=JSON.parse(navSweepRaw||'{}');
@@ -177,6 +177,7 @@ async function main(){
     if(dialogAudit.some(x=>x.missing||!x.opened||!x.closed))throw new Error('dialog audit failed: '+dialogAuditRaw);
 
     // Service Router layout regression: verify real 7/5 desktop columns and usable control widths.
+    await rpc.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
     const serviceLayoutRaw=await evalValue(`(()=>{
       window.switchView('serviceRouterView',{history:false});
       const view=document.getElementById('serviceRouterView');
