@@ -278,7 +278,7 @@ async function main(){
       if(scores[0]){scores[0].value='20';scores[0].dispatchEvent(new Event('change',{bubbles:true}))}
       if(scores[1]){scores[1].value='20';scores[1].dispatchEvent(new Event('change',{bubbles:true}))}
       const scoreText=document.getElementById('scoreSummary')?.textContent||'';
-      record('Service Router functional parse',/3 endpoint/.test(srSummary)&&/SSH/.test(srQueue)&&/RPC\/SMB/.test(srQueue)&&/HTTP\/S/.test(srQueue)&&/80\/100/.test(scoreText),JSON.stringify({srSummary,scoreText}));
+      record('Service Router functional parse',/3 endpoint/.test(srSummary)&&/SSH/.test(srQueue)&&srQueue.includes('RPC/SMB')&&srQueue.includes('HTTP/S')&&scoreText.includes('80/100'),JSON.stringify({srSummary,scoreText}));
 
       // AD username generator: evidence-derived names should produce non-empty candidates.
       window.switchView('windowsStrategyView',{history:false});
