@@ -312,7 +312,7 @@ async function main(){
       if(gc)gc.value='curl “http://10.10.10.20/”';
       click('sanitizeGuardCommand');
       const guardValue=gc?.value||'',guardResult=document.getElementById('unicodeSanitizeResult')?.textContent||'';
-      record('command Unicode sanitizer',!/[“”]/.test(guardValue)&&/curl "http:\/\/10\.10\.10\.20\/"/.test(guardValue)&&/Detected|No risky Unicode/.test(guardResult),JSON.stringify({guardValue,guardResult}));
+      record('command Unicode sanitizer',!/[“”]/.test(guardValue)&&guardValue.includes('curl "http://10.10.10.20/"')&&/Detected|No risky Unicode/.test(guardResult),JSON.stringify({guardValue,guardResult}));
 
       // Command palette must open, filter, expose results, and close.
       window.OSCP_V26?.openPalette?.('linux');
