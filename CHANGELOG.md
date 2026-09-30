@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.32.0 — 2026-09-30
+
+### Layout hotfix — visible \\n / blank main pane
+- Removed four accidental literal `\\n` text nodes after parser-stage scripts.
+- Fixed the first artifact sitting directly in the two-column `.layout` grid, where it could become an anonymous grid item and displace `<main>`.
+- Added static validation that rejects structural `</script>\\n<main|section>` artifacts.
+- Strengthened the browser smoke gate to require no non-whitespace text-node children in the layout and a visibly sized Start view.
+
 ## V34.31.0 — 2026-09-30
 
 ### Reliability hotfix — deterministic reference hydration

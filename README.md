@@ -1,6 +1,10 @@
 # 🔐 OSCP Exam OS
 
-**V34.31 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.32 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.32 layout hotfix
+
+V34.32 removes four accidental literal `\\n` text nodes from structural parser-stage boundaries. The first one was a direct child of the two-column CSS Grid between the sidebar and `<main>`, so browsers could place the text as an anonymous grid item and push the real Start view out of the expected pane. Validation now rejects this pattern and the browser smoke test requires a clean grid plus a visibly sized Start view.
 
 ## V34.31 reliability hotfix
 

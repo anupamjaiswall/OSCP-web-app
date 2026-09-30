@@ -18,6 +18,9 @@ if(Buffer.byteLength(html)>1_500_000)fail('Generated index.html exceeds 1.5 MB s
 if(/<script\b[^>]*\bsrc\s*=/i.test(html)) fail('Runtime script source detected');
 if(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref\s*=/i.test(html)) fail('Runtime stylesheet detected');
 if(/<(?:script|img|link)\b[^>]*(?:src|href)=["']https?:\/\//i.test(html)) fail('Remote runtime resource detected');
+const structuralEscapedNewline=/<\/script>\\n(?=<(?:main|section)\b)/i;
+if(structuralEscapedNewline.test(html)) fail('Literal \\n found between a parser-stage script and structural content');
+if(structuralEscapedNewline.test(read('src/index.template.html'))) fail('Template contains a structural literal \\n after a parser-stage script');
 
 const idManifest=JSON.parse(read('src/content/manifest.json'));
 const idReference=idManifest.files.map(f=>read('src/content/'+f)).join('');
