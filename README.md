@@ -1,6 +1,10 @@
 # 🔐 OSCP Exam OS
 
-**V34.30 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.31 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.31 reliability hotfix
+
+V34.31 removes the repeated idle-callback reference hydration loop. The embedded reference now hydrates once, deterministically, after the exam controls are available, with an automatic watchdog fallback. Search and direct-reference jumps still trigger hydration on demand, but the app can no longer remain indefinitely in a partial “Loading…” state because an idle callback never progressed.
 
 ## V34.30 compatibility hotfix
 
