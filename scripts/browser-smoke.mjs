@@ -178,7 +178,8 @@ async function main(){
 
     // Real interaction 0: direct reference navigation must work even if hydration is still in progress.
     const directAnchor='ref-c4-i-have-a-linux-shell-what-now';
-    await evalValue("(()=>{window.openRef('"+directAnchor+"');return true})()");
+    const directOpenResult=await evalValue("window.openRef('"+directAnchor+"')");
+    if(directOpenResult!==true)throw new Error('openRef did not report success in browser: '+String(directOpenResult));
     const directReference=await waitFor(async()=>{
       const x=await evalValue("JSON.stringify({view:document.getElementById('referenceView')?.classList.contains('active')===true,anchor:!!document.getElementById('"+directAnchor+"'),ready:window.OSCP_REFERENCE_READY===true})");
       const s=JSON.parse(x||'{}');return s.view&&s.anchor?s:false;
@@ -223,7 +224,8 @@ async function main(){
       }catch(_){return false}
     },25000,150);
     if(!localReady)throw new Error('file:// offline artifact did not reach a usable state without DecompressionStream');
-    await evalValue("(()=>{window.openRef('"+directAnchor+"');return true})()");
+    const localOpenResult=await evalValue("window.openRef('"+directAnchor+"')");
+    if(localOpenResult!==true)throw new Error('file:// openRef did not report success: '+String(localOpenResult));
     const localRef=await waitFor(async()=>await evalValue("!!document.getElementById('"+directAnchor+"')&&document.getElementById('referenceView')?.classList.contains('active')===true"),20000,100);
     if(!localRef)throw new Error('file:// deep-reference navigation failed');
 
