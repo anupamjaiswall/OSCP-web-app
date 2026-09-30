@@ -91,6 +91,8 @@ test('browser gate covers deployed hash route and full navigation sweep',()=>{co
 
 test('browser Service Router self-tests use real multiline fixtures',()=>{const src=read('src/js/09-v20-service-router.js');ok(src.includes("22/tcp open ssh\\n53/udp open domain\\n161/udp open|filtered snmp"));ok(!src.includes("22/tcp open ssh\\\\n53/udp"));});
 test('navigation wrapper preserves openRef result contract',()=>{const src=read('src/js/07-navigation-reliability.js');ok(src.includes('const result=baseOpenRef(anchor)'));ok(src.includes('return result;'));});
+test('simple-mode restore includes every primary exam-core workflow',()=>{const src=read('src/js/07-navigation-reliability.js');for(const id of ['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','windowsStrategyView','workspaceView','reportsView','referenceView'])ok(src.includes("'"+id+"'"),id);});
+test('real browser gate requires openRef success contract',()=>{const src=read('scripts/browser-smoke.mjs');ok(src.includes('directOpenResult!==true'));ok(src.includes('localOpenResult!==true'));});
 
 test('bracket links are incremental and non-blocking at startup',()=>{const src=read('src/js/12-v22-bracket-links.js');const start=src.slice(src.indexOf('function start()'),src.indexOf("if(document.readyState==='loading')"));ok(src.includes('function linkifyIncremental'));ok(src.includes('setTimeout(pump,0)'));ok(start.includes('linkifyIncremental(root'));ok(!start.includes('linkify(root)'));ok(src.includes('window.OSCP_TAG_LINKS.complete=true'))});
 
