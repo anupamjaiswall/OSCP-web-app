@@ -8,6 +8,10 @@ V34.35 expands the required real-browser gate from page-level rendering into fun
 
 That sweep found and fixed three real layout defects: Settings used content-sized 3-column tracks, the shared operations grid used content-sized 12-column tracks, and Session Health leaked an `opsSpan12` class into a four-column nested grid, creating implicit columns. Workspace resume-packet components also received explicit shrink containment for narrow screens. Static validation now rejects broken literal `switchView()` destinations, broken `openRef()` anchors, and missing ARIA/label ID targets.
 
+## V34.35 search navigation hotfix
+
+Global search now routes body-text matches to the exact collapsed reference section instead of allowing a broad parent heading to absorb text from child `<details>` blocks. Opening a result expands every ancestor `<details>` before scrolling/highlighting. Browser CI searches `subdomain`, opens `2.2 /etc/hosts Management`, and requires that section to be expanded.
+
 ## V34.34 Service Router layout hotfix
 
 V34.34 fixes a real CSS grid defect in Service Router: the page used `span7` and `span5` cards but the base grid only defined 4/6/8/12 spans, so the two middle cards could collapse to one grid column. The missing 5/7 span rules are now defined globally with responsive full-width stacking. Service Router's input/actions are also rebuilt as a full-width textarea followed by four equal action buttons. Browser CI now asserts the real desktop card widths and guards against horizontal overflow.
