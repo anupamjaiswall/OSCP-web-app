@@ -1,6 +1,10 @@
 # 🔐 OSCP Exam OS
 
-**V34.33 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.34 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+
+## V34.34 Service Router layout hotfix
+
+V34.34 fixes a real CSS grid defect in Service Router: the page used `span7` and `span5` cards but the base grid only defined 4/6/8/12 spans, so the two middle cards could collapse to one grid column. The missing 5/7 span rules are now defined globally with responsive full-width stacking. Service Router's input/actions are also rebuilt as a full-width textarea followed by four equal action buttons. Browser CI now asserts the real desktop card widths and guards against horizontal overflow.
 
 ## V34.33 reliability audit
 
