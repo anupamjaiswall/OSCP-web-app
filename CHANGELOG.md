@@ -1,5 +1,16 @@
 # Changelog
 
+## V34.35.0 — 2026-09-30
+
+### Cross-application functional and responsive reliability audit
+- Added real-browser interaction coverage for major exam workflows instead of checking only that views exist.
+- Added a four-width whole-app sweep (1440/900/560/390 px) across every navigation destination with a hard page-overflow gate.
+- Fixed Settings horizontal overflow by changing its fractional tracks to `minmax(0,1fr)`.
+- Fixed shared Workspace/Session grid shrink behavior with zero-minimum fractional tracks and child containment.
+- Fixed Session Health creating implicit grid columns when its issue summary reused `.opsSpan12` inside the nested health grid.
+- Hardened the Workspace resume packet against intrinsic-width overflow on narrow screens.
+- Static validation now rejects broken literal view targets, reference anchors, and ARIA/label targets.
+
 ## V34.34.0 — 2026-09-30
 
 ### Service Router layout hotfix
