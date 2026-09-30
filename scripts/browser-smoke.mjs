@@ -358,11 +358,11 @@ async function main(){
       click('showAddCred');
       const cu=document.getElementById('credUser'),cs=document.getElementById('credSecret');
       if(cu)cu.value='audit-user';if(cs)cs.value='AuditSecret!';
-      const beforeCred=document.querySelectorAll('#credBody tr').length;
+      const beforeCred=document.querySelectorAll('#credBody tr[data-cid]').length;
       click('addCredential');
-      const afterCred=document.querySelectorAll('#credBody tr').length;
+      const afterCred=document.querySelectorAll('#credBody tr[data-cid]').length;
       const credText=document.getElementById('credBody')?.textContent||'';
-      record('credential add flow',afterCred===beforeCred+1&&/audit-user/.test(credText),JSON.stringify({beforeCred,afterCred,credText:credText.slice(0,180)}));
+      record('credential add flow',afterCred===beforeCred+1&&credText.includes('audit-user'),JSON.stringify({beforeCred,afterCred,credText:credText.slice(0,180)}));
 
       // Report generator must produce Markdown for the active target.
       window.switchView('reportsView',{history:false});
