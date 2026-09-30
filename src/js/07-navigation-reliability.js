@@ -14,7 +14,7 @@
   const NAV_STORE='oscp_v16_last_view';
   const NAV_SCROLL='oscp_v16_view_scrolls';
   const MODE_STORE='oscp_v16_advanced_mode';
-  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','windowsStrategyView','workspaceView','reportsView','referenceView']);
+  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','windowsStrategyView','workspaceView','reportsView','referenceView']);
   const baseSwitch=window.switchView || switchView;
   let historyReplay=false;
   let navSerial=Number(history.state?.serial)||0;
