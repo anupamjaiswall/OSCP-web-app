@@ -5165,11 +5165,11 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   return node;
  }
  function toastSafe(message){
-  if(typeof root.toast==='function')root.toast(message);
+  if(typeof toast==='function')toast(message);
  }
  async function copyCommand(kind){
   const command=COMMANDS[kind];
-  const ok=typeof root.copyText==='function'?await root.copyText(command):false;
+  const ok=typeof copyText==='function'?await copyText(command):false;
   toastSafe(ok?(kind==='linux'?'Linux proof command copied':'Windows proof command copied'):'Copy blocked — command remains visible below');
   return ok;
  }
@@ -5261,17 +5261,17 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   if(e.key==='Escape'&&m.classList.contains('open')){e.preventDefault();close()}
   else if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='b'){e.preventDefault();open()}
  });
- document.getElementById('examBankTarget')?.addEventListener('click',()=>{close();try{root.switchView('workspaceView')}catch(e){}});
+ document.getElementById('examBankTarget')?.addEventListener('click',()=>{close();try{switchView('workspaceView')}catch(e){}});
  document.getElementById('examBankEvidence')?.addEventListener('click',()=>{
   close();
   const q=document.getElementById('globalSearch');
   if(!q)return;
   q.value='[EVIDENCE:PACKET]';
-  try{root.switchView('searchView');root.renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}
+  try{switchView('searchView');renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}
  });
  document.getElementById('examBankVerify')?.addEventListener('click',()=>{
   close();
-  try{root.switchView('reportsView');root.renderReport();toastSafe('Verify the report/evidence gate — this dialog never marks points as banked')}catch(e){}
+  try{switchView('reportsView');renderReport();toastSafe('Verify the report/evidence gate — this dialog never marks points as banked')}catch(e){}
  });
  installClosureGuard();
  root.OSCP_PROOF_BANK=Object.freeze({open,close,resetChecklist,updateStatus});
