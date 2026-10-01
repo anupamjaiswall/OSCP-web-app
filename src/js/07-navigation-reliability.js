@@ -61,6 +61,12 @@
     }
     updateHistoryButtons();
   }
+  function openDetailsChain(el){
+    const chain=[];
+    for(let d=el?.closest?.('details');d;d=d.parentElement?.closest?.('details'))chain.push(d);
+    chain.reverse().forEach(d=>{d.open=true});
+    return chain.length;
+  }
   async function waitForReferenceAnchor(anchor,timeout=12000){
     const deadline=Date.now()+Math.max(500,Number(timeout)||12000);
     while(Date.now()<deadline){
@@ -77,7 +83,7 @@
   async function openReferenceAnchor(anchor,restoreScroll){
     if(!anchor)return;
     const el=await waitForReferenceAnchor(anchor);if(!el)return;
-    let d=el.closest('details');if(d)d.open=true;
+    openDetailsChain(el);
     if(Number.isFinite(restoreScroll))window.scrollTo({top:restoreScroll,behavior:'auto'});
     else el.scrollIntoView({behavior:'auto',block:'start'});
     el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1200);
@@ -112,6 +118,12 @@
         try{history.replaceState({...currentState(hpBefore.ref),view:'referenceView',ref:hpBefore.ref,scrollY:scrolls.referenceView||window.scrollY||0},'',navURL('referenceView',hpBefore.ref));}catch(e){}
       }
       const result=baseOpenRef(anchor);
+      Promise.resolve(result).then(ok=>{
+        if(!ok)return;
+        const el=document.getElementById(anchor);if(!el)return;
+        openDetailsChain(el);
+        el.scrollIntoView({behavior:'auto',block:'start'});
+      }).catch(()=>{});
       setTimeout(()=>{
         try{
           const st={...(history.state||{}),oscpNav:1,view:'referenceView',ref:anchor||'',scrollY:window.scrollY||0};
@@ -202,12 +214,13 @@
   else setTimeout(()=>window.scrollTo({top:initialY,behavior:'auto'}),20);
 
   // Small testable surface for the built-in self-test and manual debugging.
-  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},setAdvancedMode,back:()=>history.back(),forward:()=>history.forward()};
+  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},setAdvancedMode,back:()=>history.back(),forward:()=>history.forward(),openDetailsChain};
   try{
     if(typeof V16_SELF_TESTS!=='undefined'){
       V16_SELF_TESTS.push(
         ['Browser history navigation layer',()=>[!!window.OSCP_NAV&&typeof history.pushState==='function','history+OSCP_NAV']],
         ['Navigation deep-link parser',()=>[OSCP_NAV.isView('windowsStrategyView')&&OSCP_NAV.isView('referenceView'),'views resolvable']],
+        ['Reference ancestor expansion',()=>[typeof OSCP_NAV.openDetailsChain==='function','full details chain']],
         ['Shortcut conflicts removed',()=>[OSCP_NAV.shortcuts.c==='coverageView'&&OSCP_NAV.shortcuts.h==='hypothesisView'&&OSCP_NAV.shortcuts.e==='vaultView'&&OSCP_NAV.shortcuts.k==='clockView'&&OSCP_NAV.shortcuts.p==='v16HighSignalView','C/H/E/K/P unique']],
         ['Simple exam mode available',()=>[OSCP_NAV.isView('simpleExamView')&&OSCP_NAV.isView('methodologyView')&&typeof OSCP_NAV.setAdvancedMode==='function','simple+method+toggle']]
       );
