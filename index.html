@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.37.0">
+<meta name="oscp-build-version" content="34.38.0">
 <meta name="oscp-build-date" content="2026-10-01">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -248,7 +248,8 @@ body:not(.advancedMode) .advancedNav{display:none}
 @media(max-width:700px){.examResetGrid{grid-template-columns:1fr}.examResetDialog{padding:14px}.examResetTimer{font-size:27px}}
 </style>
 <style id="examBankStyles">
-.examBankBackdrop{position:fixed;inset:0;z-index:1001;background:rgba(2,5,10,.84);display:none;place-items:center;padding:18px;backdrop-filter:blur(5px)}.examBankBackdrop.open{display:grid}.examBankDialog{width:min(760px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid #2f7a55;border-radius:14px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.6)}.examBankHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.examBankHead h2{margin:0}.examBankSteps{display:grid;gap:8px;margin:14px 0}.examBankStep{background:#0d1119;border:1px solid var(--line);border-radius:9px;padding:10px}.examBankStep b{color:var(--good)}.examBankDanger{border-left:3px solid var(--bad);background:#28171a;padding:9px 11px;border-radius:7px}.examBankActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+.examBankBackdrop{position:fixed;inset:0;z-index:1001;background:rgba(2,5,10,.84);display:none;place-items:center;padding:18px;backdrop-filter:blur(5px)}.examBankBackdrop.open{display:grid}.examBankDialog{width:min(820px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid #2f7a55;border-radius:14px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.6)}.examBankHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.examBankHead h2{margin:0}.examBankSteps{display:grid;gap:8px;margin:14px 0}.examBankStep{background:#0d1119;border:1px solid var(--line);border-radius:9px;padding:10px}.examBankStep b{color:var(--good)}.examBankDanger{border-left:3px solid var(--bad);background:#28171a;padding:9px 11px;border-radius:7px}.examBankActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+.examBankClosure{margin-top:14px;border:1px solid var(--line);border-radius:11px;background:#0b1018;padding:12px}.examBankClosureHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.examBankClosureHead h3{margin:0 0 3px}.examBankClosureStatus{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border-radius:999px;border:1px solid var(--line);font-size:.78rem;font-weight:800;white-space:nowrap}.examBankClosureStatus.pending{background:#2a2212;border-color:#765e1d;color:#ffd166}.examBankClosureStatus.complete{background:#13271d;border-color:#2f7a55;color:var(--good)}.examBankClosureGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}.examBankClosureItem{display:flex;gap:8px;align-items:flex-start;background:#0d1119;border:1px solid var(--line);border-radius:8px;padding:9px;cursor:pointer}.examBankClosureItem input{margin-top:2px;flex:0 0 auto}.examBankClosureItem:has(input:checked){border-color:#2f7a55;background:#102018}.examBankCaptureBox{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}.examBankCaptureHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.examBankCaptureActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.examBankCommandGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.examBankCommand{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;background:#070a0f;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:.78rem}.examBankRuleNote{margin-top:10px;border-left:3px solid #4f84c4;background:#101927;padding:9px 10px;border-radius:7px;font-size:.82rem;line-height:1.45}@media(max-width:760px){.examBankClosureHead,.examBankCaptureHead{flex-direction:column}.examBankClosureGrid,.examBankCommandGrid{grid-template-columns:1fr}.examBankCaptureActions{justify-content:flex-start}.examBankClosureStatus{white-space:normal}}
 </style>
 
 <style id="adUsernameGeneratorStyles">
@@ -1469,7 +1470,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.37.0',
+  version:'34.38.0',
   label:'V34',
   date:'2026-10-01'
 });</script>
@@ -5126,8 +5127,155 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   <div class="tiny">Shortcut: Alt+B · Esc closes</div>
  </div>
 </div>
-<script id="examBankScript">
-(()=>{const m=document.getElementById('examBankModal'),b=document.getElementById('examBankBtn'),c=document.getElementById('examBankClose');if(!m||!b||!c)return;const open=()=>{m.classList.add('open');m.setAttribute('aria-hidden','false');c.focus()},close=()=>{m.classList.remove('open');m.setAttribute('aria-hidden','true');b.focus()};b.onclick=open;c.onclick=close;m.onclick=e=>{if(e.target===m)close()};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&m.classList.contains('open')){e.preventDefault();close()}else if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='b'){e.preventDefault();open()}});document.getElementById('examBankTarget')?.addEventListener('click',()=>{close();try{switchView('workspaceView')}catch(e){}});document.getElementById('examBankEvidence')?.addEventListener('click',()=>{close();const q=document.getElementById('globalSearch');if(!q)return;q.value='[EVIDENCE:PACKET]';try{switchView('searchView');renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}});document.getElementById('examBankVerify')?.addEventListener('click',()=>{close();try{switchView('reportsView');renderReport();toast('Verify the report/evidence gate — this dialog never marks points as banked')}catch(e){}});window.OSCP_PROOF_BANK={open,close}})();
+<script id="examBankScript">/* V34.38: interactive proof-closure guard based on current OffSec proof requirements. */
+(function(root){
+ 'use strict';
+ const ITEMS=Object.freeze([
+  'Interactive target shell is still open.',
+  'Proof was read with cat/type from its original location.',
+  'Screenshot contains the target IP and full proof contents.',
+  'Exact proof value was submitted in the Exam Control Panel.',
+  'Proof path, commands, screenshot filename and shell path were recorded.'
+ ]);
+ const COMMANDS=Object.freeze({
+  linux:"ip addr; cat /absolute/path/to/local-or-proof.txt",
+  windows:"ipconfig & type C:\\absolute\\path\\to\\local-or-proof.txt"
+ });
+ function closureStatus(values){
+  const list=Array.from(values||[]);
+  const checked=list.filter(Boolean).length;
+  return Object.freeze({checked,total:ITEMS.length,complete:checked===ITEMS.length});
+ }
+ root.OSCP_PROOF_BANK_CORE=Object.freeze({ITEMS,COMMANDS,closureStatus});
+ if(typeof document==='undefined')return;
+
+ const m=document.getElementById('examBankModal');
+ const b=document.getElementById('examBankBtn');
+ const c=document.getElementById('examBankClose');
+ if(!m||!b||!c)return;
+ const dialog=m.querySelector('.examBankDialog');
+ const actions=m.querySelector('.examBankActions');
+ let checks=[];
+ let statusNode=null;
+
+ function el(tag,className,text){
+  const node=document.createElement(tag);
+  if(className)node.className=className;
+  if(text!==undefined)node.textContent=text;
+  return node;
+ }
+ function toastSafe(message){
+  if(typeof root.toast==='function')root.toast(message);
+ }
+ async function copyCommand(kind){
+  const command=COMMANDS[kind];
+  const ok=typeof root.copyText==='function'?await root.copyText(command):false;
+  toastSafe(ok?(kind==='linux'?'Linux proof command copied':'Windows proof command copied'):'Copy blocked — command remains visible below');
+  return ok;
+ }
+ function resetChecklist(){
+  checks.forEach(input=>{input.checked=false});
+  updateStatus();
+ }
+ function updateStatus(){
+  if(!statusNode)return;
+  const state=closureStatus(checks.map(input=>input.checked));
+  statusNode.className='examBankClosureStatus '+(state.complete?'complete':'pending');
+  statusNode.textContent=state.complete
+   ? state.checked+'/'+state.total+' checked · MANUALLY VERIFY'
+   : state.checked+'/'+state.total+' checked · NOT CLOSED';
+ }
+ function installClosureGuard(){
+  if(!dialog||document.getElementById('examBankClosure'))return;
+  const box=el('section','examBankClosure');
+  box.id='examBankClosure';
+  box.setAttribute('aria-labelledby','examBankClosureTitle');
+
+  const head=el('div','examBankClosureHead');
+  const titleWrap=el('div');
+  const title=el('h3','', 'Proof closure checklist');
+  title.id='examBankClosureTitle';
+  const subtitle=el('div','muted','Use this as a temporary closure guard only. The app never certifies or awards points.');
+  titleWrap.append(title,subtitle);
+  statusNode=el('span','examBankClosureStatus pending','0/'+ITEMS.length+' checked · NOT CLOSED');
+  statusNode.setAttribute('role','status');
+  statusNode.setAttribute('aria-live','polite');
+  head.append(titleWrap,statusNode);
+
+  const list=el('div','examBankClosureGrid');
+  checks=ITEMS.map((text,index)=>{
+   const label=el('label','examBankClosureItem');
+   const input=document.createElement('input');
+   input.type='checkbox';
+   input.dataset.proofBankCheck=String(index+1);
+   input.addEventListener('change',updateStatus);
+   const span=el('span','',text);
+   label.append(input,span);
+   list.append(label);
+   return input;
+  });
+
+  const commandBox=el('div','examBankCaptureBox');
+  const commandHead=el('div','examBankCaptureHead');
+  const commandTitle=el('div');
+  commandTitle.append(el('b','', 'Fast proof capture'),el('div','tiny','Replace the placeholder with the exact original proof path. Keep IP + proof output visible for the screenshot.'));
+  const commandActions=el('div','examBankCaptureActions');
+  const linuxBtn=el('button','btn','Copy Linux');linuxBtn.type='button';linuxBtn.id='examBankCopyLinux';
+  const windowsBtn=el('button','btn','Copy Windows');windowsBtn.type='button';windowsBtn.id='examBankCopyWindows';
+  const resetBtn=el('button','btn','Reset checklist');resetBtn.type='button';resetBtn.id='examBankResetChecklist';
+  linuxBtn.addEventListener('click',()=>{void copyCommand('linux')});
+  windowsBtn.addEventListener('click',()=>{void copyCommand('windows')});
+  resetBtn.addEventListener('click',resetChecklist);
+  commandActions.append(linuxBtn,windowsBtn,resetBtn);
+  commandHead.append(commandTitle,commandActions);
+  const commands=el('div','examBankCommandGrid');
+  const linuxPre=el('pre','examBankCommand',COMMANDS.linux);
+  const windowsPre=el('pre','examBankCommand',COMMANDS.windows);
+  commands.append(linuxPre,windowsPre);
+  commandBox.append(commandHead,commands);
+
+  const ruleNote=el('div','examBankRuleNote');
+  ruleNote.append(el('b','', 'Rules snapshot · 1 Oct 2026: '),document.createTextNode('proof must be read in an interactive shell with cat/type from the original location; the screenshot must include target IP + proof contents; Control Panel submission is required before the exam ends. The live OffSec guide and your Exam Control Panel always override this offline snapshot.'));
+
+  box.append(head,list,commandBox,ruleNote);
+  if(actions)dialog.insertBefore(box,actions);else dialog.append(box);
+  updateStatus();
+ }
+
+ const open=()=>{
+  installClosureGuard();
+  resetChecklist();
+  m.classList.add('open');
+  m.setAttribute('aria-hidden','false');
+  c.focus();
+ };
+ const close=()=>{
+  m.classList.remove('open');
+  m.setAttribute('aria-hidden','true');
+  b.focus();
+ };
+ b.onclick=open;
+ c.onclick=close;
+ m.onclick=e=>{if(e.target===m)close()};
+ document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&m.classList.contains('open')){e.preventDefault();close()}
+  else if(e.altKey&&!e.ctrlKey&&!e.metaKey&&String(e.key).toLowerCase()==='b'){e.preventDefault();open()}
+ });
+ document.getElementById('examBankTarget')?.addEventListener('click',()=>{close();try{root.switchView('workspaceView')}catch(e){}});
+ document.getElementById('examBankEvidence')?.addEventListener('click',()=>{
+  close();
+  const q=document.getElementById('globalSearch');
+  if(!q)return;
+  q.value='[EVIDENCE:PACKET]';
+  try{root.switchView('searchView');root.renderSearch(q.value)}catch(e){q.dispatchEvent(new Event('input',{bubbles:true}))}
+ });
+ document.getElementById('examBankVerify')?.addEventListener('click',()=>{
+  close();
+  try{root.switchView('reportsView');root.renderReport();toastSafe('Verify the report/evidence gate — this dialog never marks points as banked')}catch(e){}
+ });
+ installClosureGuard();
+ root.OSCP_PROOF_BANK=Object.freeze({open,close,resetChecklist,updateStatus});
+})(typeof window!=='undefined'?window:globalThis);
 </script>
 <script>window.__OSCP_BOOT_STAGE__='11-exam-bank';console.log('[OSCP_BOOT_STAGE]','11-exam-bank');</script>
 
