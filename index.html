@@ -4941,7 +4941,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
 </script>
 <script>window.__OSCP_BOOT_STAGE__='08-ad-username-generator';console.log('[OSCP_BOOT_STAGE]','08-ad-username-generator');</script>
 
-<script id="serviceRouterCoreScript">/* V31 pure Service Router core: parser + classification, DOM-free except optional DOMParser support. */
+<script id="serviceRouterCoreScript">/* V34.39 pure Service Router core: parser + classification + target next-action engine, DOM-free except optional DOMParser support. */
 (function(root){
  'use strict';
  const DOMParser=root.DOMParser;
@@ -5012,8 +5012,56 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   const eps=(input||[]).map(x=>typeof x==='number'?{port:x,proto:'tcp',state:'open',service:''}:x);
   return CATALOG.map(x=>({...x,hit:eps.filter(e=>matchCatalog(x,e))})).filter(x=>x.hit.length).sort((a,b)=>a.priority-b.priority)
  }
+ function targetEndpoints(target){return (Array.isArray(target?.ports)?target.ports:[]).filter(e=>e&&(e.state==='open'||e.state==='open|filtered')).map(e=>({port:Number(e.port),proto:String(e.proto||'tcp').toLowerCase(),state:String(e.state||'open').toLowerCase(),service:String(e.service||''),product:String(e.product||''),version:String(e.version||'')})).filter(e=>Number.isInteger(e.port)&&e.port>0&&e.port<=65535)}
+ function targetText(target){return [target?.role,target?.stage,...(Array.isArray(target?.signals)?target.signals:[]),...targetEndpoints(target).flatMap(e=>[e.service,e.product,e.version])].filter(Boolean).join(' ').toLowerCase()}
+ function inferPlatform(target){
+  const eps=targetEndpoints(target),ports=new Set(eps.map(e=>e.port)),text=targetText(target);let windows=0,linux=0;
+  if([135,139,445,3389,5985,5986].some(p=>ports.has(p)))windows+=3;
+  if([88,389,636,3268,3269].some(p=>ports.has(p)))windows+=2;
+  if(/\b(windows|winrm|smb|rdp|active directory|domain controller|kerberos|ldap|mssql)\b/.test(text))windows+=4;
+  if([22,111,2049].some(p=>ports.has(p)))linux+=2;
+  if(/\b(linux|unix|ubuntu|debian|centos|rhel|fedora|sudo|suid|systemd|nfs)\b/.test(text))linux+=4;
+  if(windows>=linux+2)return'windows';if(linux>=windows+2)return'linux';return'unknown'
+ }
+ function targetStage(target){
+  const s=String(target?.stage||'').toLowerCase();
+  if(/proof|root|system|administrator|domain\s*admin|owned|complete/.test(s))return'privileged';
+  if(/privesc|privilege|post|shell|foothold|user|local/.test(s))return'post-shell';
+  return'enumeration'
+ }
+ function slug(v){return String(v||'item').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'item'}
+ function contextActions(target){
+  const t=target||{},eps=targetEndpoints(t),rows=classify(eps),stage=targetStage(t),platform=inferPlatform(t),ports=new Set(eps.map(e=>e.port)),text=targetText(t),out=[],seen=new Set();
+  const add=(id,priority,title,why,extra={})=>{if(seen.has(id))return;seen.add(id);out.push({id,priority,title,why,...extra})};
+  const adSignal=/\b(active directory|domain controller|\bdc\b|domain)\b/.test(text)||([88,389,445].filter(p=>ports.has(p)).length>=2);
+  const hasWeb=rows.some(x=>x.name==='HTTP/S'),hasFileSurface=rows.some(x=>['RPC/SMB','FTP','NFS'].includes(x.name));
+  if(stage==='privileged'){
+   add('bank-proof',1,'Bank proof before doing anything else','Keep the privileged interactive shell open, display the proof from its original path with target IP visible, capture the screenshot, submit the exact value, and compare it character-for-character.',{kind:'evidence',query:'[EVIDENCE:PACKET]',view:'reportsView'});
+   add('repro-path',2,'Make the compromise reproducible','Record the exact path, commands, source URL/files, changes and screenshot filename while the successful path is still fresh.',{kind:'closure',view:'reportsView'});
+   add('cleanup-notes',3,'Record changes and rollback obligations','Note services/configs/accounts/files you changed so the report and cleanup narrative is complete.',{kind:'closure',query:'report cleanup evidence'});
+   add('next-target',4,'Rotate only after closure is complete','Once evidence and notes are closed, move to the next highest-value unfinished target rather than continuing curiosity on an already-owned host.',{kind:'rotation',view:'workspaceView'});
+  }else if(stage==='post-shell'){
+   add('bank-local',1,'Bank local access first','If local.txt is available, capture and submit it before privilege escalation. A shell is progress; banked evidence protects the points.',{kind:'evidence',query:'[EVIDENCE:PACKET]',view:'reportsView'});
+   add('shell-context',2,'Re-prove shell context','Record current identity, groups/privileges, hostname, network interfaces/listeners and exact shell constraints before changing tools.',{kind:'truth',query:platform==='windows'?'Windows post exploitation whoami privileges':'Linux post exploitation id sudo network'});
+   add('privesc-'+platform,3,(platform==='windows'?'Run Windows':'Run '+(platform==='linux'?'Linux':'platform-aware'))+' privilege-escalation triage','Start with cheap, evidence-producing checks and route findings into the matching attack tree instead of blindly running every technique.',{kind:'privesc',query:platform==='windows'?'Windows privilege escalation SeImpersonate services tasks':'Linux privilege escalation sudo SUID capabilities systemd',view:'methodTreesView'});
+   add('local-secrets',4,'Correlate local secrets with exposed services','Configs, history, service files, scheduled tasks, shares and application credentials matter most when tied back to an exposed service or reachable host.',{kind:'credential',query:'post exploitation credentials config files pivot'});
+   if(adSignal)add('ad-recollect',5,'Re-enumerate AD with the new identity','A shell or recovered identity can change LDAP/SMB/graph visibility. Re-check domain access with the new context instead of assuming old negatives still apply.',{kind:'ad',query:'Active Directory authenticated enumeration BloodHound credentials',view:'windowsStrategyView'});
+  }else{
+   if(!eps.length)add('scan-full',1,'Complete target discovery before guessing','Import or run a complete, structured port scan so decisions are driven by observed services instead of assumptions.',{kind:'discovery',query:'Nmap full TCP UDP enumeration',view:'intakeView'});
+   if(adSignal){
+    add('ad-context',2,'Prove AD context: DNS, domain, DC and time','Kerberos/LDAP/SMB failures are often context failures. Resolve the FQDN/domain/DC and clock before treating credentials or tools as broken.',{kind:'ad',query:'Active Directory DNS clock skew domain controller context',view:'windowsStrategyView'});
+    add('ad-identity',3,'Build the smallest proven identity path','Use anonymous/guest/known credentials only where evidence supports them; separate authentication, authorization and admin rights.',{kind:'ad',query:'AD authentication SMB LDAP Kerberos identity scope',view:'windowsStrategyView'});
+   }
+   for(const x of rows.slice(0,4))add('service-'+slug(x.name),10+x.priority,'Enumerate '+x.name+' intentionally',x.first,{kind:'service',query:x.query,view:'serviceRouterView',service:x.name,ports:x.hit.map(endpointKey)});
+   if(hasWeb&&hasFileSurface)add('cross-service',17,'Correlate web findings with file/share surfaces','Source, backups, configs, usernames and credentials found in web or shares become valuable only when replayed deliberately against the other observed services.',{kind:'correlation',query:'source config backup credentials reuse services'});
+   const unknown=eps.filter(e=>!CATALOG.some(x=>matchCatalog(x,e)));
+   if(unknown.length)add('identify-unknown',70,'Identify unclassified protocols before CVE hunting','Unknown open ports are observations, not vulnerabilities. Fingerprint the protocol/product manually once, then map it to the right methodology.',{kind:'discovery',query:unknown.map(e=>e.service||e.product||String(e.port)).filter(Boolean).join(' '),view:'serviceRouterView',ports:unknown.map(endpointKey)});
+  }
+  if(!out.length)add('workspace-state',90,'Write one decisive next test','Record the strongest evidence, one hypothesis, the missing prerequisite and one cheap test that can confirm or kill it.',{kind:'decision',view:'workspaceView'});
+  return out.sort((a,b)=>a.priority-b.priority||a.title.localeCompare(b.title)).slice(0,5).map((x,i)=>({...x,rank:i+1,platform,stage}))
+ }
  root.OSCP_SERVICE_CORE=Object.freeze({
-   CATALOG,endpointKey,endpointLabel,addEndpoint,parseServices,parsePorts,matchCatalog,classify
+   CATALOG,endpointKey,endpointLabel,addEndpoint,parseServices,parsePorts,matchCatalog,classify,targetEndpoints,targetText,inferPlatform,targetStage,contextActions
  });
 })(typeof window!=='undefined'?window:globalThis);</script>
 <script>window.__OSCP_BOOT_STAGE__='00-service-router-core';console.log('[OSCP_BOOT_STAGE]','00-service-router-core');</script>
