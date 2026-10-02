@@ -1,0 +1,40 @@
+<hr/>
+<h2 id="ref-penelope-oscp-safe-shell-handler">20. PENELOPE SHELL HANDLER — CONSERVATIVE OSCP MODE</h2>
+<p><code>[SHELL:PENELOPE] [SHELL:LISTENER] [OSCP:SAFE]</code></p>
+<blockquote>
+<p><strong>Exam rule first:</strong> OffSec does not maintain a whitelist for every third-party tool. The current OSCP+ rule is that tools are acceptable only when the action they perform is not restricted. A tool can still become disallowed if you use a feature that performs a restricted action. Penelope upstream provides <code>-O</code> / <code>--oscp-safe</code> specifically to reduce the chance of using risky modules/features. Verify the current OffSec Exam Guide/FAQ on exam day.</p>
+</blockquote>
+<h3 id="ref-penelope-safe-listener">Conservative reverse-shell listener</h3>
+<pre class="ref-code"><code class="language-bash"># Check that your installed Penelope exposes OSCP-safe mode
+penelope -h | grep -E -- '--oscp-safe|-O'
+
+# Preferred exam listener: bind to the VPN interface and enable OSCP-safe mode
+penelope -O -i tun0 -p $LPORT
+
+# Example with a fixed port
+penelope -O -i tun0 -p 4444
+
+# More netcat-like behavior: also disable automatic shell upgrade
+penelope -O -U -i tun0 -p $LPORT
+</code></pre>
+<p>If your installed build does not show <code>-O / --oscp-safe</code>, do not assume an older version has the same protections. Either update to a version that documents the switch or fall back to the simple listener already in these notes:</p>
+<pre class="ref-code"><code class="language-bash">rlwrap -cAr nc -nvlp $LPORT
+</code></pre>
+<h3 id="ref-penelope-exam-guardrails">Exam guardrails</h3>
+<ul>
+<li><strong>Do not use Penelope's <code>--mcp</code> mode during OSCP.</strong> The current OSCP+ exam prohibits AI chatbot/LLM assistance; the upstream MCP feature is designed to let external clients drive live sessions.</li>
+<li><strong>Do not use automatic privilege-escalation modules.</strong> Penelope's upstream documentation specifically warns about modules such as <code>traitor</code>, which performs automatic privilege escalation.</li>
+<li><strong>Meterpreter restrictions still apply separately.</strong> Penelope does not remove OffSec's one-target restriction for Meterpreter/Metasploit restricted functionality.</li>
+<li>Keep exploitation decisions manual and evidence-driven. A shell handler should handle the shell; it should not choose or automatically execute an exploit path for you.</li>
+</ul>
+<h3 id="ref-penelope-quick-choice">Quick choice during the exam</h3>
+<pre class="ref-code"><code class="language-text">Need the simplest possible listener?
+  → rlwrap -cAr nc -nvlp $LPORT
+
+Want PTY/session handling but still conservative?
+  → penelope -O -i tun0 -p $LPORT
+
+Need an automated module / privilege escalation / AI-driven session control?
+  → STOP. Re-check the official exam rules before using that feature.
+</code></pre>
+<p class="tiny">Rule sources checked 2026-10-02: OffSec OSCP+ Exam Guide and OSCP+ Exam FAQ. Tool behavior source: upstream <code>brightio/penelope</code> documentation.</p>

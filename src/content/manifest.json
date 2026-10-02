@@ -9,6 +9,7 @@
     "06-privilege-escalation.html",
     "07-pivot-transfer-execution.html",
     "08-buffer-overflow.html",
-    "09-reporting-exam-references.html"
+    "09-reporting-exam-references.html",
+    "10-penelope-shell-handler.html"
   ]
 }

@@ -1,4 +1,4 @@
-name: V34.40 build and validation
+name: V34.41 build and validation
 on:
   push:
     branches: [ main ]
@@ -28,5 +28,6 @@ jobs:
             git commit -m "build: sync generated exam artifact"
             git push
           fi
-      - name: Ensure generated exam artifact is committed
+      - name: Verify generated exam artifact is clean after main sync
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: git diff --exit-code -- index.html
