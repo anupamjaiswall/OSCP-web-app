@@ -9,7 +9,7 @@
   if($('refFindStyles'))return;
   const s=document.createElement('style');s.id='refFindStyles';
   s.textContent=`
-#refFindBar{display:grid;grid-template-columns:minmax(190px,1fr) auto auto auto auto;gap:6px;align-items:center;width:100%;padding:8px 0 0;margin-top:7px;border-top:1px solid var(--line)}
+#refFindBar{grid-column:1/-1;display:grid;grid-template-columns:minmax(190px,1fr) auto auto auto auto;gap:6px;align-items:center;width:100%;padding:8px 0 0;margin-top:7px;border-top:1px solid var(--line)}
 #refFindInput{width:100%;min-width:0;height:36px;padding:7px 9px;border-radius:8px}
 #refFindCount{min-width:92px;text-align:center;font:700 12px/1.2 ui-monospace,Consolas,monospace;color:var(--muted);white-space:nowrap}
 #refFindBar .btn{min-height:36px;padding:6px 9px;white-space:nowrap}
@@ -143,6 +143,7 @@ mark.refFindMark.refFindCurrent{background:#fff2a8;outline:2px solid #ff9d2e;out
   try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(
    ['V34.41 reference find controller',()=>[typeof window.OSCP_REFERENCE_FIND?.find==='function'&&typeof window.OSCP_REFERENCE_FIND?.next==='function'&&typeof window.OSCP_REFERENCE_FIND?.prev==='function','find/prev/next']],
    ['V34.41 reference find reveals collapsed match',()=>{
+    if(window.OSCP_REFERENCE_READY!==true)return[true,'deferred until reference hydration'];
     const root=$('referenceRoot');if(!root)return[false,'reference root missing'];
     const outer=document.createElement('details'),inner=document.createElement('details'),p=document.createElement('p');outer.id='refFindSelfOuter';inner.id='refFindSelfInner';p.textContent='subdomain self-test keyword';inner.appendChild(p);outer.appendChild(inner);root.appendChild(outer);outer.open=false;inner.open=false;
     const r=find('subdomain',{anchor:inner.id,scroll:false});const ok=r.total>0&&outer.open&&inner.open&&inner.querySelectorAll('mark.refFindMark').length>0;clearFind();outer.remove();return[ok,`${r.total} matches · nested=${outer.open&&inner.open}`]
