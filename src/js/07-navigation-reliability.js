@@ -74,10 +74,17 @@
     }
     return document.getElementById(anchor);
   }
+  function expandReferencePath(anchorOrEl){
+    const el=typeof anchorOrEl==='string'?document.getElementById(anchorOrEl):anchorOrEl;
+    if(!el)return null;
+    let d=el.matches?.('details')?el:el.closest?.('details');
+    while(d){d.open=true;d=d.parentElement?.closest?.('details')||null;}
+    return el;
+  }
   async function openReferenceAnchor(anchor,restoreScroll){
     if(!anchor)return;
     const el=await waitForReferenceAnchor(anchor);if(!el)return;
-    let d=el.closest('details');if(d)d.open=true;
+    expandReferencePath(el);
     if(Number.isFinite(restoreScroll))window.scrollTo({top:restoreScroll,behavior:'auto'});
     else el.scrollIntoView({behavior:'auto',block:'start'});
     el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1200);
@@ -112,6 +119,12 @@
         try{history.replaceState({...currentState(hpBefore.ref),view:'referenceView',ref:hpBefore.ref,scrollY:scrolls.referenceView||window.scrollY||0},'',navURL('referenceView',hpBefore.ref));}catch(e){}
       }
       const result=baseOpenRef(anchor);
+      Promise.resolve(result).then(ok=>{
+        if(ok!==false){
+          const el=expandReferencePath(anchor);
+          if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:'auto',block:'start'}));
+        }
+      });
       setTimeout(()=>{
         try{
           const st={...(history.state||{}),oscpNav:1,view:'referenceView',ref:anchor||'',scrollY:window.scrollY||0};
@@ -202,12 +215,13 @@
   else setTimeout(()=>window.scrollTo({top:initialY,behavior:'auto'}),20);
 
   // Small testable surface for the built-in self-test and manual debugging.
-  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},setAdvancedMode,back:()=>history.back(),forward:()=>history.forward()};
+  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},setAdvancedMode,expandReferencePath,back:()=>history.back(),forward:()=>history.forward()};
   try{
     if(typeof V16_SELF_TESTS!=='undefined'){
       V16_SELF_TESTS.push(
         ['Browser history navigation layer',()=>[!!window.OSCP_NAV&&typeof history.pushState==='function','history+OSCP_NAV']],
         ['Navigation deep-link parser',()=>[OSCP_NAV.isView('windowsStrategyView')&&OSCP_NAV.isView('referenceView'),'views resolvable']],
+        ['Reference jumps expand collapsed ancestors',()=>{const outer=document.createElement('details'),inner=document.createElement('details'),leaf=document.createElement('div');inner.appendChild(leaf);outer.appendChild(inner);document.body.appendChild(outer);OSCP_NAV.expandReferencePath(leaf);const ok=outer.open&&inner.open;outer.remove();return[ok,'nested details opened']}],
         ['Shortcut conflicts removed',()=>[OSCP_NAV.shortcuts.c==='coverageView'&&OSCP_NAV.shortcuts.h==='hypothesisView'&&OSCP_NAV.shortcuts.e==='vaultView'&&OSCP_NAV.shortcuts.k==='clockView'&&OSCP_NAV.shortcuts.p==='v16HighSignalView','C/H/E/K/P unique']],
         ['Simple exam mode available',()=>[OSCP_NAV.isView('simpleExamView')&&OSCP_NAV.isView('methodologyView')&&typeof OSCP_NAV.setAdvancedMode==='function','simple+method+toggle']]
       );
