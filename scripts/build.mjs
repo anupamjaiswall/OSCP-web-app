@@ -14,6 +14,10 @@ if(!/^\d{4}-\d{2}-\d{2}$/.test(meta.date)) throw new Error('Invalid build date')
 let html=read('src/index.template.html');
 html=html.replace(/\/\* @inject:style:([^*]+?) \*\//g,(_,f)=>read('src/styles/'+f.trim()));
 html=html.replace(/\/\* @inject:script:([^*]+?) \*\//g,(_,f)=>read('src/js/'+f.trim()));
+// Small late-bound modules can extend the generated exam artifact without enlarging the already-large template.
+const lateScripts=['22-reference-find.js'];
+const lateHtml=lateScripts.map(f=>'<script>'+read('src/js/'+f).replace(/<\/script/gi,'<\\/script')+'</script>').join('\n');
+html=html.replace('</body>',lateHtml+'\n</body>');
 const manifest=JSON.parse(read('src/content/manifest.json'));
 const referenceHtml=manifest.files.map(f=>read('src/content/'+f)).join('');
 // Keep reference inert during parser boot without relying on optional browser decompression APIs.
