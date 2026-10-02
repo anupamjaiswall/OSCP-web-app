@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.39.0">
-<meta name="oscp-build-date" content="2026-10-01">
+<meta name="oscp-build-version" content="34.40.0">
+<meta name="oscp-build-date" content="2026-10-02">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#0b0e14;--panel:#121722;--panel2:#171e2b;--text:#e9eef7;--muted:#96a2b4;--line:#293244;--accent:#71d3ff;--good:#72e3a6;--warn:#ffd166;--bad:#ff7b86;--chip:#202a3a;--shadow:0 16px 40px rgba(0,0,0,.25)}
@@ -1471,9 +1471,9 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.39.0',
+  version:'34.40.0',
   label:'V34',
-  date:'2026-10-01'
+  date:'2026-10-02'
 });</script>
 <script>window.__OSCP_BOOT_STAGE__='00-build-meta';console.log('[OSCP_BOOT_STAGE]','00-build-meta');</script>
 <script id="coreUtilsScript">/* V30 shared pure utilities. Keep this file DOM-free so CI can execute it in Node. */
@@ -4739,10 +4739,17 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     }
     return document.getElementById(anchor);
   }
+  function expandReferencePath(anchorOrEl){
+    const el=typeof anchorOrEl==='string'?document.getElementById(anchorOrEl):anchorOrEl;
+    if(!el)return null;
+    let d=el.matches?.('details')?el:el.closest?.('details');
+    while(d){d.open=true;d=d.parentElement?.closest?.('details')||null;}
+    return el;
+  }
   async function openReferenceAnchor(anchor,restoreScroll){
     if(!anchor)return;
     const el=await waitForReferenceAnchor(anchor);if(!el)return;
-    let d=el.closest('details');if(d)d.open=true;
+    expandReferencePath(el);
     if(Number.isFinite(restoreScroll))window.scrollTo({top:restoreScroll,behavior:'auto'});
     else el.scrollIntoView({behavior:'auto',block:'start'});
     el.classList.add('highlight');setTimeout(()=>el.classList.remove('highlight'),1200);
@@ -4777,6 +4784,12 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
         try{history.replaceState({...currentState(hpBefore.ref),view:'referenceView',ref:hpBefore.ref,scrollY:scrolls.referenceView||window.scrollY||0},'',navURL('referenceView',hpBefore.ref));}catch(e){}
       }
       const result=baseOpenRef(anchor);
+      Promise.resolve(result).then(ok=>{
+        if(ok!==false){
+          const el=expandReferencePath(anchor);
+          if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:'auto',block:'start'}));
+        }
+      });
       setTimeout(()=>{
         try{
           const st={...(history.state||{}),oscpNav:1,view:'referenceView',ref:anchor||'',scrollY:window.scrollY||0};
@@ -4867,12 +4880,13 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   else setTimeout(()=>window.scrollTo({top:initialY,behavior:'auto'}),20);
 
   // Small testable surface for the built-in self-test and manual debugging.
-  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},setAdvancedMode,back:()=>history.back(),forward:()=>history.forward()};
+  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},setAdvancedMode,expandReferencePath,back:()=>history.back(),forward:()=>history.forward()};
   try{
     if(typeof V16_SELF_TESTS!=='undefined'){
       V16_SELF_TESTS.push(
         ['Browser history navigation layer',()=>[!!window.OSCP_NAV&&typeof history.pushState==='function','history+OSCP_NAV']],
         ['Navigation deep-link parser',()=>[OSCP_NAV.isView('windowsStrategyView')&&OSCP_NAV.isView('referenceView'),'views resolvable']],
+        ['Reference jumps expand collapsed ancestors',()=>{const outer=document.createElement('details'),inner=document.createElement('details'),leaf=document.createElement('div');inner.appendChild(leaf);outer.appendChild(inner);document.body.appendChild(outer);OSCP_NAV.expandReferencePath(leaf);const ok=outer.open&&inner.open;outer.remove();return[ok,'nested details opened']}],
         ['Shortcut conflicts removed',()=>[OSCP_NAV.shortcuts.c==='coverageView'&&OSCP_NAV.shortcuts.h==='hypothesisView'&&OSCP_NAV.shortcuts.e==='vaultView'&&OSCP_NAV.shortcuts.k==='clockView'&&OSCP_NAV.shortcuts.p==='v16HighSignalView','C/H/E/K/P unique']],
         ['Simple exam mode available',()=>[OSCP_NAV.isView('simpleExamView')&&OSCP_NAV.isView('methodologyView')&&typeof OSCP_NAV.setAdvancedMode==='function','simple+method+toggle']]
       );
