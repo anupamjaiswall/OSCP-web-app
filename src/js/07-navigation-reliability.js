@@ -119,12 +119,11 @@
         try{history.replaceState({...currentState(hpBefore.ref),view:'referenceView',ref:hpBefore.ref,scrollY:scrolls.referenceView||window.scrollY||0},'',navURL('referenceView',hpBefore.ref));}catch(e){}
       }
       const result=baseOpenRef(anchor);
-      const settled=Promise.resolve(result).then(ok=>{
+      Promise.resolve(result).then(ok=>{
         if(ok!==false){
           const el=expandReferencePath(anchor);
           if(el)requestAnimationFrame(()=>el.scrollIntoView({behavior:'auto',block:'start'}));
         }
-        return ok;
       });
       setTimeout(()=>{
         try{
@@ -135,7 +134,7 @@
           updateHistoryButtons();
         }catch(e){}
       },45);
-      return settled;
+      return result;
     };
   }
 
