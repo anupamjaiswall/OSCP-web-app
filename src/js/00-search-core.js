@@ -1,4 +1,4 @@
-/* V34.37: typo-tolerant, exam-language-aware search scoring. */
+/* V34.41: typo-tolerant, exam-language-aware search scoring. */
 (function(root){
   'use strict';
   const SEARCH_ALIASES=Object.freeze({
@@ -7,8 +7,12 @@
     privesc:['privilege escalation','sudo','suid','seimpersonate'],
     'priv esc':['privilege escalation','sudo','suid','seimpersonate'],
     foothold:['initial access','shell','rce'],
-    'reverse shell':['shell','callback','listener'],
-    revshell:['reverse shell','shell','listener'],
+    'reverse shell':['shell','callback','listener','penelope'],
+    revshell:['reverse shell','shell','listener','penelope'],
+    penelope:['shell handler','reverse shell','listener','oscp safe'],
+    'shell handler':['penelope','reverse shell','listener','netcat'],
+    listener:['reverse shell','penelope','netcat','callback'],
+    'oscp safe':['penelope','exam safe','listener'],
     'password spray':['spray','credential reuse','kerbrute'],
     spray:['password spray','credential reuse','kerbrute'],
     lateral:['lateral movement','winrm','smb','rdp'],
