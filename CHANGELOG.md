@@ -1,5 +1,16 @@
 # Changelog
 
+## V34.49.0 — 2026-10-03
+
+### Exam reliability safety
+- Added an isolated reliability module instead of growing the legacy core.
+- Added a Session reliability preflight for browser storage round-trip, storage headroom, secret-free backup schema/integrity round-trip, free-text secret lint, search/reference availability, build metadata, clock sanity, saved-state parse health and external-backup freshness.
+- Added an app-owned localStorage meter using a conservative 5 MB planning budget with a warning at 70%; actual browser quota remains browser-dependent.
+- Secret-free session export and clipboard recovery now warn before continuing when credential/hash/key/token-like material is detected in free-text notes or report fields; detected values are never echoed by the scanner.
+- Added one-click secret-free backup controls to Session and the exam-clock controls.
+- Added pure regression tests plus a dedicated Chromium reliability-safety gate.
+- No schema migration, IndexedDB dependency, background polling loop or automatic network activity was added.
+
 ## V34.48.0 — 2026-10-03
 
 ### README and documentation cleanup

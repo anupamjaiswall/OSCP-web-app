@@ -1,7 +1,7 @@
 # 🔐 OSCP Exam OS
 
 <!-- build-version:start -->
-**V34.48.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.49.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 <!-- build-version:end -->
 
 One self-contained `index.html` designed to be the main reference open during the exam. It has no required CDN, package install, AI service, or runtime network dependency.
@@ -23,6 +23,7 @@ One self-contained `index.html` designed to be the main reference open during th
 - **Fresh-Eyes Reset:** structured re-enumeration when progress stalls.
 - **Bank the Points:** proof/local evidence checklist before changing target state.
 - **Best Tools:** Primary → Fallback → Specialist guidance plus Kali readiness checks.
+- **Reliability Preflight:** one-click local checks for storage, backup round-trip, search/reference, clock health and backup freshness.
 - **Online Resource Desk:** curated external references when Internet use is appropriate.
 - **Reports / Session Safety:** evidence tracking, recovery snapshots, secret-free/encrypted backups, and report workflow.
 
@@ -36,6 +37,7 @@ One self-contained `index.html` designed to be the main reference open during th
 ## Exam safety
 
 - Keep flags, credentials, hashes, tickets, dumps, and screenshots local unless you have a specific safe reason to use an external service.
+- Secret-free exports warn when credential-shaped material is detected in free-text notes/report fields.
 - Bank point-bearing evidence as soon as you obtain it.
 - Export a backup periodically and keep it outside the browser profile.
 - Re-read the current OffSec exam guide before the exam; this repository is a dated offline reference, not the authority.
@@ -51,6 +53,7 @@ npm run browser-smoke
 npm run reference-find-smoke
 npm run passer-loop-smoke
 npm run tooling-smoke
+npm run reliability-smoke
 npm run checksum
 ```
 
