@@ -1,11 +1,373 @@
 # 🔐 OSCP Exam OS
 
-**V34.46 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
-
-## V34.46 tooling readiness
-
-Best Tools now includes a capability-based Kali readiness gate. It checks whether the exact exam VM has at least one practiced implementation for each critical job (discovery, web, SMB/AD auth, LDAP, Kerberos, remote shell, cracking, exploit lookup and shell handling) instead of assuming one specific package is mandatory. The page can copy a local-only inventory script that creates `oscp-tool-preflight.json`; it installs nothing and makes no network requests. Importing that JSON surfaces missing must-have capabilities and feeds the existing compatibility view.
+**V34.36 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 
 ## V34.36 search navigation hotfix
 
 Global search now routes body-text matches to the exact collapsed reference section instead of letting a broad parent heading absorb text from child `<details>` blocks. Opening a search result expands every ancestor `<details>` before scrolling/highlighting. Browser CI searches `subdomain`, opens `2.2 /etc/hosts Management`, and requires that section to be expanded.
+
+## V34.35 cross-application reliability audit
+
+V34.35 expands the required real-browser gate from page-level rendering into functional workflows across the application: theme/readability, evidence timer, method trees, Service Router parsing and score runway, AD username generation, scan intake, output analysis, Unicode command sanitization, command palette, quick notes, target creation, attempt ledger, credential creation, report generation, and browser-history restoration. It also sweeps every navigation view at 1440, 900, 560 and 390 px and rejects document-level horizontal overflow.
+
+That sweep found and fixed three real layout defects: Settings used content-sized 3-column tracks, the shared operations grid used content-sized 12-column tracks, and Session Health leaked an `opsSpan12` class into a four-column nested grid, creating implicit columns. Workspace resume-packet components also received explicit shrink containment for narrow screens. Static validation now rejects broken literal `switchView()` destinations, broken `openRef()` anchors, and missing ARIA/label ID targets.
+
+## V34.34 Service Router layout hotfix
+
+V34.34 fixes a real CSS grid defect in Service Router: the page used `span7` and `span5` cards but the base grid only defined 4/6/8/12 spans, so the two middle cards could collapse to one grid column. The missing 5/7 span rules are now defined globally with responsive full-width stacking. Service Router's input/actions are also rebuilt as a full-width textarea followed by four equal action buttons. Browser CI now asserts the real desktop card widths and guards against horizontal overflow.
+
+## V34.33 reliability audit
+
+V34.33 expands the required real-browser gate to boot from the deployed `#view=simpleExamView` route, sweep every navigation destination, require real visible layout dimensions, run the complete in-browser self-test suite, and exercise the critical dialogs. The audit fixed malformed multiline Service Router self-test fixtures, preserved the asynchronous `openRef()` success contract through the history wrapper, and added Service Router/Method Trees to simple-mode last-view restoration.
+
+## V34.32 layout hotfix
+
+V34.32 removes four accidental literal `\\n` text nodes from structural parser-stage boundaries. The first one was a direct child of the two-column CSS Grid between the sidebar and `<main>`, so browsers could place the text as an anonymous grid item and push the real Start view out of the expected pane. Validation now rejects this pattern and the browser smoke test requires a clean grid plus a visibly sized Start view.
+
+## V34.31 reliability hotfix
+
+V34.31 removes the repeated idle-callback reference hydration loop. The embedded reference now hydrates once, deterministically, after the exam controls are available, with an automatic watchdog fallback. Search and direct-reference jumps still trigger hydration on demand, but the app can no longer remain indefinitely in a partial “Loading…” state because an idle callback never progressed.
+
+## V34.30 compatibility hotfix
+
+V34.30 removes the deep reference's hard dependency on the browser-native `DecompressionStream` API. The reference remains inert/lazy during startup, but is now embedded as a script-safe JSON string and decoded with built-in `JSON.parse()`. This fixes browsers/profiles where the app shell loaded while the reference/navigation layer failed or stayed on “loading”.
+
+CI now deliberately disables `DecompressionStream` before opening the real local `file://` artifact and still requires deep-reference navigation to succeed. The stray literal `\\n` emitted immediately after `<body>` is also removed.
+
+## V34.29 runtime reliability fix
+
+V34.29 fixes a real lazy-reference race: exam controls could request a deep-reference anchor before the compressed reference had inserted that section into the DOM. Deep links now wait for the actual anchor, hydration can prioritize a requested section, and CI tests the same single-file artifact through file:// as well as localhost.
+
+## V34.28 Batch 28 — finish the safe 100-item backlog
+
+- Added a zero-dependency **WCAG AA contrast-ratio audit** to the required `npm run check` chain.
+- Added a bounded **persistent runtime error/rejection log** and on-demand Session diagnostics panel; handlers only record, never recursively render.
+- Added an **event-driven multi-tab edit warning** using storage/focus/visibility events with no polling or state merging.
+- Added deeper Windows/access-truth regressions preserving transport, authentication, resource access, execution, shell and admin as distinct states.
+- Added `docs/CONVENTIONS.md`, prepared repository metadata, and documented stable release/tag discipline.
+- The 100-item tracker now leaves only the high-risk legacy-core split as genuinely pending; repository metadata/tag actions are documented because they are not normal source-file pushes.
+
+## V34.27 Batch 27 — original 100-item tracker
+
+- Added `docs/IMPROVEMENT-TRACKER.md` mapping all 100 reviewed suggestions to **implemented / safer-modified / intentionally skipped / still pending**.
+- The tracker prevents duplicated work and makes the remaining high-value backlog explicit.
+- Rejected items stay documented with the reason instead of silently disappearing from the plan.
+- Documentation-only batch; runtime behavior is unchanged.
+
+## V34.26 Batch 26 — quick safety rollback
+
+- Session view now offers **Restore latest safety snapshot** when a retained snapshot reason starts with `before …`, i.e. one created before a destructive/replace-state operation.
+- The rollback is confirmation-gated and shows the exact snapshot time/reason.
+- Before replacing live state, the app creates a new recovery snapshot of the current state, so the rollback itself is recoverable.
+- Normal backup-schema validation still runs before restore.
+- The feature reuses existing autosnapshots; no new persistence format or background work was added.
+
+## V34.25 Batch 25 — recovery-risk visibility
+
+- Session view now exposes a live recovery-risk status without adding a polling loop.
+- The status distinguishes browser-storage failure, unsnapshotted core changes, stale/missing external backup, and healthy restore-point state.
+- Save-target/save-operations, snapshot, full-backup export, Session-view entry, and visibility changes refresh the indicator.
+- Closing the tab triggers the browser's native leave-warning only when storage has failed or core state is dirty while the external backup is stale/missing.
+- The feature lives in a separate recovery-status module so the large core startup chain remains untouched.
+
+## V34.24 Batch 24 — keyboard navigation semantics
+
+- Methodology-tree controls now expose an accessible group label, pressed state, and roving keyboard focus.
+- Arrow keys plus Home/End move focus across Linux, Windows, AD, and All-3 controls; Enter/Space retain normal button activation.
+- Reference navigation now has an explicit navigation landmark, labeled previous/next controls, live position feedback, and accurate pin/unpin pressed state.
+- Arrow Left/Right and Home/End navigate reference sections when focus is on navigator buttons; the section dropdown keeps native key behavior.
+- No exam-state storage or background behavior changed.
+
+## V34.23 Batch 23 — DOM-safety regression gate
+
+- CI now rejects dangerous dynamic DOM sinks that are unnecessary in this offline app: `insertAdjacentHTML`, `outerHTML=`, `document.write`, `srcdoc=`, string-created inline event-handler attributes, and `javascript:` URLs.
+- The existing audited `innerHTML` ceiling remains in place; this batch strengthens it rather than raising it.
+- Regression tests confirm the shipped JavaScript currently contains none of the newly banned primitives.
+- Runtime application code is unchanged.
+
+## V34.22 Batch 22 — real browser interaction gate
+
+- Required Chrome CI now performs real interactions after boot, not screenshots alone.
+- It types the typo query `seimpersonte` and waits for a real search result after lazy reference hydration.
+- It clicks the high-contrast control and verifies the live body state changes.
+- It creates one target in a fresh temporary browser profile and verifies exactly one target card appears.
+- Uncaught browser exceptions remain a hard failure and the temporary profile is discarded after the run.
+- Runtime application code is unchanged in this batch.
+
+## V34.21 Batch 21 — secret-free backup integrity
+
+- New secret-free session JSON exports embed a SHA-256 over the canonical payload when Web Crypto is available.
+- Session import verifies an embedded digest before creating the pre-restore snapshot or replacing live state.
+- Older backups without an integrity field remain supported and are explicitly identified as legacy on restore.
+- **Fingerprint current state** calculates a manual secret-free SHA-256 with the volatile export timestamp removed.
+- Clipboard recovery receives the same integrity metadata but still does not count as a durable external backup.
+- No background hashing, polling, or exam-state schema migration was added.
+
+## V34.20 Batch 20 — search completeness and accessibility
+
+- Live typing is debounced for 120 ms and no longer renders search twice when switching into Search.
+- Search headings index their complete immediate content region instead of only the next three sibling nodes.
+- Empty Search no longer hydrates the deep reference; the first real query shows a clear one-time loading state.
+- Search status is announced politely to assistive technology, results are a named region, and positive tabindex values are regression-blocked.
+- No exam-state schema, timers, observers, or background polling were added.
+
+The repository ships one self-contained **`index.html`** for exam use while keeping maintainable source modular under `src/`. No runtime server, CDN, package install, external stylesheet, or network connection is required.
+
+## V34.19 Batch 19 — exam preflight and limitations
+
+- Expanded the exam-day preflight into a cold-start, offline, persistence, backup-test and restore rehearsal.
+- Added explicit Known Limitations covering browser/origin storage, lazy embedded reference support, backup boundaries, secret-free exports and tool-version drift.
+- Documentation-only batch; app runtime behavior is unchanged.
+
+## V34.18 Batch 18 — emergency clipboard recovery
+
+- Session now includes **Copy recovery JSON** as a fallback when saving a file is inconvenient.
+- It uses the same **secret-free full-session payload** as the normal JSON export.
+- Clipboard recovery is intentionally **not** counted as a durable external backup and does not update backup-freshness metadata.
+- It does not mutate target, credential, evidence, report, or snapshot state.
+
+## V34.17 Batch 17 — safe settings reset
+
+- Replaced the misleading inactive **Clear all local data** control with **Reset settings only**.
+- Resetting restores placeholder defaults and disables plaintext secret persistence while keeping targets, credentials, evidence, reports, snapshots, and other exam state.
+- Regression coverage explicitly forbids destructive storage/array clearing inside the settings reset path.
+
+## V34.16 Batch 16 — reference navigation accessibility
+
+- The existing skip link is now visibly surfaced when keyboard-focused.
+- Reference view now shows a compact **Reference › current section** breadcrumb inside the sticky navigator.
+- Breadcrumb state reuses the existing reference-position tracking; no new observer, timer, or storage state was added.
+
+## V34.15 Batch 15 — backup freshness
+
+- Session view shows when the last full external backup was exported and whether it was secret-free or encrypted.
+- Only timestamp/type metadata is persisted; exam target/session data formats are unchanged.
+- No polling, observer, or background render loop was introduced.
+
+## Exam use
+
+1. Download or clone the repository before the exam.
+2. Open **`index.html`** directly in a modern browser.
+3. Keep it local/offline.
+4. Use Search, Service Router, methodology trees, target workspace, and evidence gates instead of scrolling linearly.
+
+GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
+
+> Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference. This app is for exam-time reference, not AI assistance during the exam.
+
+
+Preflight: `docs/EXAM-PREFLIGHT.md` · Limitations: `docs/KNOWN-LIMITATIONS.md` · 100-item tracker: `docs/IMPROVEMENT-TRACKER.md` · Conventions: `docs/CONVENTIONS.md` · Releases: `docs/RELEASE-PROCESS.md`
+
+## V34.12 Batch 12 — lazy deep-reference hydration
+
+- The 410 KB methodology reference no longer expands into thousands of DOM nodes while the HTML parser is still loading.
+- It remains embedded inside the same offline `index.html` as a gzip-compressed base64 inert payload, reducing parser work substantially.
+- After the browser `load` event, the reference hydrates in small section chunks so the exam controls stay responsive.
+- Search and reference navigation refresh automatically when hydration finishes.
+- No network fetch, server, CDN, or second artifact is introduced.
+
+## V34.14.1 runtime fix
+
+- Fixed recovery-snapshot Delete handler binding that could throw during the first deferred compatibility render.
+- Added regression coverage for the exact selector mistake.
+- No other runtime behavior changed.
+
+
+## V34.14 Batch 14 — infinite-load root-cause fix
+
+- Fixed a self-triggering `MutationObserver` in the V28 attempt-ledger strip.
+- The observer now watches only direct replacement of the active-work strip; edits to its own Tried button no longer retrigger it.
+- This removes the browser main-thread/microtask loop that kept the page in an apparent infinite loading state.
+- Browser CI now captures live JavaScript stacks specifically to prevent this class of regression.
+
+## V34.13 Batch 13 — parser-safe storage startup
+
+- Removed the synchronous localStorage write/delete probe from parser-blocking startup.
+- Storage availability is now detected without mutating browser storage; existing guarded state helpers still handle real read/write failures.
+- This directly targets the boot diagnostic that stopped after search-core and before the storage-guard completion marker.
+- No exam data schema or methodology changed.
+
+## V34.11 Batch 11 — finish browser boot before heavy panels
+
+- The initial V14/V19 compatibility render chain no longer runs while HTML is still parsing.
+- Heavy derived panels are scheduled 120ms after the browser `load` event, allowing first paint, keyboard/navigation controls, and browser readiness to complete first.
+- Removed the last immediate V10 compatibility render hidden inside a wrapper definition.
+- The app marks `OSCP_INITIAL_RENDER_READY` when deferred compatibility rendering finishes.
+
+## V34.10 Batch 10 — collapse historical boot renders
+
+- Removed 13 redundant startup render passes left behind by older version layers.
+- The app now performs one final `renderAllV14()` pass after foundational setup instead of repeatedly rendering V8→V14 during initialization.
+- This keeps the legacy compatibility chain while dramatically reducing DOM churn before the page becomes usable.
+- No storage schema or exam methodology changed.
+
+## V34.9 Batch 9 — faster reference boot
+
+- Processing of the 420 embedded reference code blocks is now chunked after first paint instead of decorating and substituting every block synchronously during startup.
+- Copy buttons and placeholder substitution appear progressively in finite batches.
+- Search, target controls, Service Router, evidence, and navigation can become usable before deep reference decoration completes.
+- No new polling or storage schema changes were added.
+
+## V34.8.2 CI stabilization
+
+- Browser render checks now use a bounded wall-clock screenshot capture instead of virtual-time/compositor draining, which could stall Chrome even when the app itself was valid.
+- Runtime app code is unchanged in this patch.
+
+## V34.8 Batch 8 — lazy deep-search index
+
+- The large deep-reference search index is no longer built synchronously while the app script loads.
+- Search/index data is created only on first actual search, bracket lookup, command-palette reference lookup, or notes-index use.
+- Index extraction now uses `textContent` rather than layout-forcing `innerText`.
+- Preflight reports an unused lazy index as an advisory state instead of a failure.
+- Existing pinned items still render from their DOM anchor without forcing the full index at boot.
+
+## V34.7 Batch 7 — faster first paint
+
+- Clickable bracket references are now linked **incrementally after first paint** instead of scanning and rewriting the entire notes DOM synchronously during startup.
+- The public `OSCP_TAG_LINKS` API remains available immediately; all matching bracket tags continue becoming clickable in finite chunks.
+- The mutation observer starts only after the initial finite pass, avoiding self-generated mutation churn during boot.
+- CI locks out the old blocking `linkify(root)` startup path.
+
+## V34.6 Batch 6 — required browser regression gate
+
+- Headless Chrome rendering is a required CI gate, not advisory.
+- The gate renders the exact local `index.html` to PNG at 100%, 125%, and 150% scale with a fixed virtual-time budget—no DevTools transport or load-event race.
+- CI verifies the exact local `index.html` can complete browser rendering under a bounded budget; runtime behaviors are separately locked by deterministic regressions.
+- Typo-tolerant search, high contrast, critical controls, and zoom-sensitive layout are covered by regression tests plus multi-scale browser renders.
+- A missing/blank/tiny browser render fails the required gate.
+
+## V34.5 Batch 5 — target deletion integrity
+
+- Target deletion now names the target in the confirmation prompt.
+- A secret-free recovery snapshot is created before the target is removed.
+- If the deleted target was active, the app selects a deterministic remaining target (or clears active state).
+- All dependent exam views refresh immediately after deletion instead of leaving stale UI.
+- No new background behavior was added.
+
+## V34.4 Batch 4 — report-readiness ergonomics
+
+This batch adds one small report-state flag to the existing target report object.
+
+- **Needs report review:** mark a target when its commands, screenshots, or narrative still need a final human pass.
+- **Visible status:** the Reports view shows the review flag beside the target selector.
+- **Cockpit visibility:** the active-target summary carries a REPORT REVIEW chip until the flag is cleared.
+- **Export stays clean:** the internal review flag is intentionally not written into exported report Markdown.
+- No timers, polling, cross-tab coordination, or background rendering were added.
+
+## V34.3 Batch 3 — recovery and destructive-action safety
+
+This batch changes existing recovery paths only; it adds no polling, background render loop, or cross-tab behavior.
+
+- **Validated normal session restore:** secret-free session JSON is size-checked and schema-validated before any live state is replaced.
+- **Automatic pre-restore snapshot:** normal session imports create a secret-free recovery point first.
+- **Safe clear-all:** clearing browser operations state creates a recovery snapshot before deletion and uses explicit “Clear ALL” wording.
+- **Snapshot delete confirmation:** restore points cannot be deleted with a single accidental click.
+- **One restore chain:** the legacy two-stage normal-session import wrapper is removed so one validated restore path is authoritative.
+
+## V34.2 Batch 2 — regression and security gates
+
+This batch changes validation/tests only; it adds no runtime behavior.
+
+- Rejects `eval()` and `new Function()` in shipped JS modules.
+- Validates the full offline CSP baseline, not only `connect-src`.
+- Enforces a 1.5 MB generated-artifact budget.
+- Adds malformed/truncated scan fixtures and numeric-noise regressions.
+- Locks in critical Linux/Windows/AD reference anchors and structured content IDs.
+
+## V34.1 Batch 1 — safe retrieval/readability upgrades
+
+This batch deliberately avoids background timers, storage listeners, runtime polling, and state-schema changes.
+
+- **Typo-tolerant search:** common one-edit mistakes in strong title/tag tokens still surface the intended methodology.
+- **High-contrast reading mode:** user-triggered and persisted inside the existing readability settings.
+- **Stronger focus visibility:** keyboard focus remains obvious during long exam sessions.
+- **Bounded headless-browser boot test:** CI now opens the generated offline `index.html` in Chrome with a fixed virtual-time budget and asserts core exam surfaces exist.
+
+## V33 integration upgrades
+
+V33 keeps the V32 research-backed methodology and makes the exam workflow more connected:
+
+- **Active-target Service Dossier:** imported ports are classified against the tested Service Router core and shown with first-pass methodology, a manual/native truth check, failure fallback, and direct note search.
+- **Selected Scan Handoff:** every Scan Intake preview host gains **Import + Route**, which imports only that host, makes it active, and opens Service Router with its real TCP/UDP endpoints.
+- **Exam App Preflight:** checks build identity, localStorage, offline isolation/CSP, critical controls, duplicate IDs, Service Router parsing, search-index health, runtime boot integrity, local-file usage, and active-target state.
+- **Fast access:** Service Dossier is available from the active-work strip/workspace and **Alt+D**; Preflight is visible on Start/top bar and **Alt+F**.
+- These additions reuse live target state and the existing methodology rather than adding a second command cheatsheet.
+
+## V32 research-backed note upgrades
+
+V32 was reviewed against the current OffSec Exam Guide, FAQ and Body of Knowledge plus recent 2026 pass reports. Recurring high-signal patterns were converted into exam-time decision aids:
+
+- clean full-port discovery → targeted fingerprinting;
+- output/error classification before tool switching;
+- a layer-by-layer pivot proof ladder;
+- rights-gated AD credential extraction;
+- concise evidence-oriented live notes;
+- stronger passing-score screenshot/report audits;
+- repaired reporting/quick-reference markup left by older Markdown conversion.
+
+Community pass reports are anecdotal evidence only; official OffSec instructions remain authoritative.
+
+Research log: [docs/RESEARCH-2026-09-24.md](docs/RESEARCH-2026-09-24.md)
+
+## V31 reliability foundation
+
+- **One canonical build version:** `src/meta/build.json` drives the visible build and is validated against `package.json`.
+- **Unit-tested Service Router core:** scan parsing/classification is separated from DOM rendering and tested against Nmap normal/grepable, UDP, Masscan, RustScan, strict lists, garbage input, invalid ports, priority routing, and unknown ports.
+- **JavaScript syntax audit:** every source JS module is compiled by Node in CI.
+- **Content-structure audit:** methodology fragments are checked for balanced `details`, `pre`, and `code` tags.
+- **Accessibility feedback:** changing parser, score, toast, and duplicate-attempt feedback are polite ARIA live regions.
+- **Artifact checksum:** `npm run checksum` prints SHA-256 for the exact offline `index.html`.
+
+## Architecture
+
+```text
+src/index.template.html
+ + src/styles/*.css
+ + src/js/*.js
+ + src/content/*.html
+ + src/meta/build.json
+          ↓
+   scripts/build.mjs
+          ↓
+      index.html
+```
+
+**Do not hand-edit `index.html`.**
+
+```bash
+npm run check
+npm run checksum
+```
+
+The large methodology is no longer duplicated in README; `src/content/` is the source of truth.
+
+## Development
+
+Node.js 20+, zero npm dependencies:
+
+```bash
+npm run build
+npm test
+npm run audit
+npm run validate
+npm run checksum
+npm run check
+```
+
+CI rebuilds the exam artifact and fails if committed `index.html` drifts from source.
+
+## Why the final output stays one file
+
+A single local HTML file is an operational advantage under exam pressure: no server, missing assets, CDN, CORS, package manager, or network dependency. The source is modular; the exam artifact intentionally is not.
+
+## Security / maintainability
+
+Dynamic HTML escaping is centralized through tested `OSCP_UTILS.escapeHtml()`. The Service Router parser/classifier is isolated in `OSCP_SERVICE_CORE` so correctness is tested without a browser.
+
+Legacy `innerHTML` rendering remains for compatibility, but CI prevents the audited assignment count from increasing silently. New dynamic UI should prefer DOM APIs and `textContent`.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/CONTENT-MAP.md](docs/CONTENT-MAP.md), [docs/EXAM-PREFLIGHT.md](docs/EXAM-PREFLIGHT.md), and [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+No open-source license has been selected. Add one only after deciding what reuse rights you want to grant.
