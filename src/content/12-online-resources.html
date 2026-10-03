@@ -1,0 +1,96 @@
+<hr/>
+<h2 id="ref-22-online-resources">22. ONLINE RESOURCES — CURATED EXAM REFERENCE DESK</h2>
+<blockquote><p><strong>[ONLINE:RESOURCES] [EXAM:OPEN-BOOK]</strong> Use online references to verify syntax, prerequisites and technique details. OffSec's current OSCP+ FAQ permits notes and online resources during the exam, but AI/LLM chatbots with direct prompt access are prohibited. Current OffSec instructions and your Exam Control Panel always override this offline list.</p></blockquote>
+<blockquote><p><strong>Privacy rule:</strong> prefer documentation pages that do not require you to upload target data. Do not paste flags, credentials, hashes, tickets, dumps, screenshots or other exam-sensitive material into third-party websites just to decode/crack/analyze it. Use local tools such as <code>hashcat</code>, <code>john</code>, <code>CyberChef</code> offline where available, and installed <code>-h/--help</code> for exact tool syntax.</p></blockquote>
+
+<details id="ref-22-1-offsec-official-rules" open>
+<summary>🛡️ 22.1 OffSec Official — Check These First When Rules Matter</summary>
+<p><code>[ONLINE:OFFSEC] [RULES:AUTHORITATIVE]</code></p>
+<table class="ref-table"><thead><tr><th>Resource</th><th>Use it when…</th><th>Link</th></tr></thead><tbody>
+<tr><td><strong>OSCP+ Exam Guide</strong></td><td>You need current proof, screenshot, tool/restriction or submission requirements.</td><td><a href="https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide" target="_blank" rel="noopener noreferrer">Open Exam Guide ↗</a></td></tr>
+<tr><td><strong>OSCP+ Exam FAQ</strong></td><td>You need clarification on allowed resources/tools, Metasploit limits, shells or scoring examples.</td><td><a href="https://help.offsec.com/hc/en-us/articles/4412170923924-OSCP-Exam-FAQ" target="_blank" rel="noopener noreferrer">Open Exam FAQ ↗</a></td></tr>
+<tr><td><strong>AI Usage Policy</strong></td><td>You need the current boundary around AI/LLM features during the exam.</td><td><a href="https://help.offsec.com/hc/en-us/articles/35549468971156-AI-Usage-Policy-in-OffSec-Exams" target="_blank" rel="noopener noreferrer">Open AI Policy ↗</a></td></tr>
+</tbody></table>
+<p><strong>Rule:</strong> if this app disagrees with OffSec or your Control Panel, follow OffSec / Control Panel.</p>
+</details>
+
+<details id="ref-22-2-linux-windows-privesc">
+<summary>⬆️ 22.2 Linux / Windows Privilege Escalation References</summary>
+<p><code>[ONLINE:PRIVESC] [LINUX:SUDO] [LINUX:SUID] [WIN:LOLBAS]</code></p>
+<table class="ref-table"><thead><tr><th>Resource</th><th>Best use</th><th>Link</th></tr></thead><tbody>
+<tr><td><strong>GTFOBins</strong></td><td>Known Unix binary → check sudo/SUID/capability/shell/file-read/write behavior. Validate the exact context before using an entry.</td><td><a href="https://gtfobins.org/" target="_blank" rel="noopener noreferrer">GTFOBins ↗</a></td></tr>
+<tr><td><strong>LOLBAS</strong></td><td>Windows-native binary/script/library → understand legitimate features that may cross a security boundary.</td><td><a href="https://lolbas-project.github.io/" target="_blank" rel="noopener noreferrer">LOLBAS ↗</a></td></tr>
+<tr><td><strong>HackTricks</strong></td><td>Broader Linux/Windows privilege-escalation checklists and technique background when this reference needs more depth.</td><td><a href="https://book.hacktricks.wiki/" target="_blank" rel="noopener noreferrer">HackTricks ↗</a></td></tr>
+</tbody></table>
+</details>
+
+<details id="ref-22-3-active-directory">
+<summary>🏰 22.3 Active Directory / Windows Domain References</summary>
+<p><code>[ONLINE:AD] [AD:FLOW] [AD:ADCS] [AD:BLOODHOUND]</code></p>
+<table class="ref-table"><thead><tr><th>Resource</th><th>Best use</th><th>Link</th></tr></thead><tbody>
+<tr><td><strong>WADComs</strong></td><td>You know the AD action you want but need concise commands/tool alternatives.</td><td><a href="https://wadcoms.github.io/" target="_blank" rel="noopener noreferrer">WADComs ↗</a></td></tr>
+<tr><td><strong>BloodHound CE Docs</strong></td><td>Collector/CE syntax, graph concepts, edge meaning and attack-path interpretation.</td><td><a href="https://bloodhound.specterops.io/home" target="_blank" rel="noopener noreferrer">BloodHound Docs ↗</a></td></tr>
+<tr><td><strong>Certipy Wiki</strong></td><td>AD CS terminology, current Certipy syntax and ESC prerequisites. Confirm the actual template/CA rights rather than trusting an ESC label alone.</td><td><a href="https://github.com/ly4k/Certipy/wiki" target="_blank" rel="noopener noreferrer">Certipy Wiki ↗</a></td></tr>
+<tr><td><strong>NetExec Wiki</strong></td><td>Current protocol syntax, authentication options and module usage when installed <code>-h</code> is not enough.</td><td><a href="https://www.netexec.wiki/" target="_blank" rel="noopener noreferrer">NetExec Wiki ↗</a></td></tr>
+</tbody></table>
+</details>
+
+<details id="ref-22-4-web-application">
+<summary>🌐 22.4 Web Application References</summary>
+<p><code>[ONLINE:WEB] [WEB:ENUM] [WEB:API]</code></p>
+<table class="ref-table"><thead><tr><th>Resource</th><th>Best use</th><th>Link</th></tr></thead><tbody>
+<tr><td><strong>PortSwigger Web Security Academy</strong></td><td>High-quality explanations and cheat sheets for SQLi, XSS, SSRF, XXE, request smuggling, access control, authentication, API testing and more.</td><td><a href="https://portswigger.net/web-security" target="_blank" rel="noopener noreferrer">Web Security Academy ↗</a></td></tr>
+<tr><td><strong>PayloadsAllTheThings</strong></td><td>Payload families, bypass ideas and methodology references after you have identified a concrete web primitive.</td><td><a href="https://github.com/swisskyrepo/PayloadsAllTheThings" target="_blank" rel="noopener noreferrer">PayloadsAllTheThings ↗</a></td></tr>
+<tr><td><strong>HackTricks Web</strong></td><td>Service/web technique background when you need a second reference for an unfamiliar stack or behavior.</td><td><a href="https://book.hacktricks.wiki/" target="_blank" rel="noopener noreferrer">HackTricks ↗</a></td></tr>
+</tbody></table>
+<p><strong>Exam habit:</strong> identify the primitive first; use online references to validate it. Do not replace manual reasoning with prohibited automated exploitation.</p>
+</details>
+
+<details id="ref-22-5-pivot-shell-transfer">
+<summary>🛣️ 22.5 Pivoting, Shells &amp; Transfer</summary>
+<p><code>[ONLINE:PIVOT] [PIVOT:LIGOLO] [SHELL:REVERSE]</code></p>
+<table class="ref-table"><thead><tr><th>Resource</th><th>Best use</th><th>Link</th></tr></thead><tbody>
+<tr><td><strong>Ligolo-ng Docs</strong></td><td>Quickstart, routes/interfaces/listeners and troubleshooting when a pivot behaves differently from your notes.</td><td><a href="https://docs.ligolo.ng/" target="_blank" rel="noopener noreferrer">Ligolo-ng Docs ↗</a></td></tr>
+<tr><td><strong>RevShells</strong></td><td>Generate/compare reverse-shell syntax for an already-validated command-execution primitive. Verify quoting and available binaries manually.</td><td><a href="https://www.revshells.com/" target="_blank" rel="noopener noreferrer">RevShells ↗</a></td></tr>
+<tr><td><strong>PayloadsAllTheThings — Reverse Shells</strong></td><td>Alternative shell and transfer patterns when the first payload family is incompatible with the target environment.</td><td><a href="https://github.com/swisskyrepo/PayloadsAllTheThings" target="_blank" rel="noopener noreferrer">PayloadsAllTheThings ↗</a></td></tr>
+</tbody></table>
+</details>
+
+<details id="ref-22-6-exploit-verification">
+<summary>🔎 22.6 Exploit / CVE Verification</summary>
+<p><code>[ONLINE:CVE] [EXPLOIT:GATE]</code></p>
+<table class="ref-table"><thead><tr><th>Resource</th><th>Best use</th><th>Link</th></tr></thead><tbody>
+<tr><td><strong>Exploit Database</strong></td><td>Find public PoCs and source references. Read the code and prerequisites before running anything.</td><td><a href="https://www.exploit-db.com/" target="_blank" rel="noopener noreferrer">Exploit-DB ↗</a></td></tr>
+<tr><td><strong>Packet Storm</strong></td><td>Second-source exploit/advisory lookup when Exploit-DB or SearchSploit has nothing useful.</td><td><a href="https://packetstorm.news/" target="_blank" rel="noopener noreferrer">Packet Storm ↗</a></td></tr>
+<tr><td><strong>NVD</strong></td><td>Confirm CVE description, affected product/version context and references. A CVE match is still only a hypothesis until prerequisites are proven.</td><td><a href="https://nvd.nist.gov/vuln/search" target="_blank" rel="noopener noreferrer">NVD Search ↗</a></td></tr>
+</tbody></table>
+<pre class="ref-code"><code class="language-text">VERSION STRING → candidate only
+CVE PAGE → affected versions/configuration
+POC SOURCE → required arguments / architecture / authentication / module
+TARGET EVIDENCE → prove every prerequisite
+THEN test the smallest reversible path</code></pre>
+</details>
+
+<details id="ref-22-7-local-first-lookup">
+<summary>🧰 22.7 Local-First Lookup — Prefer This for Sensitive Material</summary>
+<p><code>[ONLINE:SAFE-USE] [HASH:LOCAL]</code></p>
+<ul>
+<li><strong>Hash identification/examples:</strong> use local <code>hashid</code>, <code>hashcat --example-hashes</code>, <code>hashcat -m ...</code> documentation, or John locally rather than uploading captured hashes.</li>
+<li><strong>Encoding/decoding:</strong> use local shell/Python or a locally available CyberChef instance where possible. If using a public web utility, do not paste exam secrets.</li>
+<li><strong>Tool syntax:</strong> installed <code>tool -h</code> / <code>tool --help</code> is the authority for the exact version on your Kali box.</li>
+<li><strong>Error research:</strong> search the exact error plus the tool/protocol name; do not include target IPs, usernames, flags, credentials or other exam-specific identifiers.</li>
+</ul>
+</details>
+
+<details id="ref-22-8-five-resource-emergency-shortlist">
+<summary>⚡ 22.8 If You Only Remember Five Sites</summary>
+<p><code>[ONLINE:TOP5]</code></p>
+<ol>
+<li><a href="https://gtfobins.org/" target="_blank" rel="noopener noreferrer"><strong>GTFOBins</strong></a> — Linux binary/sudo/SUID/capability context.</li>
+<li><a href="https://lolbas-project.github.io/" target="_blank" rel="noopener noreferrer"><strong>LOLBAS</strong></a> — Windows living-off-the-land behavior.</li>
+<li><a href="https://wadcoms.github.io/" target="_blank" rel="noopener noreferrer"><strong>WADComs</strong></a> — AD command/action lookup.</li>
+<li><a href="https://portswigger.net/web-security" target="_blank" rel="noopener noreferrer"><strong>PortSwigger Web Security Academy</strong></a> — web technique reference.</li>
+<li><a href="https://book.hacktricks.wiki/" target="_blank" rel="noopener noreferrer"><strong>HackTricks</strong></a> — broad second-reference / unfamiliar-service lookup.</li>
+</ol>
+<p>Then use the tool-specific docs: NetExec, Certipy, BloodHound and Ligolo-ng.</p>
+</details>
