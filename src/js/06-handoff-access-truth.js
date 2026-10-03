@@ -189,7 +189,6 @@ const v19RestoreBase=restoreV9Payload;restoreV9Payload=function(o){if(o?.accessL
 
 /* Replace the inherited partial JSON-import chain with the same complete restore
    path already used by encrypted backups and recovery snapshots. */
-$('#importSession').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{assertImportFileSize(file,'Session backup');const o=JSON.parse(await file.text());if(o?.ciphertext)throw new Error('Use the encrypted-backup restore control for encrypted files');assertRestorableBackup(o);snapshotNow('before session import');restoreV9Payload(o);toast('Complete session restored')}catch(err){alert('Invalid OSCP session JSON: '+err.message)}finally{e.target.value=''}};
 
 /* V19 destructive-action safety: create a secret-field-free recovery point before
    operations-state clears/restores. Full local-data deletion gets a second,
