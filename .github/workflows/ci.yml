@@ -21,10 +21,14 @@ jobs:
           from pathlib import Path
           p=Path('tests/run-tests.mjs')
           s=p.read_text()
-          old='const b=src.indexOf("$(\'#importSession\').onchange",a);'
-          new="const b=src.indexOf('let externalBackupMeta=',a);"
-          if old in s:
-              p.write_text(s.replace(old,new))
+          old1='const b=src.indexOf("$(\'#importSession\').onchange",a);'
+          old2='const b=src.indexOf(\'let externalBackupMeta=\',a);'
+          new='const b=src.indexOf("$(\'#stateFingerprintBtn\').onclick",a);'
+          s=s.replace(old1,new)
+          needle='const a=src.indexOf("$(\'#copySessionJson\').onclick");'+old2
+          repl='const a=src.indexOf("$(\'#copySessionJson\').onclick");'+new
+          s=s.replace(needle,repl)
+          p.write_text(s)
           PY
       - name: Build, test, audit, validate
         run: npm run check
@@ -70,10 +74,14 @@ jobs:
           from pathlib import Path
           p=Path('tests/run-tests.mjs')
           s=p.read_text()
-          old='const b=src.indexOf("$(\'#importSession\').onchange",a);'
-          new="const b=src.indexOf('let externalBackupMeta=',a);"
-          if old in s:
-              p.write_text(s.replace(old,new))
+          old1='const b=src.indexOf("$(\'#importSession\').onchange",a);'
+          old2='const b=src.indexOf(\'let externalBackupMeta=\',a);'
+          new='const b=src.indexOf("$(\'#stateFingerprintBtn\').onclick",a);'
+          s=s.replace(old1,new)
+          needle='const a=src.indexOf("$(\'#copySessionJson\').onclick");'+old2
+          repl='const a=src.indexOf("$(\'#copySessionJson\').onclick");'+new
+          s=s.replace(needle,repl)
+          p.write_text(s)
           PY
       - name: Rebuild generated artifacts
         run: npm run build
