@@ -1,0 +1,9 @@
+{
+  "app": "OSCP-V19",
+  "version": 19,
+  "targets": [{"id":"fixture-v19","ip":"10.10.10.19","host":"current-nineteen","role":"linux","stage":"post-shell","status":{"foothold":true,"local":true},"signals":["linux-shell"],"notes":"schema v19 fixture","next":["bank local","enumerate sudo",""],"ports":[{"port":22,"proto":"tcp","state":"open","service":"ssh"}],"timeline":[],"pointsPossible":20,"pointsAwarded":0,"report":{"title":"Fixture access","foothold":"SSH access","privesc":"","commands":"ssh user@$TARGET","screens":"","remediation":"","reviewNeeded":false}}],
+  "credentials": [],
+  "favorites": [],
+  "evidenceVault": [],
+  "activeTargetId": "fixture-v19"
+}

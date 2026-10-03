@@ -1,0 +1,9 @@
+{
+  "app": "OSCP-V16",
+  "version": 16,
+  "targets": [{"id":"fixture-v16","ip":"10.10.10.16","host":"legacy-sixteen","role":"dc","stage":"enumeration","status":{},"signals":["ad"],"notes":"schema v16 fixture","next":["enumerate LDAP","",""],"ports":[{"port":88,"proto":"tcp","state":"open","service":"kerberos-sec"},{"port":389,"proto":"tcp","state":"open","service":"ldap"}],"v15":{"chain":{"observation":"88+389","prerequisite":"domain context","validation":"pending","primitive":"","identity":"","evidence":"","banked":false}}}],
+  "credentials": [],
+  "favorites": [],
+  "evidenceVault": [],
+  "activeTargetId": "fixture-v16"
+}

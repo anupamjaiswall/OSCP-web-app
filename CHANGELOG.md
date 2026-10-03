@@ -1,5 +1,20 @@
 # Changelog
 
+## V34.51.0 — 2026-10-03
+
+### Import ownership, persistence and reliability correction
+- Removed superseded legacy import `.onchange` handlers from the core and handoff layer; `26-v35-import-safety.js` is now the single import owner and browser/self-tests assert exact handler identity.
+- Centralized the current session schema as `SESSION_SCHEMA_VERSION`; current session and target exports, validators and import guards consume the same value.
+- Orphaned `activeTargetId` is now a recoverable warning and is repaired to the first imported target; duplicate/missing IDs and future schemas remain hard failures.
+- Imports now check conservative storage headroom and verify critical localStorage keys by reading them back after restore; persistence mismatch triggers automatic rollback.
+- Added localStorage fault injection that forces a quota-style write failure and proves both in-memory and persisted state roll back to the pre-import session while retaining the recovery snapshot.
+- Added representative import fixtures for schemas 1, 9, 16 and 19 and a Chromium gate that restores each through the current build.
+- Reduced secret-lint noise: bare 32/64-character proof values and unlabeled MD5/SHA digests no longer warn; acknowledged `kind|path` findings prompt only once per browser tab.
+- Backup freshness is now configurable (30m/1h/2h/4h) with stronger due-soon, expired and missing visual states.
+- Removed dead handler code from the legacy core, reducing it to 334,255 bytes, and tightened the quality ratchet to the exact current size.
+- Added permanent source-hygiene and downward-only ratchet checks, `ROADMAP.md`, updated import-safety/release docs, and a CI-only create→clock→export→wipe→restore→compare lifecycle dry run.
+- Verified GitHub Action SHA pins against the `v7.0.1` checkout and `v7.0.0` setup-node tag refs; Dependabot remains enabled for Actions updates.
+
 ## V34.50.0 — 2026-10-03
 
 ### Transactional import / restore safety

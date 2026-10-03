@@ -1,0 +1,9 @@
+{
+  "app": "OSCP-legacy-fixture",
+  "version": 1,
+  "targets": [{"id":"fixture-v1","ip":"10.10.10.1","host":"legacy-one","role":"linux","status":{},"notes":"schema v1 fixture","next":["","",""]}],
+  "credentials": [],
+  "favorites": [],
+  "evidenceVault": [],
+  "activeTargetId": "fixture-v1"
+}

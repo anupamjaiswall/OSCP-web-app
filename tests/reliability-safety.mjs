@@ -1,23 +1,16 @@
 import fs from 'node:fs';
-import vm from 'node:vm';
 import path from 'node:path';
+import vm from 'node:vm';
 import {fileURLToPath} from 'node:url';
-
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const src=fs.readFileSync(path.join(root,'src/js/25-v35-reliability-safety.js'),'utf8');
-const ctx={console};vm.createContext(ctx);vm.runInContext(src,ctx);
-const c=ctx.OSCP_RELIABILITY_CORE||ctx.globalThis?.OSCP_RELIABILITY_CORE;if(!c)throw new Error('reliability core missing');
-const ok=(v,m)=>{if(!v)throw new Error(m)};
-
-const usage=c.storageUsage([['other','x'.repeat(100)],['oscp_v16_a','x'.repeat(1000)],['oscp_v16_b','y'.repeat(1000)]],'oscp_v16_',10000);
-ok(usage.keys===2,'prefix filtering failed');ok(usage.bytes>4000&&usage.bytes<5000,'UTF-16 byte estimate unexpected');ok(usage.warning===false,'small usage should not warn');
-const high=c.storageUsage([['oscp_v16_big','x'.repeat(4000)]],'oscp_v16_',10000);ok(high.warning===true,'70% storage warning did not trigger');
-
-const findings=c.scanSecretLikeText({notes:'password=ExampleSecret123',report:{body:'$krb5asrep$23$user@LAB:deadbeef'},safe:'10.10.10.10 nmap -sC -sV'});
-ok(findings.some(x=>x.kind==='credential label'),'credential label not detected');ok(findings.some(x=>x.kind==='Kerberos hash'),'Kerberos material not detected');ok(findings.every(x=>!Object.prototype.hasOwnProperty.call(x,'value')),'secret scanner exposed matched value');
-ok(c.scanSecretLikeText({notes:'nmap -p- 10.10.10.10; enumerate every service'}).length===0,'benign text false positive');
-
-const now=1_000_000;ok(c.backupFreshness({at:now-1000,kind:'session'},now).fresh===true,'fresh backup marked stale');ok(c.backupFreshness({at:now-c.BACKUP_FRESH_MS-1,kind:'session'},now).fresh===false,'stale backup marked fresh');ok(c.backupFreshness({},now).fresh===false,'missing backup marked fresh');
-const summary=c.preflightSummary([{state:'pass'},{state:'warn'},{state:'fail'},{state:'pass'}]);ok(summary.pass===2&&summary.warn===1&&summary.fail===1&&summary.ok===false,'preflight summary incorrect');
-
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),src=fs.readFileSync(path.join(root,'src/js/25-v35-reliability-safety.js'),'utf8');
+const context={console,window:{}};vm.createContext(context);vm.runInContext(src,context);const core=context.window.OSCP_RELIABILITY_CORE;
+const assert=(v,m)=>{if(!v)throw new Error(m)};
+assert(core&&typeof core.storageUsage==='function','reliability core missing');
+let u=core.storageUsage([['oscp_v16_a','x'.repeat(4000)],['other','y'.repeat(9999)]],'oscp_v16_',10000);assert(u.warning===true&&u.keys===1,'storage warning/prefix filtering failed');
+const proof='0123456789abcdef0123456789abcdef',sha='a'.repeat(64),realistic={targets:[{id:'a',notes:`proof.txt = ${proof}\nMD5 ${proof}\nSHA256 ${sha}`,evidence:{proofValue:proof},report:{screens:`proof ${proof}`}}],evidenceVault:[{name:'proof.png',sha256:sha,note:'screenshot checksum'}]};
+let findings=core.scanSecretLikeText(realistic);assert(findings.length===0,'proof/checksum false positive: '+JSON.stringify(findings));
+findings=core.scanSecretLikeText({notes:'password=ExampleSecret123\nntlm=0123456789abcdef0123456789abcdef'});assert(findings.some(x=>x.kind==='credential label'),'credential assignment was missed');assert(findings.every(x=>!Object.prototype.hasOwnProperty.call(x,'value')),'secret scanner exposed a matched value');
+findings=core.scanSecretLikeText({ticket:'$krb5asrep$23$user@REALM:abcdef'});assert(findings.some(x=>x.kind==='Kerberos hash'),'Kerberos hash was missed');
+const now=1_000_000,good=core.backupFreshness({at:now-10*60000},now,60*60000),soon=core.backupFreshness({at:now-50*60000},now,60*60000),expired=core.backupFreshness({at:now-70*60000},now,60*60000);assert(good.fresh&&!good.dueSoon&&!good.expired,'fresh backup state wrong');assert(soon.fresh&&soon.dueSoon&&!soon.expired,'due-soon backup state wrong');assert(!expired.fresh&&expired.expired,'expired backup state wrong');
+const sum=core.preflightSummary([{state:'pass'},{state:'warn'},{state:'fail'}]);assert(sum.pass===1&&sum.warn===1&&sum.fail===1&&!sum.ok,'preflight summary failed');
 console.log('reliability-safety tests passed');

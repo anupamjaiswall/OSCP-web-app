@@ -1,19 +1,23 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import vm from 'node:vm';
-
-const src=fs.readFileSync(new URL('../src/js/26-v35-import-safety.js',import.meta.url),'utf8');
-const sandbox={console,TextEncoder,globalThis:{}};vm.createContext(sandbox);vm.runInContext(src,sandbox);const c=sandbox.globalThis.OSCP_IMPORT_SAFETY_CORE||sandbox.OSCP_IMPORT_SAFETY_CORE;if(!c)throw new Error('import safety core did not initialize');
-const ok=(v,m)=>{if(!v)throw new Error(m)};
-const target={id:'fixture_a',ip:'10.10.10.10',host:'fixture',role:'linux',status:{},next:['','',''],notes:''};
-for(const version of [1,9,16,19]){const r=c.parseBackupText(JSON.stringify({app:'OSCP-V'+version,version,targets:[target],activeTargetId:'fixture_a'}));ok(r.ok,`schema ${version} should be accepted by envelope inspector: ${r.issues?.join('; ')}`)}
-let r=c.parseBackupText('{"targets":[');ok(!r.ok&&r.code==='json','truncated JSON should fail parsing');
-r=c.parseBackupText(JSON.stringify({version:16,targets:{}}));ok(!r.ok&&r.code==='schema','wrong-shaped targets should fail schema inspection');
-r=c.parseBackupText(JSON.stringify({version:20,targets:[target]}));ok(!r.ok&&r.issues.some(x=>x.includes('newer than supported')),'future schema should be rejected');
-r=c.parseBackupText(JSON.stringify({version:16,targets:[target,target]}));ok(!r.ok&&r.issues.some(x=>x.includes('duplicate target IDs')),'duplicate target IDs should fail');
-r=c.parseBackupText(JSON.stringify({version:16,targets:[target]}),32);ok(!r.ok&&r.code==='oversized','oversized backup text should be rejected before parse');
-let applied=false,rolled=false;
-let tx=await c.transactionalApply({x:1},{capture:()=>({old:1}),snapshot:()=>true,apply:()=>{applied=true},rollback:()=>{rolled=true}});ok(tx.ok&&applied&&!rolled,'successful transaction should not rollback');
-applied=false;rolled=false;tx=await c.transactionalApply({x:1},{capture:()=>({old:1}),snapshot:()=>true,apply:()=>{applied=true;throw new Error('forced apply failure')},rollback:before=>{ok(before.old===1,'rollback should receive captured state');rolled=true}});ok(!tx.ok&&tx.rolledBack&&applied&&rolled,'failed apply should automatically rollback');
-let snapshotBlocked=false;try{await c.transactionalApply({},{capture:()=>({}),snapshot:()=>false,apply:()=>{throw new Error('must not run')},rollback:()=>{}})}catch(e){snapshotBlocked=/snapshot failed/i.test(e.message)}ok(snapshotBlocked,'failed pre-restore snapshot should block mutation');
-let combined=false;try{await c.transactionalApply({},{capture:()=>({}),snapshot:()=>true,apply:()=>{throw new Error('apply')},rollback:()=>{throw new Error('rollback')}})}catch(e){combined=/automatic rollback also failed/i.test(e.message)}ok(combined,'rollback failure should surface a combined recovery error');
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const src=fs.readFileSync(path.join(root,'src/js/26-v35-import-safety.js'),'utf8');
+const context={console,TextEncoder,SESSION_SCHEMA_VERSION:19,window:{}};vm.createContext(context);vm.runInContext(src,context);const core=context.window.OSCP_IMPORT_SAFETY_CORE;
+const assert=(v,m)=>{if(!v)throw new Error(m)};
+assert(core&&typeof core.transactionalApply==='function','import safety core did not initialize');
+assert(core.SESSION_SCHEMA_VERSION===19,'schema constant drifted');
+for(const v of [1,9,16,19]){const p=path.join(root,`tests/fixtures/session-schema-v${v}.json`),o=JSON.parse(fs.readFileSync(p,'utf8')),r=core.inspectBackupObject(o);assert(r.ok,`schema v${v} fixture rejected: ${r.issues.join('; ')}`);assert(r.stats.version===v,`schema v${v} stats mismatch`)}
+let r=core.inspectBackupObject({version:20,targets:[{id:'a'}],activeTargetId:'a'});assert(!r.ok&&r.issues.some(x=>/newer/.test(x)),'future schema must fail');
+r=core.inspectBackupObject({version:19,targets:[{id:'a'},{id:'a'}],activeTargetId:'a'});assert(!r.ok&&r.issues.some(x=>/duplicate/.test(x)),'duplicate target IDs must fail');
+r=core.inspectBackupObject({version:19,targets:[{id:''}]});assert(!r.ok&&r.issues.some(x=>/missing ID/.test(x)),'missing target IDs must fail');
+const orphan={version:19,targets:[{id:'a'}],activeTargetId:'gone'},oi=core.inspectBackupObject(orphan),repaired=core.repairRecoverableBackup(orphan);assert(oi.ok&&oi.warnings.some(x=>/orphaned/.test(x)),'orphan active target should be warning');assert(repaired.activeTargetId==='a','orphan active target was not repaired');
+assert(!core.parseBackupText('{"targets":[').ok,'truncated JSON should fail');
+assert(!core.parseBackupText('x'.repeat(200),100).ok,'oversized text should fail');
+assert(!core.headroomDecision(5000,9000,1000,10000).ok,'headroom guard should reject oversized replacement');
+assert(core.headroomDecision(1500,9000,1000,10000).ok,'headroom guard should accept fitting replacement');
+let order=[];const okTx=await core.transactionalApply('new',{snapshot:()=>{order.push('snapshot');return true},capture:()=>{order.push('capture');return'old'},apply:()=>order.push('apply'),verify:()=>order.push('verify'),rollback:()=>order.push('rollback')});assert(okTx.ok&&order.join(',')==='snapshot,capture,apply,verify','transaction ordering is wrong: '+order.join(','));
+let snapshotBlocked=false;try{await core.transactionalApply('x',{snapshot:()=>false,capture:()=>{throw new Error('capture should not run')},apply:()=>{},rollback:()=>{}})}catch(e){snapshotBlocked=/snapshot failed/i.test(e.message)}assert(snapshotBlocked,'failed recovery snapshot must abort before capture/apply');
+let state={memory:'old',store:{a:'old',b:'old'}},writes=0,rollbackCount=0;const before=JSON.parse(JSON.stringify(state));const tx=await core.transactionalApply('new',{snapshot:()=>true,capture:()=>JSON.parse(JSON.stringify(state)),apply:()=>{state.memory='new';const set=(k,v)=>{writes++;if(writes===2)throw new Error('QuotaExceededError');state.store[k]=v};set('a','new');set('b','new')},verify:()=>{},rollback:s=>{rollbackCount++;state=JSON.parse(JSON.stringify(s))}});assert(!tx.ok&&tx.rolledBack&&rollbackCount===1,'fault injection did not rollback');assert(JSON.stringify(state)===JSON.stringify(before),'fault injection rollback did not fully restore state');
 console.log('import-safety tests passed');

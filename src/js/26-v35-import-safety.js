@@ -1,19 +1,19 @@
-/* V34.50: transactional import safety — validate first, require a recovery snapshot, rollback automatically on restore failure. */
+/* V34.51: single-owner, persistence-verified transactional import safety. */
 (function(root){
  'use strict';
- const MAX_IMPORT_BYTES=50_000_000;
- const SUPPORTED_SCHEMA_MAX=19;
+ const MAX_IMPORT_BYTES=8_000_000;
+ const STORAGE_BUDGET=5*1024*1024;
  const isRecord=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
- function utf8Bytes(value){
-  const s=String(value??'');
-  try{return typeof TextEncoder!=='undefined'?new TextEncoder().encode(s).length:s.length*2}catch(_){return s.length*2}
- }
+ function utf8Bytes(value){const s=String(value??'');try{return typeof TextEncoder!=='undefined'?new TextEncoder().encode(s).length:s.length*2}catch(_){return s.length*2}}
+ function utf16Bytes(value){return String(value??'').length*2}
+ function canonical(value){if(Array.isArray(value))return value.map(canonical);if(isRecord(value))return Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])]));return value}
+ function sameValue(a,b){return JSON.stringify(canonical(a))===JSON.stringify(canonical(b))}
  function inspectBackupObject(obj){
   const issues=[],warnings=[];
   if(!isRecord(obj))return Object.freeze({ok:false,issues:Object.freeze(['backup must be a JSON object']),warnings:Object.freeze([]),stats:Object.freeze({app:'unknown',version:'unknown',targets:0,credentials:0,evidence:0})});
   const version=obj.version===undefined?null:Number(obj.version);
   if(version!==null&&(!Number.isFinite(version)||version<1))issues.push('backup version is invalid');
-  if(Number.isFinite(version)&&version>SUPPORTED_SCHEMA_MAX)issues.push(`backup schema ${version} is newer than supported schema ${SUPPORTED_SCHEMA_MAX}`);
+  if(Number.isFinite(version)&&version>SESSION_SCHEMA_VERSION)issues.push(`backup schema ${version} is newer than supported schema ${SESSION_SCHEMA_VERSION}`);
   if(version===null)warnings.push('backup has no explicit schema version; legacy compatibility rules will be used');
   if(!Array.isArray(obj.targets))issues.push('targets array missing');
   if(Array.isArray(obj.targets)){
@@ -21,124 +21,41 @@
    if(obj.targets.some(x=>!isRecord(x)))issues.push('target entry must be an object');
    if(ids.some(x=>!x.trim()))issues.push('target with missing ID');
    if(new Set(ids).size!==ids.length)issues.push('duplicate target IDs');
+   if(obj.activeTargetId&&!obj.targets.some(t=>t?.id===obj.activeTargetId))warnings.push('activeTargetId is orphaned and will be repaired to the first target');
   }
   if(obj.credentials!==undefined&&!Array.isArray(obj.credentials))issues.push('credentials must be an array');
   if(obj.evidenceVault!==undefined&&!Array.isArray(obj.evidenceVault))issues.push('evidenceVault must be an array');
-  if(Array.isArray(obj.targets)&&obj.activeTargetId&&!obj.targets.some(t=>t?.id===obj.activeTargetId))issues.push('activeTargetId is orphaned');
   const stats=Object.freeze({app:String(obj.app||'unknown'),version:version===null?'legacy':version,targets:Array.isArray(obj.targets)?obj.targets.length:0,credentials:Array.isArray(obj.credentials)?obj.credentials.length:0,evidence:Array.isArray(obj.evidenceVault)?obj.evidenceVault.length:0});
   return Object.freeze({ok:issues.length===0,issues:Object.freeze(issues),warnings:Object.freeze(warnings),stats});
  }
- function parseBackupText(text,maxBytes=MAX_IMPORT_BYTES){
-  const raw=String(text??''),bytes=utf8Bytes(raw);
-  if(bytes>maxBytes)return Object.freeze({ok:false,code:'oversized',bytes,issues:Object.freeze([`backup text exceeds ${maxBytes} byte safety limit`]),warnings:Object.freeze([]),object:null,stats:null});
-  let obj;try{obj=JSON.parse(raw)}catch(e){return Object.freeze({ok:false,code:'json',bytes,issues:Object.freeze(['invalid or truncated JSON: '+e.message]),warnings:Object.freeze([]),object:null,stats:null})}
-  const inspected=inspectBackupObject(obj);
-  return Object.freeze({...inspected,code:inspected.ok?'ok':'schema',bytes,object:obj});
- }
- async function transactionalApply(candidate,ops){
-  if(!ops||typeof ops.capture!=='function'||typeof ops.snapshot!=='function'||typeof ops.apply!=='function'||typeof ops.rollback!=='function')throw new Error('transaction operations are incomplete');
-  const before=await ops.capture();
-  const snap=await ops.snapshot();
-  if(snap===false)throw new Error('Pre-restore recovery snapshot failed; import aborted before changing state.');
-  try{
-   await ops.apply(candidate);
-   if(typeof ops.verify==='function')await ops.verify(candidate);
-   return Object.freeze({ok:true,rolledBack:false,error:null});
-  }catch(error){
-   try{
-    await ops.rollback(before);
-    return Object.freeze({ok:false,rolledBack:true,error});
-   }catch(rollbackError){
-    const e=new Error('Restore failed and automatic rollback also failed. Use the pre-restore recovery snapshot. Restore error: '+(error?.message||error)+'; rollback error: '+(rollbackError?.message||rollbackError));
-    e.restoreError=error;e.rollbackError=rollbackError;throw e;
-   }
-  }
- }
- root.OSCP_IMPORT_SAFETY_CORE=Object.freeze({MAX_IMPORT_BYTES,SUPPORTED_SCHEMA_MAX,utf8Bytes,inspectBackupObject,parseBackupText,transactionalApply});
- if(typeof document==='undefined')return;
- const $=id=>document.getElementById(id);
- function currentSessionWithSecrets(){
-  if(typeof sessionPayload!=='function')throw new Error('session capture is unavailable');
-  return JSON.parse(JSON.stringify(sessionPayload(true)));
- }
- function requireSnapshot(label){
-  if(typeof snapshotNow!=='function')throw new Error('recovery snapshot function is unavailable');
-  return snapshotNow(label);
- }
- function verifyRestoredSession(){
-  if(typeof sessionPayload!=='function'||typeof v15BackupValidate!=='function')return true;
-  const r=v15BackupValidate(sessionPayload(false));
-  if(!r?.ok)throw new Error('post-restore state failed validation: '+(r?.issues||[]).join('; '));
-  return true;
- }
- async function restoreSessionObject(obj,label){
-  const tx=await transactionalApply(obj,{
-   capture:currentSessionWithSecrets,
-   snapshot:()=>requireSnapshot('before '+label),
-   apply:o=>restoreV9Payload(o),
-   verify:verifyRestoredSession,
-   rollback:before=>restoreV9Payload(before)
-  });
-  if(!tx.ok){const msg='Restore failed; previous in-memory session was automatically restored and the pre-restore snapshot was retained. '+(tx.error?.message||tx.error||'');throw new Error(msg.trim())}
-  return tx;
- }
- async function handleSessionImport(e){
-  const input=e.currentTarget||e.target,file=input?.files?.[0];if(!file)return;
-  try{
-   if(typeof assertImportFileSize==='function')assertImportFileSize(file,'Session backup');
-   const parsed=parseBackupText(await file.text());if(!parsed.ok)throw new Error(parsed.issues.join('; '));
-   const integrity=typeof verifyBackupIntegrity==='function'?await verifyBackupIntegrity(parsed.object):{present:false};
-   const obj=typeof assertRestorableBackup==='function'?assertRestorableBackup(parsed.object):parsed.object;
-   await restoreSessionObject(obj,'session import');
-   if(typeof toast==='function')toast(integrity?.present?'Session restored transactionally · SHA-256 verified':'Session restored transactionally · legacy/no checksum');
-  }catch(err){alert('Invalid OSCP session JSON: '+(err?.message||err))}finally{if(input)input.value=''}
- }
- async function handleEncryptedImport(e){
-  const input=e.currentTarget||e.target,file=input?.files?.[0],pass=$('encPassphrase')?.value||'';if(!file)return;
-  if(!pass){alert('Enter the backup passphrase first.');input.value='';return}
-  try{
-   if(typeof assertImportFileSize==='function')assertImportFileSize(file,'Encrypted backup');
-   let container;try{container=JSON.parse(await file.text())}catch(err){throw new Error('invalid or truncated encrypted JSON: '+err.message)}
-   const decrypted=await decryptPayload(container,pass);
-   const inspected=inspectBackupObject(decrypted);if(!inspected.ok)throw new Error(inspected.issues.join('; '));
-   const obj=typeof assertRestorableBackup==='function'?assertRestorableBackup(decrypted):decrypted;
-   await restoreSessionObject(obj,'encrypted restore');
-   if(typeof toast==='function')toast('Encrypted backup restored transactionally');
-  }catch(err){alert('Unable to decrypt/restore: '+(err?.message||err))}finally{input.value=''}
- }
- async function handleTargetImport(e){
-  const input=e.currentTarget||e.target,file=input?.files?.[0];if(!file)return;
-  try{
-   if(typeof assertImportFileSize==='function')assertImportFileSize(file,'Target backup');
-   const parsed=parseBackupText(await file.text());if(!parsed.ok)throw new Error(parsed.issues.join('; '));
-   const incoming=typeof validateTargetImportObject==='function'?validateTargetImportObject(parsed.object):parsed.object.targets;
-   const tx=await transactionalApply(incoming,{
-    capture:currentSessionWithSecrets,
-    snapshot:()=>requireSnapshot('before target-only import'),
-    apply:list=>{const prepared=prepareTargetImport(list);sessionSecrets=prepared.secrets;targets=prepared.targets;activeTargetId=targets[0]?.id||'';saveTargets();renderTargets();renderAllV7()},
-    verify:()=>{const r=inspectBackupObject({version:Math.min(SUPPORTED_SCHEMA_MAX,16),targets});if(!r.ok)throw new Error(r.issues.join('; '));return true},
-    rollback:before=>restoreV9Payload(before)
-   });
-   if(!tx.ok)throw new Error('Target import failed; previous session was automatically restored. '+(tx.error?.message||tx.error||''));
-   if(typeof toast==='function')toast('Targets imported transactionally');
-  }catch(err){alert('Invalid target JSON: '+(err?.message||err))}finally{input.value=''}
- }
- function installStatus(){
-  const card=$('reliabilitySafetyCard');if(!card||$('importSafetyStatus'))return false;
-  const d=document.createElement('div');d.id='importSafetyStatus';d.className='tiny';d.style.marginTop='8px';d.textContent='Import guard: validate → require pre-restore snapshot → apply → verify → automatic rollback on restore error.';card.appendChild(d);return true;
- }
- function install(){
-  const s=$('importSession'),e=$('importEncrypted'),t=$('importTargets');
-  if(s){s.onchange=handleSessionImport;s.dataset.transactional='1'}
-  if(e){e.onchange=handleEncryptedImport;e.dataset.transactional='1'}
-  if(t){t.onchange=handleTargetImport;t.dataset.transactional='1'}
-  if(!installStatus())setTimeout(installStatus,50);
-  try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(
-   ['V34.50 session imports are transactional',()=>[$('importSession')?.dataset.transactional==='1','session='+$('importSession')?.dataset.transactional]],
-   ['V34.50 encrypted imports are transactional',()=>[$('importEncrypted')?.dataset.transactional==='1','encrypted='+$('importEncrypted')?.dataset.transactional]],
-   ['V34.50 target imports are transactional',()=>[$('importTargets')?.dataset.transactional==='1','targets='+$('importTargets')?.dataset.transactional]]
-  )}catch(_){}
- }
- root.OSCP_IMPORT_SAFETY=Object.freeze({inspect:inspectBackupObject,parse:parseBackupText,restoreObject:restoreSessionObject,status:()=>Object.freeze({session:$('importSession')?.dataset.transactional==='1',encrypted:$('importEncrypted')?.dataset.transactional==='1',targets:$('importTargets')?.dataset.transactional==='1'})});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0),{once:true});else setTimeout(install,0);
+ function repairRecoverableBackup(obj){if(!isRecord(obj))return obj;const out={...obj};if(Array.isArray(out.targets)&&out.activeTargetId&&!out.targets.some(t=>t?.id===out.activeTargetId))out.activeTargetId=out.targets[0]?.id||'';return out}
+ function parseBackupText(text,maxBytes=MAX_IMPORT_BYTES){const raw=String(text??''),bytes=utf8Bytes(raw);if(bytes>maxBytes)return Object.freeze({ok:false,code:'oversized',bytes,issues:Object.freeze([`backup text exceeds ${maxBytes} byte safety limit`]),warnings:Object.freeze([]),object:null,stats:null});let obj;try{obj=JSON.parse(raw)}catch(e){return Object.freeze({ok:false,code:'json',bytes,issues:Object.freeze(['invalid or truncated JSON: '+e.message]),warnings:Object.freeze([]),object:null,stats:null})}const inspected=inspectBackupObject(obj);return Object.freeze({...inspected,code:inspected.ok?'ok':'schema',bytes,object:obj})}
+ function headroomDecision(candidateBytes,currentUsageBytes,currentReplaceableBytes,budget=STORAGE_BUDGET){const available=Math.max(0,Number(budget)-Math.max(0,Number(currentUsageBytes)||0)+Math.max(0,Number(currentReplaceableBytes)||0)),needed=Math.max(0,Number(candidateBytes)||0);return Object.freeze({ok:needed<=available,needed,available,shortBy:Math.max(0,needed-available)})}
+ async function transactionalApply(candidate,ops){if(!ops||typeof ops.capture!=='function'||typeof ops.snapshot!=='function'||typeof ops.apply!=='function'||typeof ops.rollback!=='function')throw new Error('transaction operations are incomplete');const snap=await ops.snapshot();if(snap===false)throw new Error('Pre-restore recovery snapshot failed; import aborted before changing state.');const before=await ops.capture();try{await ops.apply(candidate);if(typeof ops.verify==='function')await ops.verify(candidate);return Object.freeze({ok:true,rolledBack:false,error:null})}catch(error){try{await ops.rollback(before);return Object.freeze({ok:false,rolledBack:true,error})}catch(rollbackError){const e=new Error('Restore failed and automatic rollback also failed. Use the pre-restore recovery snapshot. Restore error: '+(error?.message||error)+'; rollback error: '+(rollbackError?.message||rollbackError));e.restoreError=error;e.rollbackError=rollbackError;throw e}}}
+ root.OSCP_SESSION_SCHEMA_VERSION=SESSION_SCHEMA_VERSION;root.OSCP_IMPORT_SAFETY_CORE=Object.freeze({SESSION_SCHEMA_VERSION,MAX_IMPORT_BYTES,STORAGE_BUDGET,utf8Bytes,utf16Bytes,canonical,sameValue,inspectBackupObject,repairRecoverableBackup,parseBackupText,headroomDecision,transactionalApply});
+ if(typeof document==='undefined')return;const $=id=>document.getElementById(id);
+ if(typeof sessionPayload==='function'&&!sessionPayload.__schemaUnified){const base=sessionPayload;const wrapped=function(includeSecrets=false){const o=base(includeSecrets);o.app='OSCP-V19';o.version=SESSION_SCHEMA_VERSION;return o};wrapped.__schemaUnified=true;sessionPayload=wrapped}
+ if(typeof targetOnlyPayload==='function'&&!targetOnlyPayload.__schemaUnified){const base=targetOnlyPayload;const wrapped=function(){const o=base();o.version=SESSION_SCHEMA_VERSION;return o};wrapped.__schemaUnified=true;targetOnlyPayload=wrapped}
+ function localEntries(){const rows=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k!==null)rows.push([k,localStorage.getItem(k)||''])}return rows}
+ function namespaceSnapshot(){const prefix=typeof STORE!=='undefined'?STORE:'oscp_v16_',out={};for(const [k,v] of localEntries())if(k.startsWith(prefix))out[k]=v;return out}
+ function restoreNamespace(snapshot){const prefix=typeof STORE!=='undefined'?STORE:'oscp_v16_',want=isRecord(snapshot)?snapshot:{},current=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(prefix))current.push(k)}for(const k of current)if(!(k in want))localStorage.removeItem(k);for(const [k,v] of Object.entries(want))localStorage.setItem(k,v);return true}
+ function currentSessionWithSecrets(){if(typeof sessionPayload!=='function')throw new Error('session capture is unavailable');return JSON.parse(JSON.stringify(sessionPayload(true)))}
+ function captureTransactionState(){return{session:currentSessionWithSecrets(),storage:namespaceSnapshot()}}
+ function requireSnapshot(label){if(typeof snapshotNow!=='function')throw new Error('recovery snapshot function is unavailable');return snapshotNow(label)}
+ function secretFreeTargets(list){return(Array.isArray(list)?list:[]).map(t=>({...t,creds:''}))}
+ function secretFreeCredentials(list){return(Array.isArray(list)?list:[]).map(c=>({...c,secret:''}))}
+ function parseStoredJSON(key){const raw=localStorage.getItem(key);if(raw===null)throw new Error('persisted key missing: '+key);try{return JSON.parse(raw)}catch(e){throw new Error('persisted key is invalid JSON: '+key)}}
+ function verifyPersistence(){const prefix=typeof STORE!=='undefined'?STORE:'oscp_v16_',expected=sessionPayload(false),checks=[['targets',secretFreeTargets(parseStoredJSON(prefix+'targets')),secretFreeTargets(expected.targets)],['credentials',secretFreeCredentials(parseStoredJSON(prefix+'credentials')),secretFreeCredentials(expected.credentials)],['favorites',parseStoredJSON(prefix+'favorites'),expected.favorites||[]],['evidenceVault',parseStoredJSON(prefix+'evidenceVault'),expected.evidenceVault||[]]];for(const [name,stored,want] of checks)if(!sameValue(stored,want))throw new Error('persistence verification failed for '+name);const active=localStorage.getItem(prefix+'activeTarget')||'';if(active!==String(expected.activeTargetId||''))throw new Error('persistence verification failed for active target');return true}
+ function verifyRestoredSession(){if(typeof sessionPayload!=='function'||typeof v15BackupValidate!=='function')return verifyPersistence();const r=v15BackupValidate(sessionPayload(false));if(!r?.ok)throw new Error('post-restore state failed validation: '+(r?.issues||[]).join('; '));verifyPersistence();return true}
+ function appStorageBytes(){const prefix=typeof STORE!=='undefined'?STORE:'oscp_v16_';if(root.OSCP_RELIABILITY_CORE?.storageUsage)return root.OSCP_RELIABILITY_CORE.storageUsage(localEntries(),prefix,STORAGE_BUDGET).bytes;let n=0;for(const [k,v] of localEntries())if(k.startsWith(prefix))n+=utf16Bytes(k)+utf16Bytes(v);return n}
+ function assertCandidateHeadroom(obj,{targetsOnly=false}={}){const candidate=targetsOnly?JSON.stringify(obj?.targets||[]):JSON.stringify(obj||{}),current=targetsOnly?JSON.stringify(typeof targets!=='undefined'?targets:[]):JSON.stringify(sessionPayload(false)),r=headroomDecision(utf16Bytes(candidate),appStorageBytes(),utf16Bytes(current));if(!r.ok)throw new Error(`Import needs about ${Math.ceil(r.needed/1024)} KB of app storage but only about ${Math.ceil(r.available/1024)} KB is available after replacement; export/clear space first.`);return r}
+ async function rollbackState(before){if(!before?.session)throw new Error('rollback state missing');restoreV9Payload(before.session);restoreNamespace(before.storage);verifyRestoredSession();return true}
+ async function restoreSessionObject(obj,label='session restore'){const repaired=repairRecoverableBackup(obj);assertCandidateHeadroom(repaired);const tx=await transactionalApply(repaired,{capture:captureTransactionState,snapshot:()=>requireSnapshot('before '+label),apply:o=>restoreV9Payload(o),verify:verifyRestoredSession,rollback:rollbackState});if(!tx.ok)throw new Error(('Restore failed; previous session and persisted app state were automatically restored. '+(tx.error?.message||tx.error||'')).trim());return tx}
+ async function handleSessionImport(e){const input=e.currentTarget||e.target,file=input?.files?.[0];if(!file)return;try{if(+file.size>MAX_IMPORT_BYTES)throw new Error(`Session backup exceeds ${MAX_IMPORT_BYTES/1_000_000} MB import limit`);const parsed=parseBackupText(await file.text());if(!parsed.ok)throw new Error(parsed.issues.join('; '));const integrity=typeof verifyBackupIntegrity==='function'?await verifyBackupIntegrity(parsed.object):{present:false},repaired=repairRecoverableBackup(parsed.object),obj=typeof assertRestorableBackup==='function'?assertRestorableBackup(repaired):repaired;await restoreSessionObject(obj,'session import');if(typeof toast==='function')toast(integrity?.present?'Session restored transactionally · SHA-256 verified':'Session restored transactionally · legacy/no checksum')}catch(err){alert('Invalid OSCP session JSON: '+(err?.message||err))}finally{if(input)input.value=''}}
+ async function handleEncryptedImport(e){const input=e.currentTarget||e.target,file=input?.files?.[0],pass=$('encPassphrase')?.value||'';if(!file)return;if(!pass){alert('Enter the backup passphrase first.');input.value='';return}try{if(+file.size>MAX_IMPORT_BYTES)throw new Error(`Encrypted backup exceeds ${MAX_IMPORT_BYTES/1_000_000} MB import limit`);let container;try{container=JSON.parse(await file.text())}catch(err){throw new Error('invalid or truncated encrypted JSON: '+err.message)}const decrypted=await decryptPayload(container,pass),inspected=inspectBackupObject(decrypted);if(!inspected.ok)throw new Error(inspected.issues.join('; '));const repaired=repairRecoverableBackup(decrypted),obj=typeof assertRestorableBackup==='function'?assertRestorableBackup(repaired):repaired;await restoreSessionObject(obj,'encrypted restore');if(typeof toast==='function')toast('Encrypted backup restored transactionally')}catch(err){alert('Unable to decrypt/restore: '+(err?.message||err))}finally{input.value=''}}
+ async function handleTargetImport(e){const input=e.currentTarget||e.target,file=input?.files?.[0];if(!file)return;try{if(+file.size>MAX_IMPORT_BYTES)throw new Error(`Target backup exceeds ${MAX_IMPORT_BYTES/1_000_000} MB import limit`);const parsed=parseBackupText(await file.text());if(!parsed.ok)throw new Error(parsed.issues.join('; '));assertCandidateHeadroom(parsed.object,{targetsOnly:true});const incoming=typeof validateTargetImportObject==='function'?validateTargetImportObject(parsed.object):parsed.object.targets,tx=await transactionalApply(incoming,{capture:captureTransactionState,snapshot:()=>requireSnapshot('before target-only import'),apply:list=>{const prepared=prepareTargetImport(list);sessionSecrets=prepared.secrets;targets=prepared.targets;activeTargetId=targets[0]?.id||'';saveTargets();renderTargets();renderAllV7()},verify:verifyRestoredSession,rollback:rollbackState});if(!tx.ok)throw new Error('Target import failed; previous session and persisted app state were automatically restored. '+(tx.error?.message||tx.error||''));if(typeof toast==='function')toast('Targets imported transactionally')}catch(err){alert('Invalid target JSON: '+(err?.message||err))}finally{input.value=''}}
+ function installStatus(){const card=$('reliabilitySafetyCard');if(!card||$('importSafetyStatus'))return false;const d=document.createElement('div');d.id='importSafetyStatus';d.className='tiny';d.style.marginTop='8px';d.textContent='Import guard: validate + headroom → require snapshot → apply → read back persisted state → verify → automatic rollback.';card.appendChild(d);return true}
+ function ownsHandlers(){return $('importSession')?.onchange===handleSessionImport&&$('importEncrypted')?.onchange===handleEncryptedImport&&$('importTargets')?.onchange===handleTargetImport}
+ function install(){const s=$('importSession'),e=$('importEncrypted'),t=$('importTargets');if(s){s.onchange=handleSessionImport;s.dataset.transactional='1'}if(e){e.onchange=handleEncryptedImport;e.dataset.transactional='1'}if(t){t.onchange=handleTargetImport;t.dataset.transactional='1'}if(!installStatus())setTimeout(installStatus,50);try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['V34.51 import handler ownership is exact',()=>[ownsHandlers(),'single owner for all 3 import inputs']],['V34.51 session schema is centralized',()=>[sessionPayload(false).version===SESSION_SCHEMA_VERSION&&targetOnlyPayload().version===SESSION_SCHEMA_VERSION,'schema='+SESSION_SCHEMA_VERSION]],['V34.51 orphan active target is repairable',()=>{const x=inspectBackupObject({version:SESSION_SCHEMA_VERSION,targets:[{id:'a'}],activeTargetId:'gone'}),r=repairRecoverableBackup({version:SESSION_SCHEMA_VERSION,targets:[{id:'a'}],activeTargetId:'gone'});return[x.ok&&x.warnings.length===1&&r.activeTargetId==='a',x.warnings.join('|')]}])}catch(_){}}
+ root.OSCP_IMPORT_SAFETY=Object.freeze({inspect:inspectBackupObject,parse:parseBackupText,repair:repairRecoverableBackup,restoreObject:restoreSessionObject,verifyPersistence,handlers:Object.freeze({session:handleSessionImport,encrypted:handleEncryptedImport,targets:handleTargetImport}),ownsHandlers,status:()=>Object.freeze({session:$('importSession')?.onchange===handleSessionImport,encrypted:$('importEncrypted')?.onchange===handleEncryptedImport,targets:$('importTargets')?.onchange===handleTargetImport,schema:SESSION_SCHEMA_VERSION})});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0),{once:true});else setTimeout(install,0);
 })(typeof window!=='undefined'?window:globalThis);

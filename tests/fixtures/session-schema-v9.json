@@ -1,0 +1,9 @@
+{
+  "app": "OSCP-V9",
+  "version": 9,
+  "targets": [{"id":"fixture-v9","ip":"10.10.10.9","host":"legacy-nine","role":"windows","status":{"foothold":true},"notes":"schema v9 fixture","next":["re-enumerate","",""],"report":{"title":"Legacy foothold","commands":"whoami"}}],
+  "credentials": [],
+  "favorites": [],
+  "evidenceVault": [],
+  "activeTargetId": "fixture-v9"
+}

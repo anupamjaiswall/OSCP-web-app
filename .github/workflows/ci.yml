@@ -1,4 +1,4 @@
-name: V34.50 build and validation
+name: V34.51 build and validation
 on:
   push:
     branches: [ main ]
@@ -19,28 +19,31 @@ jobs:
         run: npm run check
       - name: Headless browser render gate
         timeout-minutes: 2
-        run: node scripts/browser-smoke.mjs
+        run: npm run browser-smoke
       - name: Reference find browser gate
         timeout-minutes: 2
-        run: node scripts/reference-find-smoke.mjs
+        run: npm run reference-find-smoke
       - name: Passer-loop browser gate
         timeout-minutes: 2
-        run: node scripts/passer-loop-smoke.mjs
+        run: npm run passer-loop-smoke
       - name: Tooling browser gate
         timeout-minutes: 2
-        run: node scripts/tooling-smoke.mjs
+        run: npm run tooling-smoke
       - name: Reliability safety browser gate
         timeout-minutes: 2
-        run: node scripts/reliability-smoke.mjs
+        run: npm run reliability-smoke
       - name: Import safety browser gate
         timeout-minutes: 2
-        run: node scripts/import-safety-smoke.mjs
+        run: npm run import-safety-smoke
+      - name: Session lifecycle dry-run
+        timeout-minutes: 2
+        run: npm run session-lifecycle-smoke
       - name: Verify generated artifacts are committed on pull requests
         if: github.event_name == 'pull_request'
         run: git diff --exit-code -- index.html README.md
 
   sync-generated:
-    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: verify
     runs-on: ubuntu-latest
     permissions:
@@ -50,18 +53,16 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-      - name: Apply one-time V34.51 source/test migration
-        run: node scripts/v3451-source-cleanup.mjs --fix
       - name: Rebuild generated artifacts
         run: npm run build
-      - name: Sync migration and generated artifacts on main
+      - name: Sync generated artifacts on main
         run: |
-          if ! git diff --quiet -- src/js/03-core-app.js src/js/06-handoff-access-truth.js tests/run-tests.mjs index.html README.md; then
+          if ! git diff --quiet -- index.html README.md; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add src/js/03-core-app.js src/js/06-handoff-access-truth.js tests/run-tests.mjs index.html README.md
-            git commit -m "refactor: complete import/schema source migration"
+            git add index.html README.md
+            git commit -m "build: sync generated exam artifacts"
             git push
           fi
-      - name: Verify migration output is clean
-        run: git diff --exit-code -- src/js/03-core-app.js src/js/06-handoff-access-truth.js tests/run-tests.mjs index.html README.md
+      - name: Verify generated artifacts are clean after main sync
+        run: git diff --exit-code -- index.html README.md

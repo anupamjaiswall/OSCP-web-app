@@ -1,22 +1,26 @@
 {
   "name": "oscp-exam-os",
-  "version": "34.50.0",
+  "version": "34.51.0",
   "private": true,
   "type": "module",
   "description": "Offline-first OSCP exam methodology and decision-support web app.",
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node tests/run-tests.mjs && node tests/proof-bank.mjs && node tests/context-actions.mjs && node tests/passer-loop.mjs && node tests/online-resources.mjs && node tests/tooling-2026.mjs && node tests/reliability-safety.mjs && node tests/import-safety.mjs",
+    "source-hygiene": "node scripts/source-hygiene.mjs",
+    "ratchet": "node scripts/ratchet-quality.mjs --write",
+    "ratchet-check": "node scripts/ratchet-quality.mjs",
     "audit": "node scripts/audit.mjs",
     "validate": "node scripts/validate.mjs",
     "checksum": "node scripts/checksum.mjs",
-    "check": "npm run build && npm test && npm run audit && npm run contrast-audit && npm run validate",
+    "check": "npm run build && npm test && npm run source-hygiene && npm run ratchet-check && npm run audit && npm run contrast-audit && npm run validate",
     "browser-smoke": "node scripts/browser-smoke.mjs",
     "reference-find-smoke": "node scripts/reference-find-smoke.mjs",
     "passer-loop-smoke": "node scripts/passer-loop-smoke.mjs",
     "tooling-smoke": "node scripts/tooling-smoke.mjs",
     "reliability-smoke": "node scripts/reliability-smoke.mjs",
     "import-safety-smoke": "node scripts/import-safety-smoke.mjs",
+    "session-lifecycle-smoke": "node scripts/session-lifecycle-smoke.mjs",
     "contrast-audit": "node scripts/contrast-audit.mjs"
   },
   "engines": {
