@@ -13,6 +13,7 @@
     "check": "npm run build && npm test && npm run audit && npm run contrast-audit && npm run validate",
     "browser-smoke": "node scripts/browser-smoke.mjs",
     "reference-find-smoke": "node scripts/reference-find-smoke.mjs",
+    "passer-loop-smoke": "node scripts/passer-loop-smoke.mjs",
     "contrast-audit": "node scripts/contrast-audit.mjs"
   },
   "engines": {
