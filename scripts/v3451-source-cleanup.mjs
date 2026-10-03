@@ -4,42 +4,21 @@ const files=['src/js/03-core-app.js','src/js/06-handoff-access-truth.js'];
 const selectors=['importSession','importEncrypted','importTargets'];
 const fix=process.argv.includes('--fix');
 
-function statementEnd(src,start){
-  const brace=src.indexOf('{',start);if(brace<0)throw new Error('handler body not found');
-  let depth=0,quote='',escape=false,lineComment=false,blockComment=false;
-  for(let i=brace;i<src.length;i++){
-    const c=src[i],n=src[i+1]||'';
-    if(lineComment){if(c==='\n')lineComment=false;continue}
-    if(blockComment){if(c==='*'&&n==='/'){blockComment=false;i++}continue}
-    if(quote){if(escape){escape=false;continue}if(c==='\\'){escape=true;continue}if(c===quote){quote='';continue}if(quote!=='`')continue}
-    if(c==='/'&&n==='/'){lineComment=true;i++;continue}
-    if(c==='/'&&n==='*'){blockComment=true;i++;continue}
-    if(c==='\''||c==='"'||c==='`'){quote=c;continue}
-    if(c==='{')depth++;else if(c==='}'&&--depth===0){let end=i+1;while(/[ \t]/.test(src[end]||''))end++;if(src[end]===';')end++;if(src[end]==='\r')end++;if(src[end]==='\n')end++;return end}
-  }
-  throw new Error('unterminated handler');
-}
+function statementEnd(src,start){const brace=src.indexOf('{',start);if(brace<0)throw new Error('handler body not found');let depth=0,quote='',escape=false,lineComment=false,blockComment=false;for(let i=brace;i<src.length;i++){const c=src[i],n=src[i+1]||'';if(lineComment){if(c==='\n')lineComment=false;continue}if(blockComment){if(c==='*'&&n==='/'){blockComment=false;i++}continue}if(quote){if(escape){escape=false;continue}if(c==='\\'){escape=true;continue}if(c===quote){quote='';continue}if(quote!=='`')continue}if(c==='/'&&n==='/'){lineComment=true;i++;continue}if(c==='/'&&n==='*'){blockComment=true;i++;continue}if(c==='\''||c==='"'||c==='`'){quote=c;continue}if(c==='{')depth++;else if(c==='}'&&--depth===0){let end=i+1;while(/[ \t]/.test(src[end]||''))end++;if(src[end]===';')end++;if(src[end]==='\r')end++;if(src[end]==='\n')end++;return end}}throw new Error('unterminated handler')}
 function removeHandlers(src,id){const needle=`$('#${id}').onchange=async e=>{`;let removed=0,pos=0;while((pos=src.indexOf(needle,pos))>=0){const end=statementEnd(src,pos);src=src.slice(0,pos)+src.slice(end);removed++}return{src,removed}}
-function unifySchema(src){
-  let next=src;
-  next=next.replaceAll('version:19','version:SESSION_SCHEMA_VERSION');
-  next=next.replaceAll('o.version=19','o.version=SESSION_SCHEMA_VERSION');
-  next=next.replace('o.version=16;o.ruleSnapshot=V16_RULE_VERIFIED','o.version=SESSION_SCHEMA_VERSION;o.ruleSnapshot=V16_RULE_VERIFIED');
-  next=next.replace('if(o.version&&+o.version>19)issues.push(`backup schema ${o.version} is newer than supported schema 19`)','if(o.version&&+o.version>SESSION_SCHEMA_VERSION)issues.push(`backup schema ${o.version} is newer than supported schema ${SESSION_SCHEMA_VERSION}`)');
-  next=next.replaceAll('sessionPayload(false).version===19','sessionPayload(false).version===SESSION_SCHEMA_VERSION');
-  return next;
+function unifySchema(src){let next=src;next=next.replaceAll('version:19','version:SESSION_SCHEMA_VERSION');next=next.replaceAll('o.version=19','o.version=SESSION_SCHEMA_VERSION');next=next.replace('o.version=16;o.ruleSnapshot=V16_RULE_VERIFIED','o.version=SESSION_SCHEMA_VERSION;o.ruleSnapshot=V16_RULE_VERIFIED');next=next.replace('if(o.version&&+o.version>19)issues.push(`backup schema ${o.version} is newer than supported schema 19`)','if(o.version&&+o.version>SESSION_SCHEMA_VERSION)issues.push(`backup schema ${o.version} is newer than supported schema ${SESSION_SCHEMA_VERSION}`)');next=next.replaceAll('sessionPayload(false).version===19','sessionPayload(false).version===SESSION_SCHEMA_VERSION');return next}
+function modernizeCoreTests(src){
+ const replacements={
+  'normal session import validates before mutation and creates recovery point':`test('normal session import is owned by the transactional safety layer',()=>{const core=read('src/js/03-core-app.js'),guard=read('src/js/26-v35-import-safety.js');ok(!core.includes("$('#importSession').onchange="));ok(guard.includes('handleSessionImport'));ok(guard.includes("snapshot:()=>requireSnapshot('before '+label)"));ok(guard.includes('verifyPersistence'));ok(guard.includes('rollbackState'))});`,
+  'secret-free backups embed and verify SHA-256 before restore':`test('secret-free backups embed and transactional import verifies SHA-256 before restore',()=>{const core=read('src/js/03-core-app.js'),guard=read('src/js/26-v35-import-safety.js');ok(core.includes('async function withBackupIntegrity'));ok(core.includes('async function verifyBackupIntegrity'));ok(core.includes("algorithm:'SHA-256'"));ok(guard.indexOf('await verifyBackupIntegrity(parsed.object)')<guard.indexOf("await restoreSessionObject(obj,'session import')"))});`,
+  'clipboard recovery also carries integrity without marking durable backup':`test('clipboard recovery also carries integrity without marking durable backup',()=>{const src=read('src/js/03-core-app.js');const a=src.indexOf("$('#copySessionJson').onclick");const b=src.indexOf('let externalBackupMeta=',a);const block=src.slice(a,b);ok(block.includes('withBackupIntegrity(sessionPayload(false))'));ok(!block.includes('markExternalBackup('))});`,
+  'external backup freshness is event-driven and export-backed':`test('external backup freshness is event-driven and export-backed',()=>{const src=read('src/js/03-core-app.js'),tpl=read('src/index.template.html');const a=src.indexOf('let externalBackupMeta=');const b=src.indexOf('/* AES-GCM encrypted backups */',a);const block=src.slice(a,b);ok(tpl.includes('id="backupFreshness"'));ok(block.includes("STORE+'lastExternalBackup'"));ok(block.includes("markExternalBackup('secret-free session')"));ok(src.includes("markExternalBackup('encrypted session')"));ok(!block.includes('setInterval('));ok(!block.includes('MutationObserver'));});`
+ };
+ for(const [name,line] of Object.entries(replacements)){const re=new RegExp(`^test\\('${name.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&')}'.*$`,'m');if(re.test(src))src=src.replace(re,line)}
+ return src;
 }
 let handlerTotal=0,changedFiles=0;
-for(const file of files){
-  let src=fs.readFileSync(file,'utf8'),removed=0;
-  for(const id of selectors){const r=removeHandlers(src,id);src=r.src;removed+=r.removed}
-  handlerTotal+=removed;
-  const unified=unifySchema(src),changed=unified!==fs.readFileSync(file,'utf8');
-  if(fix&&changed){fs.writeFileSync(file,unified);changedFiles++}
-  console.log(`${file}: handlers=${removed}, schemaRewrite=${unified!==src?'yes':'no'}, ${fix?(changed?'updated':'clean'):'checked'}`);
-}
-if(!fix){
-  if(handlerTotal)throw new Error(`Found ${handlerTotal} legacy import onchange handler(s); only src/js/26-v35-import-safety.js may own import handlers.`);
-  for(const file of files){const src=fs.readFileSync(file,'utf8');if(unifySchema(src)!==src)throw new Error(file+' still contains a current-schema literal that must use SESSION_SCHEMA_VERSION');}
-}
+for(const file of files){const original=fs.readFileSync(file,'utf8');let src=original,removed=0;for(const id of selectors){const r=removeHandlers(src,id);src=r.src;removed+=r.removed}handlerTotal+=removed;const unified=unifySchema(src),changed=unified!==original;if(fix&&changed){fs.writeFileSync(file,unified);changedFiles++}console.log(`${file}: handlers=${removed}, schemaRewrite=${unified!==src?'yes':'no'}, ${fix?(changed?'updated':'clean'):'checked'}`)}
+const testFile='tests/run-tests.mjs',testOriginal=fs.readFileSync(testFile,'utf8'),testNext=modernizeCoreTests(testOriginal);if(fix&&testNext!==testOriginal){fs.writeFileSync(testFile,testNext);changedFiles++;console.log(testFile+': modernized source-coupled import assertions')}
+if(!fix){if(handlerTotal)throw new Error(`Found ${handlerTotal} legacy import onchange handler(s); only src/js/26-v35-import-safety.js may own import handlers.`);for(const file of files){const src=fs.readFileSync(file,'utf8');if(unifySchema(src)!==src)throw new Error(file+' still contains a current-schema literal that must use SESSION_SCHEMA_VERSION')}if(testNext!==testOriginal)throw new Error('tests/run-tests.mjs still contains source-coupled legacy import assertions')}
 if(fix)console.log(`Source migration complete: removed ${handlerTotal} handler(s), updated ${changedFiles} file(s).`);
