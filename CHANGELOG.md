@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.50.0 — 2026-10-03
+
+### Transactional import / restore safety
+- Normal session, encrypted session and target-only imports now validate before mutation and require a pre-restore recovery snapshot.
+- Restore/apply failures automatically roll back to the captured in-memory session while retaining the pre-restore recovery snapshot.
+- Added post-restore state validation so a restore that produces invalid state is treated as a failed transaction and rolled back.
+- Added pure malformed/truncated/oversized/wrong-shaped/future-schema regression coverage and transaction rollback tests.
+- Added a dedicated Chromium import-safety gate covering transactional wiring, supported schema compatibility and rollback behavior.
+- Added `docs/IMPORT-SAFETY.md`; no new background loop, network dependency or legacy-core growth was introduced.
+
 ## V34.49.0 — 2026-10-03
 
 ### Exam reliability safety
