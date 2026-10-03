@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.48.0 — 2026-10-03
+
+### README and documentation cleanup
+- Reduced `README.md` to the information that is useful for opening, using, validating and maintaining the exam app.
+- Removed release-history detail, size-policy detail and retired backlog material from the README; those belong in dedicated docs/validation output.
+- Deleted `docs/IMPROVEMENT-TRACKER.md` and removed live documentation dependencies on the retired 100-item tracker.
+- Updated the stable-release checklist to use current quality ratchets, known limitations and preflight checks instead.
+- No exam runtime behavior changed.
+
 ## V34.47.0 — 2026-10-03
 
 ### Repository and release hardening
@@ -75,4 +84,4 @@
 
 ## Earlier V34 history
 
-Detailed pre-V34.36 release notes remain available in the repository history and in the implementation/reliability documentation under `docs/`, especially `docs/IMPROVEMENT-TRACKER.md`, `docs/ARCHITECTURE.md`, and `docs/RESEARCH-*.md`.
+Detailed earlier release notes remain available in repository history and in the reliability/research documentation under `docs/`, especially `docs/ARCHITECTURE.md` and `docs/RESEARCH-*.md`.

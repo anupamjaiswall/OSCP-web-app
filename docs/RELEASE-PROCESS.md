@@ -4,10 +4,10 @@ Batch commits can move quickly during active exam-tool development. Stable tags 
 
 ## Stable release checklist
 1. `main` passes `npm run check`.
-2. Required `npm run browser-smoke` passes.
+2. Required browser smoke gates pass.
 3. Run `npm run checksum` and record the SHA-256.
-4. Confirm build metadata, package version, badge, and generated artifact agree.
-5. Confirm the 100-item tracker has no newly introduced high-risk backlog.
+4. Confirm build metadata, package version, README version, changelog entry, badge, and generated artifact agree.
+5. Review `docs/KNOWN-LIMITATIONS.md` and confirm the artifact-size, `innerHTML`, and legacy-core quality ratchets still have acceptable headroom.
 6. Perform the manual cold/offline preflight in `docs/EXAM-PREFLIGHT.md`.
 7. Tag the exact tested commit as `vMAJOR.MINOR.PATCH`.
 8. Release notes summarize exam-facing changes and include the generated `index.html` checksum.
