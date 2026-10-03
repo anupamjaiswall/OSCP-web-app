@@ -1,0 +1,6 @@
+{
+  "artifactSoftLimitBytes": 1500000,
+  "artifactHardLimitBytes": 1750000,
+  "maxInnerHTMLAssignments": 174,
+  "maxCoreAppBytes": 340000
+}

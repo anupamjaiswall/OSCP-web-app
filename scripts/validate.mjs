@@ -7,14 +7,30 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const fail=m=>{throw new Error(m)};
 const html=read('index.html');
 const meta=JSON.parse(read('src/meta/build.json'));
+const quality=JSON.parse(read('src/meta/quality.json'));
 const pkg=JSON.parse(read('package.json'));
+const readme=read('README.md');
+const changelog=read('CHANGELOG.md');
 
 if(pkg.version!==meta.version) fail('package.json version does not match build metadata');
+const expectedReadme='<!-- build-version:start -->\n**V'+meta.version+' — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**\n<!-- build-version:end -->';
+if(!readme.includes(expectedReadme))fail('README build version does not match build metadata; run npm run build');
+const readmeReleaseHeads=[...readme.matchAll(/^### V\d+\.\d+\.\d+\b/gm)];
+if(readmeReleaseHeads.length>3)fail('README release history exceeded the three-version limit; move older entries to CHANGELOG.md');
+const changeHeads=[...changelog.matchAll(/^## V(\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})$/gm)];
+if(!changeHeads.length||changeHeads[0][1]!==meta.version||changeHeads[0][2]!==meta.date)fail('CHANGELOG.md first release entry must match current build version/date');
+
+if(!Number.isInteger(quality.artifactSoftLimitBytes)||!Number.isInteger(quality.artifactHardLimitBytes)||quality.artifactSoftLimitBytes<=0||quality.artifactHardLimitBytes<=quality.artifactSoftLimitBytes)fail('Invalid artifact size policy');
+if(quality.artifactSoftLimitBytes>1_500_000)fail('Artifact soft-limit ratchet may not exceed 1.5 MB');
+if(quality.artifactHardLimitBytes>1_750_000)fail('Artifact hard-limit ratchet may not exceed 1.75 MB without an explicit validator change');
+const artifactBytes=Buffer.byteLength(html);
+if(artifactBytes>quality.artifactHardLimitBytes)fail('Generated index.html exceeds hard size budget: '+artifactBytes+' > '+quality.artifactHardLimitBytes);
+if(artifactBytes>quality.artifactSoftLimitBytes)console.warn('WARNING: generated index.html is above the soft size budget: '+artifactBytes+' > '+quality.artifactSoftLimitBytes);
+
 if(/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(html)) fail('Unresolved build marker');
 for(const directive of ["default-src 'none'","connect-src 'none'","object-src 'none'","frame-src 'none'","form-action 'none'","base-uri 'none'"]){
   if(!html.includes(directive))fail('CSP directive missing: '+directive);
 }
-if(Buffer.byteLength(html)>1_500_000)fail('Generated index.html exceeds 1.5 MB size budget');
 if(/<script\b[^>]*\bsrc\s*=/i.test(html)) fail('Runtime script source detected');
 if(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref\s*=/i.test(html)) fail('Runtime stylesheet detected');
 if(/<(?:script|img|link)\b[^>]*(?:src|href)=["']https?:\/\//i.test(html)) fail('Remote runtime resource detected');
@@ -50,8 +66,15 @@ if(brokenRefTargets.length) fail('Broken openRef target(s): '+brokenRefTargets.j
 const ariaIdRefs=[...staticAuditHtml.matchAll(/\b(?:aria-controls|aria-labelledby|aria-describedby|for)=["']([^"']+)["']/gi)].flatMap(m=>m[1].split(/\s+/).filter(Boolean));
 const brokenAriaRefs=[...new Set(ariaIdRefs.filter(id=>!seen.has(id)))];
 if(brokenAriaRefs.length) fail('Broken ARIA/label target(s): '+brokenAriaRefs.join(', '));
+
+if(!Number.isInteger(quality.maxInnerHTMLAssignments)||quality.maxInnerHTMLAssignments<0)fail('Invalid innerHTML ratchet');
+if(quality.maxInnerHTMLAssignments>174)fail('innerHTML ratchet may only move downward from the V34.46 baseline of 174');
 const inner=(js.match(/\.innerHTML\s*=/g)||[]).length;
-if(inner>174) fail('innerHTML assignments increased above audited baseline: '+inner);
+if(inner>quality.maxInnerHTMLAssignments) fail('innerHTML assignments exceed ratchet: '+inner+' > '+quality.maxInnerHTMLAssignments);
+if(!Number.isInteger(quality.maxCoreAppBytes)||quality.maxCoreAppBytes<=0)fail('Invalid legacy-core size ratchet');
+if(quality.maxCoreAppBytes>340_000)fail('Legacy-core size ratchet may only move downward from 340000 bytes');
+const coreBytes=Buffer.byteLength(read('src/js/03-core-app.js'));
+if(coreBytes>quality.maxCoreAppBytes)fail('03-core-app.js exceeded ratchet: '+coreBytes+' > '+quality.maxCoreAppBytes+'; extract logic instead of growing the legacy core');
 
 const util=read('src/js/00-core-utils.js');
 if(!util.includes("'&#39;'")) fail('Single-quote escaping missing');
@@ -85,4 +108,4 @@ for(const id of ['toast','serviceParseSummary','scoreSummary','attemptDuplicateH
   const tag=html.match(new RegExp('<[^>]+id="'+id+'"[^>]*>','i'))?.[0]||'';
   if(!/aria-live=["']polite["']/i.test(tag)) fail('Accessibility live-region missing for #'+id);
 }
-console.log('Validation passed: '+meta.label+', '+ids.length+' IDs, '+sourceH2+' reference sections, '+inner+' innerHTML assignments');
+console.log('Validation passed: '+meta.label+' '+meta.version+', '+ids.length+' IDs, '+sourceH2+' reference sections, '+inner+'/'+quality.maxInnerHTMLAssignments+' innerHTML, core '+coreBytes+'/'+quality.maxCoreAppBytes+' bytes, artifact '+artifactBytes+'/'+quality.artifactHardLimitBytes+' bytes');

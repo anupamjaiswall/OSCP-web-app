@@ -6,10 +6,22 @@ import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const meta=JSON.parse(read('src/meta/build.json'));
+const quality=JSON.parse(read('src/meta/quality.json'));
 
 if(!/^\d+\.\d+\.\d+$/.test(meta.version)) throw new Error('Invalid semantic build version');
 if(!/^V\d+$/.test(meta.label)) throw new Error('Invalid build label');
 if(!/^\d{4}-\d{2}-\d{2}$/.test(meta.date)) throw new Error('Invalid build date');
+
+function syncReadmeVersion(){
+  const p=path.join(root,'README.md');
+  const start='<!-- build-version:start -->',end='<!-- build-version:end -->';
+  const current=fs.readFileSync(p,'utf8');
+  if(!current.includes(start)||!current.includes(end)) throw new Error('README build-version markers are missing');
+  const block=start+'\n**V'+meta.version+' — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**\n'+end;
+  const next=current.replace(/<!-- build-version:start -->[\s\S]*?<!-- build-version:end -->/,block);
+  if(next!==current)fs.writeFileSync(p,next);
+}
+syncReadmeVersion();
 
 let html=read('src/index.template.html');
 html=html.replace(/\/\* @inject:style:([^*]+?) \*\//g,(_,f)=>read('src/styles/'+f.trim()));
@@ -36,5 +48,8 @@ const unresolved=[...new Set([
 ])];
 if(unresolved.length) throw new Error('Unresolved build marker(s): '+unresolved.join(' | '));
 fs.writeFileSync(path.join(root,'index.html'),html);
-console.log('Built index.html ('+Buffer.byteLength(html).toLocaleString()+' bytes)');
+const bytes=Buffer.byteLength(html);
+console.log('Built index.html ('+bytes.toLocaleString()+' bytes)');
+if(bytes>quality.artifactSoftLimitBytes)console.warn('Artifact size warning: '+bytes.toLocaleString()+' bytes exceeds soft budget '+quality.artifactSoftLimitBytes.toLocaleString()+'.');
+console.log('Artifact hard-limit headroom: '+Math.max(0,quality.artifactHardLimitBytes-bytes).toLocaleString()+' bytes');
 console.log('SHA-256 '+createHash('sha256').update(html).digest('hex'));

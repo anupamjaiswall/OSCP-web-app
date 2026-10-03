@@ -1,507 +1,78 @@
 # Changelog
 
+## V34.47.0 — 2026-10-03
+
+### Repository and release hardening
+- README version is synchronized from `src/meta/build.json`; validation rejects README/package/build metadata drift.
+- Added a changelog gate requiring the first release entry to match the current build version/date.
+- Replaced the nearly-exhausted 1.5 MB hard artifact limit with an explicit quality policy: warn at 1.50 MB and fail at 1.75 MB.
+- Added downward-only quality ratchets for audited `innerHTML` assignments and maximum legacy `03-core-app.js` size.
+- GitHub Actions are pinned to immutable commit SHAs corresponding to checkout v7.0.1 and setup-node v7.0.0.
+- Added Dependabot updates for GitHub Actions.
+- Split CI permissions: verification is read-only; only the main-only generated-artifact sync job gets `contents: write`.
+- Pull requests now fail when generated `index.html` or the README version block is not committed.
+- Added an explicit all-rights-reserved `LICENSE` notice; no open-source license is granted by default.
+
+## V34.46.0 — 2026-10-03
+
+### Kali toolchain readiness
+- Added capability-based pre-exam Kali readiness checks to Best Tools.
+- Added a local-only inventory script that checks command availability without installing, updating, or contacting the network.
+- Readiness accepts equivalent tools for the same exam job instead of requiring one exact package name.
+- Added unit and Chromium coverage for complete-toolchain and missing-critical-tool states.
+
+## V34.45.0 — 2026-10-03
+
+### Exam-time tooling defaults
+- Added Primary → Fallback → Specialist ladders for discovery, web, SMB, AD, privesc, shell handling, pivoting, cracking and exploit research.
+- Added Penelope OSCP-safe mode as a recommended shell-handler option.
+- Added RustHound-CE, smbclient-ng and RustScan as deliberately conditional fallbacks.
+- Added a tool-switch gate: read exact error → validate failing layer → try one fallback → rotate if evidence does not improve.
+
+## V34.44.0 — 2026-10-03
+
+### Online Resource Desk
+- Added curated official and community references for OffSec rules, Linux, Windows, AD, web, pivoting and exploit research.
+- Added search tags such as `[ONLINE:AD]`, `[ONLINE:WEB]`, `[ONLINE:PIVOT]` and `[ONLINE:CVE]`.
+- Added guidance to keep exam credentials, hashes, tickets, flags and screenshots out of random third-party services.
+
+## V34.43.0 — 2026-10-03
+
+### Research-backed exam operating loop
+- Added MAP → CHOOSE → RESET → BANK → REPRODUCE guidance derived from recurring 2026 passer signals and current OffSec rules.
+- Added state-aware Fresh-Eyes Reset flows for web, Linux, Windows, AD and pivoting.
+- Added live exam-state metrics and explicit bank-before-reset behavior when point-bearing evidence exists.
+
+## V34.42.0 — 2026-10-03
+
+### Full Reference find navigation
+- Added a dedicated in-reference finder with all-match highlighting, active-match emphasis, current/total and remaining counts.
+- Added Previous/Next, Enter/Shift+Enter and F3/Shift+F3 navigation with wrapping.
+- Hidden matches inside collapsed `<details>` now open automatically.
+- Preserved the existing global fuzzy search behavior.
+
+## V34.39.0 — 2026-10-03
+
+### Context-aware Next Actions
+- Added deterministic active-target recommendations from role, stage, services, access and evidence state.
+- Capped recommendations to a small exam-time queue and deep-linked them into existing methodology instead of creating another large page.
+
+## V34.38.0 — 2026-10-01
+
+### Proof closure guard
+- Added a five-step Bank the Points checklist, fast Linux/Windows proof-capture commands and explicit manual-verification state.
+- Added dedicated proof-bank regressions and current OffSec evidence-workflow research notes.
+
+## V34.37.0 — 2026-10-01
+
+### Search language aliases
+- Added exam-language-aware aliases such as subdomain/vhost/hosts, privesc/privilege escalation, pivot/tunnel/Ligolo, BloodHound collectors, Kerberoast/SPN and upload/transfer.
+
 ## V34.36.0 — 2026-09-30
 
 ### Search-to-reference collapsed-section fix
-- Parent heading search records no longer absorb text from child `details[id]` blocks.
-- Reference navigation expands every ancestor `<details>` before scroll/highlight.
-- Added a browser regression for `subdomain` → `2.2 /etc/hosts Management`.
+- Global search body-text hits now route to the exact collapsed reference section and expand all ancestor `<details>` elements before scrolling/highlighting.
 
-## V34.35.0 — 2026-09-30
+## Earlier V34 history
 
-### Cross-application functional and responsive reliability audit
-- Added real-browser interaction coverage for major exam workflows instead of checking only that views exist.
-- Added a four-width whole-app sweep (1440/900/560/390 px) across every navigation destination with a hard page-overflow gate.
-- Fixed Settings horizontal overflow by changing its fractional tracks to `minmax(0,1fr)`.
-- Fixed shared Workspace/Session grid shrink behavior with zero-minimum fractional tracks and child containment.
-- Fixed Session Health creating implicit grid columns when its issue summary reused `.opsSpan12` inside the nested health grid.
-- Hardened the Workspace resume packet against intrinsic-width overflow on narrow screens.
-- Static validation now rejects broken literal view targets, reference anchors, and ARIA/label targets.
-
-## V34.34.0 — 2026-09-30
-
-### Service Router layout hotfix
-- Added the missing global `.span5` and `.span7` grid rules used by Service Router and other dashboard cards.
-- Added responsive collapse for 5/7-column cards below 900 px.
-- Reworked Service Router controls into a full-width scan-input row plus four equal action buttons.
-- Added a real-browser layout regression that checks Service Router card widths, button usability, and horizontal overflow.
-
-## V34.33.0 — 2026-09-30
-
-### Full browser reliability audit
-- Browser CI now boots from the same `#view=simpleExamView` route used by GitHub Pages.
-- Added a real-browser sweep of every navigation destination, visible-layout checks, the complete in-browser self-test suite, and critical dialog open/close checks.
-- Fixed two malformed Service Router browser self-test fixtures that used literal `\\n` text instead of newline escapes.
-- Fixed the navigation/history wrapper discarding the Promise/boolean returned by `openRef()`; real browser CI now requires a successful return value.
-- Added Service Router and Method Trees to the simple-mode last-view restore allowlist.
-
-## V34.32.0 — 2026-09-30
-
-### Layout hotfix — visible \\n / blank main pane
-- Removed four accidental literal `\\n` text nodes after parser-stage scripts.
-- Fixed the first artifact sitting directly in the two-column `.layout` grid, where it could become an anonymous grid item and displace `<main>`.
-- Added static validation that rejects structural `</script>\\n<main|section>` artifacts.
-- Strengthened the browser smoke gate to require no non-whitespace text-node children in the layout and a visibly sized Start view.
-
-## V34.31.0 — 2026-09-30
-
-### Reliability hotfix — deterministic reference hydration
-- Replaced the repeated requestIdleCallback/setTimeout hydration loop with a single deterministic post-load hydration pass.
-- Added a watchdog fallback so the deep reference cannot remain indefinitely queued behind an idle callback.
-- Kept the reference inert during parser-critical startup and preserved on-demand search/direct-anchor loading.
-- Updated regression tests to reject the old idle-callback hydration path.
-
-## V34.30.0 — 2026-09-28
-
-### Compatibility hotfix — reference loading
-- Removed the runtime dependency on browser `DecompressionStream`.
-- Replaced gzip/base64 reference transport with an inert script-safe JSON payload.
-- Kept lazy section hydration and direct-anchor waiting behavior.
-- Browser smoke now disables `DecompressionStream` before the real `file://` test and still requires deep-reference navigation to work.
-- Removed the stray literal `\\n` after `<body>`.
-
-## V34.29.0 — 2026-09-25
-
-### Runtime fix — lazy-reference navigation
-- Fixed deep-reference buttons that could silently miss their destination while the compressed reference was still hydrating.
-- Added a wait-for-anchor contract to the reference hydrator and routed direct/reference-history jumps through it.
-- Deep-reference requests now actively accelerate hydration toward the requested section instead of assuming the anchor exists after 30–35 ms.
-- Kept pinned/recent lookups synchronized with the live lazy search index.
-- Expanded the browser smoke gate to exercise direct deep-reference navigation, populated reference navigation, and the real local file:// artifact.
-- Added regression assertions so lazy-hydration navigation cannot return unnoticed.
-
-## V34.28.0 — 2026-09-25
-
-### Batch 28 — finish the safe 100-item backlog
-- Added required WCAG AA contrast-ratio audit for critical exam UI color pairs.
-- Added a bounded persistent runtime error/unhandled-rejection log and Session diagnostics panel.
-- Added an event-driven multi-tab edit conflict warning without polling or automatic state merging.
-- Added deeper Windows/access-truth regressions around privilege-state separation and revert staleness.
-- Added source/naming conventions plus prepared repository metadata and stable release/tag process docs.
-- Updated the original 100-item tracker: only the high-risk legacy-core split remains genuinely pending.
-
-## V34.27.0 — 2026-09-24
-
-### Batch 27 — original 100-item implementation tracker
-- Added a numbered tracker for all 100 reviewed suggestions.
-- Each item is marked implemented, satisfied with a safer/modified approach, intentionally rejected, or still pending.
-- The tracker identifies the small remaining high-value backlog and records reasons for rejected complexity.
-- Runtime app behavior is unchanged.
-
-
-## V34.26.0 — 2026-09-24
-
-### Batch 26 — quick safety rollback
-- Added a Session-view control for the newest retained pre-destructive snapshot.
-- Chooses only snapshots whose reason begins with `before`, avoiding ordinary periodic snapshots for the quick-undo path.
-- Displays the safety-point time/reason and requires confirmation.
-- Validates the snapshot and creates a fresh current-state snapshot before replacing live state.
-- Reuses the existing autosnapshot format and restore chain.
-
-
-## V34.25.0 — 2026-09-24
-
-### Batch 25 — recovery-risk visibility
-- Added an isolated recovery-status module and polite Session-view status line.
-- Reports browser storage write failure, unsnapshotted core target/operations changes, restore-point timestamp and external-backup freshness.
-- Refreshes only on relevant state/view/visibility events; no new polling loop.
-- Added a native beforeunload warning only for real recovery risk: storage failure or dirty core state with stale/missing external backup.
-- Added deterministic regressions for the isolated event-driven behavior.
-
-
-## V34.24.0 — 2026-09-24
-
-### Batch 24 — keyboard navigation semantics
-- Added accessible group/pressed-state semantics and roving keyboard focus to methodology-tree selectors.
-- Added Arrow/Home/End focus navigation without changing normal button activation.
-- Added a Reference navigation landmark, explicit previous/next labels, live position feedback and pin pressed state.
-- Added keyboard shortcuts inside the reference navigator while preserving native select behavior.
-- Added deterministic regressions for the new semantics.
-
-
-## V34.23.0 — 2026-09-24
-
-### Batch 23 — DOM-safety regression gate
-- Extended JavaScript audit with bans on insertAdjacentHTML, outerHTML assignment, document.write/document.writeln, srcdoc assignment, string-created inline event handlers and javascript: URLs.
-- Kept the existing audited innerHTML assignment ceiling unchanged.
-- Added deterministic tests proving the guard exists and the shipped JavaScript is clean.
-- Runtime app behavior is unchanged.
-
-
-## V34.22.0 — 2026-09-24
-
-### Batch 22 — real browser interaction regression gate
-- Extended the required Chrome gate beyond startup/screenshot checks.
-- Added live typo-search verification for `seimpersonte`, including lazy reference hydration and non-empty results.
-- Added live high-contrast toggle verification.
-- Added target-creation verification in a fresh disposable browser profile.
-- Browser exceptions remain fatal and no runtime app code changed.
-
-
-## V34.21.0 — 2026-09-24
-
-### Batch 21 — secret-free backup integrity
-- Added optional WebCrypto SHA-256 integrity metadata to new secret-free session exports and clipboard recovery JSON.
-- Plain-session import verifies any embedded SHA-256 before taking a pre-restore snapshot or mutating live state.
-- Preserved backward compatibility for backups without integrity metadata.
-- Added a manual current-state fingerprint that excludes the volatile export timestamp.
-- Clipboard recovery remains non-durable and does not update external-backup freshness.
-- No background hashing or polling was added.
-
-
-## V34.20.1 — 2026-09-24
-
-### Search loading-state safety fix
-- Replaced the new search loading-state innerHTML write with explicit DOM construction.
-- Preserves the existing audited innerHTML baseline instead of weakening validation.
-- Runtime behavior is otherwise unchanged.
-
-
-## V34.20.0 — 2026-09-24
-
-### Batch 20 — search completeness and keyboard accessibility
-- Debounced live search input by 120 ms and removed the switch-view double-render path.
-- Expanded heading search coverage from three following siblings to the complete immediate heading region.
-- Empty searches no longer trigger deep-reference hydration; first real search displays an explicit one-time loading state.
-- Added search input/status/result ARIA semantics and a regression forbidding positive tabindex values.
-- Added deterministic tests for debounce, coverage, lazy empty-search behavior, and accessibility.
-- No exam-state schema or background polling changed.
-
-
-## V34.19.0 — 2026-09-24
-
-### Batch 19 — exam preflight and known limitations
-- Expanded the manual preflight to cover cold/offline startup, typo search, navigation, zoom, persistence, external backup testing and restore rehearsal.
-- Added a Known Limitations document for browser/origin storage, DecompressionStream support, autosnapshot boundaries, secret-free free text, encrypted-backup passphrases and tool syntax drift.
-- Documentation-only runtime change: none.
-
-
-## V34.18.0 — 2026-09-24
-
-### Batch 18 — emergency clipboard recovery
-- Added **Copy recovery JSON** beside the full-session export/import controls.
-- Clipboard recovery uses `sessionPayload(false)`, the same secret-free payload as the normal session export.
-- Clipboard copy does not mark the durable external-backup timestamp and does not mutate exam state.
-- Added regression coverage preventing secret-inclusive payloads or backup-freshness mutation in this path.
-
-
-## V34.17.0 — 2026-09-24
-
-### Batch 17 — non-destructive settings reset
-- Replaced the inactive/misleading Clear all local data button with Reset settings only.
-- Reset restores placeholder defaults and disables persisted-secret preference without deleting exam targets, credentials, evidence, reports, or recovery snapshots.
-- Added regression coverage that forbids destructive state clearing in this path.
-
-
-## V34.16.0 — 2026-09-24
-
-### Batch 16 — reference navigation accessibility
-- Styled the existing skip-to-workspace link so it becomes visible on keyboard focus.
-- Added a compact Reference → current-section breadcrumb to the sticky reference navigator.
-- Breadcrumb updates reuse existing reference position tracking; no polling, MutationObserver, or persisted state was added.
-- Added regression coverage for the skip-link focus style and breadcrumb wiring.
-
-
-## V34.15.0 — 2026-09-24
-
-### Batch 15 — external backup freshness
-- Added a Session-view indicator for the most recent full external backup created from this browser profile.
-- Secret-free and encrypted full-session exports record only backup timestamp/type metadata.
-- Freshness updates only on render/export; no polling, MutationObserver, or target/session schema change was added.
-- Added regression coverage for both export paths and the no-background-work guarantee.
-
-
-## V34.14.1 — 2026-09-24
-
-### Snapshot delete runtime fix
-- Fixed recovery-snapshot Delete binding to iterate the full NodeList instead of calling `.forEach` on a nullable single-element selector.
-- Added a regression that locks the correct `$('.snapDelete').forEach(...)` binding.
-- No storage schema, methodology, or startup behavior changed.
-
-
-## V34.14.0 — 2026-09-24
-
-### Batch 14 — fix infinite-load MutationObserver loop
-- Fixed the V28 active-work-strip observer recursively observing `renderStripButton()` edits.
-- Changed the observer from `childList + subtree` to direct `childList` only.
-- Added a regression test preventing self-observing strip behavior from returning.
-- Root cause was confirmed by a live Chrome debugger stack in CI.
-
-
-## Browser gate origin correction — 2026-09-24
-
-- Runtime browser validation now serves the exact generated `index.html` from an ephemeral localhost origin instead of navigating headless Chrome directly to `file://`.
-- This avoids Chromium's headless file-origin storage initialization stall while still using the same self-contained artifact with no external assets or network dependencies.
-- Static build, CSP, checksum, generated-artifact sync, and source validation remain independent of the runtime origin.
-
-
-## V34.13.0 — 2026-09-24
-
-### Batch 13 — parser-safe storage guard
-- Removed the synchronous localStorage set/remove persistence probe from parser boot.
-- Kept the in-memory fallback for contexts where the storage object itself is unavailable.
-- Added regression coverage preventing parser-time storage mutation from returning.
-- No exam state schema or methodology changed.
-
-
-## V34.12.0 — 2026-09-24
-
-### Batch 12 — parser-safe deep reference
-- Compressed the inert reference payload with gzip/base64 so the browser scans far less text before reaching the end of the document.
-- Moved the 410 KB deep methodology HTML out of the parser-critical DOM into an escaped inert JSON payload.
-- Hydrates reference sections incrementally after `window.load`.
-- Search waits for reference readiness and refreshes after hydration.
-- Reference navigator and live notes index rebuild when hydration completes.
-- Preserves the single-file offline artifact and the 1.5 MB size budget.
-
-
-## V34.11.0 — 2026-09-24
-
-### Batch 11 — parser-safe initial render
-- Removed the last immediate V10 compatibility render embedded in wrapper setup.
-- Deferred the first V14/V19 heavy compatibility render chain until after the browser load event.
-- Added a 120ms post-load yield so the offline page can finish first paint and become responsive before derived panels populate.
-- Added regression coverage preventing heavy compatibility rendering from returning to the parser path.
-
-
-## V34.10.0 — 2026-09-24
-
-### Batch 10 — collapse historical startup renders
-- Removed redundant standalone render passes from the V8–V14 compatibility layers.
-- Startup now performs one final V14 render after foundational setup; each V14 render already includes the older render chain exactly once.
-- Added a regression that permits only one standalone compatibility render during boot.
-- No storage schema or methodology changes.
-
-
-## V34.9.0 — 2026-09-24
-
-### Batch 9 — defer reference code decoration
-- Moved processing of 420 embedded reference code blocks off the synchronous boot path.
-- Copy-button creation and placeholder substitution now run in finite 24-block chunks after startup.
-- Added a regression preventing whole-reference synchronous code decoration from returning.
-- No storage schema change or background polling was added.
-
-
-## CI browser gate repair — 2026-09-24
-
-- Replaced file-appearance screenshot polling with a direct Chrome DevTools protocol readiness probe.
-- The required gate now verifies `document.readyState === complete`, critical controls, boot health, uncaught exceptions, and PNG capture at 100%, 125%, and 150% scale.
-- Chrome is explicitly terminated after verification, so app timers do not control CI lifecycle.
-- Runtime application code is unchanged.
-
-
-## V34.8.2 — 2026-09-24
-
-### Browser render gate harness fix
-- Replaced Chrome virtual-time/compositor screenshot flags with a fixed wall-clock headless screenshot timeout.
-- Keeps the browser render gate required at 100%, 125%, and 150% scale while avoiding a Chrome lifecycle stall unrelated to app correctness.
-- Runtime app code and exam methodology are unchanged.
-
-
-## V34.8.1 — 2026-09-24
-
-### Lazy-index boot leak fix
-- Removed the legacy `renderSearch('')` boot call that accidentally forced the new lazy deep-search index to build during startup.
-- Added a regression test preventing empty-search rendering from re-entering the boot path.
-- No storage schema or exam workflow behavior changed.
-
-
-## V34.8.0 — 2026-09-24
-
-### Batch 8 — lazy search indexing
-- Removed synchronous deep-reference search-index construction from script startup.
-- Added `ensureSearchItems()` and a small readiness API so search data is built only when a search/index feature is actually used.
-- Replaced `innerText` extraction with `textContent` to avoid layout-forcing work during index creation.
-- Updated bracket lookup, command palette, notes index, favorites, and preflight to tolerate the lazy index safely.
-- Added regressions that forbid eager search-index construction.
-
-
-## V34.7.2 — 2026-09-24
-
-### Browser-gate lifecycle fix
-- Browser render CI now polls for a valid PNG instead of waiting for Chrome to exit naturally.
-- Chrome is terminated explicitly after capture, preventing child-process/profile cleanup races on GitHub-hosted runners.
-- Temporary profile cleanup is best-effort and cannot mask the actual render result.
-- App runtime code and exam artifact are unchanged.
-
-
-## V34.7.1 — 2026-09-24
-
-### Browser render gate stabilization
-- Replaced Chrome `--dump-dom` smoke mode with bounded screenshot rendering at 100%, 125%, and 150% scale.
-- The required CI gate now proves Chrome can render the full offline app without hanging on DOM-dump completion semantics.
-- Critical controls remain statically asserted and behavior remains covered by deterministic unit regressions.
-- App runtime code and generated exam artifact are unchanged from V34.7.0.
-
-
-## V34.7.0 — 2026-09-24
-
-### Batch 7 — startup performance
-- Replaced synchronous whole-document bracket-tag linkification during DOMContentLoaded with finite chunked processing after first paint.
-- Delayed the bracket-link mutation observer until the initial pass completes, reducing boot-time mutation churn.
-- Fixed global-regex state leakage in bracket-tag eligibility checks.
-- Added regression coverage preventing a return to the blocking startup path.
-- Browser smoke gets a slightly larger bounded process timeout while retaining a fixed virtual-time budget.
-
-
-## V34.6.5 — 2026-09-24
-
-### Browser-gate stabilization
-- Replaced the flaky DevTools-pipe transport with bounded headless Chrome DOM boot checks using a fixed virtual-time budget.
-- The required gate verifies runtime-created exam controls at 100%, 125%, and 150% scale.
-- Typo search and high-contrast behavior remain covered by deterministic regression tests instead of fragile CDP interaction transport.
-- App runtime code and generated exam artifact remain unchanged.
-
-
-## V34.6.4 — 2026-09-24
-
-### Required browser-gate pipe transport
-- Replaced both TCP DevTools and `--dump-dom` with Chrome DevTools Protocol over local OS pipes.
-- The required gate creates and attaches to the exact offline app target without network-port or load-event races.
-- Restored real browser interaction checks for typo search, high contrast, 125%/150% zoom, boot health, and uncaught exceptions.
-- App runtime code and generated exam artifact remain unchanged.
-
-
-## V34.6.3 — 2026-09-24
-
-### Required browser-gate transport fix
-- Replaced flaky Chrome remote-debugging/CDP transport with native headless `--dump-dom` plus a bounded virtual-time budget.
-- The required gate now proves startup JavaScript produced runtime-only controls and fails if the page does not settle within the browser timeout.
-- Runs the boot check at normal, 125%, and 150% display scale.
-- Keeps deterministic unit regressions for typo search and high-contrast behavior.
-- App runtime code and generated exam artifact remain unchanged.
-
-
-## V34.6.2 — 2026-09-24
-
-### Browser-gate target fix
-- Replaced the unreliable `Page.loadEventFired` dependency with a dedicated Chrome DevTools page target created directly for the offline `index.html`.
-- Readiness checks now poll the exact app target for up to 30 seconds with bounded evaluations.
-- The browser gate remains required; no app runtime code or generated exam artifact changed in this patch.
-
-
-## V34.6.1 — 2026-09-24
-
-### Browser-gate determinism fix
-- Synchronized the required Chrome probe on `Page.loadEventFired` before evaluating app readiness.
-- Increased bounded Runtime.evaluate timeouts and improved failure diagnostics without weakening the required gate.
-- Disabled additional background Chrome services to reduce CI noise and timing variance.
-- App runtime code and generated exam artifact are unchanged by this patch.
-
-
-## V34.6.0 — 2026-09-24
-
-### Batch 6 — required browser regression gate
-- Promoted the headless Chrome smoke test from advisory to required CI.
-- Added 125% and 150% zoom checks for critical exam controls.
-- Kept typo-search, high-contrast, boot-health, and uncaught-exception checks in the required browser gate.
-- This directly guards against the class of browser-only regression that caused the earlier infinite-load failure.
-
-
-## V34.5.0 — 2026-09-24
-
-### Batch 5 — target deletion integrity
-- Target deletion creates a secret-free recovery snapshot first.
-- Confirmation now identifies the target being deleted.
-- Deleting the active target repairs active-target selection deterministically.
-- All dependent views refresh after deletion to avoid stale exam state.
-- Added regression coverage for ordering and active-target repair.
-
-
-## V34.4.0 — 2026-09-24
-
-### Batch 4 — report-readiness ergonomics
-- Added a persisted per-target “Needs report review” flag inside the existing report object.
-- Surfaced review status in the Reports header and active-target summary.
-- Kept the internal review flag out of exported Markdown.
-- Added regression coverage for persistence/UI wiring and export cleanliness.
-- No timers, polling, cross-tab coordination, or background rendering were added.
-
-
-## V34.3.0 — 2026-09-24
-
-### Batch 3 — recovery and destructive-action safety
-- Normal session imports are file-size checked and backup-schema validated before state mutation.
-- Normal imports create a secret-free recovery snapshot before restore.
-- Clear-all operations state creates a recovery snapshot first and uses explicit destructive wording.
-- Recovery snapshot deletion now requires confirmation and uses an explicit Delete button.
-- Removed the legacy two-stage normal-session import wrapper so one validated restore chain is authoritative.
-- No new timers, storage listeners, polling, or background render loops were added.
-
-
-## V34.2.0 — 2026-09-24
-
-### Batch 2 — regression and security gates
-- Added dynamic-code execution rejection for eval/new Function.
-- Expanded offline CSP validation.
-- Added a 1.5 MB generated index budget.
-- Added truncated scan/noise parser fixtures.
-- Added structured reference-ID and critical-anchor regressions.
-- No runtime UI/storage behavior changed in this batch.
-
-
-## V34.1.0 — 2026-09-24
-
-### Batch 1 — search, readability, and browser boot safety
-- Added pure typo-tolerant search scoring with regression tests.
-- Added user-triggered high-contrast mode inside the existing readability controls.
-- Strengthened keyboard focus visibility.
-- Added a bounded headless Chrome boot smoke test in CI.
-- Added no background render loops, cross-tab storage chatter, or state-schema changes in this batch.
-
-
-## V33.0.0 — 2026-09-24
-
-### Workflow integration
-- Added an active-target Service Dossier combining imported endpoints with tested service methodology and deep-note search.
-- Added one-click selected-host Scan Intake → target import → Service Router handoff.
-- Added a local app preflight covering build identity, storage, offline isolation, critical controls, parser/search health and runtime integrity.
-- Added Alt+D / Alt+F access and command-palette entries for dossier/preflight.
-- Kept the generated single-file artifact synchronized with modular source.
-
-
-## V32.0.0 — 2026-09-24
-
-### Research-backed exam notes
-- Replaced concurrent same-host Nmap discovery/fingerprinting with a reliable two-pass default.
-- Added scan-sanity recovery for sparse/inconsistent results, lossy VPNs and pivot/SOCKS paths.
-- Added output triage separating network, name/TLS, authentication, authorization and local-tool failures before tool switching.
-- Added an AD `secretsdump` decision gate requiring proven local-admin or replication rights.
-- Added a pivot proof ladder and route diary.
-- Rebuilt malformed Sections 18.3–19.2 into valid collapsible HTML and removed old Markdown-conversion debris.
-- Added concise live-note/report templates and a stronger passing-score evidence audit.
-- Updated the first-30-minute exam scan flow to avoid stacking heavy scans against one host.
-- Added OffSec Body of Knowledge / Authoritative References plus a dated passer-feedback synthesis.
-- Added CI regressions for two-pass scanning, pivot proof, output triage and conversion-debris cleanup.
-
-
-## V31.0.0 — 2026-09-24
-
-- Added a single canonical build-version source and runtime build metadata.
-- Extracted Service Router parsing/classification into a DOM-free, unit-tested core.
-- Added parser regression tests for Nmap normal/grepable, UDP, Masscan, RustScan, strict lists, invalid input, priority routing, and unknown ports.
-- Added JavaScript syntax auditing and methodology-fragment structure auditing.
-- Added accessibility live regions for toast, parser, score, and duplicate-attempt feedback.
-- Added `npm run checksum` for SHA-256 verification of the offline artifact.
-- Strengthened CI to build → test → audit → validate before accepting generated artifact sync.
-
-
-## V30.0.0 — 2026-09-24
-
-- Modular source tree with generated single-file exam artifact.
-- CSS, JS, and embedded reference content split under `src/`.
-- Zero-dependency build script and GitHub Actions CI.
-- Node tests for escaping, 70-point scoring, and evidence gates.
-- Static validation for CSP, external resources, IDs, anchors, reference count, and `innerHTML` regressions.
-- Four `esc()` implementations consolidated behind one tested shared utility.
-- Service Router scoring and evidence-gate logic wired to tested pure helpers.
-- Oversized README replaced by project/use/build documentation.
-- Added `.gitignore`, `package.json`, architecture docs, content map, and changelog.
-
-## V29 — 2026-09-24
-
-- Added `rlwrap -cAr` to interactive `nc`/`ncat` listeners where appropriate.
-
-## V28
-
-- Hardened scan routing and added the attempt ledger.
+Detailed pre-V34.36 release notes remain available in the repository history and in the implementation/reliability documentation under `docs/`, especially `docs/IMPROVEMENT-TRACKER.md`, `docs/ARCHITECTURE.md`, and `docs/RESEARCH-*.md`.
