@@ -40,7 +40,7 @@ jobs:
         run: git diff --exit-code -- index.html README.md
 
   sync-generated:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: verify
     runs-on: ubuntu-latest
     permissions:
@@ -50,18 +50,18 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-      - name: Remove superseded legacy import handlers
+      - name: Apply one-time V34.51 source/test migration
         run: node scripts/v3451-source-cleanup.mjs --fix
       - name: Rebuild generated artifacts
         run: npm run build
-      - name: Sync source cleanup and generated artifacts on main
+      - name: Sync migration and generated artifacts on main
         run: |
-          if ! git diff --quiet -- src/js/03-core-app.js src/js/06-handoff-access-truth.js index.html README.md; then
+          if ! git diff --quiet -- src/js/03-core-app.js src/js/06-handoff-access-truth.js tests/run-tests.mjs index.html README.md; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add src/js/03-core-app.js src/js/06-handoff-access-truth.js index.html README.md
-            git commit -m "refactor: remove superseded import handlers"
+            git add src/js/03-core-app.js src/js/06-handoff-access-truth.js tests/run-tests.mjs index.html README.md
+            git commit -m "refactor: complete import/schema source migration"
             git push
           fi
-      - name: Verify generated artifacts are clean after main sync
-        run: git diff --exit-code -- src/js/03-core-app.js src/js/06-handoff-access-truth.js index.html README.md
+      - name: Verify migration output is clean
+        run: git diff --exit-code -- src/js/03-core-app.js src/js/06-handoff-access-truth.js tests/run-tests.mjs index.html README.md
