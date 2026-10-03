@@ -1,4 +1,4 @@
-name: V34.49 build and validation
+name: V34.50 build and validation
 on:
   push:
     branches: [ main ]
@@ -32,6 +32,9 @@ jobs:
       - name: Reliability safety browser gate
         timeout-minutes: 2
         run: node scripts/reliability-smoke.mjs
+      - name: Import safety browser gate
+        timeout-minutes: 2
+        run: node scripts/import-safety-smoke.mjs
       - name: Verify generated artifacts are committed on pull requests
         if: github.event_name == 'pull_request'
         run: git diff --exit-code -- index.html README.md
