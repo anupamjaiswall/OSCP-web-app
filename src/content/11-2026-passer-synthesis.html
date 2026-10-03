@@ -1,0 +1,108 @@
+<h2 id="ref-21-2026-passer-synthesis">21. 2026 PASSER SYNTHESIS — EXAM-TIME OPERATING LESSONS</h2>
+<blockquote><p><strong>Anecdotal, not authority:</strong> these patterns come from recent 2026 pass reports and are included only where multiple candidates independently described the same exam-time lesson. The current OffSec Exam Guide, Candidate Handbook, proctor and Exam Control Panel always override community advice.</p></blockquote>
+
+<details id="ref-21-1-map-before-commit">
+<summary>🗺️ 21.1 Map Before You Commit</summary>
+<p><code>[PASSER:2026] [TIME:ROTATE] [ENUM:NMAP]</code></p>
+<ul>
+<li>Run clean discovery across every recorded target before deeply committing to the first promising clue.</li>
+<li>Separate <strong>open-port discovery</strong> from <strong>targeted fingerprinting</strong>. Confirm what is open first, then spend version/script time on those ports.</li>
+<li>Write every plausible lead before exploitation. Rank leads by evidence + prerequisite completeness + shortest likely path.</li>
+<li>Do not treat the first suspicious service/version as the answer. Finish the service map first.</li>
+</ul>
+<pre class="ref-code"><code class="language-text">OPENING MAP
+[ ] read control-panel objectives / point values
+[ ] full TCP discovery started/completed for every recorded target
+[ ] focused service/version scan only on confirmed opens
+[ ] justified UDP where evidence warrants it
+[ ] hostnames / vhosts / domain / DC / DNS / time recorded
+[ ] provided credentials validated carefully
+[ ] strongest 2-3 evidence-backed leads ranked
+</code></pre>
+</details>
+
+<details id="ref-21-2-fresh-eyes-reset">
+<summary>↺ 21.2 Fresh-Eyes Reset — Re-enumerate From Zero</summary>
+<p><code>[PASSER:2026] [STUCK:RESET] [OUTPUT:TRIAGE]</code></p>
+<p>A repeated 2026 pattern: when progress stopped, the breakthrough often came after stepping away, rotating, or rebuilding the target model from the beginning.</p>
+<pre class="ref-code"><code class="language-text">FRESH-EYES RESET
+1. Bank any earned proof first.
+2. Re-read raw scan output from line one.
+3. Touch every open service manually.
+4. Re-check exact tool errors / status codes.
+5. Re-run hostname / vhost / redirect / TLS-name discovery.
+6. If authenticated, enumerate the service from the inside.
+7. Re-run credential/material fan-out with local-vs-domain context explicit.
+8. If shell exists, re-enumerate identity, privileges, listeners, services/tasks and configs.
+9. If AD, restart at domain/DC/DNS/time and rebuild the graph from current credentials.
+10. Write the exact evidence required to return to any parked hypothesis.
+</code></pre>
+<p>One bounded evidence-producing retry is useful. Repeating the same hypothesis with a different tool is usually not.</p>
+</details>
+
+<details id="ref-21-3-enumeration-depth">
+<summary>🔎 21.3 Enumeration Means “Inside the Service,” Not Just a Banner</summary>
+<p><code>[PASSER:2026] [ENUM:DEPTH] [CREDS:FANOUT]</code></p>
+<ul>
+<li><strong>FTP:</strong> connect; list recursively where appropriate; inspect names, backups, configs and writable areas.</li>
+<li><strong>SMB:</strong> shares, readable files, writable shares, users/groups, sessions/logged-on users and scope of the credential.</li>
+<li><strong>Web:</strong> hostnames/vhosts, TLS names, source/JS/API, files/backups, auth/reset/session behavior, parameters and uploads.</li>
+<li><strong>Database:</strong> what can the current login actually read/write/execute; enumerate databases, permissions, linked/adjacent functionality and stored secrets/configs.</li>
+<li><strong>Unknown port:</strong> banner/connect manually first; identify protocol before searching for exploits.</li>
+<li><strong>Post-shell:</strong> manually establish identity, privileges, processes/listeners, services/tasks and unusual files before relying on bulk helper output.</li>
+</ul>
+<p>Recent passers repeatedly described missed output and incomplete service enumeration as bigger time sinks than lack of exotic exploits.</p>
+</details>
+
+<details id="ref-21-4-ad-restart-loop">
+<summary>🏰 21.4 AD Restart Loop — Context → Identity → Graph → New Material → Repeat</summary>
+<p><code>[PASSER:2026] [AD:FLOW] [PIVOT:FLOW]</code></p>
+<pre class="ref-code"><code class="language-text">DOMAIN / DC / DNS / TIME
+        ↓
+SMB + LDAP visibility / shares / users / groups / computers
+        ↓
+AS-REP / SPNs / password policy / sessions / local-admin rights
+        ↓
+BloodHound / ACL / delegation / other evidence-backed edges
+        ↓
+foothold / lateral movement / local privesc
+        ↓
+new password / hash / key / ticket / config / route
+        ↓
+RE-RUN visibility + graph with the NEW context
+</code></pre>
+<p>Do not let a working pivot become an assumption. Prove route → destination IP reachability → listener binding → DNS separately. Treat each newly reachable internal host as a fresh enumeration problem.</p>
+</details>
+
+<details id="ref-21-5-breaks-rotation-reproduction">
+<summary>🧠 21.5 Breaks, Rotation &amp; Reproduction</summary>
+<p><code>[PASSER:2026] [TIME:ROTATE] [EVIDENCE:PACKET]</code></p>
+<ul>
+<li>Breaks are part of exam operations, not lost time. OffSec's current guide explicitly says the exam window accounts for rest, food, drink and sleep.</li>
+<li>Community timeboxes vary. Treat them as safety rails, not rules. Rotate when evidence stops improving; stay while a path is producing concrete new facts.</li>
+<li>Before leaving a compromised target, make sure the path is reproducible from notes without relying on memory.</li>
+<li>When a passing score looks likely, protecting screenshots, proof submissions, commands, exploit sources and report reproducibility can be higher value than chasing optional points.</li>
+</ul>
+<pre class="ref-code"><code class="language-text">BEFORE ROTATING FROM A COMPROMISED TARGET
+[ ] earned proof banked correctly
+[ ] exact initial-access command/request recorded
+[ ] exact privilege-escalation prerequisite + trigger recorded
+[ ] exploit source URL / modified-code delta preserved
+[ ] screenshots readable and mapped to the target
+[ ] current notes can reproduce the compromise step-by-step
+[ ] return trigger written for anything unfinished
+</code></pre>
+</details>
+
+<details id="ref-21-6-2026-source-patterns">
+<summary>📚 21.6 What Recent Pass Reports Repeated</summary>
+<p><code>[PASSER:2026]</code></p>
+<ul>
+<li><strong>1 Oct 2026, first-attempt pass:</strong> methodology was treated as the core exam tool; re-enumerating from square one broke an AD rabbit hole; all standalones were scanned before choosing where to start; breaks and documenting before continuing mattered.</li>
+<li><strong>6 Sep 2026, first-attempt / under 7h:</strong> scan/map before exploitation, hard machine timeboxing as a personal heuristic, full re-walk of compromise paths, and reporting practice before exam day.</li>
+<li><strong>Recent 100/100 retake:</strong> enumerate all open ports before choosing the suspected next step; write every lead, prioritize easy→hard, rotate when stuck, and manually test common service access before assuming a tool result is definitive.</li>
+<li><strong>Recent 90/100:</strong> methodology, frequent breaks, Ligolo, NetExec and BloodHound were emphasized; community replies also highlighted how a late-discovered pivot/setup failure can destroy AD time.</li>
+<li><strong>Jul 2026 retake / 90:</strong> careful reading of tool output was a major lesson; stronger AD preparation changed the result.</li>
+</ul>
+<p>This section intentionally excludes exam-specific spoilers and does not treat any single person's machine order, timebox, tool choice or difficulty rating as universal.</p>
+</details>
