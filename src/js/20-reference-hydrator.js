@@ -1,30 +1,64 @@
 (()=>{
-'use strict';
-const root=document.getElementById('referenceRoot'),payload=document.getElementById('referencePayload'),status=document.getElementById('referenceLoading');
-let ready=false,hydratePromise=null,lastError=null,marks=[],matchIndex=-1,matchQuery='',findTimer=null,findGeneration=0;
-const nextTask=()=>new Promise(r=>setTimeout(r,0)),referenceActive=()=>document.getElementById('referenceView')?.classList.contains('active')===true;
-function finish(){if(ready)return true;ready=true;lastError=null;window.OSCP_REFERENCE_READY=true;status?.remove();try{if(typeof prepareCode==='function')prepareCode()}catch(_){}document.dispatchEvent(new CustomEvent('oscp-reference-ready'));if(referenceActive())scheduleFind(seedFind(),0);return true}
-function fail(e){lastError=e instanceof Error?e:new Error(String(e));window.OSCP_REFERENCE_READY=false;console.error('[OSCP] Reference hydration failed',lastError);if(status){status.className='card';status.replaceChildren();const b=document.createElement('b'),d=document.createElement('div');b.textContent='Deep reference could not load.';d.className='tiny';d.textContent=String(lastError.message||lastError);status.append(b,d)}document.dispatchEvent(new CustomEvent('oscp-reference-failed',{detail:{message:String(lastError.message||lastError)}}));return false}
-function decodePayload(){const raw=String(payload?.textContent||'').trim();if(!raw)throw new Error('Embedded reference payload is empty.');let html='';try{html=JSON.parse(raw)}catch(e){throw new Error('Embedded reference payload is invalid: '+String(e?.message||e))}if(typeof html!=='string'||!html.trim())throw new Error('Embedded reference payload did not decode to text.');return html}
-function appendHtml(html){const range=document.createRange();range.selectNodeContents(root);root.appendChild(range.createContextualFragment(String(html||'')))}
-async function hydrateReferenceOnce(){if(ready)return true;if(!root||!payload)return fail(new Error('Reference container or payload is missing.'));if(status)status.textContent='Loading deep reference…';try{const html=decodePayload();await nextTask();appendHtml(html);return finish()}catch(e){return fail(e)}}
-function start(){if(ready)return Promise.resolve(true);if(hydratePromise)return hydratePromise;hydratePromise=hydrateReferenceOnce().finally(()=>{if(!ready)hydratePromise=null});return hydratePromise}
-async function waitForAnchor(anchor,{timeout=12000}={}){anchor=String(anchor||'').trim();if(!anchor)return null;const existing=document.getElementById(anchor);if(existing)return existing;const ok=await Promise.race([start(),new Promise(r=>setTimeout(()=>r(false),Math.max(500,Number(timeout)||12000)))]);if(!ok||lastError)return null;return document.getElementById(anchor)}
-function installFindStyle(){if(document.getElementById('referenceFindStyles'))return;const s=document.createElement('style');s.id='referenceFindStyles';s.textContent=`#referenceFindBar{position:sticky;top:64px;z-index:75;display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:1180px;margin:0 auto 12px;padding:8px 10px;border:1px solid #526f8c;border-radius:10px;background:rgba(13,17,25,.97);box-shadow:0 10px 28px rgba(0,0,0,.28)}#referenceFindBar[hidden]{display:none!important}.referenceFindLabel{font-weight:800;white-space:nowrap}#referenceFindInput{flex:1 1 260px;min-width:180px;max-width:520px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:700 12px ui-monospace,SFMono-Regular,Consolas,monospace}#referenceFindCount{font:800 12px ui-monospace,SFMono-Regular,Consolas,monospace;min-width:64px}.referenceFindRemaining{color:var(--muted);font-size:11px}.referenceFindSpacer{flex:1}.referenceFindHint{color:var(--muted);font-size:10px}.refFindMark{background:#f3d66b;color:#111!important;border-radius:2px;padding:0 .04em;box-decoration-break:clone;-webkit-box-decoration-break:clone}.refFindMark.refFindActive{background:#ff9f43;color:#111!important;outline:2px solid #fff;outline-offset:2px}@media(max-width:800px){#referenceFindBar{top:64px}#referenceFindInput{max-width:none;flex-basis:100%}.referenceFindHint,.referenceFindSpacer{display:none}}@media print{#referenceFindBar{display:none!important}.refFindMark{background:transparent!important;color:inherit!important;outline:0!important}}`;document.head.append(s)}
-function ensureFindBar(){installFindStyle();let bar=document.getElementById('referenceFindBar');if(bar)return bar;const view=document.getElementById('referenceView');if(!view)return null;bar=document.createElement('div');bar.id='referenceFindBar';bar.hidden=!referenceActive();bar.setAttribute('role','search');bar.setAttribute('aria-label','Find matches in full reference');const label=document.createElement('label');label.className='referenceFindLabel';label.htmlFor='referenceFindInput';label.textContent='Find in reference';const input=document.createElement('input');input.id='referenceFindInput';input.type='search';input.autocomplete='off';input.spellcheck=false;input.placeholder='api, JWT, SMB, SeImpersonate…';input.setAttribute('aria-label','Find text in full reference');const count=document.createElement('span');count.id='referenceFindCount';count.setAttribute('role','status');count.setAttribute('aria-live','polite');count.textContent='0 / 0';const remaining=document.createElement('span');remaining.id='referenceFindRemaining';remaining.className='referenceFindRemaining';remaining.textContent='No matches';const spacer=document.createElement('span');spacer.className='referenceFindSpacer';const hint=document.createElement('span');hint.className='referenceFindHint';hint.textContent='Enter next · Shift+Enter previous · F3';const prev=button('referenceFindPrev','↑ Previous',()=>stepFind(-1)),next=button('referenceFindNext','↓ Next',()=>stepFind(1),'btn primary'),clear=button('referenceFindClear','×',()=>{input.value='';clearFind(false);input.focus()});prev.disabled=next.disabled=true;clear.title='Clear reference find';clear.setAttribute('aria-label','Clear reference find');input.addEventListener('input',()=>scheduleFind(input.value));input.addEventListener('keydown',e=>{if(e.key==='Enter'&&marks.length){e.preventDefault();e.stopImmediatePropagation();stepFind(e.shiftKey?-1:1)}},true);bar.append(label,input,count,remaining,spacer,hint,prev,next,clear);view.insertBefore(bar,root||view.firstChild);return bar}
-function button(id,text,fn,cls='btn'){const b=document.createElement('button');b.id=id;b.type='button';b.className=cls;b.textContent=text;b.addEventListener('click',fn);return b}
-function clearFind(hide=false){const parents=new Set();for(const m of marks){const p=m.parentNode;if(!p)continue;parents.add(p);p.replaceChild(document.createTextNode(m.textContent||''),m)}for(const p of parents)try{p.normalize()}catch(_){}marks=[];matchIndex=-1;matchQuery='';const bar=ensureFindBar();if(bar)bar.hidden=hide;updateFindBar()}
-function updateFindBar(){const total=marks.length,pos=total&&matchIndex>=0?matchIndex+1:0,count=document.getElementById('referenceFindCount'),remaining=document.getElementById('referenceFindRemaining'),prev=document.getElementById('referenceFindPrev'),next=document.getElementById('referenceFindNext');if(count)count.textContent=pos+' / '+total;if(remaining)remaining.textContent=total?(Math.max(0,total-pos)+' after'):'No matches';if(prev)prev.disabled=!total;if(next)next.disabled=!total}
-function expandAncestors(el){for(let cur=el?.parentElement;cur;cur=cur.parentElement)if(cur.tagName==='DETAILS')cur.open=true}
-function activateFind(index,{scroll=true}={}){if(!marks.length){matchIndex=-1;updateFindBar();return false}for(const m of marks)m.classList.remove('refFindActive');matchIndex=((Number(index)||0)%marks.length+marks.length)%marks.length;const m=marks[matchIndex];m.classList.add('refFindActive');expandAncestors(m);if(scroll)m.scrollIntoView({block:'center',inline:'nearest',behavior:'auto'});updateFindBar();return true}
-function stepFind(delta){return activateFind((matchIndex<0?0:matchIndex)+(Number(delta)||1))}
-function skipNode(n){const p=n?.parentElement;return !p||!String(n.nodeValue||'').trim()||!!p.closest('script,style,noscript,textarea,input,select,option,button,svg,[contenteditable="true"],#referenceFindBar,.refFindMark')}
-function highlightText(query){if(!root)return[];const needle=String(query||'').toLocaleLowerCase();if(!needle)return[];const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];let n;while((n=walker.nextNode()))if(!skipNode(n)&&String(n.nodeValue||'').toLocaleLowerCase().includes(needle))nodes.push(n);const out=[];for(const t of nodes){const source=String(t.nodeValue||''),lower=source.toLocaleLowerCase(),frag=document.createDocumentFragment();let from=0,at=lower.indexOf(needle);while(at>=0){if(at>from)frag.append(document.createTextNode(source.slice(from,at)));const m=document.createElement('mark');m.className='refFindMark';m.textContent=source.slice(at,at+query.length);frag.append(m);out.push(m);from=at+query.length;at=lower.indexOf(needle,from)}if(from<source.length)frag.append(document.createTextNode(source.slice(from)));t.parentNode?.replaceChild(frag,t)}return out}
-async function runFind(raw,{scroll=true}={}){const generation=++findGeneration,q=String(raw||'').trim(),bar=ensureFindBar(),same=q===matchQuery&&marks.length>0,input=document.getElementById('referenceFindInput');if(input&&input.value!==q)input.value=q;if(q.length<2){clearFind(!referenceActive());return{query:q,total:0,index:-1}}if(bar)bar.hidden=false;const count=document.getElementById('referenceFindCount');if(count)count.textContent=ready?'Finding…':'Loading reference…';if(!ready){const ok=await start();if(!ok||generation!==findGeneration)return{query:q,total:0,index:-1}}if(generation!==findGeneration)return{query:q,total:0,index:-1};if(same){updateFindBar();return{query:q,total:marks.length,index:matchIndex}}clearFind(false);matchQuery=q;marks=highlightText(q);if(marks.length)activateFind(0,{scroll});else updateFindBar();return{query:q,total:marks.length,index:matchIndex}}
-function scheduleFind(q,delay=110){clearTimeout(findTimer);const value=String(q||'');findTimer=setTimeout(()=>{if(referenceActive())runFind(value).catch(e=>console.error('[OSCP] Reference find failed',e))},Math.max(0,delay))}
-function seedFind(){const local=document.getElementById('referenceFindInput'),global=document.getElementById('globalSearch');if(!local)return'';if(!local.value.trim()&&global?.value?.trim())local.value=global.value.trim();return local.value}
-function installFind(){const bar=ensureFindBar(),view=document.getElementById('referenceView');if(!view)return;document.addEventListener('keydown',e=>{if(!referenceActive()||!marks.length)return;const tag=String(e.target?.tagName||'').toLowerCase(),editing=['textarea','select'].includes(tag)||e.target?.isContentEditable;if(e.key==='F3'&&!editing){e.preventDefault();stepFind(e.shiftKey?-1:1)}},true);root?.addEventListener('click',e=>{const m=e.target?.closest?.('.refFindMark');if(!m)return;const i=marks.indexOf(m);if(i>=0)activateFind(i,{scroll:false})});new MutationObserver(()=>{if(referenceActive()){if(bar)bar.hidden=false;scheduleFind(seedFind(),20)}else if(bar)bar.hidden=true}).observe(view,{attributes:true,attributeFilter:['class']});document.addEventListener('oscp-reference-ready',()=>{if(referenceActive())scheduleFind(seedFind(),0)});if(referenceActive()){if(bar)bar.hidden=false;scheduleFind(seedFind(),0)}}
-window.OSCP_REFERENCE={start,waitForAnchor,ready:()=>ready,progress:()=>({loaded:ready?1:0,total:1}),error:()=>lastError};
-window.OSCP_REFERENCE_FIND={run:runFind,next:()=>stepFind(1),previous:()=>stepFind(-1),clear:()=>clearFind(false),focus:()=>document.getElementById('referenceFindInput')?.focus(),state:()=>({query:matchQuery,total:marks.length,index:matchIndex})};
-window.OSCP_REFERENCE_READY=false;installFind();const autoStart=()=>setTimeout(()=>start(),250);if(document.readyState==='complete')autoStart();else window.addEventListener('load',autoStart,{once:true});setTimeout(()=>{if(!ready&&!hydratePromise)start()},2000);
+ 'use strict';
+ const root=document.getElementById('referenceRoot'),payload=document.getElementById('referencePayload'),status=document.getElementById('referenceLoading');
+ let ready=false,hydratePromise=null,lastError=null;
+ const nextTask=()=>new Promise(r=>setTimeout(r,0));
+ function finish(){
+   if(ready)return true;
+   ready=true;lastError=null;window.OSCP_REFERENCE_READY=true;status?.remove();
+   try{if(typeof prepareCode==='function')prepareCode()}catch(_){}
+   document.dispatchEvent(new CustomEvent('oscp-reference-ready'));
+   return true;
+ }
+ function fail(e){
+   lastError=e instanceof Error?e:new Error(String(e));window.OSCP_REFERENCE_READY=false;
+   console.error('[OSCP] Reference hydration failed',lastError);
+   if(status){status.className='card';status.replaceChildren();const b=document.createElement('b');b.textContent='Deep reference could not load.';const d=document.createElement('div');d.className='tiny';d.textContent=String(lastError.message||lastError);status.append(b,d)}
+   document.dispatchEvent(new CustomEvent('oscp-reference-failed',{detail:{message:String(lastError.message||lastError)}}));
+   return false;
+ }
+ function decodePayload(){
+   const raw=String(payload?.textContent||'').trim();
+   if(!raw)throw new Error('Embedded reference payload is empty.');
+   let html='';
+   try{html=JSON.parse(raw)}catch(e){throw new Error('Embedded reference payload is invalid: '+String(e?.message||e))}
+   if(typeof html!=='string'||!html.trim())throw new Error('Embedded reference payload did not decode to text.');
+   return html;
+ }
+ function appendHtml(html){
+   const range=document.createRange();range.selectNodeContents(root);
+   root.appendChild(range.createContextualFragment(String(html||'')));
+ }
+ async function hydrateReferenceOnce(){
+   if(ready)return true;
+   if(!root||!payload)return fail(new Error('Reference container or payload is missing.'));
+   if(status)status.textContent='Loading deep reference…';
+   try{
+     const html=decodePayload();
+     await nextTask();
+     appendHtml(html);
+     return finish();
+   }catch(e){return fail(e)}
+ }
+ function start(){
+   if(ready)return Promise.resolve(true);
+   if(hydratePromise)return hydratePromise;
+   hydratePromise=hydrateReferenceOnce().finally(()=>{if(!ready)hydratePromise=null});
+   return hydratePromise;
+ }
+ async function waitForAnchor(anchor,{timeout=12000}={}){
+   anchor=String(anchor||'').trim();if(!anchor)return null;
+   const existing=document.getElementById(anchor);if(existing)return existing;
+   const ok=await Promise.race([
+     start(),
+     new Promise(r=>setTimeout(()=>r(false),Math.max(500,Number(timeout)||12000)))
+   ]);
+   if(!ok||lastError)return null;
+   return document.getElementById(anchor);
+ }
+ window.OSCP_REFERENCE={start,waitForAnchor,ready:()=>ready,progress:()=>({loaded:ready?1:0,total:1}),error:()=>lastError};
+ window.OSCP_REFERENCE_READY=false;
+ const autoStart=()=>setTimeout(()=>start(),250);
+ if(document.readyState==='complete')autoStart();else window.addEventListener('load',autoStart,{once:true});
+ setTimeout(()=>{if(!ready&&!hydratePromise)start()},2000);
 })();
