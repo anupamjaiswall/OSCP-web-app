@@ -15,7 +15,7 @@ Recent 2026 pass reports repeatedly converge on a compact set rather than a huge
 - Hashcat/John for local cracking.
 - A stable shell handler, but shell-handler features must not silently cross exam restrictions.
 
-A May 2026 passer listed many tools but explicitly said they could have passed with roughly half of them. A September 2026 100/100 passer emphasized optimized Nmap, service-oriented notes, careful output reading and combined privilege-escalation checks rather than exotic tooling.
+A May 2026 passer listed many tools but explicitly said they could have passed with roughly half of them. A September 2026 100/100 passer emphasized optimized Nmap, service-oriented notes, careful output reading and combined privilege-escalation checks rather than exotic tooling. An October 2026 first-attempt passer again emphasized methodology and re-enumeration over adding more tools.
 
 ## V34.45 decisions
 
@@ -78,6 +78,29 @@ Before changing tools:
 5. If evidence still does not improve, record the return condition and rotate.
 
 The goal is not to own the largest toolkit. The goal is to answer the current exam question with the smallest reliable tool.
+
+## V34.46 readiness model
+
+The Best Tools view now includes a **pre-exam Kali toolchain readiness** gate. It evaluates jobs, not brands: each critical job can be satisfied by one of several equivalent commands. That keeps the app from treating a single missing package as a failure when a practiced fallback is already available.
+
+The readiness gate covers:
+
+- authoritative port discovery;
+- manual HTTP requests;
+- web content discovery;
+- Burp Community;
+- SMB/AD auth and share browsing;
+- manual LDAP;
+- Kerberos helpers;
+- remote Windows shell;
+- local cracking;
+- SearchSploit;
+- a stable listener;
+- optional AD graph/AD CS/pivot fallbacks.
+
+The app can copy a local-only Python inventory script. It uses `shutil.which()` to check command presence, writes `oscp-tool-preflight.json`, installs nothing, updates nothing and makes no network requests. Importing that JSON lets the Tooling view surface missing must-have capabilities before exam day and reuses the existing Compatibility view for version-specific drift.
+
+This is intentionally a **presence/readiness check, not an updater**. The exam VM should be stabilized before the exam rather than modified automatically by the app.
 
 ## Sources checked
 
