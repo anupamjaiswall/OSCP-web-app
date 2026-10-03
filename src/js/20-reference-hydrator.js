@@ -121,7 +121,7 @@
  function scheduleReferenceFind(q,delay=110){clearTimeout(findTimer);const value=String(q||'');findTimer=setTimeout(()=>{if(findActive())runReferenceFind(value).catch(e=>console.error('[OSCP] Reference find failed',e))},Math.max(0,delay))}
  function installReferenceFind(){
    const bar=ensureFindBar(),input=document.getElementById('globalSearch'),view=document.getElementById('referenceView');if(!input||!view)return;
-   input.addEventListener('input',()=>{if(findActive())scheduleReferenceFind(input.value)});
+   input.addEventListener('input',e=>{if(!findActive())return;e.stopImmediatePropagation();scheduleReferenceFind(input.value)},true);
    input.addEventListener('keydown',e=>{if(!findActive()||!findMarks.length)return;if(e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();stepReferenceFind(e.shiftKey?-1:1)}} ,true);
    document.addEventListener('keydown',e=>{if(!findActive()||!findMarks.length)return;const tag=String(e.target?.tagName||'').toLowerCase(),editing=['textarea','select'].includes(tag)||e.target?.isContentEditable;if(e.key==='F3'&&!editing){e.preventDefault();stepReferenceFind(e.shiftKey?-1:1)}},true);
    root?.addEventListener('click',e=>{const mark=e.target?.closest?.('.refFindMark');if(!mark)return;const i=findMarks.indexOf(mark);if(i>=0)activateReferenceFind(i,{scroll:false})});
