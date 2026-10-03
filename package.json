@@ -1,12 +1,12 @@
 {
   "name": "oscp-exam-os",
-  "version": "34.49.0",
+  "version": "34.50.0",
   "private": true,
   "type": "module",
   "description": "Offline-first OSCP exam methodology and decision-support web app.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/run-tests.mjs && node tests/proof-bank.mjs && node tests/context-actions.mjs && node tests/passer-loop.mjs && node tests/online-resources.mjs && node tests/tooling-2026.mjs && node tests/reliability-safety.mjs",
+    "test": "node tests/run-tests.mjs && node tests/proof-bank.mjs && node tests/context-actions.mjs && node tests/passer-loop.mjs && node tests/online-resources.mjs && node tests/tooling-2026.mjs && node tests/reliability-safety.mjs && node tests/import-safety.mjs",
     "audit": "node scripts/audit.mjs",
     "validate": "node scripts/validate.mjs",
     "checksum": "node scripts/checksum.mjs",
@@ -16,6 +16,7 @@
     "passer-loop-smoke": "node scripts/passer-loop-smoke.mjs",
     "tooling-smoke": "node scripts/tooling-smoke.mjs",
     "reliability-smoke": "node scripts/reliability-smoke.mjs",
+    "import-safety-smoke": "node scripts/import-safety-smoke.mjs",
     "contrast-audit": "node scripts/contrast-audit.mjs"
   },
   "engines": {
