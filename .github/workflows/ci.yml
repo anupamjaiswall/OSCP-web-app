@@ -1,4 +1,4 @@
-name: V34.42 build and validation
+name: V34.43 build and validation
 on:
   push:
     branches: [ main ]
@@ -21,6 +21,9 @@ jobs:
       - name: Reference find browser gate
         timeout-minutes: 2
         run: node scripts/reference-find-smoke.mjs
+      - name: Passer-loop browser gate
+        timeout-minutes: 2
+        run: node scripts/passer-loop-smoke.mjs
       - name: Sync generated exam artifact on main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
