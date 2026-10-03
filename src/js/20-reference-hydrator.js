@@ -110,12 +110,12 @@
    const marks=[];for(const textNode of nodes){const source=String(textNode.nodeValue||''),lower=source.toLocaleLowerCase();let from=0,at=lower.indexOf(needle);if(at<0)continue;const frag=document.createDocumentFragment();while(at>=0){if(at>from)frag.append(document.createTextNode(source.slice(from,at)));const mark=document.createElement('mark');mark.className='refFindMark';mark.textContent=source.slice(at,at+query.length);frag.append(mark);marks.push(mark);from=at+query.length;at=lower.indexOf(needle,from)}if(from<source.length)frag.append(document.createTextNode(source.slice(from)));textNode.parentNode?.replaceChild(frag,textNode)}return marks
  }
  async function runReferenceFind(rawQuery,{scroll=true}={}){
-   const generation=++findGeneration,q=String(rawQuery||'').trim(),bar=ensureFindBar();
+   const generation=++findGeneration,q=String(rawQuery||'').trim(),bar=ensureFindBar(),sameQuery=q===findQuery&&findMarks.length>0;
    if(q.length<2){clearReferenceFind();return{query:q,total:0,index:-1}}
-   if(bar){bar.hidden=false;findQuery=q;const count=document.getElementById('referenceFindCount');if(count)count.textContent=ready?'Finding…':'Loading reference…'}
+   if(bar){bar.hidden=false;const query=document.getElementById('referenceFindQuery');if(query)query.textContent='“'+q+'”';const count=document.getElementById('referenceFindCount');if(count)count.textContent=ready?'Finding…':'Loading reference…'}
    if(!ready){const ok=await start();if(!ok||generation!==findGeneration)return{query:q,total:0,index:-1}}
    if(generation!==findGeneration)return{query:q,total:0,index:-1};
-   if(q===findQuery&&findMarks.length){bar.hidden=false;updateFindBar();return{query:q,total:findMarks.length,index:findIndex}}
+   if(sameQuery){if(bar)bar.hidden=false;updateFindBar();return{query:q,total:findMarks.length,index:findIndex}}
    clearReferenceFind({hide:false});findQuery=q;findMarks=highlightReferenceText(q);if(findMarks.length)activateReferenceFind(0,{scroll});else{findIndex=-1;updateFindBar()}if(bar)bar.hidden=false;return{query:q,total:findMarks.length,index:findIndex}
  }
  function scheduleReferenceFind(q,delay=110){clearTimeout(findTimer);const value=String(q||'');findTimer=setTimeout(()=>{if(findActive())runReferenceFind(value).catch(e=>console.error('[OSCP] Reference find failed',e))},Math.max(0,delay))}
