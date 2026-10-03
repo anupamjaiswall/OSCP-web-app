@@ -8,57 +8,28 @@ import http from 'node:http';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
-
-function browser(){
-  if(process.env.CHROME_BIN&&fs.existsSync(process.env.CHROME_BIN))return process.env.CHROME_BIN;
-  for(const name of ['google-chrome','google-chrome-stable','chromium','chromium-browser'])try{return execFileSync('which',[name],{encoding:'utf8'}).trim()}catch(_){}
-  throw new Error('Chrome/Chromium executable not found');
-}
+function browser(){if(process.env.CHROME_BIN&&fs.existsSync(process.env.CHROME_BIN))return process.env.CHROME_BIN;for(const name of ['google-chrome','google-chrome-stable','chromium','chromium-browser'])try{return execFileSync('which',[name],{encoding:'utf8'}).trim()}catch(_){}throw new Error('Chrome/Chromium executable not found')}
 async function waitFor(fn,timeout=25000,step=100){const end=Date.now()+timeout;while(Date.now()<end){try{const v=await fn();if(v)return v}catch(_){}await delay(step)}return false}
 function rpc(ws){let id=0;const pending=new Map(),events=[];ws.onmessage=e=>{const m=JSON.parse(String(e.data));if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);return}if(m.method)events.push(m)};const send=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});ws.send(JSON.stringify({id:n,method,params}));setTimeout(()=>{if(pending.has(n)){pending.delete(n);reject(new Error(method+' timed out'))}},9000)});return{send,events}}
-
 async function main(){
-  const server=http.createServer((req,res)=>{if(req.url==='/'||req.url==='/index.html'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});res.end(html)}else{res.writeHead(404);res.end('not found')}});
-  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});
-  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-ref-find-')),profile=path.join(tmp,'profile');
-  const child=spawn(browser(),['--headless=new','--disable-gpu','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--disable-extensions','--no-first-run','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
-  let stderr='';child.stderr.on('data',d=>{stderr=(stderr+String(d)).slice(-12000)});
-  try{
-    const port=await waitFor(()=>{const f=path.join(profile,'DevToolsActivePort');if(fs.existsSync(f)){const p=Number(fs.readFileSync(f,'utf8').split(/\r?\n/)[0]);if(p)return p}const m=stderr.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//);return m?Number(m[1]):false},40000);
-    if(!port)throw new Error('DevTools endpoint did not start');
-    const base='http://127.0.0.1:'+port,page=await waitFor(async()=>{const a=await(await fetch(base+'/json/list')).json();return a.find(x=>x.type==='page')},12000);
-    if(!page?.webSocketDebuggerUrl)throw new Error('No page target');
-    const ws=new WebSocket(page.webSocketDebuggerUrl);await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=()=>reject(new Error('DevTools websocket failed'))});const c=rpc(ws);
-    await c.send('Runtime.enable');await c.send('Page.enable');await c.send('Page.navigate',{url:'http://127.0.0.1:'+server.address().port+'/index.html#view=referenceView'});
-    const evaluate=async expression=>{const out=await c.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(out.exceptionDetails)throw new Error(JSON.stringify(out.exceptionDetails));return out.result?.value};
-    const ready=await waitFor(async()=>await evaluate(`document.readyState==='complete'&&!!window.OSCP_REFERENCE_FIND&&!!document.getElementById('globalSearch')&&document.getElementById('referenceView')?.classList.contains('active')`),25000);
-    if(!ready)throw new Error('Reference view/find API did not boot');
-    await evaluate(`window.OSCP_REFERENCE.start()`);
-    const hydrated=await waitFor(async()=>await evaluate(`window.OSCP_REFERENCE_READY===true&&document.querySelectorAll('#referenceRoot [id]').length>20`),20000);
-    if(!hydrated)throw new Error('Reference did not hydrate');
-
-    await evaluate(`(()=>{const i=document.getElementById('globalSearch');i.value='api';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
-    const first=await waitFor(async()=>{const raw=await evaluate(`JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),marks:document.querySelectorAll('#referenceRoot mark.refFindMark').length,active:document.querySelectorAll('#referenceRoot mark.refFindActive').length,count:document.getElementById('referenceFindCount')?.textContent||'',hidden:document.getElementById('referenceFindBar')?.hidden})`);const s=JSON.parse(raw||'{}');return s.state?.total>=2&&s.marks===s.state.total&&s.active===1&&s.state.index===0&&!s.hidden?s:false},15000);
-    if(!first)throw new Error('API find did not highlight/count matches');
-    if(first.count!==`1 / ${first.state.total}`)throw new Error('Initial match counter incorrect: '+first.count);
-
-    const next=JSON.parse(await evaluate(`(()=>{document.getElementById('referenceFindNext').click();return JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),count:document.getElementById('referenceFindCount').textContent,active:document.querySelectorAll('#referenceRoot mark.refFindActive').length})})()`));
-    if(next.state.index!==1||next.count!==`2 / ${first.state.total}`||next.active!==1)throw new Error('Next navigation failed: '+JSON.stringify(next));
-    const prev=JSON.parse(await evaluate(`(()=>{document.getElementById('referenceFindPrev').click();return JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),count:document.getElementById('referenceFindCount').textContent})})()`));
-    if(prev.state.index!==0||prev.count!==`1 / ${first.state.total}`)throw new Error('Previous navigation failed: '+JSON.stringify(prev));
-
-    const shiftEnter=JSON.parse(await evaluate(`(()=>{const i=document.getElementById('globalSearch');i.focus();i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',shiftKey:true,bubbles:true,cancelable:true}));return JSON.stringify(window.OSCP_REFERENCE_FIND.state())})()`));
-    if(shiftEnter.index!==first.state.total-1)throw new Error('Shift+Enter did not wrap to previous match');
-    const enter=JSON.parse(await evaluate(`(()=>{const i=document.getElementById('globalSearch');i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));return JSON.stringify(window.OSCP_REFERENCE_FIND.state())})()`));
-    if(enter.index!==0)throw new Error('Enter did not wrap to next match');
-
-    const detailsOpen=await evaluate(`(async()=>{await window.OSCP_REFERENCE_FIND.run('subdomain',{scroll:false});const m=[...document.querySelectorAll('#referenceRoot mark.refFindMark')].find(x=>x.closest('details'));if(!m)return 'missing';const d=m.closest('details');d.open=false;m.click();return d.open===true})()`);
-    if(detailsOpen!==true)throw new Error('Navigating a hidden reference match did not expand ancestor details: '+String(detailsOpen));
-
-    const cleared=JSON.parse(await evaluate(`(()=>{const i=document.getElementById('globalSearch');i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));return new Promise(r=>setTimeout(()=>r(JSON.stringify({marks:document.querySelectorAll('#referenceRoot mark.refFindMark').length,hidden:document.getElementById('referenceFindBar')?.hidden,state:window.OSCP_REFERENCE_FIND.state()})),180))})()`));
-    if(cleared.marks!==0||cleared.hidden!==true||cleared.state.total!==0)throw new Error('Clearing search did not remove reference highlights: '+JSON.stringify(cleared));
-    const exceptions=c.events.filter(e=>e.method==='Runtime.exceptionThrown');if(exceptions.length)throw new Error('Uncaught browser exception: '+JSON.stringify(exceptions[0].params?.exceptionDetails||{}).slice(0,1000));
-    ws.close();console.log('Reference find browser gate passed:',JSON.stringify({apiMatches:first.state.total,next:true,previous:true,keyboard:true,collapsedDetails:true,clear:true}));
-  }finally{try{child.kill('SIGKILL')}catch(_){}try{server.close()}catch(_){}try{fs.rmSync(tmp,{recursive:true,force:true})}catch(_){}}
+ const server=http.createServer((req,res)=>{if(req.url==='/'||req.url==='/index.html'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});res.end(html)}else{res.writeHead(404);res.end('not found')}});await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});
+ const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-ref-find-')),profile=path.join(tmp,'profile');const child=spawn(browser(),['--headless=new','--disable-gpu','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--disable-extensions','--no-first-run','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});let stderr='';child.stderr.on('data',d=>{stderr=(stderr+String(d)).slice(-12000)});
+ try{
+  const port=await waitFor(()=>{const f=path.join(profile,'DevToolsActivePort');if(fs.existsSync(f)){const p=Number(fs.readFileSync(f,'utf8').split(/\r?\n/)[0]);if(p)return p}const m=stderr.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//);return m?Number(m[1]):false},40000);if(!port)throw new Error('DevTools endpoint did not start');
+  const base='http://127.0.0.1:'+port,page=await waitFor(async()=>{const a=await(await fetch(base+'/json/list')).json();return a.find(x=>x.type==='page')},12000);if(!page?.webSocketDebuggerUrl)throw new Error('No page target');
+  const ws=new WebSocket(page.webSocketDebuggerUrl);await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=()=>reject(new Error('DevTools websocket failed'))});const c=rpc(ws);await c.send('Runtime.enable');await c.send('Page.enable');await c.send('Page.navigate',{url:'http://127.0.0.1:'+server.address().port+'/index.html#view=referenceView'});
+  const evaluate=async expression=>{const out=await c.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(out.exceptionDetails)throw new Error(JSON.stringify(out.exceptionDetails));return out.result?.value};
+  const ready=await waitFor(async()=>await evaluate(`document.readyState==='complete'&&!!window.OSCP_REFERENCE_FIND&&!!document.getElementById('referenceFindInput')&&document.getElementById('referenceView')?.classList.contains('active')`),25000);if(!ready)throw new Error('Reference finder did not boot');await evaluate(`window.OSCP_REFERENCE.start()`);
+  const hydrated=await waitFor(async()=>await evaluate(`window.OSCP_REFERENCE_READY===true&&document.querySelectorAll('#referenceRoot [id]').length>20`),20000);if(!hydrated)throw new Error('Reference did not hydrate');
+  await evaluate(`(()=>{const i=document.getElementById('referenceFindInput');i.value='api';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
+  const first=await waitFor(async()=>{const raw=await evaluate(`JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),marks:document.querySelectorAll('#referenceRoot mark.refFindMark').length,active:document.querySelectorAll('#referenceRoot mark.refFindActive').length,count:document.getElementById('referenceFindCount')?.textContent||'',hidden:document.getElementById('referenceFindBar')?.hidden})`);const s=JSON.parse(raw||'{}');return s.state?.total>=2&&s.marks===s.state.total&&s.active===1&&s.state.index===0&&!s.hidden?s:false},15000);if(!first)throw new Error('API find did not highlight/count matches');if(first.count!==`1 / ${first.state.total}`)throw new Error('Initial match counter incorrect: '+first.count);
+  const next=JSON.parse(await evaluate(`(()=>{document.getElementById('referenceFindNext').click();return JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),count:document.getElementById('referenceFindCount').textContent,active:document.querySelectorAll('#referenceRoot mark.refFindActive').length})})()`));if(next.state.index!==1||next.count!==`2 / ${first.state.total}`||next.active!==1)throw new Error('Next navigation failed: '+JSON.stringify(next));
+  const prev=JSON.parse(await evaluate(`(()=>{document.getElementById('referenceFindPrev').click();return JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),count:document.getElementById('referenceFindCount').textContent})})()`));if(prev.state.index!==0||prev.count!==`1 / ${first.state.total}`)throw new Error('Previous navigation failed: '+JSON.stringify(prev));
+  const shiftEnter=JSON.parse(await evaluate(`(()=>{const i=document.getElementById('referenceFindInput');i.focus();i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',shiftKey:true,bubbles:true,cancelable:true}));return JSON.stringify(window.OSCP_REFERENCE_FIND.state())})()`));if(shiftEnter.index!==first.state.total-1)throw new Error('Shift+Enter did not wrap to previous match');
+  const enter=JSON.parse(await evaluate(`(()=>{const i=document.getElementById('referenceFindInput');i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));return JSON.stringify(window.OSCP_REFERENCE_FIND.state())})()`));if(enter.index!==0)throw new Error('Enter did not wrap to next match');
+  const detailsOpen=await evaluate(`(async()=>{await window.OSCP_REFERENCE_FIND.run('subdomain',{scroll:false});const m=[...document.querySelectorAll('#referenceRoot mark.refFindMark')].find(x=>x.closest('details'));if(!m)return 'missing';const d=m.closest('details');d.open=false;m.click();return d.open===true})()`);if(detailsOpen!==true)throw new Error('Hidden match did not expand ancestor details: '+String(detailsOpen));
+  const cleared=JSON.parse(await evaluate(`(()=>{const i=document.getElementById('referenceFindInput');i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));return new Promise(r=>setTimeout(()=>r(JSON.stringify({marks:document.querySelectorAll('#referenceRoot mark.refFindMark').length,hidden:document.getElementById('referenceFindBar')?.hidden,state:window.OSCP_REFERENCE_FIND.state(),count:document.getElementById('referenceFindCount')?.textContent})),180))})()`));if(cleared.marks!==0||cleared.hidden===true||cleared.state.total!==0||cleared.count!=='0 / 0')throw new Error('Clearing reference finder failed: '+JSON.stringify(cleared));
+  const exceptions=c.events.filter(e=>e.method==='Runtime.exceptionThrown');if(exceptions.length)throw new Error('Uncaught browser exception: '+JSON.stringify(exceptions[0].params?.exceptionDetails||{}).slice(0,1000));ws.close();console.log('Reference find browser gate passed:',JSON.stringify({apiMatches:first.state.total,next:true,previous:true,keyboard:true,collapsedDetails:true,clear:true}));
+ }finally{try{child.kill('SIGKILL')}catch(_){}try{server.close()}catch(_){}try{fs.rmSync(tmp,{recursive:true,force:true})}catch(_){}}
 }
 main().catch(e=>{console.error('Reference find browser gate failed:',e.message);process.exitCode=1});
