@@ -49,7 +49,10 @@ const unresolved=[...new Set([
 if(unresolved.length) throw new Error('Unresolved build marker(s): '+unresolved.join(' | '));
 fs.writeFileSync(path.join(root,'index.html'),html);
 const bytes=Buffer.byteLength(html);
+const softHeadroom=quality.artifactSoftLimitBytes-bytes;
+const hardHeadroom=quality.artifactHardLimitBytes-bytes;
 console.log('Built index.html ('+bytes.toLocaleString()+' bytes)');
-if(bytes>quality.artifactSoftLimitBytes)console.warn('Artifact size warning: '+bytes.toLocaleString()+' bytes exceeds soft budget '+quality.artifactSoftLimitBytes.toLocaleString()+'.');
-console.log('Artifact hard-limit headroom: '+Math.max(0,quality.artifactHardLimitBytes-bytes).toLocaleString()+' bytes');
+if(softHeadroom<0)console.warn('Artifact size warning: '+bytes.toLocaleString()+' bytes exceeds soft budget '+quality.artifactSoftLimitBytes.toLocaleString()+' by '+Math.abs(softHeadroom).toLocaleString()+' bytes.');
+else console.log('Artifact soft-limit headroom: '+softHeadroom.toLocaleString()+' bytes');
+console.log('Artifact hard-limit headroom: '+Math.max(0,hardHeadroom).toLocaleString()+' bytes');
 console.log('SHA-256 '+createHash('sha256').update(html).digest('hex'));

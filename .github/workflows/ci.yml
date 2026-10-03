@@ -1,4 +1,4 @@
-name: V34.51 build and validation
+name: V34.52 build and validation
 on:
   push:
     branches: [ main ]
@@ -15,21 +15,6 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-      - name: Finalize V34.51 source-coupled test migration
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('tests/run-tests.mjs')
-          s=p.read_text()
-          old1='const b=src.indexOf("$(\'#importSession\').onchange",a);'
-          old2='const b=src.indexOf(\'let externalBackupMeta=\',a);'
-          new='const b=src.indexOf("$(\'#stateFingerprintBtn\').onclick",a);'
-          s=s.replace(old1,new)
-          needle='const a=src.indexOf("$(\'#copySessionJson\').onclick");'+old2
-          repl='const a=src.indexOf("$(\'#copySessionJson\').onclick");'+new
-          s=s.replace(needle,repl)
-          p.write_text(s)
-          PY
       - name: Build, test, audit, validate
         run: npm run check
       - name: Headless browser render gate
@@ -55,7 +40,7 @@ jobs:
         run: npm run session-lifecycle-smoke
       - name: Verify generated artifacts are committed on pull requests
         if: github.event_name == 'pull_request'
-        run: git diff --exit-code -- index.html README.md tests/run-tests.mjs
+        run: git diff --exit-code -- index.html README.md
 
   sync-generated:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -68,31 +53,16 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-      - name: Finalize V34.51 source-coupled test migration
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('tests/run-tests.mjs')
-          s=p.read_text()
-          old1='const b=src.indexOf("$(\'#importSession\').onchange",a);'
-          old2='const b=src.indexOf(\'let externalBackupMeta=\',a);'
-          new='const b=src.indexOf("$(\'#stateFingerprintBtn\').onclick",a);'
-          s=s.replace(old1,new)
-          needle='const a=src.indexOf("$(\'#copySessionJson\').onclick");'+old2
-          repl='const a=src.indexOf("$(\'#copySessionJson\').onclick");'+new
-          s=s.replace(needle,repl)
-          p.write_text(s)
-          PY
       - name: Rebuild generated artifacts
         run: npm run build
-      - name: Sync final test migration and generated artifacts on main
+      - name: Sync generated artifacts on main
         run: |
-          if ! git diff --quiet -- tests/run-tests.mjs index.html README.md; then
+          if ! git diff --quiet -- index.html README.md; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add tests/run-tests.mjs index.html README.md
-            git commit -m "test: finish V34.51 import ownership migration"
+            git add index.html README.md
+            git commit -m "build: sync V34.52 generated artifacts"
             git push
           fi
       - name: Verify generated artifacts are clean after main sync
-        run: git diff --exit-code -- tests/run-tests.mjs index.html README.md
+        run: git diff --exit-code -- index.html README.md

@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.52.0 — 2026-10-04
+
+### Repository hygiene and major-module coverage
+- Removed the obsolete V34.51 source-migration find/replace shim from both CI jobs; verification now runs only committed source, and the generated-artifact job only rebuilds/synchronizes `index.html` and README.
+- Added direct deterministic contracts for the large Windows strategy and handoff/access-truth modules so their critical workflow data, privilege branches, resume fields, secret-risk scanning, access outcomes and protocols are no longer covered only incidentally.
+- Added explicit npm metadata `"license": "UNLICENSED"` to match the repository's all-rights-reserved `LICENSE`.
+- Clarified that numeric source prefixes are startup/dependency bands rather than unique ordinals; tied bands are permitted only when their authoritative order is explicit in the template/build pipeline.
+- Build output now reports remaining soft-limit headroom as well as hard-limit headroom, making artifact growth visible before the warning threshold is crossed.
+- Preserved the single-file, offline-first reference payload rather than externalizing methodology content solely to reduce artifact size.
+
 ## V34.51.0 — 2026-10-03
 
 ### Import ownership, persistence and reliability correction

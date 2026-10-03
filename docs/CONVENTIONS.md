@@ -4,12 +4,14 @@ This repository intentionally produces one offline `index.html`, but source chan
 
 ## File layout
 - `src/js/00-*.js`: pure/shared cores that should avoid DOM and storage when possible.
-- `src/js/NN-*.js`: browser feature layers, ordered by dependency/startup sequence.
-- `src/styles/NN-*.css`: styles paired to browser feature layers.
+- `src/js/NN-*.js`: browser feature layers grouped into startup/dependency bands. The numeric prefix communicates broad order, not a unique ordinal; tied prefixes are allowed only when the exact order is explicit in `src/index.template.html` or the build script's late-script list.
+- `src/styles/NN-*.css`: style bands paired to browser feature layers. Tied prefixes follow the same rule: cascade order must be explicit in the template.
 - `src/content/NN-*.html`: deep-reference methodology fragments only; no script/style tags.
 - `src/meta/build.json`: canonical version/date/label source.
 - `scripts/*.mjs`: zero-dependency build/audit/validation utilities.
-- `tests/run-tests.mjs`: deterministic regressions for pure logic and structural invariants.
+- `tests/*.mjs`: deterministic regressions, including direct contracts for major feature modules.
+
+The authoritative runtime order is the injection order in `src/index.template.html`, followed by `lateScripts` in `scripts/build.mjs`. Do not infer ordering between equal numeric prefixes from filesystem sorting alone.
 
 ## JavaScript
 - Prefer pure functions and DOM-free cores for logic that deserves unit tests.
