@@ -15,8 +15,13 @@ let storage=read('src/js/01-storage-guard.js');
 const oldCoreBytes=Buffer.byteLength(core);
 const startMarker='/* Boot-resilience: one malformed localStorage value must never white-screen the exam console. */';
 const endMarker='const defaultSettings=';
-const start=core.indexOf(startMarker),end=core.indexOf(endMarker,start);
-must(start>=0&&end>start,'storage helper seam not found in legacy core');
+const start=core.indexOf(startMarker),end=start>=0?core.indexOf(endMarker,start):-1;
+if(start<0){
+ for(const name of helperNames){must(storage.includes('function '+name+'('),'already-extracted storage guard missing '+name);must(!core.includes('function '+name+'('),'already-extracted legacy core still owns '+name)}
+ console.log('V34.54 storage extraction is already present; migration is a no-op.');
+ process.exit(0);
+}
+must(end>start,'storage helper seam end not found in legacy core');
 must(core.indexOf(startMarker,start+1)<0,'storage helper seam is duplicated in legacy core');
 const extracted=core.slice(start,end);
 for(const name of helperNames)must(extracted.includes('function '+name+'('),'extraction block missing '+name);
@@ -88,77 +93,4 @@ let changelog=read('CHANGELOG.md');
 const entry=`## V34.54.0 — 2026-10-04\n\n### Legacy core storage extraction\n- Moved defensive saved-state parsing and storage helpers (safeStoredJSON/Array/Record and safeStoreSet/Get/Remove) out of \`03-core-app.js\` into the parser-first \`01-storage-guard.js\` module without changing the storage namespace or session schema.\n- Lowered the legacy-core byte ratchet from ${oldCoreBytes.toLocaleString('en-US')} to ${newCoreBytes.toLocaleString('en-US')} bytes, creating ${freed.toLocaleString('en-US')} bytes of real headroom instead of raising the cap.\n- Added isolated behavior tests for malformed JSON, wrong-shaped state, normal persistence, read/write/remove failures and the in-memory storage fallback.\n- Added source-hygiene and unit ownership guards that require the storage layer to load before the core and prevent the extracted helpers from drifting back into \`03-core-app.js\`.\n- Kept the generated app single-file/offline-first; no runtime network dependency, schema migration or new operating mode was introduced.\n\n`;
 if(!changelog.includes('## V34.54.0'))changelog=replaceOnce(changelog,'# Changelog\n\n','# Changelog\n\n'+entry,'changelog header');write('CHANGELOG.md',changelog);
 
-const finalWorkflow=`name: V34.54 build and validation
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-
-permissions:
-  contents: read
-
-jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-      - name: Build, test, audit, validate
-        run: npm run check
-      - name: Headless browser render gate
-        timeout-minutes: 2
-        run: npm run browser-smoke
-      - name: Reference find browser gate
-        timeout-minutes: 2
-        run: npm run reference-find-smoke
-      - name: Passer-loop browser gate
-        timeout-minutes: 2
-        run: npm run passer-loop-smoke
-      - name: Tooling browser gate
-        timeout-minutes: 2
-        run: npm run tooling-smoke
-      - name: Reliability safety browser gate
-        timeout-minutes: 2
-        run: npm run reliability-smoke
-      - name: Import safety browser gate
-        timeout-minutes: 2
-        run: npm run import-safety-smoke
-      - name: Session lifecycle dry-run
-        timeout-minutes: 2
-        run: npm run session-lifecycle-smoke
-      - name: Verify generated artifacts are committed on pull requests
-        if: github.event_name == 'pull_request'
-        run: git diff --exit-code -- index.html README.md
-
-  sync-generated:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: verify
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-      - name: Rebuild generated artifacts
-        run: npm run build
-      - name: Sync generated artifacts on main
-        run: |
-          if ! git diff --quiet -- index.html README.md; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add index.html README.md
-            git commit -m "build: sync V34.54 generated artifacts"
-            git push
-          fi
-      - name: Verify generated artifacts are clean after main sync
-        run: git diff --exit-code -- index.html README.md
-`;
-write('.github/workflows/ci.yml',finalWorkflow);
-
-const self=p('scripts/v34-54-core-extraction.mjs');
-fs.unlinkSync(self);
 console.log(`V34.54 extraction prepared: core ${oldCoreBytes} -> ${newCoreBytes} bytes (${freed} bytes extracted)`);
