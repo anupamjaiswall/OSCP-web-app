@@ -110,7 +110,7 @@ function accessStateFor(key=winStrategyKey(),epoch=0){
  if(!old.outcomes)next.outcomes=blankAccessOutcomes(epoch);accessLadderState[key]=next;return next;
 }
 function saveAccessLadder(){safeStoreSet(STORE+'accessLadder',JSON.stringify(accessLadderState));v9Dirty=true}
-function accessRecordStale(record,t){return !!(t&&record.status!=='untested'&&(+record.epoch||0)<(+t.revertEpoch||0))}
+function accessRecordStale(record,t){return !!(record&&t&&record.status!=='untested'&&(+record.epoch||0)<(+t.revertEpoch||0))}
 function protocolExposed(t,protocol){
  const open=(t?.ports||[]).filter(p=>p.state!=='closed').map(p=>+p.port);return !open.length||protocol.ports.some(port=>open.includes(port));
 }
@@ -164,7 +164,7 @@ function renderAccessLadder(){
  principal.onchange=()=>{const next=v19Text(principal.value,120),risks=resumePacketSecretRisks(next),progressed=ACCESS_PROTOCOLS.some(p=>accessRecord(state,p.id).status!=='untested');if(risks.length){alert('Possible secret material detected. Store only a principal/credential label.');principal.value=state.principal;return}if(next!==state.principal&&progressed&&!confirm('Changing the principal makes every recorded protocol outcome ambiguous. Reset all outcomes for the new principal?')){principal.value=state.principal;return}if(next!==state.principal){state.principal=next;state.outcomes=blankAccessOutcomes(+t?.revertEpoch||0);state.updated=Date.now();saveAccessLadder();if(t)logEvent(t,'credential',`Access ladder principal set to ${next||'unlabeled'}; protocol outcomes reset`);if(t)saveTargets();renderAccessLadder()}};
  $$('.accessOutcome',rowsRoot).forEach(select=>select.onchange=()=>{if(!t)return;if(!state.principal){alert('Enter a principal label before recording outcomes.');renderAccessLadder();return}state.outcomes[select.dataset.protocol]={status:select.value,epoch:+t.revertEpoch||0,at:Date.now()};state.updated=Date.now();saveAccessLadder();const p=ACCESS_PROTOCOLS.find(x=>x.id===select.dataset.protocol);logEvent(t,'access',`${state.principal} · ${p.label}: ${ACCESS_OUTCOMES.find(x=>x.id===select.value)?.label}`);saveTargets();renderAccessLadder()});
  copy.onclick=async()=>{const plan=accessLadderPlanText(state,t);await guardedCopyText(sanitizeUnicode(plan),'Access proof plan',null,{allowPlaceholders:true})};
- reset.onclick=()=>{if(!t||!confirm(`Reset all recorded protocol outcomes for ${targetLabel(t)}?`))return;state.outcomes=blankAccessOutcomes(+t.revertEpoch||0);state.updated=Date.now();saveAccessLadder();logEvent(t,'access','Protocol access outcomes reset');saveTargets();renderAccessLadder()};
+ reset.onclick=()=>{if(!t||!confirm(`Reset all recorded protocol outcomes for ${targetLabel(t)}?`))return;state.outcomes=blankAccessOutcomes(+t?.revertEpoch||0);state.updated=Date.now();saveAccessLadder();logEvent(t,'access','Protocol access outcomes reset');saveTargets();renderAccessLadder()};
 }
 
 targets=targets.map(upgradeV19Target);
@@ -219,6 +219,7 @@ try{V16_SELF_TESTS.push(
  ['Resume packet schema',()=>{const p=upgradeV19Target({id:'v19-test',status:{},path:[],findings:[],timeline:[]}).resumePacket;return[V19_RESUME_FIELDS.length===6&&resumePacketCompleteness(p).total===6,'6-line target handoff']}],
  ['Resume packet secret guard',()=>[resumePacketSecretRisks('password=LiteralSecret!').length>0&&resumePacketSecretRisks('nxc smb "$TARGET" -u "$USER" -p "$PASS"').length===0,'literal blocked; variables accepted']],
  ['Access outcomes ordered',()=>[ACCESS_OUTCOMES.length===8&&accessOutcomeRank('authenticated')<accessOutcomeRank('resource')&&accessOutcomeRank('command')<accessOutcomeRank('shell')&&accessOutcomeRank('shell')<accessOutcomeRank('admin'),'auth<resource<command<shell<admin']],
+ ['Access stale guard handles missing records',()=>[accessRecordStale(null,{revertEpoch:1})===false&&accessRecordStale(undefined,{revertEpoch:1})===false&&accessRecordStale({status:'authenticated',epoch:0},{revertEpoch:1})===true&&accessRecordStale({status:'untested',epoch:0},{revertEpoch:1})===false,'missing=false · stale=true · untested=false']],
  ['Protocol ladder complete',()=>[ACCESS_PROTOCOLS.length===6&&ACCESS_PROTOCOLS.every(p=>p.id&&p.label&&p.ports.length)&&accessLadderNext('smb','authenticated').command.includes('--shares'),'6 protocol routes']],
  ['Complete backup/restore surface',()=>[sessionPayload(false).version===SESSION_SCHEMA_VERSION&&sessionPayload(false).accessLadderState===accessLadderState&&typeof restoreV9Payload==='function','resume embedded + ladder state']],
  ['Backup validator rejects duplicate credential IDs',()=>{const r=v15BackupValidate({version:SESSION_SCHEMA_VERSION,targets:[{id:'a'}],credentials:[{id:'c'},{id:'c'}],activeTargetId:'a'});return[!r.ok&&r.issues.includes('duplicate credential IDs'),r.issues.join('|')]}],

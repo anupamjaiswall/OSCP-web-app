@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.53.0 — 2026-10-04
+
+### Access-truth defensive hardening
+- Fixed a latent `accessRecordStale()` null/undefined dereference; missing records now fail closed as not stale instead of throwing.
+- Added a real browser self-test that invokes `accessRecordStale()` with null, undefined, stale and untested records, so Chromium CI now verifies behavior rather than only source markers.
+- No current UI call site was failing: all live callers normalize records through `accessRecord()`. This is defensive hardening for malformed/future callers.
+- Legacy `03-core-app.js` remains unchanged at its 334,255-byte ratchet cap; the next feature touching it still requires extraction first.
+
 ## V34.52.0 — 2026-10-04
 
 ### Repository hygiene and major-module coverage
