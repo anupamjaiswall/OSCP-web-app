@@ -53,16 +53,29 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
+      - name: One-time V34.54 legacy-core extraction
+        run: node scripts/v34-54-core-extraction.mjs
+      - name: Validate extracted V34.54 source
+        timeout-minutes: 4
+        run: |
+          npm run check
+          npm run browser-smoke
+          npm run reference-find-smoke
+          npm run passer-loop-smoke
+          npm run tooling-smoke
+          npm run reliability-smoke
+          npm run import-safety-smoke
+          npm run session-lifecycle-smoke
       - name: Rebuild generated artifacts
         run: npm run build
-      - name: Sync generated artifacts on main
+      - name: Commit V34.54 extraction and generated artifacts
         run: |
-          if ! git diff --quiet -- index.html README.md; then
+          if [ -n "$(git status --porcelain)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add index.html README.md
-            git commit -m "build: sync V34.53 generated artifacts"
+            git add -A
+            git commit -m "V34.54: extract storage helpers from legacy core"
             git push
           fi
-      - name: Verify generated artifacts are clean after main sync
-        run: git diff --exit-code -- index.html README.md
+      - name: Verify extraction workspace is clean
+        run: test -z "$(git status --porcelain)"
