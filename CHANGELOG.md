@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.54.0 — 2026-10-04
+
+### Legacy core storage extraction
+- Moved defensive saved-state parsing and storage helpers (safeStoredJSON/Array/Record and safeStoreSet/Get/Remove) out of `03-core-app.js` into the parser-first `01-storage-guard.js` module without changing the storage namespace or session schema.
+- Lowered the legacy-core byte ratchet from 334,255 to 332,081 bytes, creating 2,174 bytes of real headroom instead of raising the cap.
+- Added isolated behavior tests for malformed JSON, wrong-shaped state, normal persistence, read/write/remove failures and the in-memory storage fallback.
+- Added source-hygiene and unit ownership guards that require the storage layer to load before the core and prevent the extracted helpers from drifting back into `03-core-app.js`.
+- Kept the generated app single-file/offline-first; no runtime network dependency, schema migration or new operating mode was introduced.
+
 ## V34.53.0 — 2026-10-04
 
 ### Access-truth defensive hardening

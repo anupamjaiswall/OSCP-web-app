@@ -1,13 +1,13 @@
 {
   "name": "oscp-exam-os",
-  "version": "34.53.0",
+  "version": "34.54.0",
   "private": true,
   "type": "module",
   "license": "UNLICENSED",
   "description": "Offline-first OSCP exam methodology and decision-support web app.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/run-tests.mjs && node tests/proof-bank.mjs && node tests/context-actions.mjs && node tests/passer-loop.mjs && node tests/online-resources.mjs && node tests/tooling-2026.mjs && node tests/reliability-safety.mjs && node tests/import-safety.mjs && node tests/major-modules.mjs && node tests/build-payload.mjs",
+    "test": "node tests/run-tests.mjs && node tests/storage-guard.mjs && node tests/proof-bank.mjs && node tests/context-actions.mjs && node tests/passer-loop.mjs && node tests/online-resources.mjs && node tests/tooling-2026.mjs && node tests/reliability-safety.mjs && node tests/import-safety.mjs && node tests/major-modules.mjs && node tests/build-payload.mjs",
     "source-hygiene": "node scripts/source-hygiene.mjs",
     "ratchet": "node scripts/ratchet-quality.mjs --write",
     "ratchet-check": "node scripts/ratchet-quality.mjs",

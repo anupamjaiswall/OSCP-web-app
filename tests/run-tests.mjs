@@ -17,6 +17,7 @@ vm.runInContext(read('src/js/00-service-router-core.js'),sandbox);
 const u=sandbox.window.OSCP_UTILS,s=sandbox.window.OSCP_SEARCH_CORE,r=sandbox.window.OSCP_SERVICE_CORE;
 
 test('build version consistency',()=>{const m=JSON.parse(read('src/meta/build.json')),p=JSON.parse(read('package.json'));eq(p.version,m.version);eq(m.label,'V'+m.version.split('.')[0])});
+test('storage guard owns defensive persistence helpers before legacy core',()=>{const guard=read('src/js/01-storage-guard.js'),core=read('src/js/03-core-app.js'),tpl=read('src/index.template.html');for(const name of ['safeStoredJSON','safeStoredArray','safeStoredRecord','safeStoreSet','safeStoreGet','safeStoreRemove']){ok(guard.includes('function '+name+'('),name+' missing from storage guard');ok(!core.includes('function '+name+'('),name+' leaked back into legacy core')}ok(tpl.indexOf('@inject:script:01-storage-guard.js')<tpl.indexOf('@inject:script:03-core-app.js'),'storage guard must load before core')});
 test('escapeHtml',()=>eq(u.escapeHtml(`<a x='y'>&"`),'&lt;a x=&#39;y&#39;&gt;&amp;&quot;'));
 test('escapeHtml null-safe',()=>eq(u.escapeHtml(null),''));
 test('clampExamPoints',()=>eq([u.clampExamPoints(-2),u.clampExamPoints(69.6),u.clampExamPoints(120),u.clampExamPoints('x')],[0,70,100,0]));

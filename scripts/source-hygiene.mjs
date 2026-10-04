@@ -18,6 +18,10 @@ if(/const\s+SESSION_SCHEMA_VERSION\s*=/.test(guard))throw new Error('Import safe
 // Numeric prefixes are startup/dependency bands. Equal non-zero bands are allowed only
 // when the exact tie and its authoritative template order are deliberately declared here.
 const template=read('src/index.template.html');
+const storageLayer=read('src/js/01-storage-guard.js'),legacyCore=read('src/js/03-core-app.js');
+const storageHelpers=['safeStoredJSON','safeStoredArray','safeStoredRecord','safeStoreSet','safeStoreGet','safeStoreRemove'];
+for(const name of storageHelpers){if(!storageLayer.includes('function '+name+'('))throw new Error('Storage guard missing extracted helper: '+name);if(legacyCore.includes('function '+name+'('))throw new Error('Legacy core reabsorbed extracted storage helper: '+name)}
+if(template.indexOf('@inject:script:01-storage-guard.js')<0||template.indexOf('@inject:script:03-core-app.js')<0||template.indexOf('@inject:script:01-storage-guard.js')>template.indexOf('@inject:script:03-core-app.js'))throw new Error('Storage guard must execute before the legacy core');
 function enforceBands(dir,ext,allowedTies){
  const names=fs.readdirSync(path.join(root,dir)).filter(x=>x.endsWith(ext)&&/^\d{2}-/.test(x));
  const groups=new Map();

@@ -4,7 +4,7 @@ Keep this list short. The app is exam-time only; backlog items must improve reli
 
 ## Next
 
-- **Legacy core extraction — blocking before further core growth:** `03-core-app.js` is intentionally pinned at its downward-only byte ratchet. Do not raise the cap. Before any feature needs more legacy core, extract a characterized DOM-free seam (state/storage helpers, import/export validation or scoring) into a dedicated module and ratchet the core limit down again.
+- **Legacy core reduction:** V34.54 extracted the defensive storage/state helper seam into the parser-first storage guard and lowered the byte ratchet. Keep the cap downward-only; future legacy changes should prefer another characterized extraction over regrowth.
 - **DOM sink reduction:** replace legacy `innerHTML` rendering incrementally with small DOM helpers; the release ratchet must only move downward.
 - **Functional module names:** rename historical `v20/v23/v24/...` files by responsibility only after import/build maps have regression coverage.
 - **Schema fixture discipline:** when the session schema changes, add a fixture for the prior current schema and keep every historical fixture importable.
