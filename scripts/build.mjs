@@ -33,8 +33,9 @@ html=html.replace('</body>',lateHtml+'\n</body>');
 const manifest=JSON.parse(read('src/content/manifest.json'));
 const referenceHtml=manifest.files.map(f=>read('src/content/'+f)).join('');
 // Keep reference inert during parser boot without relying on optional browser decompression APIs.
-// Escaping '<' prevents literal </script> text inside examples from terminating the payload element.
-const referencePayload=JSON.stringify(referenceHtml).replace(/</g,'\\u003c');
+// A raw-text <script> element only needs literal closing-script terminators neutralized.
+// The previous blanket form replace(/</g,'\\u003c') inflated every HTML tag in the embedded reference.
+const referencePayload=JSON.stringify(referenceHtml).replace(/<\/script/gi,'\\u003c/script');
 html=html.replace('<!-- @inject:reference-payload -->',()=>referencePayload);
 
 html=html
