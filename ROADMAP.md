@@ -1,14 +1,21 @@
 # Roadmap
 
-Keep this list short. The app is exam-time only; backlog items must improve reliability, speed or maintainability without adding another operating mode.
+The app is now in **exam freeze**. Its job is to help during OSCP practice and the real exam, not to become a general software project.
 
-## Next
+## Exam freeze — V34.55+
 
-- **Legacy core reduction:** V34.54 extracted the defensive storage/state helper seam into the parser-first storage guard and lowered the byte ratchet. Keep the cap downward-only; future legacy changes should prefer another characterized extraction over regrowth.
-- **DOM sink reduction:** replace legacy `innerHTML` rendering incrementally with small DOM helpers; the release ratchet must only move downward.
-- **Functional module names:** rename historical `v20/v23/v24/...` files by responsibility only after import/build maps have regression coverage.
-- **Schema fixture discipline:** when the session schema changes, add a fixture for the prior current schema and keep every historical fixture importable.
-- **Report closure:** strengthen final report/evidence completeness checks without duplicating the official Exam Control Panel.
+- **No new features, architecture migrations or proactive hardening before the exam.** Make a runtime change only for a reproducible problem encountered during real OSCP-style practice, or for a material current OffSec rule/content change.
+- **Keep the legacy core ratchet downward-only.** `03-core-app.js` remains capped at 332,081 bytes; do not extract code merely to create room for hypothetical features.
+- **Keep the current single-file/offline-first build until after the exam.** Do not redesign packaging while the frozen build is being validated in real practice.
+- **Use this exact build during every practice machine.** Fix concrete exam friction: state loss, broken navigation, incorrect methodology, or information that cannot be found quickly enough under pressure.
+- **Prefer behavioral evidence over coverage work.** Add a regression only when it protects a real failure mode; do not expand tests simply to increase test count.
+
+## After OSCP
+
+- Re-evaluate the single-file packaging decision based on actual exam/practice experience.
+- Continue legacy-core and DOM-sink reduction only if the application will remain an actively maintained project.
+- Rename historical versioned modules by responsibility if ongoing maintenance justifies the churn.
+- Keep schema fixtures for prior supported session versions if backup compatibility remains useful.
 
 ## Non-goal
 

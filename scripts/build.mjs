@@ -27,7 +27,7 @@ let html=read('src/index.template.html');
 html=html.replace(/\/\* @inject:style:([^*]+?) \*\//g,(_,f)=>read('src/styles/'+f.trim()));
 html=html.replace(/\/\* @inject:script:([^*]+?) \*\//g,(_,f)=>read('src/js/'+f.trim()));
 // Small late-bound modules can extend the generated exam artifact without enlarging the already-large template.
-const lateScripts=['22-reference-find.js','23-v34-passer-loop.js','24-tooling-2026.js','25-v35-reliability-safety.js','26-v35-import-safety.js'];
+const lateScripts=['22-reference-find.js','23-v34-passer-loop.js','24-tooling-2026.js','25-v35-reliability-safety.js','26-v35-import-safety.js','27-exam-freeze.js'];
 const lateHtml=lateScripts.map(f=>'<script>'+read('src/js/'+f).replace(/<\/script/gi,'<\\/script')+'</script>').join('\n');
 html=html.replace('</body>',lateHtml+'\n</body>');
 const manifest=JSON.parse(read('src/content/manifest.json'));

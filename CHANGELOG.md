@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.55.0 — 2026-10-04
+
+### Exam freeze and encrypted-backup failure UX
+- Fixed blank encrypted-backup failure feedback: AES-GCM `OperationError` now becomes `Wrong passphrase or corrupted backup file.` before the existing backup-test UI renders the error.
+- Added an executable regression that triggers a real AES-GCM authentication failure with the wrong key and verifies the stable actionable message; non-auth decrypt errors keep their original useful message.
+- Kept `03-core-app.js` unchanged at its 332,081-byte downward-only ratchet; the fix lives in a small late-bound freeze layer and does not change the session schema, storage namespace or offline model.
+- Declared the app in exam freeze: no new features, architecture migrations or proactive hardening before OSCP unless real practice exposes a reproducible problem or current OffSec rules materially change.
+
 ## V34.54.0 — 2026-10-04
 
 ### Legacy core storage extraction
