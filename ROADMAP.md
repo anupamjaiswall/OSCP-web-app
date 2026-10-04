@@ -4,7 +4,7 @@ Keep this list short. The app is exam-time only; backlog items must improve reli
 
 ## Next
 
-- **Legacy core extraction:** move DOM-free state migration, import/export validation and scoring out of `03-core-app.js` behind characterization tests before UI refactors.
+- **Legacy core extraction — blocking before further core growth:** `03-core-app.js` is intentionally pinned at its downward-only byte ratchet. Do not raise the cap. Before any feature needs more legacy core, extract a characterized DOM-free seam (state/storage helpers, import/export validation or scoring) into a dedicated module and ratchet the core limit down again.
 - **DOM sink reduction:** replace legacy `innerHTML` rendering incrementally with small DOM helpers; the release ratchet must only move downward.
 - **Functional module names:** rename historical `v20/v23/v24/...` files by responsibility only after import/build maps have regression coverage.
 - **Schema fixture discipline:** when the session schema changes, add a fixture for the prior current schema and keep every historical fixture importable.
