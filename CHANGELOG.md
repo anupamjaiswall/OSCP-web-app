@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.56.0 — 2026-10-07
+
+### OSCPDB pre-exam resource
+- Added `https://oscpdb.vercel.app/` to the Online Resource Desk under the searchable tag `[ONLINE:OSCPDB]`.
+- Kept the exam app offline-first: OSCPDB is a navigational reference only and is not loaded as a runtime dependency.
+- Added an explicit warning that OSCPDB is not an OffSec whitelist and that its current AI Reasoning area should be treated as pre-exam-only because OSCP+ currently prohibits AI/LLM chatbot assistance during the exam/reporting phase.
+- Added tests that lock the URL, privacy/rule warning and pre-exam positioning.
+
+
 ## V34.55.0 — 2026-10-04
 
 ### Exam freeze and encrypted-backup failure UX
