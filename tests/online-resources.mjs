@@ -23,12 +23,13 @@ const required=[
  'https://www.revshells.com/',
  'https://www.exploit-db.com/',
  'https://packetstorm.news/',
- 'https://nvd.nist.gov/vuln/search'
+ 'https://nvd.nist.gov/vuln/search',
+ 'https://oscpdb.vercel.app/'
 ];
 for(const url of required)assert.ok(html.includes(url),'missing required online resource: '+url);
 
 const links=[...html.matchAll(/<a\s+[^>]*href="([^"]+)"[^>]*>/g)];
-assert.ok(links.length>=16,'expected a useful but bounded resource list');
+assert.ok(links.length>=17,'expected a useful but bounded resource list');
 for(const match of links){
  const tag=match[0];
  assert.match(tag,/target="_blank"/,'external link must open separately: '+match[1]);
@@ -41,3 +42,8 @@ assert.match(html,/AI\/LLM chatbots with direct prompt access are prohibited/i,'
 assert.match(html,/installed <code>-h\/-{2}help<\/code>/,'installed help should remain syntax authority');
 
 console.log('online-resources tests passed');
+
+assert.match(html,/\[ONLINE:OSCPDB\]/,'OSCPDB search tag must remain available');
+assert.match(html,/pre-exam research resource/i,'OSCPDB must stay pre-exam rather than an exam-time AI dependency');
+assert.match(html,/AI Reasoning/i,'OSCPDB AI boundary warning must remain visible');
+assert.match(html,/does not make every feature exam-safe/i,'OSCPDB must not be presented as an OffSec whitelist');
