@@ -55,29 +55,140 @@ function newbox() {
 </code></pre>
 </details>
 <details id="ref-1-3-tmux-setup-never-work-without-it">
-<summary>🖥️ 1.3 tmux Setup (NEVER work without it)</summary>
-<pre class="ref-code"><code class="language-bash"># Record everything
-script -q -c "zsh" ~/oscp/$IP/terminal_$(date +%Y%m%d_%H%M).log
+<summary>🖥️ 1.3 tmux Setup — per-target sessions + automatic per-pane timestamped logs</summary>
+<p><strong>Exam workflow:</strong> tmux + pipe-pane for terminal output, Obsidian/Vim for reasoning and proof screenshots. No nested <code>script</code> recorder. Do not treat pane transcripts as guaranteed captures of every keystroke. Test in Kali before exam day.</p>
+<h3>One-time installation (Kali)</h3>
+<pre class="ref-code"><code class="language-bash">sudo apt install -y tmux xclip colorized-logs moreutils
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+mkdir -p ~/bin ~/oscp/logs ~/oscp/logs-clean
+# Save the following files with vim, then:
+chmod +x ~/bin/{tmux-log.sh,tmux-start-log.sh,target.sh,clean-logs.sh}
+# Ctrl+A I (capital I) installs tmux plugins after starting tmux.
+# All tools/scripts must be installed and tested BEFORE exam day.</code></pre>
+<h3>~/bin/tmux-log.sh — timestamp one line per output line</h3>
+<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
+set -euo pipefail
+name="${1:?log name required}"
+d="$HOME/oscp/logs/$(date +%F)"
+mkdir -p "$d"
+chmod 700 "$d"
+exec ts '[%F %T]' &gt;&gt; "$d/$name.log"</code></pre>
+<h3>~/bin/tmux-start-log.sh — start a pipe for one pane</h3>
+<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
+set -euo pipefail
+pane="${1:?pane ID required}"
+session=$(tmux display-message -p -t "$pane" -F '#{session_name}')
+window=$(tmux display-message -p -t "$pane" -F '#{window_index}')
+num=$(tmux display-message -p -t "$pane" -F '#{pane_index}')
+id="${pane#%}"
+session="${session//[^a-zA-Z0-9_-]/_}"
+name="${session}_w${window}_p${num}_id${id}_$(date +%H%M%S)"
+# -o prevents accidental duplicate pipes when reloading settings.
+tmux pipe-pane -o -t "$pane" "$HOME/bin/tmux-log.sh '$name'"</code></pre>
+<h3>~/.tmux.conf — full exam-safe tmux config</h3>
+<pre class="ref-code"><code class="language-bash">unbind C-b
+set -g prefix C-a
+bind C-a send-prefix
+set -g mouse on
+set -g history-limit 100000
+set -g allow-rename off
+setw -g automatic-rename off
+set -g remain-on-exit on
 
-# Start session
-tmux new -s oscp
+# Splits, navigation, resize
+bind | split-window -h -c '#{pane_current_path}'
+bind - split-window -v -c '#{pane_current_path}'
+bind h select-pane -L
+bind j select-pane -D
+bind k select-pane -U
+bind l select-pane -R
+bind H resize-pane -L 5
+bind J resize-pane -D 5
+bind K resize-pane -U 5
+bind L resize-pane -R 5
+bind X kill-pane
+bind r source-file ~/.tmux.conf \; display-message 'tmux config reloaded'
+bind S capture-pane -p -S - \; run-shell 'tmux capture-pane -p -S - &gt; "$HOME/oscp/logs/pane-$(date +%F_%H%M%S).txt"' \; display-message 'Scrollback saved'
 
-# Essential keybinds:
-# Ctrl+B %       → Split vertical
-# Ctrl+B "       → Split horizontal
-# Ctrl+B o       → Switch pane
-# Ctrl+B z       → Zoom pane (fullscreen toggle)
-# Ctrl+B [       → Scroll mode (q to exit)
-# Ctrl+B d       → Detach (session stays alive)
-# tmux attach    → Reattach
+# Copy mode: Ctrl+A [, then v to select, y to copy.
+setw -g mode-keys vi
+bind -T copy-mode-vi v send -X begin-selection
+bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'xclip -selection clipboard -in'
 
-# Recommended 4-pane layout:
-# ┌─────────────┬─────────────┐
-# │  nmap/enum  │ shell/nc    │
-# ├─────────────┼─────────────┤
-# │  exploit    │ notes/misc  │
-# └─────────────┴─────────────┘
-</code></pre>
+# Automatically start pipe-pane on new sessions/windows/splits.
+set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
+set-hook -g after-new-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
+set-hook -g after-split-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
+
+# For existing panes after reload, run manually:
+# tmux list-panes -a -F '#{pane_id}' | while read -r p; do ~/bin/tmux-start-log.sh "$p"; done
+# Theme is optional; create ~/.tmux-theme.conf before enabling:
+# source-file ~/.tmux-theme.conf
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+run '~/.tmux/plugins/tpm/tpm'</code></pre>
+<h3>~/bin/target.sh — one target per session</h3>
+<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
+set -euo pipefail
+[[ ${1:-} ]] || { echo "usage: target.sh &lt;ip-or-name&gt;"; exit 1; }
+target="$1"
+[[ "$target" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "Invalid target label"; exit 1; }
+dir="$HOME/oscp/$target"
+session="${target//./_}"
+go() { if [[ -n ${TMUX:-} ]]; then tmux switch-client -t "=$session"; else tmux attach-session -t "=$session"; fi; }
+if tmux has-session -t "=$session" 2&gt;/dev/null; then go; exit 0; fi
+mkdir -p "$dir"/{nmap,loot,exploits}
+tmux new-session -d -s "$session" -n recon -c "$dir"
+if [[ "$target" =~ ^[0-9]+(\.[0-9]+){3}$ ]]; then
+  tmux set-environment -t "=$session" IP "$target"
+  # Initial recon pane was created before the environment update:
+  tmux send-keys -t "$session:recon.0" "export IP='$target'" Enter
+fi
+for w in shell listener http notes; do tmux new-window -t "$session:" -n "$w" -c "$dir"; done
+tmux send-keys -t "$session:notes" 'vim notes.md' Enter
+tmux split-window -h -t "$session:recon" -c "$dir"
+tmux split-window -v -t "$session:recon.0" -c "$dir"
+tmux split-window -v -t "$session:recon.1" -c "$dir"
+tmux select-window -t "$session:recon"
+go
+# Newly created panes/windows inherit the session IP from tmux's environment.
+# Existing shells need 'export IP=...' if the value changes later.</code></pre>
+<h3>~/bin/clean-logs.sh — strip ANSI for searchable report text</h3>
+<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
+set -euo pipefail
+src="$HOME/oscp/logs"
+dst="$HOME/oscp/logs-clean"
+mkdir -p "$dst"
+find "$src" -type f -name '*.log' -print0 |
+while IFS= read -r -d '' f; do
+  rel="${f#"$src"/}"
+  mkdir -p "$dst/$(dirname "$rel")"
+  ansi2txt &lt; "$f" &gt; "$dst/$rel"
+done
+echo "Clean logs: $dst"</code></pre>
+<h3>Daily use and validation</h3>
+<pre class="ref-code"><code class="language-bash">target.sh 10.10.10.5  # target session, folder ~/oscp/10.10.10.5
+target.sh 10.10.10.6
+target.sh AD_set      # no $IP; set DC/WS1/WS2 separately
+tmux set-environment -t AD_set DC 10.10.10.100
+tmux ls
+tmux show-hooks -g
+tmux list-panes -a -F '#{session_name} #{window_name} #{pane_id} #{pane_pipe}'
+ls -lt ~/oscp/logs/$(date +%F)/ | head
+# Test in EACH new pane: echo "logging-test-$(date +%s)"
+# Ctrl+A | or - = split; Ctrl+A h/j/k/l = move; H/J/K/L = resize
+# Ctrl+A z = zoom; [ = scroll; S = save scrollback; c = new window
+# Ctrl+A s = sessions; d = detach; r = reload; X = kill dead pane
+# Ctrl+A Ctrl+s = save layout; Ctrl+A Ctrl+r = restore layout (plugin)
+# IMPORTANT: reload does not auto-start logging on already-open panes:
+tmux list-panes -a -F '#{pane_id}' | while read -r p; do ~/bin/tmux-start-log.sh "$p"; done
+# Logs are plaintext, may contain secrets; preserve locally.
+# For tool output: nmap -sCV -oA nmap/full "$IP" (no redundant tee of .nmap)
+~/bin/clean-logs.sh
+grep -rn -B3 -A15 'sudo -l' ~/oscp/logs-clean/
+# Local backup; do NOT upload credentials/proofs to cloud:
+cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
+<p><strong>Notes:</strong> New windows and panes are logged independently. Pane numbering can change; the unique pane ID in the filename prevents collisions. Commands launched without shell echo, invisible keystrokes, and GUI activity are not necessarily captured. Use tool-native <code>-oA</code> outputs for critical evidence. Keep all sensitive evidence on approved local storage.</p>
 </details>
 <details id="ref-1-4-wordlists-every-important-path">
 <summary>📚 1.4 Wordlists --- Every Important Path</summary>
@@ -145,7 +256,7 @@ rusthound-ce -h 2&gt;/dev/null | head
 [ ] Burp Suite running, proxy configured
 [ ] /etc/hosts ready to add entries
 [ ] Note-taking app open (Obsidian/CherryTree)
-[ ] Terminal logged (script command)
+[ ] tmux per-pane logging verified (check log contents, not just filenames)
 [ ] Exam control panel open
 [ ] Screenshots folder ready
 [ ] Known good shells: nc listener test, msfvenom test payload
