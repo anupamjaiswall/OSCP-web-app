@@ -207,7 +207,7 @@ function saveCredentialRoute(){safeStoreSet(STORE+'credentialRoute',JSON.stringi
 function saveRubeusRoute(){safeStoreSet(STORE+'rubeusRoute',JSON.stringify(rubeusRouteState));v9Dirty=true}
 function saveExamRuleLock(){safeStoreSet(STORE+'examRuleLock',JSON.stringify(examRuleLockState));v9Dirty=true}
 function renderAdFastPath(){
- const key=winStrategyKey(),state=adFastPathState[key]||{};
+ const key=adStrategyKey(),state=adFastPathState[key]||{};
  $$('.adFastCheck').forEach(x=>{x.checked=!!state[x.dataset.step];x.closest('.adFastStep')?.classList.toggle('done',x.checked)});
  const done=AD_FAST_STEPS.filter(id=>state[id]).length,metric=$('#adFastDone');if(metric){metric.textContent=`${done}/${AD_FAST_STEPS.length}`;metric.className='adEdgeRisk '+(done===AD_FAST_STEPS.length?'low':'medium')}
 }
@@ -215,7 +215,7 @@ function edgePlanText(p){return `${p.label} — ${p.target}\nRisk: ${p.risk.toUp
 function renderAdEdgePlanner(){
  const select=$('#adEdgeSelect'),box=$('#adEdgePlanner');if(!select||!box)return;
  if(!select.options.length)select.innerHTML=AD_EDGE_PLANS.map(p=>`<option value="${esc(p.id)}">${esc(p.label)}</option>`).join('');
- const key=winStrategyKey(),saved=adEdgePlannerState[key];if(saved&&AD_EDGE_PLANS.some(p=>p.id===saved))select.value=saved;
+ const key=adStrategyKey(),saved=adEdgePlannerState[key];if(saved&&AD_EDGE_PLANS.some(p=>p.id===saved))select.value=saved;
  const p=AD_EDGE_PLANS.find(x=>x.id===select.value)||AD_EDGE_PLANS[0];select.value=p.id;
  box.className='adEdgePlanner risk-'+p.risk;
  const blocks=[['Prerequisites',p.prereq],['Read-only proof',p.read],['Minimum action',p.action],['Verify result',p.verify],['Rollback / close',p.rollback]];
@@ -225,7 +225,7 @@ function credentialRoutePlanText(p){return `${p.label} — ${p.kind}\n\nPREREQUI
 function renderCredentialRoute(){
  const select=$('#credentialRouteSelect'),box=$('#credentialRoutePlan');if(!select||!box)return;
  if(!select.options.length)select.innerHTML=CREDENTIAL_ROUTE_PLANS.map(p=>`<option value="${esc(p.id)}">${esc(p.label)}</option>`).join('');
- const key=winStrategyKey(),saved=credentialRouteState[key];select.value=CREDENTIAL_ROUTE_PLANS.some(p=>p.id===saved)?saved:CREDENTIAL_ROUTE_PLANS[0].id;
+ const key=adStrategyKey(),saved=credentialRouteState[key];select.value=CREDENTIAL_ROUTE_PLANS.some(p=>p.id===saved)?saved:CREDENTIAL_ROUTE_PLANS[0].id;
  const p=CREDENTIAL_ROUTE_PLANS.find(x=>x.id===select.value)||CREDENTIAL_ROUTE_PLANS[0];
  const blocks=[['Prerequisites',p.prereq],['First one-host proof',p.proof],['Next only if justified',p.next],['Interpretation',p.success],['If it fails',p.fallback],['Close',p.close]];
  box.innerHTML=blocks.map(([h,v],i)=>`<div class="credentialRouteBlock ${i===4?'credentialRouteCaution':''}"><h3>${esc(h)}</h3>${i===1||i===2?`<pre>${esc(v)}</pre>`:`<div>${esc(v)}</div>`}</div>`).join('');
@@ -234,7 +234,7 @@ function rubeusRoutePlanText(p){return `${p.label} — ${p.kind}\n\nWHY\n${p.why
 function renderRubeusRoute(){
  const select=$('#rubeusRouteSelect'),box=$('#rubeusRoutePlan');if(!select||!box)return;
  if(!select.options.length)select.innerHTML=RUBEUS_ROUTE_PLANS.map(p=>`<option value="${esc(p.id)}">${esc(p.label)}</option>`).join('');
- const key=winStrategyKey(),saved=rubeusRouteState[key];select.value=RUBEUS_ROUTE_PLANS.some(p=>p.id===saved)?saved:RUBEUS_ROUTE_PLANS[0].id;
+ const key=adStrategyKey(),saved=rubeusRouteState[key];select.value=RUBEUS_ROUTE_PLANS.some(p=>p.id===saved)?saved:RUBEUS_ROUTE_PLANS[0].id;
  const p=RUBEUS_ROUTE_PLANS.find(x=>x.id===select.value)||RUBEUS_ROUTE_PLANS[0];
  const blocks=[['Why this route',p.why],['Command / plan',p.commands],['Success means',p.success],['Caution',p.caution]];
  box.innerHTML=blocks.map(([title,v],i)=>`<div class="credentialRouteBlock ${i===3?'credentialRouteCaution':''}"><h3>${esc(title)}</h3>${i===1?`<pre>${esc(v)}</pre>`:`<div>${esc(v)}</div>`}</div>`).join('');
@@ -260,6 +260,7 @@ const WINDOWS_STRATEGY_STEPS=[
 ];
 let windowsStrategyState=safeStoredRecord(STORE+'windowsStrategy',{});
 function winStrategyKey(){const s=$('#winStrategyTarget');return s?.value||activeTargetId||'__unassigned__'}
+function adStrategyKey(){const s=$('#adStrategyTarget');return s?.value||activeTargetId||'__unassigned__'}
 function saveWindowsStrategy(){safeStoreSet(STORE+'windowsStrategy',JSON.stringify(windowsStrategyState));v9Dirty=true}
 function renderWindowsStrategy(){
  const sel=$('#winStrategyTarget'),body=$('#winStrategyBody');if(!sel||!body)return;
@@ -278,15 +279,15 @@ $('#winStrategyTarget').onchange=renderWindowsStrategy;
 $('#winStrategyOpenRef').onclick=()=>openRef('ref-13-0-v16-windows-post-shell-workflow');
 $('#winStrategyReset').onclick=()=>{const k=winStrategyKey();if(confirm('Reset the Windows strategy checklist for this target?')){delete windowsStrategyState[k];saveWindowsStrategy();renderWindowsStrategy()}};
 $$('.adFastCopy').forEach(b=>b.onclick=async()=>{const pre=b.closest('.adFastStep')?.querySelector('pre');if(pre)await guardedCopyText(sanitizeUnicode(pre.textContent),'AD fast-path command',null,{allowPlaceholders:true})});
-$$('.adFastCheck').forEach(x=>x.onchange=()=>{const k=winStrategyKey();adFastPathState[k]=adFastPathState[k]||{};adFastPathState[k][x.dataset.step]=x.checked;saveAdFastPath();renderAdFastPath()});
-$('#adFastReset').onclick=()=>{const k=winStrategyKey();if(confirm('Reset the four-step AD fast path for this target?')){delete adFastPathState[k];saveAdFastPath();renderAdFastPath()}};
-$('#adEdgeSelect').onchange=()=>{adEdgePlannerState[winStrategyKey()]=$('#adEdgeSelect').value;saveAdEdgePlanner();renderAdEdgePlanner()};
+$$('.adFastCheck').forEach(x=>x.onchange=()=>{const k=adStrategyKey();adFastPathState[k]=adFastPathState[k]||{};adFastPathState[k][x.dataset.step]=x.checked;saveAdFastPath();renderAdFastPath()});
+$('#adFastReset').onclick=()=>{const k=adStrategyKey();if(confirm('Reset the four-step AD fast path for this target?')){delete adFastPathState[k];saveAdFastPath();renderAdFastPath()}};
+$('#adEdgeSelect').onchange=()=>{adEdgePlannerState[adStrategyKey()]=$('#adEdgeSelect').value;saveAdEdgePlanner();renderAdEdgePlanner()};
 $('#adEdgeCopyPlan').onclick=async()=>{const p=AD_EDGE_PLANS.find(x=>x.id===$('#adEdgeSelect').value);if(p)await guardedCopyText(sanitizeUnicode(edgePlanText(p)),'AD edge plan',null,{allowPlaceholders:true})};
 $('#adEdgeOpenRef').onclick=()=>openRef('ref-9-6b-v19-bloodhound-edge-execution-desk');
-$('#credentialRouteSelect').onchange=()=>{credentialRouteState[winStrategyKey()]=$('#credentialRouteSelect').value;saveCredentialRoute();renderCredentialRoute()};
+$('#credentialRouteSelect').onchange=()=>{credentialRouteState[adStrategyKey()]=$('#credentialRouteSelect').value;saveCredentialRoute();renderCredentialRoute()};
 $('#credentialRouteCopy').onclick=async()=>{const p=CREDENTIAL_ROUTE_PLANS.find(x=>x.id===$('#credentialRouteSelect').value);if(p)await guardedCopyText(sanitizeUnicode(credentialRoutePlanText(p)),'Credential route plan',null,{allowPlaceholders:true})};
 $('#credentialRouteOpenRef').onclick=()=>openRef('ref-9-6c-v19-credential-material-router');
-$('#rubeusRouteSelect').onchange=()=>{rubeusRouteState[winStrategyKey()]=$('#rubeusRouteSelect').value;saveRubeusRoute();renderRubeusRoute()};
+$('#rubeusRouteSelect').onchange=()=>{rubeusRouteState[adStrategyKey()]=$('#rubeusRouteSelect').value;saveRubeusRoute();renderRubeusRoute()};
 $('#rubeusRouteCopy').onclick=async()=>{const p=RUBEUS_ROUTE_PLANS.find(x=>x.id===$('#rubeusRouteSelect').value);if(p)await guardedCopyText(sanitizeUnicode(rubeusRoutePlanText(p)),'Rubeus route plan',null,{allowPlaceholders:true})};
 $('#rubeusRouteOpenRef').onclick=()=>openRef('ref-9-4a-rubeus-material-router');
 $$('.ruleLockCheck').forEach(x=>x.onchange=()=>{examRuleLockState[x.dataset.rule]=x.checked;saveExamRuleLock();renderExamRuleLock()});
