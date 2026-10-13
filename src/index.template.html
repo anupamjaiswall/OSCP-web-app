@@ -99,6 +99,7 @@ Return trigger:"></textarea>
    <div class="examHelpKey"><kbd>Alt+Z</kbd><br><b>Focus mode</b><div class="muted">Hide navigation clutter. Esc exits.</div></div>
    <div class="examHelpKey"><kbd>Alt+Q</kbd><br><b>Service Router</b><div class="muted">Ports → small prioritized enumeration queue.</div></div>
    <div class="examHelpKey"><kbd>Alt+Y</kbd><br><b>Method Trees</b><div class="muted">Linux / Windows / AD branch flow.</div></div>
+   <div class="examHelpKey"><kbd>Alt+L</kbd><br><b>Linux desk</b><div class="muted">Post-shell to root winning steps with target-aware progress.</div></div>
    <div class="examHelpKey"><kbd>Alt+W</kbd><br><b>Windows / AD desk</b><div class="muted">Auth, material routing, edge execution and post-shell workflow.</div></div>
    <div class="examHelpKey"><kbd>Alt+0</kbd><br><b>Stuck reset</b><div class="muted">Use when tool swapping replaces evidence.</div></div>
    <div class="examHelpKey"><kbd>Alt+B</kbd><br><b>Bank proof</b><div class="muted">Protect points before continuing.</div></div>
@@ -144,6 +145,7 @@ Return trigger:"></textarea>
   <button class="navbtn" data-view="toolArsenalView">🧰 Best Tools</button>
   <button class="navbtn" data-view="serviceRouterView">⚡ Service Router</button>
   <button class="navbtn" data-view="methodTreesView">🌳 Method Trees</button>
+  <button class="navbtn" data-view="linuxStrategyView">WIN Linux</button>
   <button class="navbtn" data-view="windowsStrategyView">WIN Windows</button>
   <button class="navbtn" data-view="workspaceView">🎯 Target</button>
   <button class="navbtn" data-view="reportsView">📝 Evidence & Report</button>
@@ -234,6 +236,7 @@ Return trigger:"></textarea>
    <button class="btn primary" onclick="switchView('methodologyView')"><b>Methodology</b><br><span class="tiny">The complete exam loop</span></button>
    <button class="btn" onclick="switchView('toolArsenalView')"><b>Best tools</b><br><span class="tiny">28 recommended tools first</span></button>
    <button class="btn" onclick="switchView('workspaceView')"><b>Current target</b><br><span class="tiny">Track progress and notes</span></button>
+   <button class="btn" onclick="switchView('linuxStrategyView')"><b>Linux</b><br><span class="tiny">12 winning steps → root</span></button>
    <button class="btn" onclick="switchView('windowsStrategyView')"><b>Windows / AD</b><br><span class="tiny">12-step strategy</span></button>
    <button class="btn" onclick="switchView('reportsView')"><b>Evidence & report</b><br><span class="tiny">Capture while working</span></button>
    <button class="btn" onclick="switchView('referenceView')"><b>Full reference</b><br><span class="tiny">Use only when needed</span></button>
@@ -245,7 +248,7 @@ Return trigger:"></textarea>
    <div class="decisionRow"><h3>A web application</h3><div>Hostname/vhosts, source, headers, cookies, robots, sitemap, JavaScript, network calls, content, backups and exposed <code>.git</code> before exploit hunting.</div><button class="btn" onclick="openRef('ref-6-1-web-pentest-methodology-full-checklist')">Web methodology →</button></div>
    <div class="decisionRow"><h3>A version banner</h3><div>Confirm access context, exact build/package, architecture, configuration, trigger and patch/backport status. Version alone is not a vulnerability.</div><button class="btn" onclick="openRef('ref-5-y-v16-cve-context-card')">CVE gate →</button></div>
    <div class="decisionRow"><h3>A credential or hash</h3><div>Record its source, test it across appropriate known services, distinguish authentication from authorization, and respect lockout policy.</div><button class="btn" onclick="openRef('ref-8-password-attacks-credential-abuse')">Credential workflow →</button></div>
-   <div class="decisionRow"><h3>A Linux shell</h3><div>Stabilize; sudo, SUID, capabilities, cron/systemd, services, secrets, containers and internal listeners. Kernel/CVE last.</div><button class="btn" onclick="openRef('ref-12-31-linux-practical-attack-trees-finding-validation-path')">Linux trees →</button></div>
+   <div class="decisionRow"><h3>A Linux shell</h3><div>Stabilize; sudo, SUID, capabilities, cron/systemd, services, secrets, containers and internal listeners. Kernel/CVE last.</div><button class="btn primary" onclick="switchView('linuxStrategyView')">Win Linux →</button></div>
    <div class="decisionRow"><h3>A Windows shell</h3><div>Identity/privileges, files/software, services, tasks, registry, credentials, DLL/path, local ports and custom apps. Kernel last.</div><button class="btn" onclick="switchView('windowsStrategyView')">Windows workflow →</button></div>
    <div class="decisionRow"><h3>A domain credential</h3><div>Fix DNS/time, validate SMB/LDAP/WinRM/RDP, enumerate shares and Kerberos, collect BloodHound (RustHound-CE is a collector option), check AD CS, then follow one proven edge.</div><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">First 10 minutes →</button></div>
    <div class="decisionRow"><h3>A new network or route</h3><div>Prove pivot-host reachability, create one tunnel/route, enumerate the internal surface, and repeat the same target loop.</div><button class="btn" onclick="openRef('ref-14-2-modern-pivot-tool-selection')">Pivot selector →</button></div>
@@ -644,7 +647,7 @@ Start
             ├─ re-run id / sudo -l / listeners / secrets
             └─ proof screenshot from original path</pre>
     <ul class="treeList"><li>Prioritize <b>sudo</b>, <b>custom SUID</b>, <b>capabilities</b>, <b>cron/systemd</b>, credential reuse and internal services before kernel exploits.</li><li>If a route requires a write, prove the writable object, trigger and effective user first.</li><li>Search with <code>[LINUX:SUID]</code>, <code>[LINUX:CAPS]</code>, <code>[LINUX:CRON]</code> or <code>ref-c4</code>.</li></ul>
-    <div class="treeActions"><button class="btn" onclick="openRef('ref-c4-i-have-a-linux-shell-what-now')">Linux deep reference →</button><button class="btn" onclick="switchView('referenceView')">Full notes →</button></div>
+    <div class="treeActions"><button class="btn primary" onclick="switchView('linuxStrategyView')">Win Linux desk →</button><button class="btn" onclick="openRef('ref-c4-i-have-a-linux-shell-what-now')">Linux deep reference →</button></div>
    </div>
 
    <div class="methodTreeCard">
@@ -747,6 +750,26 @@ Start
    <div class="card"><b>When stuck on Windows</b><div class="muted">Am I confusing login with admin or shell? Did I read whoami /all, service/task permissions, secrets and software paths?</div></div>
    <div class="card"><b>When stuck in AD</b><div class="muted">Is this DNS/time/bind format, or a real negative result? Is there a better identity, ticket, certificate, share or member-server route?</div></div>
   </div>
+ </div>
+</section>
+
+
+<script>window.__OSCP_PARSE_STAGE__='linux-strategy';</script>
+<section id="linuxStrategyView" class="view">
+ <div class="hero"><div><h1>Linux Exam Desk — Win Linux</h1><div class="muted">A repeatable standalone Linux path from first shell to root. Evidence chooses the branch; kernel/package exploits stay last.</div></div><div class="row"><select id="linuxStrategyTarget"></select><button class="btn" id="linuxStrategyOpenTree">Linux tree →</button><button class="btn" id="linuxStrategyOpenRef">Full Linux reference →</button><button class="btn bad" id="linuxStrategyReset">Reset target checklist</button></div></div>
+ <div class="card" style="margin-bottom:12px"><h2>Winning line</h2><div class="flow"><span class="step">Get shell</span><span class="arrow">→</span><span class="step">Baseline</span><span class="arrow">→</span><span class="step">SAVE + READ</span><span class="arrow">→</span><span class="step">Secrets / sudo / SUID / caps</span><span class="arrow">→</span><span class="step">Cron / systemd / root services</span><span class="arrow">→</span><span class="step">Prove one controllable primitive</span><span class="arrow">→</span><span class="step">root</span><span class="arrow">→</span><span class="step">BANK</span></div><p class="muted">Do not chase every branch. The winning branch must have a privileged context, something you control, and a reliable trigger. Re-enumerate after every identity/context change.</p></div>
+ <div class="card" style="margin-bottom:12px"><div class="winStrategyBar"><div><div id="linuxStrategyDone" class="winStrategyMetric">0/12</div><div class="winStrategyLabel">steps checked</div></div><div><div id="linuxStrategyPct" class="winStrategyMetric">0%</div><div class="winStrategyLabel">first-pass coverage</div></div><div id="linuxStrategyTargetHint" class="muted"></div></div></div>
+ <div class="opsGrid" style="margin-bottom:12px">
+  <div class="card opsSpan6"><h2>Fast branch order</h2><ol><li><b>Secrets / reuse:</b> history, SSH keys, app configs, backups, environment/process arguments.</li><li><b>sudo:</b> exact allowed command + arguments + environment/wildcards.</li><li><b>SUID / SGID / capabilities:</b> GTFOBins first; custom binary analysis second.</li><li><b>cron / systemd:</b> privileged caller + writable dependency + trigger.</li><li><b>root processes / localhost services:</b> map PID → executable → config/socket/credential.</li><li><b>groups / containers / mounts:</b> prove the exact docker/lxd/disk/NFS prerequisite.</li><li><b>kernel/package CVE:</b> only after userland paths are weak.</li></ol></div>
+  <div class="card opsSpan6"><h2>Three-condition validation gate</h2><div class="winStrategyGate"><b>1 · Privileged context:</b> root process, sudo rule, SUID owner, capability, root cron/systemd unit, privileged container or equivalent.</div><div class="winStrategyGate"><b>2 · Controllable object:</b> command, argument, binary, script, config, path element, library, socket, mount or credential you can actually influence.</div><div class="winStrategyGate"><b>3 · Trigger:</b> a reliable way to make the privileged context consume your controlled object. If one condition is missing, park the branch.</div></div>
+ </div>
+ <div id="linuxStrategyBody" class="winStrategyGrid"></div>
+ <div class="opsGrid" style="margin-top:12px">
+  <div class="card opsSpan6"><h2>When you are stuck</h2><div class="winStrategyGate">Did you actually read the saved LinPEAS/LSE output instead of rerunning it?</div><div class="winStrategyGate">Did you inspect <code>/opt</code>, <code>/srv</code>, <code>/usr/local</code>, web roots, home directories and backups?</div><div class="winStrategyGate">Did you validate <code>sudo -l</code>, custom SUID/capabilities, cron/systemd and localhost-only services manually?</div><div class="winStrategyGate">Did you map every interesting root process to its executable, arguments, config and writable dependencies?</div><div class="winStrategyGate">Did a new secret/user/group/context appear? If yes, re-enumerate before kernel research.</div></div>
+  <div class="card opsSpan6"><h2>Root = stop and bank</h2><p>Once <code>id</code> confirms root, protect the point before doing anything optional. Keep an interactive shell, read <code>proof.txt</code> from its original location, show target IP in the evidence sequence, and submit the exact value in the Control Panel.</p><pre>id
+hostname
+ip addr
+# cat /absolute/original/path/to/proof.txt</pre><div class="row"><button class="btn good" id="linuxStrategyBank" type="button">✓ Bank the Points</button><button class="btn" onclick="openRef('ref-18-1-screenshot-requirements-never-fail-on-this')">Evidence requirements →</button></div></div>
  </div>
 </section>
 
@@ -1089,6 +1112,8 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 
 <script>/* @inject:script:05-windows-strategy.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='05-windows-strategy';console.log('[OSCP_BOOT_STAGE]','05-windows-strategy');</script>
+<script>/* @inject:script:05-linux-strategy.js */</script>
+<script>window.__OSCP_BOOT_STAGE__='05-linux-strategy';console.log('[OSCP_BOOT_STAGE]','05-linux-strategy');</script>
 
 <script>/* @inject:script:06-handoff-access-truth.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='06-handoff-access-truth';console.log('[OSCP_BOOT_STAGE]','06-handoff-access-truth');</script>
