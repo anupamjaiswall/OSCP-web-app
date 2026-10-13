@@ -8,8 +8,8 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.57.0">
-<meta name="oscp-build-date" content="2026-10-11">
+<meta name="oscp-build-version" content="34.58.0">
+<meta name="oscp-build-date" content="2026-10-13">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#0b0e14;--panel:#121722;--panel2:#171e2b;--text:#e9eef7;--muted:#96a2b4;--line:#293244;--accent:#71d3ff;--good:#72e3a6;--warn:#ffd166;--bad:#ff7b86;--chip:#202a3a;--shadow:0 16px 40px rgba(0,0,0,.25)}
@@ -498,6 +498,7 @@ Return trigger:"></textarea>
    <div class="examHelpKey"><kbd>Alt+Z</kbd><br><b>Focus mode</b><div class="muted">Hide navigation clutter. Esc exits.</div></div>
    <div class="examHelpKey"><kbd>Alt+Q</kbd><br><b>Service Router</b><div class="muted">Ports → small prioritized enumeration queue.</div></div>
    <div class="examHelpKey"><kbd>Alt+Y</kbd><br><b>Method Trees</b><div class="muted">Linux / Windows / AD branch flow.</div></div>
+   <div class="examHelpKey"><kbd>Alt+L</kbd><br><b>Linux desk</b><div class="muted">Post-shell to root winning steps with target-aware progress.</div></div>
    <div class="examHelpKey"><kbd>Alt+W</kbd><br><b>Windows / AD desk</b><div class="muted">Auth, material routing, edge execution and post-shell workflow.</div></div>
    <div class="examHelpKey"><kbd>Alt+0</kbd><br><b>Stuck reset</b><div class="muted">Use when tool swapping replaces evidence.</div></div>
    <div class="examHelpKey"><kbd>Alt+B</kbd><br><b>Bank proof</b><div class="muted">Protect points before continuing.</div></div>
@@ -543,6 +544,7 @@ Return trigger:"></textarea>
   <button class="navbtn" data-view="toolArsenalView">🧰 Best Tools</button>
   <button class="navbtn" data-view="serviceRouterView">⚡ Service Router</button>
   <button class="navbtn" data-view="methodTreesView">🌳 Method Trees</button>
+  <button class="navbtn" data-view="linuxStrategyView">WIN Linux</button>
   <button class="navbtn" data-view="windowsStrategyView">WIN Windows</button>
   <button class="navbtn" data-view="workspaceView">🎯 Target</button>
   <button class="navbtn" data-view="reportsView">📝 Evidence & Report</button>
@@ -633,6 +635,7 @@ Return trigger:"></textarea>
    <button class="btn primary" onclick="switchView('methodologyView')"><b>Methodology</b><br><span class="tiny">The complete exam loop</span></button>
    <button class="btn" onclick="switchView('toolArsenalView')"><b>Best tools</b><br><span class="tiny">28 recommended tools first</span></button>
    <button class="btn" onclick="switchView('workspaceView')"><b>Current target</b><br><span class="tiny">Track progress and notes</span></button>
+   <button class="btn" onclick="switchView('linuxStrategyView')"><b>Linux</b><br><span class="tiny">12 winning steps → root</span></button>
    <button class="btn" onclick="switchView('windowsStrategyView')"><b>Windows / AD</b><br><span class="tiny">12-step strategy</span></button>
    <button class="btn" onclick="switchView('reportsView')"><b>Evidence & report</b><br><span class="tiny">Capture while working</span></button>
    <button class="btn" onclick="switchView('referenceView')"><b>Full reference</b><br><span class="tiny">Use only when needed</span></button>
@@ -644,7 +647,7 @@ Return trigger:"></textarea>
    <div class="decisionRow"><h3>A web application</h3><div>Hostname/vhosts, source, headers, cookies, robots, sitemap, JavaScript, network calls, content, backups and exposed <code>.git</code> before exploit hunting.</div><button class="btn" onclick="openRef('ref-6-1-web-pentest-methodology-full-checklist')">Web methodology →</button></div>
    <div class="decisionRow"><h3>A version banner</h3><div>Confirm access context, exact build/package, architecture, configuration, trigger and patch/backport status. Version alone is not a vulnerability.</div><button class="btn" onclick="openRef('ref-5-y-v16-cve-context-card')">CVE gate →</button></div>
    <div class="decisionRow"><h3>A credential or hash</h3><div>Record its source, test it across appropriate known services, distinguish authentication from authorization, and respect lockout policy.</div><button class="btn" onclick="openRef('ref-8-password-attacks-credential-abuse')">Credential workflow →</button></div>
-   <div class="decisionRow"><h3>A Linux shell</h3><div>Stabilize; sudo, SUID, capabilities, cron/systemd, services, secrets, containers and internal listeners. Kernel/CVE last.</div><button class="btn" onclick="openRef('ref-12-31-linux-practical-attack-trees-finding-validation-path')">Linux trees →</button></div>
+   <div class="decisionRow"><h3>A Linux shell</h3><div>Stabilize; sudo, SUID, capabilities, cron/systemd, services, secrets, containers and internal listeners. Kernel/CVE last.</div><button class="btn primary" onclick="switchView('linuxStrategyView')">Win Linux →</button></div>
    <div class="decisionRow"><h3>A Windows shell</h3><div>Identity/privileges, files/software, services, tasks, registry, credentials, DLL/path, local ports and custom apps. Kernel last.</div><button class="btn" onclick="switchView('windowsStrategyView')">Windows workflow →</button></div>
    <div class="decisionRow"><h3>A domain credential</h3><div>Fix DNS/time, validate SMB/LDAP/WinRM/RDP, enumerate shares and Kerberos, collect BloodHound (RustHound-CE is a collector option), check AD CS, then follow one proven edge.</div><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">First 10 minutes →</button></div>
    <div class="decisionRow"><h3>A new network or route</h3><div>Prove pivot-host reachability, create one tunnel/route, enumerate the internal surface, and repeat the same target loop.</div><button class="btn" onclick="openRef('ref-14-2-modern-pivot-tool-selection')">Pivot selector →</button></div>
@@ -1043,7 +1046,7 @@ Start
             ├─ re-run id / sudo -l / listeners / secrets
             └─ proof screenshot from original path</pre>
     <ul class="treeList"><li>Prioritize <b>sudo</b>, <b>custom SUID</b>, <b>capabilities</b>, <b>cron/systemd</b>, credential reuse and internal services before kernel exploits.</li><li>If a route requires a write, prove the writable object, trigger and effective user first.</li><li>Search with <code>[LINUX:SUID]</code>, <code>[LINUX:CAPS]</code>, <code>[LINUX:CRON]</code> or <code>ref-c4</code>.</li></ul>
-    <div class="treeActions"><button class="btn" onclick="openRef('ref-c4-i-have-a-linux-shell-what-now')">Linux deep reference →</button><button class="btn" onclick="switchView('referenceView')">Full notes →</button></div>
+    <div class="treeActions"><button class="btn primary" onclick="switchView('linuxStrategyView')">Win Linux desk →</button><button class="btn" onclick="openRef('ref-c4-i-have-a-linux-shell-what-now')">Linux deep reference →</button></div>
    </div>
 
    <div class="methodTreeCard">
@@ -1146,6 +1149,26 @@ Start
    <div class="card"><b>When stuck on Windows</b><div class="muted">Am I confusing login with admin or shell? Did I read whoami /all, service/task permissions, secrets and software paths?</div></div>
    <div class="card"><b>When stuck in AD</b><div class="muted">Is this DNS/time/bind format, or a real negative result? Is there a better identity, ticket, certificate, share or member-server route?</div></div>
   </div>
+ </div>
+</section>
+
+
+<script>window.__OSCP_PARSE_STAGE__='linux-strategy';</script>
+<section id="linuxStrategyView" class="view">
+ <div class="hero"><div><h1>Linux Exam Desk — Win Linux</h1><div class="muted">A repeatable standalone Linux path from first shell to root. Evidence chooses the branch; kernel/package exploits stay last.</div></div><div class="row"><select id="linuxStrategyTarget"></select><button class="btn" id="linuxStrategyOpenTree">Linux tree →</button><button class="btn" id="linuxStrategyOpenRef">Full Linux reference →</button><button class="btn bad" id="linuxStrategyReset">Reset target checklist</button></div></div>
+ <div class="card" style="margin-bottom:12px"><h2>Winning line</h2><div class="flow"><span class="step">Get shell</span><span class="arrow">→</span><span class="step">Baseline</span><span class="arrow">→</span><span class="step">SAVE + READ</span><span class="arrow">→</span><span class="step">Secrets / sudo / SUID / caps</span><span class="arrow">→</span><span class="step">Cron / systemd / root services</span><span class="arrow">→</span><span class="step">Prove one controllable primitive</span><span class="arrow">→</span><span class="step">root</span><span class="arrow">→</span><span class="step">BANK</span></div><p class="muted">Do not chase every branch. The winning branch must have a privileged context, something you control, and a reliable trigger. Re-enumerate after every identity/context change.</p></div>
+ <div class="card" style="margin-bottom:12px"><div class="winStrategyBar"><div><div id="linuxStrategyDone" class="winStrategyMetric">0/12</div><div class="winStrategyLabel">steps checked</div></div><div><div id="linuxStrategyPct" class="winStrategyMetric">0%</div><div class="winStrategyLabel">first-pass coverage</div></div><div id="linuxStrategyTargetHint" class="muted"></div></div></div>
+ <div class="opsGrid" style="margin-bottom:12px">
+  <div class="card opsSpan6"><h2>Fast branch order</h2><ol><li><b>Secrets / reuse:</b> history, SSH keys, app configs, backups, environment/process arguments.</li><li><b>sudo:</b> exact allowed command + arguments + environment/wildcards.</li><li><b>SUID / SGID / capabilities:</b> GTFOBins first; custom binary analysis second.</li><li><b>cron / systemd:</b> privileged caller + writable dependency + trigger.</li><li><b>root processes / localhost services:</b> map PID → executable → config/socket/credential.</li><li><b>groups / containers / mounts:</b> prove the exact docker/lxd/disk/NFS prerequisite.</li><li><b>kernel/package CVE:</b> only after userland paths are weak.</li></ol></div>
+  <div class="card opsSpan6"><h2>Three-condition validation gate</h2><div class="winStrategyGate"><b>1 · Privileged context:</b> root process, sudo rule, SUID owner, capability, root cron/systemd unit, privileged container or equivalent.</div><div class="winStrategyGate"><b>2 · Controllable object:</b> command, argument, binary, script, config, path element, library, socket, mount or credential you can actually influence.</div><div class="winStrategyGate"><b>3 · Trigger:</b> a reliable way to make the privileged context consume your controlled object. If one condition is missing, park the branch.</div></div>
+ </div>
+ <div id="linuxStrategyBody" class="winStrategyGrid"></div>
+ <div class="opsGrid" style="margin-top:12px">
+  <div class="card opsSpan6"><h2>When you are stuck</h2><div class="winStrategyGate">Did you actually read the saved LinPEAS/LSE output instead of rerunning it?</div><div class="winStrategyGate">Did you inspect <code>/opt</code>, <code>/srv</code>, <code>/usr/local</code>, web roots, home directories and backups?</div><div class="winStrategyGate">Did you validate <code>sudo -l</code>, custom SUID/capabilities, cron/systemd and localhost-only services manually?</div><div class="winStrategyGate">Did you map every interesting root process to its executable, arguments, config and writable dependencies?</div><div class="winStrategyGate">Did a new secret/user/group/context appear? If yes, re-enumerate before kernel research.</div></div>
+  <div class="card opsSpan6"><h2>Root = stop and bank</h2><p>Once <code>id</code> confirms root, protect the point before doing anything optional. Keep an interactive shell, read <code>proof.txt</code> from its original location, show target IP in the evidence sequence, and submit the exact value in the Control Panel.</p><pre>id
+hostname
+ip addr
+# cat /absolute/original/path/to/proof.txt</pre><div class="row"><button class="btn good" id="linuxStrategyBank" type="button">✓ Bank the Points</button><button class="btn" onclick="openRef('ref-18-1-screenshot-requirements-never-fail-on-this')">Evidence requirements →</button></div></div>
  </div>
 </section>
 
@@ -1471,9 +1494,9 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.57.0',
+  version:'34.58.0',
   label:'V34',
-  date:'2026-10-11',
+  date:'2026-10-13',
   sessionSchema:19
 });
 const SESSION_SCHEMA_VERSION=window.OSCP_BUILD.sessionSchema;</script>
@@ -4352,6 +4375,95 @@ renderWindowsStrategy();
 renderExamRuleLock();
 </script>
 <script>window.__OSCP_BOOT_STAGE__='05-windows-strategy';console.log('[OSCP_BOOT_STAGE]','05-windows-strategy');</script>
+<script>/* ===== Linux Exam Desk =====
+   Target-aware post-shell -> root checklist.
+   Reuses the Windows strategy card styles to avoid another UI system.
+*/
+(function(){
+ 'use strict';
+ if(window.__OSCP_LINUX_STRATEGY_READY__)return;
+ window.__OSCP_LINUX_STRATEGY_READY__=true;
+
+ const LINUX_STRATEGY_STEPS=[
+  {id:'baseline',title:'1. Baseline the shell and host',why:'Know the exact user, groups, distro/kernel, routes and local listeners before interpreting any privilege-escalation lead.',cmd:'whoami\nid\nhostname\nuname -a\ncat /etc/os-release 2>/dev/null\nip addr\nip route\nss -lntup 2>/dev/null || netstat -lntup 2>/dev/null\nps aux --forest',anchor:'ref-c4-i-have-a-linux-shell-what-now'},
+  {id:'filesystem',title:'2. Quick filesystem / software / user triage',why:'Custom applications, home directories, web roots, backups and non-default writable paths often reveal the intended route faster than CVE hunting.',cmd:'pwd; umask; env\nls -la /home /opt /srv /var/www /usr/local /mnt /media 2>/dev/null\nfind /home /opt /srv /var/www /usr/local -maxdepth 3 -type f -readable 2>/dev/null | head -n 250\ncat /etc/passwd\ngetent group 2>/dev/null | grep -E "(docker|lxd|disk|shadow|adm|sudo|wheel)"',anchor:'ref-12-31-linux-practical-attack-trees-finding-validation-path'},
+  {id:'tools',title:'3. Automated pass — SAVE + READ',why:'Use automation for breadth, but preserve its output and turn only concrete findings into manual hypotheses. Do not rerun it because you forgot the result.',cmd:'./linpeas.sh | tee /tmp/linpeas.txt\n# fallback / second opinion only when useful:\n./lse.sh -l1 | tee /tmp/lse.txt\n# then READ the saved output before launching another tool',anchor:'ref-12-12-automated-enumeration-run-then-manually-validate'},
+  {id:'credentials',title:'4. Focused credentials / secrets pass',why:'History, SSH material, environment files, application configs, backups and service credentials frequently create either direct root access or a stronger identity.',cmd:'history 2>/dev/null\nfind /home -maxdepth 3 \\( -name .bash_history -o -name .zsh_history -o -name authorized_keys -o -name id_rsa -o -name id_ed25519 \\) -type f -readable -print 2>/dev/null\nfind /var/www /opt /srv /usr/local -maxdepth 4 -type f \\( -name "*.env" -o -name "*.conf" -o -name "*.ini" -o -name "*.yml" -o -name "*.yaml" -o -name "*.bak" -o -name "*.old" \\) -readable 2>/dev/null | head -n 250\nps eww -u root 2>/dev/null | head -n 80',anchor:'ref-c4-i-have-a-linux-shell-what-now'},
+  {id:'sudo',title:'5. sudo / sudoers — validate the exact allowed primitive',why:'sudo is one of the highest-signal Linux branches. Match the exact allowed command, arguments, environment and wildcard behavior before using GTFOBins or a custom path.',cmd:'sudo -l\nsudo -V | head\ncat /etc/sudoers 2>/dev/null\nls -la /etc/sudoers.d 2>/dev/null\n# For any allowed binary: verify exact path + arguments, then check the matching GTFOBins primitive.',anchor:'ref-12-31-linux-practical-attack-trees-finding-validation-path'},
+  {id:'suidcaps',title:'6. SUID / SGID / capabilities',why:'Known GTFOBins are quick wins; custom SUID/capability binaries deserve strings, file, ldd and behavior analysis before guessing.',cmd:'find / -perm -4000 -type f -exec ls -la {} \\; 2>/dev/null\nfind / -perm -2000 -type f -exec ls -la {} \\; 2>/dev/null\ngetcap -r / 2>/dev/null\n# For a custom candidate:\nfile /path/to/binary\nstrings -a /path/to/binary | head -n 120\nldd /path/to/binary 2>/dev/null',anchor:'ref-12-14-suid-sgid-binaries'},
+  {id:'scheduled',title:'7. cron / systemd timers / scheduled execution',why:'The useful condition is privileged execution plus a file, directory, command, environment file or dependency you can actually control.',cmd:'cat /etc/crontab 2>/dev/null\nls -la /etc/cron.* /var/spool/cron /var/spool/cron/crontabs 2>/dev/null\nsystemctl list-timers --all 2>/dev/null\nsystemctl list-unit-files --type=service --type=timer 2>/dev/null | head -n 250\nfind /etc/systemd /usr/lib/systemd /lib/systemd -type f -writable -ls 2>/dev/null',anchor:'ref-12-16-cron-timers-scheduled-jobs'},
+  {id:'processes',title:'8. Root processes / local-only services / sockets',why:'A root process or localhost-only application can expose a writable config, weak socket, reusable credential, command runner or custom service path.',cmd:'ps auxf\nss -lntup 2>/dev/null || netstat -lntup 2>/dev/null\nls -la /run /var/run 2>/dev/null | head -n 200\nfind /run /var/run -type s -ls 2>/dev/null | head -n 120\n# Map interesting PID -> executable/config:\nreadlink -f /proc/PID/exe 2>/dev/null\ntr "\\0" " " </proc/PID/cmdline 2>/dev/null; echo',anchor:'ref-12-31-linux-practical-attack-trees-finding-validation-path'},
+  {id:'writable',title:'9. Writable root-called dependency / PATH / library / config',why:'Do not treat “writable” alone as privesc. Prove a privileged caller, controllable object and reliable trigger, then change the smallest possible thing.',cmd:'find /etc /opt /srv /usr/local /var/www -xdev -type f -writable -ls 2>/dev/null | head -n 250\nfind /opt /srv /usr/local /var/www -xdev -type d -writable -ls 2>/dev/null | head -n 200\necho "$PATH"\nfind / -name "*.service" -o -name "*.timer" 2>/dev/null | head -n 200\n# For a candidate: identify owner/caller -> exact file lookup -> write primitive -> trigger -> rollback.',anchor:'ref-12-15-writable-files-directories-ownership'},
+  {id:'platform',title:'10. Groups / containers / mounts / NFS',why:'docker/lxd/disk-style groups, host mounts, privileged containers and misconfigured network filesystems can become root paths, but only when the exact prerequisite is present.',cmd:'id\nmount\nfindmnt 2>/dev/null\ncat /etc/fstab 2>/dev/null\nls -la /.dockerenv /var/run/docker.sock 2>/dev/null\ndocker ps 2>/dev/null\nlxc list 2>/dev/null || lxc-ls 2>/dev/null\ncat /proc/1/cgroup 2>/dev/null\nsystemd-detect-virt 2>/dev/null\ncat /etc/exports 2>/dev/null',anchor:'ref-12-20-nfs-rpc-network-filesystems'},
+  {id:'reenum',title:'11. Re-enumerate after every context change',why:'A new user, group, shell, secret, route or service context changes what you can read and execute. Re-run the high-signal checks rather than assuming the old result still applies.',cmd:'id\nsudo -l\nss -lntup 2>/dev/null || netstat -lntup 2>/dev/null\nps aux --forest\n# Re-check previously blocked files/configs/services with the new identity.\n# Re-test only the credential reuse paths justified by newly recovered material.',anchor:'ref-c4-i-have-a-linux-shell-what-now'},
+  {id:'kernel',title:'12. Kernel / package CVE LAST',why:'Use a local CVE only after simpler userland paths are weak and the exact distro package revision, architecture, prerequisites and recovery impact are known.',cmd:'uname -a\ncat /etc/os-release 2>/dev/null\ndpkg-query -W 2>/dev/null | tee /tmp/packages.txt || rpm -qa 2>/dev/null | tee /tmp/packages.txt\nsudo --version 2>/dev/null | head\npkexec --version 2>/dev/null\n# Validate distro package/backport status before selecting any exploit.',anchor:'ref-12-31-linux-practical-attack-trees-finding-validation-path'}
+ ];
+
+ let linuxStrategyState=safeStoredRecord(STORE+'linuxStrategy',{});
+ function linuxStrategyKey(){const s=$('#linuxStrategyTarget');return s?.value||activeTargetId||'__unassigned__'}
+ function saveLinuxStrategy(){safeStoreSet(STORE+'linuxStrategy',JSON.stringify(linuxStrategyState));v9Dirty=true}
+ function renderLinuxStrategy(){
+  const sel=$('#linuxStrategyTarget'),body=$('#linuxStrategyBody');if(!sel||!body)return;
+  const old=sel.value;
+  const options=[new Option('No exam target selected','__unassigned__'),...targets.map(t=>new Option(targetLabel(t),t.id))];
+  sel.replaceChildren(...options);
+  const wanted=(old&&[...sel.options].some(o=>o.value===old))?old:(activeTargetId&&targets.some(t=>t.id===activeTargetId)?activeTargetId:'__unassigned__');
+  sel.value=wanted;
+  const key=linuxStrategyKey(),state=linuxStrategyState[key]||{};
+  const cards=LINUX_STRATEGY_STEPS.map(s=>{
+   const card=document.createElement('div');card.className='winStrategyStep'+(state[s.id]?' done':'');
+   const top=document.createElement('div');top.className='row';top.style.justifyContent='space-between';top.style.alignItems='flex-start';
+   const label=document.createElement('label'),check=document.createElement('input');check.className='linuxStrategyCheck';check.dataset.step=s.id;check.type='checkbox';check.checked=!!state[s.id];
+   const strong=document.createElement('b');strong.textContent=s.title;label.append(check,document.createTextNode(' '),strong);
+   const actions=document.createElement('div');actions.className='row';
+   const copy=document.createElement('button');copy.className='btn linuxStrategyCopy';copy.dataset.step=s.id;copy.type='button';copy.textContent='Copy';
+   const ref=document.createElement('button');ref.className='btn linuxStrategyRef';ref.dataset.ref=s.anchor;ref.type='button';ref.textContent='Ref →';
+   actions.append(copy,ref);top.append(label,actions);
+   const why=document.createElement('div');why.className='winStrategyWhy';why.textContent=s.why;
+   const pre=document.createElement('pre');pre.className='winStrategyCmd';pre.textContent=s.cmd;
+   card.append(top,why,pre);return card;
+  });
+  body.replaceChildren(...cards);
+  $('.linuxStrategyCheck').forEach(x=>x.onchange=()=>{const k=linuxStrategyKey();linuxStrategyState[k]=linuxStrategyState[k]||{};linuxStrategyState[k][x.dataset.step]=x.checked;saveLinuxStrategy();renderLinuxStrategy()});
+  $('.linuxStrategyCopy').forEach(b=>b.onclick=async()=>{const s=LINUX_STRATEGY_STEPS.find(x=>x.id===b.dataset.step);if(s)await guardedCopyText(sanitizeUnicode(s.cmd),'Linux strategy command',null,{allowPlaceholders:true})});
+  $('.linuxStrategyRef').forEach(b=>b.onclick=()=>openRef(b.dataset.ref));
+  const done=LINUX_STRATEGY_STEPS.filter(s=>state[s.id]).length;
+  $('#linuxStrategyDone').textContent=`${done}/${LINUX_STRATEGY_STEPS.length}`;
+  $('#linuxStrategyPct').textContent=`${Math.round(done/LINUX_STRATEGY_STEPS.length*100)}%`;
+  const t=targets.find(x=>x.id===key),hint=$('#linuxStrategyTargetHint');
+  if(hint){
+   hint.replaceChildren();
+   if(t){
+    const b=document.createElement('b');b.textContent=targetLabel(t);hint.append(document.createTextNode('Selected: '),b);
+    if(t.role!=='linux'){const br=document.createElement('br'),small=document.createElement('span');small.className='tiny';small.textContent='Role is not marked Linux; use only if this target actually has a Linux shell.';hint.append(br,small)}
+   }else hint.textContent='No exam target selected — add or choose the current Linux target to store progress safely.';
+  }
+ }
+
+ $('#linuxStrategyTarget')?.addEventListener('change',renderLinuxStrategy);
+ $('#linuxStrategyOpenRef')?.addEventListener('click',()=>openRef('ref-c4-i-have-a-linux-shell-what-now'));
+ $('#linuxStrategyReset')?.addEventListener('click',()=>{const k=linuxStrategyKey();if(confirm('Reset the Linux strategy checklist for this target?')){delete linuxStrategyState[k];saveLinuxStrategy();renderLinuxStrategy()}});
+ $('#linuxStrategyOpenTree')?.addEventListener('click',()=>{switchView('methodTreesView');setTimeout(()=>window.OSCP_TREE_READER?.show?.('linux'),30)});
+ $('#linuxStrategyBank')?.addEventListener('click',()=>document.getElementById('examBankBtn')?.click());
+
+ const baseSwitch=switchView;
+ switchView=function(id){baseSwitch(id);if(id==='linuxStrategyView')renderLinuxStrategy()};
+
+ const baseSession=sessionPayload;
+ sessionPayload=function(includeSecrets=false){const o=baseSession(includeSecrets);o.linuxStrategyState=linuxStrategyState;return o};
+ const baseRestore=restoreV9Payload;
+ restoreV9Payload=function(o){if(o?.linuxStrategyState&&typeof o.linuxStrategyState==='object')linuxStrategyState=o.linuxStrategyState;baseRestore(o);saveLinuxStrategy();renderLinuxStrategy()};
+
+ try{V16_SELF_TESTS.push(
+  ['Linux exam desk complete',()=>[LINUX_STRATEGY_STEPS.length===12&&LINUX_STRATEGY_STEPS.every(s=>['id','title','why','cmd','anchor'].every(k=>String(s[k]||'').trim())),'12 target-aware steps']],
+  ['Linux strategy backup integration',()=>[sessionPayload(false).linuxStrategyState===linuxStrategyState,'state included']]
+ )}catch(e){}
+
+ window.OSCP_LINUX_STRATEGY={steps:LINUX_STRATEGY_STEPS,render:renderLinuxStrategy};
+ renderLinuxStrategy();
+})();
+</script>
+<script>window.__OSCP_BOOT_STAGE__='05-linux-strategy';console.log('[OSCP_BOOT_STAGE]','05-linux-strategy');</script>
 
 <script>
 /* ===== V19 Exam Handoff + Windows Access Truth Layer =====
@@ -4679,7 +4791,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   const NAV_STORE='oscp_v16_last_view';
   const NAV_SCROLL='oscp_v16_view_scrolls';
   const MODE_STORE='oscp_v16_advanced_mode';
-  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','windowsStrategyView','workspaceView','reportsView','referenceView']);
+  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','linuxStrategyView','windowsStrategyView','workspaceView','reportsView','referenceView']);
   const baseSwitch=window.switchView || switchView;
   let historyReplay=false;
   let navSerial=Number(history.state?.serial)||0;
@@ -4849,7 +4961,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   const SHORTCUTS={
     'x':'operatorView','c':'coverageView','d':'debtView','h':'hypothesisView','r':'correlationView',
     'a':'auditView','e':'vaultView','s':'sanityView','t':'regressionView','f':'freshnessView','k':'clockView',
-    'v':'revertView','u':'submissionView','p':'v16HighSignalView','w':'windowsStrategyView','q':'serviceRouterView','y':'methodTreesView',
+    'v':'revertView','u':'submissionView','p':'v16HighSignalView','l':'linuxStrategyView','w':'windowsStrategyView','q':'serviceRouterView','y':'methodTreesView',
     'i':'v15ReliabilityView','g':'guardView','j':'journalView','o':'analyzerView',
     '1':'simpleExamView','2':'workspaceView','3':'credentialsView','4':'reportsView','5':'referenceView','6':'toolArsenalView','m':'methodologyView',
     '7':'intakeView','8':'boardView','9':'commandsView'
@@ -4885,7 +4997,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
     if(typeof V16_SELF_TESTS!=='undefined'){
       V16_SELF_TESTS.push(
         ['Browser history navigation layer',()=>[!!window.OSCP_NAV&&typeof history.pushState==='function','history+OSCP_NAV']],
-        ['Navigation deep-link parser',()=>[OSCP_NAV.isView('windowsStrategyView')&&OSCP_NAV.isView('referenceView'),'views resolvable']],
+        ['Navigation deep-link parser',()=>[OSCP_NAV.isView('linuxStrategyView')&&OSCP_NAV.isView('windowsStrategyView')&&OSCP_NAV.isView('referenceView'),'views resolvable']],
         ['Reference jumps expand collapsed ancestors',()=>{const outer=document.createElement('details'),inner=document.createElement('details'),leaf=document.createElement('div');inner.appendChild(leaf);outer.appendChild(inner);document.body.appendChild(outer);OSCP_NAV.expandReferencePath(leaf);const ok=outer.open&&inner.open;outer.remove();return[ok,'nested details opened']}],
         ['Shortcut conflicts removed',()=>[OSCP_NAV.shortcuts.c==='coverageView'&&OSCP_NAV.shortcuts.h==='hypothesisView'&&OSCP_NAV.shortcuts.e==='vaultView'&&OSCP_NAV.shortcuts.k==='clockView'&&OSCP_NAV.shortcuts.p==='v16HighSignalView','C/H/E/K/P unique']],
         ['Simple exam mode available',()=>[OSCP_NAV.isView('simpleExamView')&&OSCP_NAV.isView('methodologyView')&&typeof OSCP_NAV.setAdvancedMode==='function','simple+method+toggle']]
@@ -6011,6 +6123,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
   {id:'linux',icon:'🐧',title:'Linux methodology tree',desc:'Linux shell → root evidence tree',kind:'workflow',keys:'linux shell root sudo suid capabilities cron systemd',run:()=>{switchView('methodTreesView');setTimeout(()=>window.OSCP_TREE_READER?.show?.('linux'),30)}},
   {id:'windows',icon:'▣',title:'Windows methodology tree',desc:'Windows shell → admin/SYSTEM evidence tree',kind:'workflow',keys:'windows shell admin system seimpersonate services tasks',run:()=>{switchView('methodTreesView');setTimeout(()=>window.OSCP_TREE_READER?.show?.('windows'),30)}},
   {id:'ad',icon:'🏰',title:'Active Directory methodology tree',desc:'Domain context/creds → graph → one proven edge',kind:'workflow',keys:'active directory ad domain kerberos ldap bloodhound certipy',run:()=>{switchView('methodTreesView');setTimeout(()=>window.OSCP_TREE_READER?.show?.('ad'),30)}},
+  {id:'linuxdesk',icon:'WIN',title:'Linux exam desk',desc:'Standalone Linux shell → root winning steps',kind:'screen',keys:'linux desk win linux root sudo suid capabilities cron systemd linpeas',run:()=>switchView('linuxStrategyView')},
   {id:'windesk',icon:'WIN',title:'Windows / AD exam desk',desc:'Credential routing, access ladder and edge planning',kind:'screen',keys:'windows ad desk material edge bloodhound',run:()=>switchView('windowsStrategyView')},
   {id:'creds',icon:'🔐',title:'Credential Matrix',desc:'Classify and test credential material by destination',kind:'screen',keys:'password hash ticket certificate ccache ntlm credentials',run:()=>switchView('credentialsView')},
   {id:'web',icon:'🌐',title:'Web enumeration path',desc:'Open the deep web enumeration workflow',kind:'reference',keys:'web http https vhost upload auth enum',run:()=>window.OSCP_TAG_LINKS?.goToTag?.('[WEB:ENUM]')},
@@ -6142,7 +6255,7 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  }
 
  function healthCheck(){
-   const requiredIds=['globalSearch','simpleExamView','workspaceView','serviceRouterView','methodTreesView','windowsStrategyView','reportsView','referenceView','examBankBtn','examStuckBtn','activeWorkStrip'];
+   const requiredIds=['globalSearch','simpleExamView','workspaceView','serviceRouterView','methodTreesView','linuxStrategyView','windowsStrategyView','reportsView','referenceView','examBankBtn','examStuckBtn','activeWorkStrip'];
    const missing=requiredIds.filter(id=>!$id(id));
    const ids=[...document.querySelectorAll('[id]')].map(x=>x.id),seen=new Set(),dupes=[];
    ids.forEach(id=>{if(seen.has(id)&&!dupes.includes(id))dupes.push(id);seen.add(id)});
