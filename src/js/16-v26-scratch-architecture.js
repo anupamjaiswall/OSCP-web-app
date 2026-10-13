@@ -9,6 +9,7 @@
   {id:'linux',icon:'🐧',title:'Linux methodology tree',desc:'Linux shell → root evidence tree',kind:'workflow',keys:'linux shell root sudo suid capabilities cron systemd',run:()=>{switchView('methodTreesView');setTimeout(()=>window.OSCP_TREE_READER?.show?.('linux'),30)}},
   {id:'windows',icon:'▣',title:'Windows methodology tree',desc:'Windows shell → admin/SYSTEM evidence tree',kind:'workflow',keys:'windows shell admin system seimpersonate services tasks',run:()=>{switchView('methodTreesView');setTimeout(()=>window.OSCP_TREE_READER?.show?.('windows'),30)}},
   {id:'ad',icon:'🏰',title:'Active Directory methodology tree',desc:'Domain context/creds → graph → one proven edge',kind:'workflow',keys:'active directory ad domain kerberos ldap bloodhound certipy',run:()=>{switchView('methodTreesView');setTimeout(()=>window.OSCP_TREE_READER?.show?.('ad'),30)}},
+  {id:'linuxdesk',icon:'WIN',title:'Linux exam desk',desc:'Standalone Linux shell → root winning steps',kind:'screen',keys:'linux desk win linux root sudo suid capabilities cron systemd linpeas',run:()=>switchView('linuxStrategyView')},
   {id:'windesk',icon:'WIN',title:'Windows / AD exam desk',desc:'Credential routing, access ladder and edge planning',kind:'screen',keys:'windows ad desk material edge bloodhound',run:()=>switchView('windowsStrategyView')},
   {id:'creds',icon:'🔐',title:'Credential Matrix',desc:'Classify and test credential material by destination',kind:'screen',keys:'password hash ticket certificate ccache ntlm credentials',run:()=>switchView('credentialsView')},
   {id:'web',icon:'🌐',title:'Web enumeration path',desc:'Open the deep web enumeration workflow',kind:'reference',keys:'web http https vhost upload auth enum',run:()=>window.OSCP_TAG_LINKS?.goToTag?.('[WEB:ENUM]')},
@@ -140,7 +141,7 @@
  }
 
  function healthCheck(){
-   const requiredIds=['globalSearch','simpleExamView','workspaceView','serviceRouterView','methodTreesView','windowsStrategyView','reportsView','referenceView','examBankBtn','examStuckBtn','activeWorkStrip'];
+   const requiredIds=['globalSearch','simpleExamView','workspaceView','serviceRouterView','methodTreesView','linuxStrategyView','windowsStrategyView','reportsView','referenceView','examBankBtn','examStuckBtn','activeWorkStrip'];
    const missing=requiredIds.filter(id=>!$id(id));
    const ids=[...document.querySelectorAll('[id]')].map(x=>x.id),seen=new Set(),dupes=[];
    ids.forEach(id=>{if(seen.has(id)&&!dupes.includes(id))dupes.push(id);seen.add(id)});
