@@ -290,8 +290,15 @@ async function main(){
       const scoreText=document.getElementById('scoreSummary')?.textContent||'';
       record('Service Router functional parse',/3 endpoint/.test(srSummary)&&/SSH/.test(srQueue)&&srQueue.includes('RPC/SMB')&&srQueue.includes('HTTP/S')&&scoreText.includes('80/100'),JSON.stringify({srSummary,scoreText}));
 
-      // AD username generator: evidence-derived names should produce non-empty candidates.
+      // Both platform-specific winning desks must render their 12 exam-time steps.
       window.switchView('windowsStrategyView',{history:false});
+      const winWinningCards=document.querySelectorAll('#winStrategyBody .winStrategyStep').length;
+      window.switchView('adStrategyView',{history:false});
+      const adWinningCards=document.querySelectorAll('#adStrategyBody .winStrategyStep').length;
+      record('Windows and AD winning steps',winWinningCards===12&&adWinningCards===12&&!!window.OSCP_AD_WINNING_STEPS,JSON.stringify({winWinningCards,adWinningCards}));
+
+      // AD username generator: evidence-derived names should produce non-empty candidates.
+      window.switchView('adStrategyView',{history:false});
       const names=document.getElementById('adUsernameNames');
       if(names)names.value='John Smith\\nAlice Brown';
       click('adUsernameCore');click('adUsernameGenerate');
