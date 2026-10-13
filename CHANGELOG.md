@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.58.0 — 2026-10-13
+
+### Win Linux exam desk
+- Added a target-aware **WIN Linux** exam desk mirroring the existing Windows/AD workflow: 12 ordered post-shell → root winning steps, per-target completion state, copyable commands, deep-reference jumps, reset controls, and session backup/restore integration.
+- Added a Linux winning line and three-condition validation gate (privileged context + controllable object + reliable trigger), with explicit branches for secrets, sudo, SUID/SGID/capabilities, cron/systemd, root processes/local services, writable dependencies, containers/mounts/NFS, and kernel/package CVEs last.
+- Wired WIN Linux into the left navigation, Start screen, Linux method tree, command palette, simple-mode navigation, Alt+L shortcut, health checks and regression tests.
+- Clarified product structure: **WIN Windows** remains the combined Windows + Active Directory exam desk; **WIN Linux** is the standalone Linux shell → root desk. Root proof closure remains aligned with the embedded OffSec proof/evidence rules.
+
+
 ## V34.57.0 — 2026-10-11
 
 ### Nishang secondary PowerShell fallback
