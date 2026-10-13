@@ -102,7 +102,18 @@ test('browser gate covers deployed hash route and full navigation sweep',()=>{co
 test('browser Service Router self-tests use real multiline fixtures',()=>{const src=read('src/js/09-v20-service-router.js');ok(src.includes("22/tcp open ssh\\n53/udp open domain\\n161/udp open|filtered snmp"));ok(!src.includes("22/tcp open ssh\\\\n53/udp"));});
 test('navigation wrapper preserves openRef result contract',()=>{const src=read('src/js/07-navigation-reliability.js');ok(src.includes('const result=baseOpenRef(anchor)'));ok(src.includes('return result;'));});
 test('Linux winning-steps desk is target-aware and complete',()=>{const src=read('src/js/05-linux-strategy.js'),tpl=read('src/index.template.html');ok(tpl.includes('id="linuxStrategyView"'));ok(tpl.includes('data-view="linuxStrategyView">WIN Linux'));ok(src.includes("const LINUX_STRATEGY_STEPS=["));ok(src.includes("LINUX_STRATEGY_STEPS.length===12"));for(const id of ['baseline','credentials','sudo','suidcaps','scheduled','processes','writable','platform','reenum','kernel'])ok(src.includes("id:'"+id+"'"),id);ok(src.includes("STORE+'linuxStrategy'"));ok(src.includes('o.linuxStrategyState=linuxStrategyState'));});
-test('simple-mode restore includes every primary exam-core workflow',()=>{const src=read('src/js/07-navigation-reliability.js');for(const id of ['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','linuxStrategyView','windowsStrategyView','workspaceView','reportsView','referenceView'])ok(src.includes("'"+id+"'"),id);});
+test('WIN Windows and WIN AD are distinct first-class exam desks',()=>{
+ const tpl=read('src/index.template.html'),w=read('src/js/05-windows-strategy.js'),ad=read('src/js/05-ad-strategy.js'),nav=read('src/js/07-navigation-reliability.js'),palette=read('src/js/16-v26-scratch-architecture.js');
+ for(const id of ['windowsStrategyView','adStrategyView']){ok(tpl.includes('id="'+id+'"'),id+' section missing');ok(tpl.includes('data-view="'+id+'"'),id+' nav missing')}
+ ok(tpl.includes('id="winStrategyBody"')&&tpl.includes('id="adStrategyBody"'),'both steps bodies must exist');
+ ok(tpl.includes('id="v20AdFallbackToolbox"')&&tpl.includes('id="adFailureInput"'),'old AD tools preserved');
+ ok(tpl.indexOf('id="winStrategyBody"')<tpl.indexOf('id="v20AdFallbackToolbox"'),'Windows steps should lead, not be buried');
+ ok(w.includes('WINDOWS_STRATEGY_STEPS=[')&&w.includes('const key=adStrategyKey(),state=adFastPathState'),'Windows and AD use distinct target selection');
+ ok(ad.includes('STEPS.length===12')&&ad.includes("STORE+'adWinningSteps'")&&ad.includes('o.adWinningSteps=progress'),'12 AD steps and session backup');
+ ok(!/\.innerHTML\s*=/.test(ad),'AD desk must not grow innerHTML ratchet');
+ ok(nav.includes("'adStrategyView'")&&palette.includes("id:'addesk'"),'AD navigation must be available in simple mode and palette');
+});
+test('simple-mode restore includes every primary exam-core workflow',()=>{const src=read('src/js/07-navigation-reliability.js');for(const id of ['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','linuxStrategyView','windowsStrategyView','adStrategyView','workspaceView','reportsView','referenceView'])ok(src.includes("'"+id+"'"),id);});
 test('real browser gate requires openRef success contract',()=>{const src=read('scripts/browser-smoke.mjs');ok(src.includes('directOpenResult!==true'));ok(src.includes('localOpenResult!==true'));});
 
 test('bracket links are incremental and non-blocking at startup',()=>{const src=read('src/js/12-v22-bracket-links.js');const start=src.slice(src.indexOf('function start()'),src.indexOf("if(document.readyState==='loading')"));ok(src.includes('function linkifyIncremental'));ok(src.includes('setTimeout(pump,0)'));ok(start.includes('linkifyIncremental(root'));ok(!start.includes('linkify(root)'));ok(src.includes('window.OSCP_TAG_LINKS.complete=true'))});
