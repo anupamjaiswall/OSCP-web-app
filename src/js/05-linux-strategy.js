@@ -28,19 +28,39 @@
  function renderLinuxStrategy(){
   const sel=$('#linuxStrategyTarget'),body=$('#linuxStrategyBody');if(!sel||!body)return;
   const old=sel.value;
-  sel.innerHTML=['<option value="__unassigned__">No exam target selected</option>',...targets.map(t=>`<option value="${esc(t.id)}">${esc(targetLabel(t))}</option>`)].join('');
+  const options=[new Option('No exam target selected','__unassigned__'),...targets.map(t=>new Option(targetLabel(t),t.id))];
+  sel.replaceChildren(...options);
   const wanted=(old&&[...sel.options].some(o=>o.value===old))?old:(activeTargetId&&targets.some(t=>t.id===activeTargetId)?activeTargetId:'__unassigned__');
   sel.value=wanted;
   const key=linuxStrategyKey(),state=linuxStrategyState[key]||{};
-  body.innerHTML=LINUX_STRATEGY_STEPS.map(s=>`<div class="winStrategyStep ${state[s.id]?'done':''}"><div class="row" style="justify-content:space-between;align-items:flex-start"><label><input class="linuxStrategyCheck" data-step="${s.id}" type="checkbox" ${state[s.id]?'checked':''}> <b>${esc(s.title)}</b></label><div class="row"><button class="btn linuxStrategyCopy" data-step="${s.id}">Copy</button><button class="btn linuxStrategyRef" data-ref="${esc(s.anchor)}">Ref →</button></div></div><div class="winStrategyWhy">${esc(s.why)}</div><pre class="winStrategyCmd">${esc(s.cmd)}</pre></div>`).join('');
+  const cards=LINUX_STRATEGY_STEPS.map(s=>{
+   const card=document.createElement('div');card.className='winStrategyStep'+(state[s.id]?' done':'');
+   const top=document.createElement('div');top.className='row';top.style.justifyContent='space-between';top.style.alignItems='flex-start';
+   const label=document.createElement('label'),check=document.createElement('input');check.className='linuxStrategyCheck';check.dataset.step=s.id;check.type='checkbox';check.checked=!!state[s.id];
+   const strong=document.createElement('b');strong.textContent=s.title;label.append(check,document.createTextNode(' '),strong);
+   const actions=document.createElement('div');actions.className='row';
+   const copy=document.createElement('button');copy.className='btn linuxStrategyCopy';copy.dataset.step=s.id;copy.type='button';copy.textContent='Copy';
+   const ref=document.createElement('button');ref.className='btn linuxStrategyRef';ref.dataset.ref=s.anchor;ref.type='button';ref.textContent='Ref →';
+   actions.append(copy,ref);top.append(label,actions);
+   const why=document.createElement('div');why.className='winStrategyWhy';why.textContent=s.why;
+   const pre=document.createElement('pre');pre.className='winStrategyCmd';pre.textContent=s.cmd;
+   card.append(top,why,pre);return card;
+  });
+  body.replaceChildren(...cards);
   $$('.linuxStrategyCheck').forEach(x=>x.onchange=()=>{const k=linuxStrategyKey();linuxStrategyState[k]=linuxStrategyState[k]||{};linuxStrategyState[k][x.dataset.step]=x.checked;saveLinuxStrategy();renderLinuxStrategy()});
   $$('.linuxStrategyCopy').forEach(b=>b.onclick=async()=>{const s=LINUX_STRATEGY_STEPS.find(x=>x.id===b.dataset.step);if(s)await guardedCopyText(sanitizeUnicode(s.cmd),'Linux strategy command',null,{allowPlaceholders:true})});
   $$('.linuxStrategyRef').forEach(b=>b.onclick=()=>openRef(b.dataset.ref));
   const done=LINUX_STRATEGY_STEPS.filter(s=>state[s.id]).length;
   $('#linuxStrategyDone').textContent=`${done}/${LINUX_STRATEGY_STEPS.length}`;
   $('#linuxStrategyPct').textContent=`${Math.round(done/LINUX_STRATEGY_STEPS.length*100)}%`;
-  const t=targets.find(x=>x.id===key);
-  $('#linuxStrategyTargetHint').innerHTML=t?`Selected: <b>${esc(targetLabel(t))}</b>${t.role!=='linux'?'<br><span class="tiny">Role is not marked Linux; use only if this target actually has a Linux shell.</span>':''}`:'No exam target selected — add or choose the current Linux target to store progress safely.';
+  const t=targets.find(x=>x.id===key),hint=$('#linuxStrategyTargetHint');
+  if(hint){
+   hint.replaceChildren();
+   if(t){
+    const b=document.createElement('b');b.textContent=targetLabel(t);hint.append(document.createTextNode('Selected: '),b);
+    if(t.role!=='linux'){const br=document.createElement('br'),small=document.createElement('span');small.className='tiny';small.textContent='Role is not marked Linux; use only if this target actually has a Linux shell.';hint.append(br,small)}
+   }else hint.textContent='No exam target selected — add or choose the current Linux target to store progress safely.';
+  }
  }
 
  $('#linuxStrategyTarget')?.addEventListener('change',renderLinuxStrategy);
