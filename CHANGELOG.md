@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.59.0 — 2026-10-13
+
+### Dedicated Windows and Active Directory winning-step desks
+- Reorganized **WIN Windows** so its existing 12 target-aware post-shell → Administrator/SYSTEM checklist appears first, with an exam-time winning line, three-condition validation gate and Bank Proof shortcut. Existing Windows coverage and commands are retained.
+- Added a dedicated **WIN AD** 12-step workflow: DC/DNS/time; prove account or anonymous access; SMB/LDAP visibility; targeted Kerberos; BloodHound; AD CS; manual ACL validation; credential-material routing; one verified edge with rollback; member-host access; new-token re-enumeration; domain objective and evidence.
+- Preserved the existing issued-credential sprint, AD fallback toolbox, Rubeus/material routers, BloodHound execution planner, failure decoder, username generator and AD ten-case map beneath the new WIN AD steps.
+- Kept Windows and AD selected targets and checked steps distinct, while retaining secret-free session backup/restore. Added simple-mode navigation, Start shortcuts, Method Tree routes, command-palette search, health checks and tests.
+- New AD rendering uses DOM nodes rather than adding to the DOM-safety ratchet. No runtime network dependency or AI functionality.
+
+
 ## V34.58.0 — 2026-10-13
 
 ### Win Linux exam desk
