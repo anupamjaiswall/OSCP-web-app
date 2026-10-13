@@ -121,6 +121,10 @@
   const count=STEPS.filter(s=>done[s.id]).length;
   $('#adStrategyDone').textContent=count+'/'+STEPS.length;
   $('#adStrategyPct').textContent=Math.round(count/STEPS.length*100)+'%';
+  if(typeof renderAdFastPath==='function')renderAdFastPath();
+  if(typeof renderAdEdgePlanner==='function')renderAdEdgePlanner();
+  if(typeof renderCredentialRoute==='function')renderCredentialRoute();
+  if(typeof renderRubeusRoute==='function')renderRubeusRoute();
   const hint=$('#adStrategyTargetHint'),target=targets.find(t=>t.id===current);
   hint.replaceChildren();
   if(target){
@@ -139,8 +143,7 @@
  $('#adStrategyBank')?.addEventListener('click',()=>$('#examBankBtn')?.click());
  $('#adStrategyWin')?.addEventListener('click',()=>switchView('windowsStrategyView'));
  $('#adStrategyTools')?.addEventListener('click',()=>{
-  switchView('windowsStrategyView');
-  setTimeout(()=>$('#v20AdFallbackToolbox')?.scrollIntoView({block:'start'}),30);
+  $('#v20AdFallbackToolbox')?.scrollIntoView({block:'start',behavior:'auto'});
  });
  const originalSwitch=switchView;
  switchView=function(id){originalSwitch(id);if(id==='adStrategyView')render();};
