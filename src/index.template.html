@@ -100,7 +100,8 @@ Return trigger:"></textarea>
    <div class="examHelpKey"><kbd>Alt+Q</kbd><br><b>Service Router</b><div class="muted">Ports → small prioritized enumeration queue.</div></div>
    <div class="examHelpKey"><kbd>Alt+Y</kbd><br><b>Method Trees</b><div class="muted">Linux / Windows / AD branch flow.</div></div>
    <div class="examHelpKey"><kbd>Alt+L</kbd><br><b>Linux desk</b><div class="muted">Post-shell to root winning steps with target-aware progress.</div></div>
-   <div class="examHelpKey"><kbd>Alt+W</kbd><br><b>Windows / AD desk</b><div class="muted">Auth, material routing, edge execution and post-shell workflow.</div></div>
+   <div class="examHelpKey"><kbd>Alt+W</kbd><br><b>Windows desk</b><div class="muted">12 post-shell to SYSTEM steps.</div></div>
+   <div class="examHelpKey"><kbd>Alt+Y</kbd><br><b>WIN AD in Method Trees</b><div class="muted">Open the AD tree, then WIN AD for 12 domain-attack steps.</div></div>
    <div class="examHelpKey"><kbd>Alt+0</kbd><br><b>Stuck reset</b><div class="muted">Use when tool swapping replaces evidence.</div></div>
    <div class="examHelpKey"><kbd>Alt+B</kbd><br><b>Bank proof</b><div class="muted">Protect points before continuing.</div></div>
    <div class="examHelpKey"><kbd>Alt+← / Alt+→</kbd><br><b>Back / Forward</b><div class="muted">Return to previous app locations.</div></div>
@@ -147,6 +148,7 @@ Return trigger:"></textarea>
   <button class="navbtn" data-view="methodTreesView">🌳 Method Trees</button>
   <button class="navbtn" data-view="linuxStrategyView">WIN Linux</button>
   <button class="navbtn" data-view="windowsStrategyView">WIN Windows</button>
+  <button class="navbtn" data-view="adStrategyView">WIN AD</button>
   <button class="navbtn" data-view="workspaceView">🎯 Target</button>
   <button class="navbtn" data-view="reportsView">📝 Evidence & Report</button>
   <button class="navbtn" data-view="referenceView">📚 Full Reference</button>
@@ -237,7 +239,8 @@ Return trigger:"></textarea>
    <button class="btn" onclick="switchView('toolArsenalView')"><b>Best tools</b><br><span class="tiny">28 recommended tools first</span></button>
    <button class="btn" onclick="switchView('workspaceView')"><b>Current target</b><br><span class="tiny">Track progress and notes</span></button>
    <button class="btn" onclick="switchView('linuxStrategyView')"><b>Linux</b><br><span class="tiny">12 winning steps → root</span></button>
-   <button class="btn" onclick="switchView('windowsStrategyView')"><b>Windows / AD</b><br><span class="tiny">12-step strategy</span></button>
+   <button class="btn" onclick="switchView('windowsStrategyView')"><b>Windows</b><br><span class="tiny">12 winning steps → SYSTEM</span></button>
+   <button class="btn" onclick="switchView('adStrategyView')"><b>Active Directory</b><br><span class="tiny">12 winning steps → objective</span></button>
    <button class="btn" onclick="switchView('reportsView')"><b>Evidence & report</b><br><span class="tiny">Capture while working</span></button>
    <button class="btn" onclick="switchView('referenceView')"><b>Full reference</b><br><span class="tiny">Use only when needed</span></button>
   </div></div>
@@ -250,7 +253,7 @@ Return trigger:"></textarea>
    <div class="decisionRow"><h3>A credential or hash</h3><div>Record its source, test it across appropriate known services, distinguish authentication from authorization, and respect lockout policy.</div><button class="btn" onclick="openRef('ref-8-password-attacks-credential-abuse')">Credential workflow →</button></div>
    <div class="decisionRow"><h3>A Linux shell</h3><div>Stabilize; sudo, SUID, capabilities, cron/systemd, services, secrets, containers and internal listeners. Kernel/CVE last.</div><button class="btn primary" onclick="switchView('linuxStrategyView')">Win Linux →</button></div>
    <div class="decisionRow"><h3>A Windows shell</h3><div>Identity/privileges, files/software, services, tasks, registry, credentials, DLL/path, local ports and custom apps. Kernel last.</div><button class="btn" onclick="switchView('windowsStrategyView')">Windows workflow →</button></div>
-   <div class="decisionRow"><h3>A domain credential</h3><div>Fix DNS/time, validate SMB/LDAP/WinRM/RDP, enumerate shares and Kerberos, collect BloodHound (RustHound-CE is a collector option), check AD CS, then follow one proven edge.</div><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">First 10 minutes →</button></div>
+   <div class="decisionRow"><h3>A domain credential</h3><div>Fix DNS/time, validate SMB/LDAP/WinRM/RDP, enumerate shares and Kerberos, collect BloodHound (RustHound-CE is a collector option), check AD CS, then follow one proven edge.</div><button class="btn primary" onclick="switchView('adStrategyView')">Win AD →</button></div>
    <div class="decisionRow"><h3>A new network or route</h3><div>Prove pivot-host reachability, create one tunnel/route, enumerate the internal surface, and repeat the same target loop.</div><button class="btn" onclick="openRef('ref-14-2-modern-pivot-tool-selection')">Pivot selector →</button></div>
    <div class="decisionRow"><h3>Root / SYSTEM / Administrator</h3><div>Stop. Capture the flag from its original location in an interactive shell with the target IP visible, submit it, then protect the report evidence.</div><button class="btn" onclick="openRef('ref-18-1-screenshot-requirements-never-fail-on-this')">Proof requirements →</button></div>
   </div></div>
@@ -742,7 +745,7 @@ Start
             ├─ re-collect graph/cert/rights
             └─ re-check protocols with new identity</pre>
     <ul class="treeList"><li>Do not mistake DNS/time/bind-format failures for bad credentials.</li><li>Do not treat a BloodHound edge label as an already-exploited path; prove prerequisites first.</li><li>Search with <code>[AD:KERBEROS]</code>, <code>[AD:BLOODHOUND]</code>, <code>[AD:ACL]</code>, <code>[AD:ADCS]</code> or <code>ref-c6</code>.</li></ul>
-    <div class="treeActions"><button class="btn primary" onclick="switchView('windowsStrategyView')">AD / Windows desk →</button><button class="btn" onclick="openRef('ref-c6-i-have-domain-credentials-what-now')">AD deep reference →</button></div>
+    <div class="treeActions"><button class="btn primary" onclick="switchView('adStrategyView')">Win AD desk →</button><button class="btn" onclick="openRef('ref-c6-i-have-domain-credentials-what-now')">AD deep reference →</button></div>
    </div>
   </div>
   <div class="span12 treeLegend">
@@ -775,29 +778,26 @@ ip addr
 
 <script>window.__OSCP_PARSE_STAGE__='windows-strategy';</script>
 <section id="windowsStrategyView" class="view">
+ <div class="hero"><div><h1>Windows Exam Desk — WIN Windows</h1><div class="muted">12 ordered post-shell → Administrator/SYSTEM steps, with copyable commands, per-target progress and full evidence closure. Windows only; use WIN AD for domain attack paths.</div></div><div class="row"><select id="winStrategyTarget"></select><button class="btn" id="winStrategyOpenRef">Full Windows reference →</button><button class="btn bad" id="winStrategyReset">Reset target checklist</button></div></div>
+ <div class="card" style="margin-bottom:12px"><h2>Winning line</h2><div class="flow"><span class="step">Get shell</span><span class="arrow">→</span><span class="step">whoami /all</span><span class="arrow">→</span><span class="step">Save + READ output</span><span class="arrow">→</span><span class="step">Secrets / token / services / tasks</span><span class="arrow">→</span><span class="step">Prove one primitive + trigger</span><span class="arrow">→</span><span class="step">SYSTEM / admin</span><span class="arrow">→</span><span class="step">BANK</span></div><p class="muted">Three-condition gate: <b>privileged context + controllable object + reliable trigger</b>. Do not chase a colored WinPEAS line or unquoted path without manually proving each condition.</p><div class="row"><button class="btn" onclick="switchView('adStrategyView')">WIN AD 12-step desk →</button><button class="btn good" onclick="document.getElementById('examBankBtn')?.click()">✓ Bank proof</button></div></div>
+ <div class="card" style="margin-bottom:12px"><div class="winStrategyBar"><div><div id="winStrategyDone" class="winStrategyMetric">0/0</div><div class="winStrategyLabel">steps checked</div></div><div><div id="winStrategyPct" class="winStrategyMetric">0%</div><div class="winStrategyLabel">first-pass coverage</div></div><div id="winStrategyTargetHint" class="muted"></div></div></div>
+ <div class="card" style="margin-bottom:12px"><h2>Operator rule</h2><div class="flow"><span class="step">Get shell</span><span class="arrow">→</span><span class="step">Baseline</span><span class="arrow">→</span><span class="step">Save + READ output</span><span class="arrow">→</span><span class="step">Validate manually</span><span class="arrow">→</span><span class="step">Exploit one proven path</span><span class="arrow">→</span><span class="step">Re-enumerate</span></div><p class="muted">WinPEAS/PrivEscCheck findings are hypotheses. A colored line is not a vulnerability until privileged context + controllable object + trigger/prerequisite are confirmed.</p></div>
+ <div id="winStrategyBody" class="winStrategyGrid"></div>
+ <div class="opsGrid" style="margin-top:12px">
+  <div class="card opsSpan6"><h2>How to read automated output</h2><ol><li>Save it to a file.</li><li>Read credentials/secrets first.</li><li>Read token privileges.</li><li>Read services and scheduled tasks.</li><li>Read installer/autorun/registry findings.</li><li>Read non-default software and internal listeners.</li><li>Only then look at patch/kernel suggestions.</li></ol><div class="tiny">Do not rerun WinPEAS because you forgot what it printed. Preserve the output and annotate the exact lines that changed your hypothesis.</div></div>
+  <div class="card opsSpan6"><h2>Stuck / rotate gate</h2><div class="winStrategyGate">Did you inspect non-default <code>C:\</code> folders, <code>C:\Users</code>, Program Files and ProgramData?</div><div class="winStrategyGate">Did you read PowerShell history and app/service config files—not just run a password grep?</div><div class="winStrategyGate">Did you manually validate service/task/file ACLs from automated output?</div><div class="winStrategyGate">Did you map local-only listeners to their owning process and test the service locally?</div><div class="winStrategyGate">Did your user/context change? If yes, restart the Windows post-shell loop.</div><div class="winStrategyGate">No new evidence for ~20–30 min and no precise cheap prerequisite left? Rotate.</div></div>
+ </div>
+ <div class="card" style="margin-top:12px"><div class="tiny"><b>Source strategy:</b> Got Root?, “OSCP Windows Enumeration Checklist: My Complete Privilege Escalation Workflow for Every Box” (June 2026), plus current SpecterOps, Impacket, Certipy and BloodyAD documentation for the edge planner. This integration is paraphrased and reorganized; The current OffSec-rule guard and evidence-first methodology override any conflicting older habit.</div></div>
+</section>
 
-<div class="card" id="v20AdFallbackToolbox" style="margin-bottom:14px;border-color:#355a78">
-  <div class="row" style="justify-content:space-between;align-items:flex-start">
-    <div><h2>AD / Windows Fallback Toolbox</h2><div class="muted">Use only when the core path cannot answer the current question. Native/manual proof first; one alternate implementation second.</div></div>
-    <span class="chip">RULE-AWARE · SEARCHABLE</span>
-  </div>
-  <div class="simpleDecisionGrid" style="margin-top:12px">
-    <div class="decisionRow"><h3>RunasCs</h3><div>Known password → run one harmless command as that local/domain identity → <code>whoami /all</code> → prove actual capability.</div><pre>.\\RunasCs.exe $AUTH_USER '$AUTH_PASS' "cmd /c whoami /all" -d $DOMAIN</pre></div>
-    <div class="decisionRow"><h3>SharpView</h3><div>PowerView unavailable/blocked → use one exact C# PowerView-style query; do not duplicate a full BloodHound/PowerView pass.</div><pre>.\\SharpView.exe Get-DomainController -Domain domain.local -Server dc.domain.local</pre></div>
-    <div class="decisionRow"><h3>windapsearch</h3><div>Focused LDAP fallback for users, groups, computers and SPNs.</div><pre>python3 windapsearch.py --dc-ip "$DC_IP" -u "$USER@$DOMAIN" -p "$PASS" -U\npython3 windapsearch.py --dc-ip "$DC_IP" -u "$USER@$DOMAIN" -p "$PASS" --user-spns</pre></div>
-    <div class="decisionRow"><h3>Certify</h3><div>Windows-side AD CS fallback; Certipy remains the primary Kali path.</div><pre>.\\Certify.exe enum-templates --filter-enabled --filter-vulnerable --current-user</pre></div>
-    <div class="decisionRow"><h3>sshuttle</h3><div>SSH foothold + one known internal subnet → routed fallback when it is simpler than creating another tunnel.</div><pre>sudo sshuttle -r "$SSH_USER@$PIVOT" 10.10.20.0/24</pre></div>
-    <div class="decisionRow"><h3>Native first</h3><div><code>whoami /all</code> · <code>net user /domain</code> · <code>net group "Domain Admins" /domain</code> · <code>nltest /domain_trusts</code> · <code>klist</code> · <code>dsquery</code> if installed.</div></div>
-  </div>
-  <details style="margin-top:12px"><summary><b>Rule-sensitive / secondary names</b></summary>
-    <p><b>Empire / Covenant:</b> currently listed by OffSec as allowed examples, but any feature performing a restricted action is still prohibited. Use only for a specific justified function, not blind automation.</p>
-    <p><b>PowerSploit:</b> PowerView and PowerUp are already covered; prefer the individual module you need.</p>
-    <p><b>Responder / Inveigh:</b> <strong style="color:var(--bad)">DO NOT use LLMNR/NBNS/mDNS poisoning or spoofing in the OSCP exam.</strong> Keep these names searchable as a rule reminder, not an attack recipe.</p>
-    <p><b>ADPEEAS / PingCastle:</b> secondary audit helpers only. Their findings are leads; manually prove the exact edge/permission before acting.</p>
-  </details>
-</div>
-
- <div class="hero"><div><h1>Windows / Active Directory Exam Desk</h1><div class="muted">Issued-domain-credential path, failure diagnosis, then a repeatable Windows post-shell workflow. The order and validation gates matter more than running more tools.</div></div><div class="row"><select id="winStrategyTarget"></select><button class="btn" id="winStrategyOpenRef">Full Windows reference →</button><button class="btn bad" id="winStrategyReset">Reset target checklist</button></div></div>
+<section id="adStrategyView" class="view">
+ <div class="hero"><div><h1>Active Directory Exam Desk — WIN AD</h1><div class="muted">12 ordered steps for credential/domain foothold → proven edge → usable access → re-enumeration → exam evidence. Read outputs; avoid speculative tool swapping.</div></div><div class="row"><select id="adStrategyTarget" aria-label="AD target"></select><button class="btn" id="adStrategyTools" type="button">AD fallback toolbox ↓</button><button class="btn bad" id="adStrategyReset" type="button">Reset AD steps</button></div></div>
+ <div class="card" style="margin-bottom:12px"><h2>Winning line</h2><div class="flow"><span class="step">DNS / time / issued context</span><span class="arrow">→</span><span class="step">Prove auth</span><span class="arrow">→</span><span class="step">LDAP / SMB / Kerberos</span><span class="arrow">→</span><span class="step">BloodHound / AD CS</span><span class="arrow">→</span><span class="step">One proven edge</span><span class="arrow">→</span><span class="step">Usable access</span><span class="arrow">→</span><span class="step">BANK</span></div><p class="muted">Do not confuse <b>authentication</b>, <b>authorization</b>, <b>execution</b>, and <b>domain compromise</b>. Never use LLMNR/NBNS/mDNS poisoning or spoofing during the OSCP exam; re-check current OffSec rules.</p></div>
+ <div class="card" style="margin-bottom:12px"><div class="winStrategyBar"><div><div id="adStrategyDone" class="winStrategyMetric">0/12</div><div class="winStrategyLabel">steps checked</div></div><div><div id="adStrategyPct" class="winStrategyMetric">0%</div><div class="winStrategyLabel">first-pass coverage</div></div><div id="adStrategyTargetHint" class="muted"></div></div></div>
+ <div class="opsGrid" style="margin-bottom:12px"><div class="card opsSpan6"><h2>Pick your starting position</h2><div class="winStrategyGate"><b>No credentials:</b> discovery/anonymous access, exposed services and documented foothold first; do not assume a domain secret.</div><div class="winStrategyGate"><b>Issued credential:</b> validate exactly one identity and move through the ordered LDAP/SMB/Kerberos/graph steps.</div><div class="winStrategyGate"><b>Windows domain shell:</b> <code>whoami /all</code>, token/groups/host/domain, local privesc via WIN Windows, then re-collect under the new identity.</div></div><div class="card opsSpan6"><h2>Stop / rotate gate</h2><div class="winStrategyGate">Kerberos failed? Verify DC DNS, FQDN, realm, time and account type before calling a credential bad.</div><div class="winStrategyGate">BloodHound says a path exists? Prove actual outgoing control/ACE and a feasible trigger; save the pre-state and rollback before writing.</div><div class="winStrategyGate">New ticket/hash/cert/host? Re-validate one protocol and re-collect rather than assuming administrator access.</div></div></div>
+ <div id="adStrategyBody" class="winStrategyGrid"></div>
+ <div class="card" style="margin-top:12px;margin-bottom:12px"><h2>Proved a shell, privilege or domain objective?</h2><p>Check exact principal, host and access. Read <code>local.txt</code>/<code>proof.txt</code> in the interactive shell from the original location, show target IP, submit the exact value and capture reproducible evidence.</p><div class="row"><button class="btn good" id="adStrategyBank" type="button">✓ Bank the Points</button><button class="btn" id="adStrategyWin" type="button">WIN Windows post-shell →</button><button class="btn" onclick="openRef('ref-9-6-domain-compromise-final-steps')">Domain final path →</button></div></div>
+ <div class="card" style="margin:15px 0 12px" id="adLegacyGuidesTitle"><h2>AD execution tools / troubleshooting</h2><div class="muted">The existing 4-step issued-credential sprint, edge planner, material routing, failure decoder and AD CS references remain below as optional deep tools. The 12-step list above is the default route.</div></div>
  <div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>Issued domain credential — first 10 minutes</h2><div class="muted">Run in order, stop when a stronger signal appears, and save output. These are Kali-side commands for an issued, in-scope account—not a spray. Progress is stored per selected target.</div></div><div class="row"><span id="adFastDone" class="adEdgeRisk low">0/4</span><button class="btn" id="adFastReset" type="button">Reset four steps</button><button class="btn" onclick="openRef('ref-9-0a-issued-domain-credential-first-ten-minutes')">Full decision card →</button></div></div>
   <div class="adFastGrid">
    <div class="adFastStep" data-step="context"><div class="row" style="justify-content:space-between"><label><input class="adFastCheck" data-step="context" type="checkbox"> <b>1 · Context, DNS, time, ports</b></label><button class="btn adFastCopy">Copy</button></div><pre>export DOMAIN='domain.local'
@@ -867,14 +867,30 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  </div>
 
  <div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2>BloodHound edge → safe execution plan</h2><div class="muted">Choose the exact edge and target type. The planner shows the prerequisites, read-only proof, minimum action, verification and rollback—without executing anything.</div></div><div class="row"><select id="adEdgeSelect" aria-label="BloodHound edge"></select><button class="btn" id="adEdgeCopyPlan" type="button">Copy plan</button><button class="btn" id="adEdgeOpenRef" type="button">Full edge desk →</button></div></div><div class="tiny"><b>Uses the fast-path variables above, plus:</b> <code>EDGE_TARGET</code> (user/group/computer/domain), <code>CONTROLLED_PRINCIPAL</code>, <code>CONTROLLED_COMPUTER</code> (include trailing <code>$</code>), <code>COMPUTER_PASS</code>, <code>TARGET_HOST</code>, and—only after recording it—<code>ORIGINAL_OWNER</code>. Run installed <code>-h</code> when a wrapper differs.</div><div id="adEdgePlanner" class="adEdgePlanner" aria-live="polite"></div></div>
- <div class="card" style="margin-bottom:12px"><div class="winStrategyBar"><div><div id="winStrategyDone" class="winStrategyMetric">0/0</div><div class="winStrategyLabel">steps checked</div></div><div><div id="winStrategyPct" class="winStrategyMetric">0%</div><div class="winStrategyLabel">first-pass coverage</div></div><div id="winStrategyTargetHint" class="muted"></div></div></div>
- <div class="card" style="margin-bottom:12px"><h2>Operator rule</h2><div class="flow"><span class="step">Get shell</span><span class="arrow">→</span><span class="step">Baseline</span><span class="arrow">→</span><span class="step">Save + READ output</span><span class="arrow">→</span><span class="step">Validate manually</span><span class="arrow">→</span><span class="step">Exploit one proven path</span><span class="arrow">→</span><span class="step">Re-enumerate</span></div><p class="muted">WinPEAS/PrivEscCheck findings are hypotheses. A colored line is not a vulnerability until privileged context + controllable object + trigger/prerequisite are confirmed.</p></div>
- <div id="winStrategyBody" class="winStrategyGrid"></div>
- <div class="opsGrid" style="margin-top:12px">
-  <div class="card opsSpan6"><h2>How to read automated output</h2><ol><li>Save it to a file.</li><li>Read credentials/secrets first.</li><li>Read token privileges.</li><li>Read services and scheduled tasks.</li><li>Read installer/autorun/registry findings.</li><li>Read non-default software and internal listeners.</li><li>Only then look at patch/kernel suggestions.</li></ol><div class="tiny">Do not rerun WinPEAS because you forgot what it printed. Preserve the output and annotate the exact lines that changed your hypothesis.</div></div>
-  <div class="card opsSpan6"><h2>Stuck / rotate gate</h2><div class="winStrategyGate">Did you inspect non-default <code>C:\</code> folders, <code>C:\Users</code>, Program Files and ProgramData?</div><div class="winStrategyGate">Did you read PowerShell history and app/service config files—not just run a password grep?</div><div class="winStrategyGate">Did you manually validate service/task/file ACLs from automated output?</div><div class="winStrategyGate">Did you map local-only listeners to their owning process and test the service locally?</div><div class="winStrategyGate">Did your user/context change? If yes, restart the Windows post-shell loop.</div><div class="winStrategyGate">No new evidence for ~20–30 min and no precise cheap prerequisite left? Rotate.</div></div>
- </div>
- <div class="card" style="margin-top:12px"><div class="tiny"><b>Source strategy:</b> Got Root?, “OSCP Windows Enumeration Checklist: My Complete Privilege Escalation Workflow for Every Box” (June 2026), plus current SpecterOps, Impacket, Certipy and BloodyAD documentation for the edge planner. This integration is paraphrased and reorganized; The current OffSec-rule guard and evidence-first methodology override any conflicting older habit.</div></div>
+
+
+<div class="card" id="v20AdFallbackToolbox" style="margin-bottom:14px;border-color:#355a78">
+  <div class="row" style="justify-content:space-between;align-items:flex-start">
+    <div><h2>AD / Windows Fallback Toolbox</h2><div class="muted">Use only when the core path cannot answer the current question. Native/manual proof first; one alternate implementation second.</div></div>
+    <span class="chip">RULE-AWARE · SEARCHABLE</span>
+  </div>
+  <div class="simpleDecisionGrid" style="margin-top:12px">
+    <div class="decisionRow"><h3>RunasCs</h3><div>Known password → run one harmless command as that local/domain identity → <code>whoami /all</code> → prove actual capability.</div><pre>.\\RunasCs.exe $AUTH_USER '$AUTH_PASS' "cmd /c whoami /all" -d $DOMAIN</pre></div>
+    <div class="decisionRow"><h3>SharpView</h3><div>PowerView unavailable/blocked → use one exact C# PowerView-style query; do not duplicate a full BloodHound/PowerView pass.</div><pre>.\\SharpView.exe Get-DomainController -Domain domain.local -Server dc.domain.local</pre></div>
+    <div class="decisionRow"><h3>windapsearch</h3><div>Focused LDAP fallback for users, groups, computers and SPNs.</div><pre>python3 windapsearch.py --dc-ip "$DC_IP" -u "$USER@$DOMAIN" -p "$PASS" -U\npython3 windapsearch.py --dc-ip "$DC_IP" -u "$USER@$DOMAIN" -p "$PASS" --user-spns</pre></div>
+    <div class="decisionRow"><h3>Certify</h3><div>Windows-side AD CS fallback; Certipy remains the primary Kali path.</div><pre>.\\Certify.exe enum-templates --filter-enabled --filter-vulnerable --current-user</pre></div>
+    <div class="decisionRow"><h3>sshuttle</h3><div>SSH foothold + one known internal subnet → routed fallback when it is simpler than creating another tunnel.</div><pre>sudo sshuttle -r "$SSH_USER@$PIVOT" 10.10.20.0/24</pre></div>
+    <div class="decisionRow"><h3>Native first</h3><div><code>whoami /all</code> · <code>net user /domain</code> · <code>net group "Domain Admins" /domain</code> · <code>nltest /domain_trusts</code> · <code>klist</code> · <code>dsquery</code> if installed.</div></div>
+  </div>
+  <details style="margin-top:12px"><summary><b>Rule-sensitive / secondary names</b></summary>
+    <p><b>Empire / Covenant:</b> currently listed by OffSec as allowed examples, but any feature performing a restricted action is still prohibited. Use only for a specific justified function, not blind automation.</p>
+    <p><b>PowerSploit:</b> PowerView and PowerUp are already covered; prefer the individual module you need.</p>
+    <p><b>Responder / Inveigh:</b> <strong style="color:var(--bad)">DO NOT use LLMNR/NBNS/mDNS poisoning or spoofing in the OSCP exam.</strong> Keep these names searchable as a rule reminder, not an attack recipe.</p>
+    <p><b>ADPEEAS / PingCastle:</b> secondary audit helpers only. Their findings are leads; manually prove the exact edge/permission before acting.</p>
+  </details>
+</div>
+
+
 </section>
 
 <script>window.__OSCP_PARSE_STAGE__='intake';</script>
@@ -1114,6 +1130,8 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_BOOT_STAGE__='05-windows-strategy';console.log('[OSCP_BOOT_STAGE]','05-windows-strategy');</script>
 <script>/* @inject:script:05-linux-strategy.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='05-linux-strategy';console.log('[OSCP_BOOT_STAGE]','05-linux-strategy');</script>
+<script>/* @inject:script:05-ad-strategy.js */</script>
+<script>window.__OSCP_BOOT_STAGE__='05-ad-strategy';console.log('[OSCP_BOOT_STAGE]','05-ad-strategy');</script>
 
 <script>/* @inject:script:06-handoff-access-truth.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='06-handoff-access-truth';console.log('[OSCP_BOOT_STAGE]','06-handoff-access-truth');</script>
