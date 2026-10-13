@@ -14,7 +14,7 @@
   const NAV_STORE='oscp_v16_last_view';
   const NAV_SCROLL='oscp_v16_view_scrolls';
   const MODE_STORE='oscp_v16_advanced_mode';
-  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','windowsStrategyView','workspaceView','reportsView','referenceView']);
+  const SIMPLE_VIEWS=new Set(['simpleExamView','methodologyView','toolArsenalView','serviceRouterView','methodTreesView','linuxStrategyView','windowsStrategyView','workspaceView','reportsView','referenceView']);
   const baseSwitch=window.switchView || switchView;
   let historyReplay=false;
   let navSerial=Number(history.state?.serial)||0;
@@ -184,7 +184,7 @@
   const SHORTCUTS={
     'x':'operatorView','c':'coverageView','d':'debtView','h':'hypothesisView','r':'correlationView',
     'a':'auditView','e':'vaultView','s':'sanityView','t':'regressionView','f':'freshnessView','k':'clockView',
-    'v':'revertView','u':'submissionView','p':'v16HighSignalView','w':'windowsStrategyView','q':'serviceRouterView','y':'methodTreesView',
+    'v':'revertView','u':'submissionView','p':'v16HighSignalView','l':'linuxStrategyView','w':'windowsStrategyView','q':'serviceRouterView','y':'methodTreesView',
     'i':'v15ReliabilityView','g':'guardView','j':'journalView','o':'analyzerView',
     '1':'simpleExamView','2':'workspaceView','3':'credentialsView','4':'reportsView','5':'referenceView','6':'toolArsenalView','m':'methodologyView',
     '7':'intakeView','8':'boardView','9':'commandsView'
@@ -220,7 +220,7 @@
     if(typeof V16_SELF_TESTS!=='undefined'){
       V16_SELF_TESTS.push(
         ['Browser history navigation layer',()=>[!!window.OSCP_NAV&&typeof history.pushState==='function','history+OSCP_NAV']],
-        ['Navigation deep-link parser',()=>[OSCP_NAV.isView('windowsStrategyView')&&OSCP_NAV.isView('referenceView'),'views resolvable']],
+        ['Navigation deep-link parser',()=>[OSCP_NAV.isView('linuxStrategyView')&&OSCP_NAV.isView('windowsStrategyView')&&OSCP_NAV.isView('referenceView'),'views resolvable']],
         ['Reference jumps expand collapsed ancestors',()=>{const outer=document.createElement('details'),inner=document.createElement('details'),leaf=document.createElement('div');inner.appendChild(leaf);outer.appendChild(inner);document.body.appendChild(outer);OSCP_NAV.expandReferencePath(leaf);const ok=outer.open&&inner.open;outer.remove();return[ok,'nested details opened']}],
         ['Shortcut conflicts removed',()=>[OSCP_NAV.shortcuts.c==='coverageView'&&OSCP_NAV.shortcuts.h==='hypothesisView'&&OSCP_NAV.shortcuts.e==='vaultView'&&OSCP_NAV.shortcuts.k==='clockView'&&OSCP_NAV.shortcuts.p==='v16HighSignalView','C/H/E/K/P unique']],
         ['Simple exam mode available',()=>[OSCP_NAV.isView('simpleExamView')&&OSCP_NAV.isView('methodologyView')&&typeof OSCP_NAV.setAdvancedMode==='function','simple+method+toggle']]
