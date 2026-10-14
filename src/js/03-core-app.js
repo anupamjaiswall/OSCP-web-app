@@ -1946,7 +1946,8 @@ $('#copySanitizedCommand').onclick=async()=>await guardedCopyText(sanitizeUnicod
 function fmtRemain(ms){if(ms<=0)return'00:00:00';let s=Math.floor(ms/1000),h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60);s%=60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
 function clockDates(){if(!examClock.start)return null;const start=new Date(examClock.start);if(Number.isNaN(+start))return null;const attackEnd=new Date(+start+(23*60+45)*60000),reportEnd=new Date(+attackEnd+24*60*60000);return{start,attackEnd,reportEnd}}
 function renderClock(){
- if(!$('#examStart'))return;const d=clockDates(),now=new Date();$('#examStart').value=examClock.start||'';
+ if(!$('#examStart'))return;const d=clockDates(),now=new Date();
+ // Countdown refresh must NEVER overwrite datetime-local while the operator is editing it.
  if(!d){$('#attackCountdown').textContent='--:--:--';$('#reportCountdown').textContent='--:--:--';$('#clockPhase').textContent='Set the exam start time.';$('#clockDeadlines').innerHTML='';renderOperatorClock();return}
  $('#attackCountdown').textContent=fmtRemain(+d.attackEnd-now);$('#reportCountdown').textContent=fmtRemain(+d.reportEnd-now);
  let phase='BEFORE EXAM';if(now>=d.start&&now<d.attackEnd)phase='ATTACK WINDOW';else if(now>=d.attackEnd&&now<d.reportEnd)phase='REPORTING WINDOW';else if(now>=d.reportEnd)phase='REPORT DEADLINE PASSED';
@@ -1956,9 +1957,27 @@ function renderClock(){
  renderOperatorClock();
 }
 function renderOperatorClock(){const r=$('#operatorClock'),d=clockDates();if(!r)return;if(!d){r.innerHTML='Not configured. <button class="btn opClockOpen">Set clock →</button>';r.querySelector('.opClockOpen').onclick=()=>switchView('clockView');return}const now=new Date(),attack=now<d.attackEnd,deadline=attack?d.attackEnd:d.reportEnd;r.innerHTML=`<b>${attack?'Attack':'Report'}:</b> ${fmtRemain(+deadline-now)}<br><span class="tiny">${attack?'Submit proof values before attack end.':'Upload final archive before deadline.'}</span><br><button class="btn opClockOpen">Clock →</button>`;r.querySelector('.opClockOpen').onclick=()=>switchView('clockView')}
-$('#clockNowStart').onclick=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');$('#examStart').value=`${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`};
-$('#saveExamClock').onclick=()=>{examClock.start=$('#examStart').value;safeStoreSet(STORE+'examClock',JSON.stringify(examClock));renderClock();toast('Exam clock saved')};
-$('#clearExamClock').onclick=()=>{examClock={start:''};safeStoreRemove(STORE+'examClock');renderClock()};
+const clockStartInput=$('#examStart');
+const clockFeedback=$('#clockInputFeedback');
+function clockLocalValue(d){const z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;}
+function clockFeedbackText(text,isError=false){if(clockFeedback){clockFeedback.textContent=text;clockFeedback.style.color=isError?'var(--bad,var(--danger,#ef4444))':'';}}
+function syncClockInputFromSaved(){clockStartInput.value=examClock.start||'';}
+syncClockInputFromSaved();
+clockStartInput.addEventListener('input',()=>clockFeedbackText('Unsaved start time — click Save to update the countdown.'));
+$('#saveExamClock').onclick=()=>{
+ const value=clockStartInput.value.trim();
+ const parsed=value?new Date(value):null;
+ if(!value||!clockStartInput.validity.valid||!parsed||!Number.isFinite(+parsed)){
+  clockFeedbackText('Select a valid local date and time before saving.',true);return;
+ }
+ examClock.start=value;
+ safeStoreSet(STORE+'examClock',JSON.stringify(examClock));v9Dirty=true;
+ renderClock();
+ clockFeedbackText('Saved: '+parsed.toLocaleString()+'. The proctor clock remains authoritative.');
+ toast('Exam clock saved');
+};
+$('#clockNowStart').onclick=()=>{clockStartInput.value=clockLocalValue(new Date());$('#saveExamClock').click();};
+$('#clearExamClock').onclick=()=>{examClock={start:''};safeStoreRemove(STORE+'examClock');v9Dirty=true;syncClockInputFromSaved();renderClock();clockFeedbackText('Exam start time cleared.')};
 setInterval(renderClock,1000);
 
 /* Revert ledger */
@@ -2007,7 +2026,7 @@ consistencyAudit=function(t){const a=v14AuditBase(t),u=unicodeProblems(reportCor
 const v14SessionBase=sessionPayload;
 sessionPayload=function(includeSecrets=false){const o=v14SessionBase(includeSecrets);o.app='OSCP-V14';o.version=14;o.examClock=examClock;o.revertState=revertState;o.submissionState=submissionState;return o};
 const v14RestoreBase=restoreV9Payload;
-restoreV9Payload=function(o){if(o?.examClock)examClock=o.examClock;if(o?.revertState)revertState=normalizeRevertState(o.revertState);if(o?.submissionState)submissionState=o.submissionState;v14RestoreBase(o);revertState=normalizeRevertState(revertState);targets=targets.map(upgradeV14Target);safeStoreSet(STORE+'examClock',JSON.stringify(examClock));safeStoreSet(STORE+'revertState',JSON.stringify(revertState));safeStoreSet(STORE+'submissionState',JSON.stringify(submissionState));renderAllV14()};
+restoreV9Payload=function(o){if(o?.examClock)examClock=o.examClock;if(o?.revertState)revertState=normalizeRevertState(o.revertState);if(o?.submissionState)submissionState=o.submissionState;v14RestoreBase(o);revertState=normalizeRevertState(revertState);targets=targets.map(upgradeV14Target);safeStoreSet(STORE+'examClock',JSON.stringify(examClock));safeStoreSet(STORE+'revertState',JSON.stringify(revertState));safeStoreSet(STORE+'submissionState',JSON.stringify(submissionState));syncClockInputFromSaved();renderAllV14()};
 
 function renderAllV14(){renderAllV13();renderClock();renderReverts();renderSubmission();renderCompat();renderToolArsenal()}
 const v14Switch=switchView;
