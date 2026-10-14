@@ -101,6 +101,20 @@ test('browser gate covers deployed hash route and full navigation sweep',()=>{co
 
 test('browser Service Router self-tests use real multiline fixtures',()=>{const src=read('src/js/09-v20-service-router.js');ok(src.includes("22/tcp open ssh\\n53/udp open domain\\n161/udp open|filtered snmp"));ok(!src.includes("22/tcp open ssh\\\\n53/udp"));});
 test('navigation wrapper preserves openRef result contract',()=>{const src=read('src/js/07-navigation-reliability.js');ok(src.includes('const result=baseOpenRef(anchor)'));ok(src.includes('return result;'));});
+test('exam clock never rewrites in-progress datetime input during each tick',()=>{
+ const src=read('src/js/03-core-app.js'),tpl=read('src/index.template.html');
+ const render=src.slice(src.indexOf('function renderClock(){'),src.indexOf('function renderOperatorClock(){'));
+ ok(!render.includes("$('#examStart').value="),'countdown render must not overwrite manual input');
+ ok(src.includes('syncClockInputFromSaved();')&&src.includes('clockStartInput.oninput=')&&src.includes("$('#saveExamClock').click();"),'boot, unsaved status and now auto-save');
+ ok(src.includes('clockStartInput.validity.valid')&&src.includes("safeStoreSet(STORE+'examClock'"),'validate and persist start time');
+ ok(tpl.includes('id="clockInputFeedback"')&&tpl.includes('id="examStart" type="datetime-local"'),'clock controls exist');
+});
+test('tmux copy workflow documented without creating duplicate nmap output directories',()=>{
+ const ref=read('src/content/02-enumeration.html');
+ ok(ref.includes('tmux copy / selection / paste')&&ref.includes('copy-pipe-and-cancel')&&ref.includes('Ctrl+Shift+V'),'tmux selection and both clipboards explained');
+ ok(!ref.includes('mkdir -p "$dir"/{nmap,loot,exploits}'),'target.sh must not create nmap folder');
+ ok(ref.includes('mkdir -p scans/nmap')&&ref.includes('mkdir -p "$dir"/{loot,exploits}'),'nmap workflow owns the output path');
+});
 test('Linux winning-steps desk is target-aware and complete',()=>{const src=read('src/js/05-linux-strategy.js'),tpl=read('src/index.template.html');ok(tpl.includes('id="linuxStrategyView"'));ok(tpl.includes('data-view="linuxStrategyView">WIN Linux'));ok(src.includes("const LINUX_STRATEGY_STEPS=["));ok(src.includes("LINUX_STRATEGY_STEPS.length===12"));for(const id of ['baseline','credentials','sudo','suidcaps','scheduled','processes','writable','platform','reenum','kernel'])ok(src.includes("id:'"+id+"'"),id);ok(src.includes("STORE+'linuxStrategy'"));ok(src.includes('o.linuxStrategyState=linuxStrategyState'));});
 test('WIN Windows and WIN AD are distinct first-class exam desks',()=>{
  const tpl=read('src/index.template.html'),w=read('src/js/05-windows-strategy.js'),ad=read('src/js/05-ad-strategy.js'),nav=read('src/js/07-navigation-reliability.js'),palette=read('src/js/16-v26-scratch-architecture.js');
