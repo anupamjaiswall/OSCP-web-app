@@ -110,7 +110,7 @@ bind X kill-pane
 bind r source-file ~/.tmux.conf \; display-message 'tmux config reloaded'
 bind S capture-pane -p -S - \; run-shell 'tmux capture-pane -p -S - &gt; "$HOME/oscp/logs/pane-$(date +%F_%H%M%S).txt"' \; display-message 'Scrollback saved'
 
-# Copy mode: Ctrl+A [, then v to select, y to copy.
+# Vi copy mode: Ctrl+A [, v to select, y to copy to X11 clipboard.
 setw -g mode-keys vi
 bind -T copy-mode-vi v send -X begin-selection
 bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'xclip -selection clipboard -in'
@@ -127,6 +127,17 @@ set-hook -g after-split-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 run '~/.tmux/plugins/tpm/tpm'</code></pre>
+<h3>tmux copy / selection / paste — Vim keybindings</h3>
+<p><strong>Default prefix in this configuration:</strong> press <kbd>Ctrl+A</kbd>, <em>release</em>, then the next key; do not press <kbd>Ctrl+B</kbd>. The <code>xclip</code> command sends copies to the Kali X11 clipboard when <code>DISPLAY</code> is available.</p>
+<ol>
+<li><strong>Enter copy mode:</strong> <kbd>Ctrl+A</kbd>, then <kbd>[</kbd>. Use arrow keys or <kbd>h</kbd>/<kbd>j</kbd>/<kbd>k</kbd>/<kbd>l</kbd> to move through output.</li>
+<li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
+<li><strong>Copy:</strong> press <kbd>y</kbd>. The configured <code>copy-pipe-and-cancel</code> copies to the tmux buffer and, if X11 clipboard access works, the desktop clipboard.</li>
+<li><strong>Paste:</strong> <kbd>Ctrl+Shift+V</kbd> in a terminal/application supporting that shortcut. Inside tmux, <kbd>Ctrl+A</kbd>, then <kbd>]</kbd> pastes from tmux's own buffer even if <code>xclip</code> cannot access a desktop clipboard.</li>
+<li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
+</ol>
+<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, normal dragging can be intercepted by tmux. Use the keyboard method above; in many terminal emulators hold <kbd>Shift</kbd> while dragging for native terminal selection. <strong>Clipboard troubleshooting:</strong> run <code>echo "$DISPLAY"</code>, <code>command -v xclip</code> and <code>printf 'tmux-copy-test' | xclip -selection clipboard</code> from a Kali desktop terminal. On a remote SSH-only session, <code>xclip</code> may not be able to reach the local clipboard; use tmux's own paste buffer or your terminal's supported selection mechanism.</p>
+<p><strong>Long output:</strong> <kbd>Ctrl+A</kbd> then <kbd>S</kbd> saves pane scrollback in <code>~/oscp/logs/</code> using this configuration. Pane logs may contain credentials, so keep them on approved local storage. This is different from selecting and copying text.</p>
 <h3>~/bin/target.sh — one target per session</h3>
 <pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
 set -euo pipefail
@@ -137,7 +148,8 @@ dir="$HOME/oscp/$target"
 session="${target//./_}"
 go() { if [[ -n ${TMUX:-} ]]; then tmux switch-client -t "=$session"; else tmux attach-session -t "=$session"; fi; }
 if tmux has-session -t "=$session" 2&gt;/dev/null; then go; exit 0; fi
-mkdir -p "$dir"/{nmap,loot,exploits}
+# Nmap output directories are created only by the Nmap workflow (mkdir -p scans/nmap).
+mkdir -p "$dir"/{loot,exploits}
 tmux new-session -d -s "$session" -n recon -c "$dir"
 if [[ "$target" =~ ^[0-9]+(\.[0-9]+){3}$ ]]; then
   tmux set-environment -t "=$session" IP "$target"
@@ -183,7 +195,7 @@ ls -lt ~/oscp/logs/$(date +%F)/ | head
 # IMPORTANT: reload does not auto-start logging on already-open panes:
 tmux list-panes -a -F '#{pane_id}' | while read -r p; do ~/bin/tmux-start-log.sh "$p"; done
 # Logs are plaintext, may contain secrets; preserve locally.
-# For tool output: nmap -sCV -oA nmap/full "$IP" (no redundant tee of .nmap)
+# For tool output: follow section 3.1: mkdir -p scans/nmap ; nmap -sCV -oA scans/nmap/full "$IP"
 ~/bin/clean-logs.sh
 grep -rn -B3 -A15 'sudo -l' ~/oscp/logs-clean/
 # Local backup; do NOT upload credentials/proofs to cloud:
