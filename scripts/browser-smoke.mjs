@@ -266,6 +266,23 @@ async function main(){
       const timerReset=document.getElementById('simpleTimerDisplay')?.textContent||'';
       record('evidence rotation timer',timerRunning!=='00:00'&&timerPausedA===timerPausedB&&timerReset==='00:00',JSON.stringify({timerRunning,timerPausedA,timerPausedB,timerReset}));
 
+      // Clock edit must survive the 1-second tick, save, persist, auto-save now, and clear.
+      window.switchView('clockView',{history:false});
+      click('clearExamClock');
+      const clockInput=document.getElementById('examStart');
+      clockInput.value='2035-11-12T09:30';
+      clockInput.dispatchEvent(new Event('input',{bubbles:true}));
+      await new Promise(r=>setTimeout(r,1300));
+      const clockSurvivesTick=clockInput.value==='2035-11-12T09:30';
+      click('saveExamClock');
+      const clockSaved=JSON.parse(localStorage.getItem('oscp_v16_examClock')||'{}').start==='2035-11-12T09:30';
+      const clockRuns=document.getElementById('attackCountdown')?.textContent!=='--:--:--';
+      click('clockNowStart');
+      const nowAutoSaved=JSON.parse(localStorage.getItem('oscp_v16_examClock')||'{}').start===clockInput.value&&!!clockInput.value;
+      click('clearExamClock');
+      const clockCleared=!clockInput.value&&document.getElementById('attackCountdown')?.textContent==='--:--:--';
+      record('exam clock edit/save/now/clear',clockSurvivesTick&&clockSaved&&clockRuns&&nowAutoSaved&&clockCleared,JSON.stringify({clockSurvivesTick,clockSaved,clockRuns,nowAutoSaved,clockCleared}));
+
       // Method tree selector must isolate one tree and restore all.
       window.switchView('methodTreesView',{history:false});
       window.OSCP_TREE_READER?.show?.('windows');
