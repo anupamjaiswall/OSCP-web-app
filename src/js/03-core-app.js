@@ -1957,27 +1957,20 @@ function renderClock(){
  renderOperatorClock();
 }
 function renderOperatorClock(){const r=$('#operatorClock'),d=clockDates();if(!r)return;if(!d){r.innerHTML='Not configured. <button class="btn opClockOpen">Set clock →</button>';r.querySelector('.opClockOpen').onclick=()=>switchView('clockView');return}const now=new Date(),attack=now<d.attackEnd,deadline=attack?d.attackEnd:d.reportEnd;r.innerHTML=`<b>${attack?'Attack':'Report'}:</b> ${fmtRemain(+deadline-now)}<br><span class="tiny">${attack?'Submit proof values before attack end.':'Upload final archive before deadline.'}</span><br><button class="btn opClockOpen">Clock →</button>`;r.querySelector('.opClockOpen').onclick=()=>switchView('clockView')}
-const clockStartInput=$('#examStart');
-const clockFeedback=$('#clockInputFeedback');
+const clockStartInput=$('#examStart'),clockFeedback=$('#clockInputFeedback');
 function clockLocalValue(d){const z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;}
-function clockFeedbackText(text,isError=false){if(clockFeedback){clockFeedback.textContent=text;clockFeedback.style.color=isError?'var(--bad,var(--danger,#ef4444))':'';}}
+function clockFeedbackText(t){if(clockFeedback)clockFeedback.textContent=t;}
 function syncClockInputFromSaved(){clockStartInput.value=examClock.start||'';}
 syncClockInputFromSaved();
-clockStartInput.addEventListener('input',()=>clockFeedbackText('Unsaved start time — click Save to update the countdown.'));
+clockStartInput.oninput=()=>clockFeedbackText('Unsaved start time — click Save.');
 $('#saveExamClock').onclick=()=>{
- const value=clockStartInput.value.trim();
- const parsed=value?new Date(value):null;
- if(!value||!clockStartInput.validity.valid||!parsed||!Number.isFinite(+parsed)){
-  clockFeedbackText('Select a valid local date and time before saving.',true);return;
- }
- examClock.start=value;
- safeStoreSet(STORE+'examClock',JSON.stringify(examClock));v9Dirty=true;
- renderClock();
- clockFeedbackText('Saved: '+parsed.toLocaleString()+'. The proctor clock remains authoritative.');
- toast('Exam clock saved');
+ const v=clockStartInput.value,d=new Date(v);
+ if(!v||!clockStartInput.validity.valid||!Number.isFinite(+d)){clockFeedbackText('Select a valid local date and time.');return;}
+ examClock.start=v;safeStoreSet(STORE+'examClock',JSON.stringify(examClock));v9Dirty=true;
+ renderClock();clockFeedbackText('Saved: '+d.toLocaleString());toast('Exam clock saved');
 };
 $('#clockNowStart').onclick=()=>{clockStartInput.value=clockLocalValue(new Date());$('#saveExamClock').click();};
-$('#clearExamClock').onclick=()=>{examClock={start:''};safeStoreRemove(STORE+'examClock');v9Dirty=true;syncClockInputFromSaved();renderClock();clockFeedbackText('Exam start time cleared.')};
+$('#clearExamClock').onclick=()=>{examClock={start:''};safeStoreRemove(STORE+'examClock');v9Dirty=true;syncClockInputFromSaved();renderClock();clockFeedbackText('Exam start time cleared.');};
 setInterval(renderClock,1000);
 
 /* Revert ledger */
