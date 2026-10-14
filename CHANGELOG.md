@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.60.0 — 2026-10-14
+
+### Exam clock fix and tmux copy-mode reference
+- Fixed the 1-second Exam Clock countdown refresh overwriting the editable `datetime-local` exam start. The input now stays untouched while editing; restoring a session explicitly synchronizes the saved start.
+- Added date/time validity checks, clear saved/unsaved feedback and `Use current time as start` auto-save. Countdown still follows the locally saved start, with the official proctor clock authoritative.
+- Expanded Full Reference → tmux Setup with `Ctrl+A [` → `v` select → `y` copy, `Ctrl+A ]` internal paste, `Ctrl+Shift+V` desktop paste, scrollback navigation/search, Shift+drag and `xclip` troubleshooting.
+- Removed the duplicate `nmap` directory from `target.sh` tmux session setup. Nmap workflow section 3.1 owns `mkdir -p scans/nmap`; aligned the tmux daily-use example with `scans/nmap`.
+- Added regression tests for uninterrupted clock editing and Nmap folder ownership; browser smoke checks clock save, countdown, persistence and clear.
+
+
 ## V34.59.0 — 2026-10-13
 
 ### Dedicated Windows and Active Directory winning-step desks
