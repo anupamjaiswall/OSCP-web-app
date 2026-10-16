@@ -35,6 +35,7 @@
 <style id="v28CompetitiveCoreStyles">/* @inject:style:12-v28-competitive-core.css */</style>
 <style id="v34RuntimeDiagnosticsStyles">/* @inject:style:13-v34-runtime-diagnostics.css */</style>
 <style id="v33ExamIntegrationStyles">/* @inject:style:13-v33-exam-integration.css */</style>
+<style id="referenceReaderStyles">/* @inject:style:14-reference-reader.css */</style>
 </head>
 <body>
 <script>window.__OSCP_PARSE_STAGE__='body-start';</script>
@@ -1055,14 +1056,36 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
 <section id="evidenceView" class="view"><div class="hero"><div><h1>Evidence Packet</h1><div class="muted">Use per host. Copy a report-ready template after checking the proof requirements.</div></div><button class="btn primary" id="copyEvidence">Copy template</button></div><div class="card"><div class="evidenceGrid" id="evidenceChecks"></div><h3>Per-host packet</h3><pre id="evidenceTemplate"></pre></div></section>
 
 <section id="referenceView" class="view">
-
-<div class="card" id="v20ReferenceDelta" style="max-width:1180px;margin:0 auto 14px;border-color:#355a78">
+<div class="refReaderToolbar noPrint">
+ <div><h1>Full Reference</h1><div class="refReaderReaderHint">Offline notes · searchable left index · exam-first reading</div></div>
+ <div class="row">
+  <button class="btn refReaderTocToggle" id="refReaderTocToggle" type="button" aria-expanded="false" aria-controls="refReaderTocWrap">☰ Sections</button>
+  <button class="btn primary" id="refReaderFullscreen" type="button" aria-pressed="false">⛶ Full screen</button>
+  <button class="btn" id="refReaderExit" type="button">Exit to app</button>
+  <button class="btn" id="collapseDetails" type="button">Collapse all</button>
+  <button class="btn" id="expandDetails" type="button">Expand all</button>
+ </div>
+</div>
+<div class="refReaderCanvas">
+ <aside class="refReaderTocWrap" id="refReaderTocWrap" aria-label="Full reference left navigation">
+  <div class="refReaderTocHeader">Reference index <span id="refReaderCount">Loading…</span></div>
+  <div class="row"><input id="refReaderFilter" type="search" autocomplete="off" aria-label="Filter reference sections" placeholder="Filter sections: tmux, AD, nmap…" style="flex:1"><button class="btn" id="refReaderClear" type="button" aria-label="Clear index filter">×</button></div>
+  <div class="refReaderQuick"><button class="btn" id="refReaderPre" type="button">Pre-exam tmux</button><button class="btn" id="refReaderDuring" type="button">During-exam tmux</button></div>
+  <nav id="refReaderToc" aria-label="Reference section tree"><span class="tiny">The offline reference index loads automatically.</span></nav>
+  <div class="tiny">Select a heading to jump directly. The main app navigation remains unchanged.</div>
+ </aside>
+ <div class="refReaderArticleCol">
+ <div class="card" id="v20ReferenceDelta" style="max-width:1180px;margin:0 auto 14px;border-color:#355a78">
   <h2>AD / Windows fallback coverage</h2>
   <p class="muted">Search terms: RunasCs · SharpView · windapsearch · Certify · sshuttle · Empire · Covenant · PowerSploit · Inveigh · ADPEEAS · PingCastle.</p>
   <p><b>Hard rule:</b> Responder/Inveigh poisoning or spoofing is not an OSCP workflow. Native/manual proof remains first; these are fallbacks for a specific unresolved question.</p>
   <button class="btn" onclick="switchView('windowsStrategyView')">Open Windows fallback toolbox →</button>
 </div>
-<div class="hero noPrint"><div><h1>Full Reference</h1><div class="muted">Deep reference embedded locally. Search first; do not scroll linearly under pressure.</div></div><div class="row"><button class="btn" id="collapseDetails">Collapse all</button><button class="btn" id="expandDetails">Expand all</button></div></div><article class="reference" id="referenceRoot"><div id="referenceLoading" class="card muted">Deep reference loads after the exam controls are ready…</div></article></section>
+
+ <article class="reference" id="referenceRoot"><div id="referenceLoading" class="card muted">Deep reference loads after the exam controls are ready…</div></article>
+ </div>
+</div>
+</section>
 
 
 <section id="v15ReliabilityView" class="view">
@@ -1219,6 +1242,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script id="referenceHydratorScript">/* @inject:script:20-reference-hydrator.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='20-reference-hydrator';console.log('[OSCP_BOOT_STAGE]','20-reference-hydrator');</script>
 <script id="recoveryStatusScript">/* @inject:script:21-recovery-status.js */</script>
+<script id="referenceReaderScript">/* @inject:script:22b-reference-reader.js */</script>
 <script>window.__OSCP_BOOT_STAGE__='21-recovery-status';console.log('[OSCP_BOOT_STAGE]','21-recovery-status');</script>
 <script>window.__OSCP_BOOT_STAGE__='complete-scripts';console.log('[OSCP_BOOT_STAGE]','complete-scripts');</script>
 </body></html>
