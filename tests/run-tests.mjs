@@ -116,6 +116,21 @@ test('tmux copy workflow documented without creating duplicate nmap output direc
  ok(ref.includes('mkdir -p scans/nmap')&&ref.includes('mkdir -p "$dir"/{loot,exploits}'),'nmap workflow owns the output path');
 });
 test('Linux winning-steps desk is target-aware and complete',()=>{const src=read('src/js/05-linux-strategy.js'),tpl=read('src/index.template.html');ok(tpl.includes('id="linuxStrategyView"'));ok(tpl.includes('data-view="linuxStrategyView">WIN Linux'));ok(src.includes("const LINUX_STRATEGY_STEPS=["));ok(src.includes("LINUX_STRATEGY_STEPS.length===12"));for(const id of ['baseline','credentials','sudo','suidcaps','scheduled','processes','writable','platform','reenum','kernel'])ok(src.includes("id:'"+id+"'"),id);ok(src.includes("STORE+'linuxStrategy'"));ok(src.includes('o.linuxStrategyState=linuxStrategyState'));});
+test('browser-safe navigation shortcuts do not conflict with feature handlers',()=>{
+ const src=read('src/js/07-navigation-reliability.js'),tpl=read('src/index.template.html');
+ ok(src.includes("'l':'linuxStrategyView','w':'windowsStrategyView','a':'adStrategyView'"),'G workflow destinations');
+ ok(src.includes("const GO_ACTIONS=Object.freeze({")&&src.includes("goTimer=setTimeout(cancelGo,2000)"),'two-key actions and expiry');
+ ok(src.includes("e.target?.closest?.('input,textarea,select"),'text editing protected');
+ const alt=src.slice(src.indexOf('const SHORTCUTS='),src.indexOf('const GO_KEYS='));
+ ok(!alt.includes("'h':")&&!alt.includes("'i':"),'Alt+H/I must be left to work/index handlers');
+ ok(tpl.includes('<kbd>G</kbd> → <kbd>A</kbd>')&&tpl.includes('<kbd>G</kbd> → <kbd>P</kbd>'),'help documents reliable keys');
+ ok(tpl.split('<kbd>Alt+Y</kbd>').length===2,'Alt+Y help must not be duplicated');
+});
+test('tmux Vim copy shortcuts work without desktop clipboard and provide reload verification',()=>{
+ const ref=read('src/content/02-enumeration.html');
+ for(const line of ['bind [ copy-mode','bind ] paste-buffer','bind -T copy-mode-vi v send -X begin-selection','bind -T copy-mode-vi y send -X copy-selection-and-cancel','bind -T copy-mode-vi Y send -X copy-pipe-and-cancel','tmux source-file ~/.tmux.conf','tmux show-options -g prefix'])ok(ref.includes(line),line);
+ ok(!ref.includes("bind -T copy-mode-vi y send -X copy-pipe-and-cancel"),'lowercase y is not dependent on X11');
+});
 test('WIN Windows and WIN AD are distinct first-class exam desks',()=>{
  const tpl=read('src/index.template.html'),w=read('src/js/05-windows-strategy.js'),ad=read('src/js/05-ad-strategy.js'),nav=read('src/js/07-navigation-reliability.js'),palette=read('src/js/16-v26-scratch-architecture.js');
  for(const id of ['windowsStrategyView','adStrategyView']){ok(tpl.includes('id="'+id+'"'),id+' section missing');ok(tpl.includes('data-view="'+id+'"'),id+' nav missing')}
