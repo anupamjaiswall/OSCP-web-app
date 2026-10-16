@@ -212,6 +212,12 @@ async function main(){
     const referenceNavigator=await waitFor(async()=>{const n=await evalValue("document.querySelectorAll('#refSectionSelect option').length");return n>20?n:false},12000,100);
     if(!referenceNavigator)throw new Error('reference navigator did not repopulate after lazy hydration');
 
+    // Full-reference reader: lazy TOC, searchable links and fullscreen toggle.
+    const readerStateRaw=await evalValue("(async()=>{\n      window.switchView('referenceView',{history:false});\n      await window.OSCP_REFERENCE?.start?.();\n      window.OSCP_REF_READER?.build?.();\n      const toc=document.getElementById('refReaderToc'),filter=document.getElementById('refReaderFilter');\n      const links=toc?.querySelectorAll('button[data-ref-id]')||[];\n      const pre=!!toc?.querySelector('[data-ref-id=\"ref-1-3-tmux-setup-never-work-without-it\"]');\n      const during=!!toc?.querySelector('[data-ref-id=\"ref-exam-tmux-operator-runbook\"]');\n      filter.value='tmux';filter.dispatchEvent(new Event('input',{bubbles:true}));\n      const filtered=toc?.querySelectorAll('button:not([hidden])').length||0;\n      filter.value='';filter.dispatchEvent(new Event('input',{bubbles:true}));\n      document.getElementById('refReaderFullscreen')?.click();\n      await new Promise(r=>setTimeout(r,150));\n      const immersive=document.body.classList.contains('referenceReaderMode');\n      document.getElementById('refReaderExit')?.click();\n      await new Promise(r=>setTimeout(r,150));\n      return JSON.stringify({count:links.length,pre,during,filtered,immersive,exited:!document.body.classList.contains('referenceReaderMode')});\n    })()");
+    const readerState=JSON.parse(readerStateRaw||'{}');
+    if(!(readerState.count>30&&readerState.pre&&readerState.during&&readerState.filtered>0&&readerState.immersive&&readerState.exited))
+      throw new Error('reference reader fullscreen/sidebar failure: '+readerStateRaw);
+
     // Real interaction 1: typo-tolerant search must produce results after lazy reference hydration.
     await evalValue(`(()=>{const i=document.getElementById('globalSearch');i.value='seimpersonte';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
     const typoSearch=await waitFor(async()=>{
