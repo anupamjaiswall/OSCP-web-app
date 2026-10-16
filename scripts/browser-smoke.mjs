@@ -307,6 +307,25 @@ async function main(){
       const scoreText=document.getElementById('scoreSummary')?.textContent||'';
       record('Service Router functional parse',/3 endpoint/.test(srSummary)&&/SSH/.test(srQueue)&&srQueue.includes('RPC/SMB')&&srQueue.includes('HTTP/S')&&scoreText.includes('80/100'),JSON.stringify({srSummary,scoreText}));
 
+      // Browser-safe G + key navigation must work without OS-reserved Alt chords.
+      const key=(target,letter,alt=false)=>target.dispatchEvent(new KeyboardEvent('keydown',{key:letter,altKey:alt,bubbles:true,cancelable:true}));
+      const navigateByGo=(letter)=>{key(document,'g');key(document,letter);return document.querySelector('.view.active')?.id||'';};
+      const gLinux=navigateByGo('l')==='linuxStrategyView';
+      const gWindows=navigateByGo('w')==='windowsStrategyView';
+      const gAD=navigateByGo('a')==='adStrategyView';
+      const gClock=navigateByGo('c')==='clockView';
+      const searchField=document.getElementById('globalSearch');
+      const beforeTyping=document.querySelector('.view.active')?.id||'';
+      key(searchField,'g');key(searchField,'a');
+      const textSafe=(document.querySelector('.view.active')?.id||'')===beforeTyping;
+      key(document,'h',true);
+      const workAlt=!!document.getElementById('workStateBackdrop')?.classList.contains('open');
+      window.OSCP_V26?.closeWork?.(true);
+      key(document,'i',true);
+      const notesAlt=!!document.getElementById('examIndexBackdrop')?.classList.contains('open');
+      window.OSCP_V27?.closeIndex?.();
+      record('browser-safe G shortcuts and Alt conflict fix',gLinux&&gWindows&&gAD&&gClock&&textSafe&&workAlt&&notesAlt,JSON.stringify({gLinux,gWindows,gAD,gClock,textSafe,workAlt,notesAlt}));
+
       // Both platform-specific winning desks must render their 12 exam-time steps.
       window.switchView('windowsStrategyView',{history:false});
       const winWinningCards=document.querySelectorAll('#winStrategyBody .winStrategyStep').length;
