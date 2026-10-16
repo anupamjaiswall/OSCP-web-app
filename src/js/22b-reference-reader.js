@@ -48,8 +48,10 @@
        group=document.createElement('details');group.className='refReaderGroup';group.open=count<3;
        const sum=document.createElement('summary');sum.textContent=(node.textContent||'Section').trim().slice(0,88);group.append(sum);
        toc.append(group);allGroups.push(group);count++;
-       const anchor=node.id;entries.push({anchor,group,top:true,text:sum.textContent.toLowerCase()});
-       sum.addEventListener('click',()=>activeLink(anchor));
+       const anchor=node.id;
+       const headingLink=makeButton(anchor,'↳ Open section','refReaderHeadingLink');
+       group.append(headingLink);
+       entries.push({anchor,group,button:headingLink,top:true,text:sum.textContent.toLowerCase()});
      }else if(node.matches('details[id]')){
        if(!group){
          group=document.createElement('details');group.className='refReaderGroup';group.open=true;
