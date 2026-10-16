@@ -1,0 +1,50 @@
+/* V34.62 fullscreen reference: original app sidebar remains untouched outside Reader mode. */
+#referenceView .refReaderToolbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:0 0 14px}
+#referenceView .refReaderToolbar h1{margin:0;font-size:24px}
+#referenceView .refReaderToolbar .row{display:flex;gap:7px;flex-wrap:wrap}
+#referenceView .refReaderCanvas{display:grid;grid-template-columns:260px minmax(0,1fr);align-items:start;gap:14px}
+#referenceView .refReaderTocWrap{position:sticky;top:68px;max-height:calc(100vh - 82px);overflow:auto;overscroll-behavior:contain;background:#111823;border:1px solid #354258;border-radius:10px;padding:10px;min-width:0}
+#referenceView .refReaderTocHeader{font-weight:750;display:flex;justify-content:space-between;align-items:center;gap:4px;padding:2px 2px 9px}
+#referenceView .refReaderTocHeader span{font-size:12px;color:var(--muted)}
+#referenceView #refReaderFilter{width:100%;min-width:0;padding:8px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:7px}
+#referenceView .refReaderQuick{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:8px 0}
+#referenceView .refReaderQuick .btn{white-space:normal;padding:7px 3px;font-size:11px}
+#referenceView #refReaderToc{margin:5px 0 12px}
+#referenceView .refReaderGroup{margin:4px 0;border-top:1px solid #263244}
+#referenceView .refReaderGroup>summary{font-size:12px;line-height:1.35;cursor:pointer;color:#dcecff;font-weight:700;padding:9px 4px;overflow-wrap:anywhere}
+#referenceView .refReaderLink{display:block;width:100%;text-align:left;appearance:none;border:0;border-radius:6px;background:transparent;padding:7px 10px;font-size:12px;line-height:1.35;color:#c1cad7;cursor:pointer;overflow-wrap:anywhere}
+#referenceView .refReaderLink:hover,#referenceView .refReaderLink:focus-visible{color:white;background:#243a4a;outline:1px solid #486279}
+#referenceView .refReaderLink.active{background:#143c3b;color:#a5efdd;border-left:3px solid #59d5bd;padding-left:7px}
+#referenceView .refReaderLink[hidden],#referenceView .refReaderGroup[hidden]{display:none}
+#referenceView .refReaderArticleCol{min-width:0}
+#referenceView .refReaderArticleCol .reference{max-width:none;margin:0}
+#referenceView #refNavigator{max-width:none}
+#referenceView .refReaderTocToggle{display:none}
+#referenceView .refReaderReaderHint{font-size:12px;color:var(--muted);margin-top:4px}
+body.referenceReaderMode .top,body.referenceReaderMode .side{display:none!important}
+body.referenceReaderMode .layout,body.referenceReaderMode.examFocus .layout{display:block!important;min-height:100vh!important}
+body.referenceReaderMode .main,body.referenceReaderMode.examFocus .main{width:100%!important;max-width:none!important;padding:12px!important;margin:0!important}
+body.referenceReaderMode #referenceView{width:100%;max-width:none}
+body.referenceReaderMode #referenceView #v20ReferenceDelta{display:none}
+body.referenceReaderMode #referenceView .refReaderTocWrap{top:12px;max-height:calc(100vh - 24px)}
+body.referenceReaderMode #referenceView #refNavigator{top:0}
+body.referenceReaderMode #referenceView .refReaderCanvas{grid-template-columns:275px minmax(0,1fr)}
+body.referenceReaderMode #referenceView .refReaderReaderHint{display:none}
+body.referenceReaderMode #focusExitBtn{display:none!important}
+#referenceView:fullscreen{background:#0b0e14;padding:12px;overflow:auto}
+@media(max-width:1050px){
+ #referenceView .refReaderCanvas,body.referenceReaderMode #referenceView .refReaderCanvas{grid-template-columns:224px minmax(0,1fr)}
+ #referenceView .refReaderTocWrap{padding:7px}
+}
+@media(max-width:900px){
+ #referenceView .refReaderCanvas,body.referenceReaderMode #referenceView .refReaderCanvas{display:block}
+ #referenceView .refReaderTocToggle{display:inline-flex}
+ #referenceView .refReaderTocWrap{display:none;position:fixed;top:65px;bottom:10px;left:10px;width:min(320px,calc(100vw - 20px));height:auto;max-height:none;z-index:75;box-shadow:0 12px 36px #000b}
+ #referenceView.refTocOpen .refReaderTocWrap{display:block}
+ body.referenceReaderMode #referenceView .refReaderTocWrap{top:64px;max-height:none}
+ #referenceView .refReaderArticleCol .reference{padding:14px}
+}
+@media print{
+ #referenceView .refReaderTocWrap,#referenceView .refReaderToolbar{display:none!important}
+ #referenceView .refReaderCanvas{display:block}
+}
