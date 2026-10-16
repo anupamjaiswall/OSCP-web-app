@@ -116,6 +116,28 @@ test('tmux copy workflow documented without creating duplicate nmap output direc
  ok(ref.includes('mkdir -p scans/nmap')&&ref.includes('mkdir -p "$dir"/{loot,exploits}'),'nmap workflow owns the output path');
 });
 test('Linux winning-steps desk is target-aware and complete',()=>{const src=read('src/js/05-linux-strategy.js'),tpl=read('src/index.template.html');ok(tpl.includes('id="linuxStrategyView"'));ok(tpl.includes('data-view="linuxStrategyView">WIN Linux'));ok(src.includes("const LINUX_STRATEGY_STEPS=["));ok(src.includes("LINUX_STRATEGY_STEPS.length===12"));for(const id of ['baseline','credentials','sudo','suidcaps','scheduled','processes','writable','platform','reenum','kernel'])ok(src.includes("id:'"+id+"'"),id);ok(src.includes("STORE+'linuxStrategy'"));ok(src.includes('o.linuxStrategyState=linuxStrategyState'));});
+test('fullscreen reference reader has accessible offline left navigation',()=>{
+ const t=read('src/index.template.html'),js=read('src/js/22b-reference-reader.js'),css=read('src/styles/14-reference-reader.css');
+ for(const id of ['refReaderFullscreen','refReaderExit','refReaderTocWrap','refReaderToc','refReaderFilter','refReaderPre','refReaderDuring'])
+  ok(t.includes('id="'+id+'"'),'missing reader control: '+id);
+ ok(t.includes('@inject:style:14-reference-reader.css')&&t.includes('@inject:script:22b-reference-reader.js'),'reader source included in build');
+ ok(js.includes("document.addEventListener('oscp-reference-ready',build)"),'lazy hydration event must populate TOC');
+ ok(js.includes("root.querySelectorAll('h2[id], details[id]')"),'TOC generated from existing reference headings');
+ ok(js.includes("typeof window.openRef==='function'"),'TOC deep links use existing openRef');
+ ok(js.includes('document.documentElement.requestFullscreen()')&&css.includes('body.referenceReaderMode .top'),'native fullscreen plus CSS fallback');
+ ok(css.includes('@media(max-width:900px)')&&css.includes('#referenceView.refTocOpen .refReaderTocWrap'),'mobile sidebar remains reachable');
+ ok(!/\.innerHTML\s*=/.test(js),'reader must not increase DOM innerHTML safety ratchet');
+});
+test('pre-engagement tmux setup is separate from during-exam tmux runbook',()=>{
+ const ref=read('src/content/02-enumeration.html');
+ const pre=ref.slice(ref.indexOf('id="ref-1-3-tmux-setup-never-work-without-it"'),ref.indexOf('</details>',ref.indexOf('id="ref-1-3-tmux-setup-never-work-without-it"')));
+ const during=ref.slice(ref.indexOf('id="ref-exam-tmux-operator-runbook"'),ref.indexOf('</details>',ref.indexOf('id="ref-exam-tmux-operator-runbook"')));
+ ok(pre.includes('~/.tmux.conf')&&pre.includes('tmux source-file ~/.tmux.conf'),'pre-exam install/verify retained');
+ ok(!pre.includes('Target sessions, panes, logging and review'),'daily runbook moved out of setup');
+ ok(during.includes('tmux copy / selection / paste')&&during.includes('target.sh 10.10.10.5'),'during-exam operations and copy keys');
+ ok(ref.includes('<h2 id="ref-exam-operations">DURING EXAM'),'different main section with stable anchor');
+ ok(ref.includes('ref-exam-tmux-operator-runbook')&&ref.includes('ref-1-3-tmux-setup-never-work-without-it'),'both mutually linked');
+});
 test('browser-safe navigation shortcuts do not conflict with feature handlers',()=>{
  const src=read('src/js/07-navigation-reliability.js'),tpl=read('src/index.template.html');
  ok(src.includes("'l':'linuxStrategyView','w':'windowsStrategyView','a':'adStrategyView'"),'G workflow destinations');
