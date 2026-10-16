@@ -108,12 +108,16 @@ bind K resize-pane -U 5
 bind L resize-pane -R 5
 bind X kill-pane
 bind r source-file ~/.tmux.conf \; display-message 'tmux config reloaded'
+bind [ copy-mode
+bind ] paste-buffer
 bind S capture-pane -p -S - \; run-shell 'tmux capture-pane -p -S - &gt; "$HOME/oscp/logs/pane-$(date +%F_%H%M%S).txt"' \; display-message 'Scrollback saved'
 
-# Vi copy mode: Ctrl+A [, v to select, y to copy to X11 clipboard.
+# Always-working copy: y stores selection in tmux buffer. Ctrl+A ] pastes it.
+# Desktop copy when a Kali X11 display is available: Shift+Y (capital Y).
 setw -g mode-keys vi
 bind -T copy-mode-vi v send -X begin-selection
-bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'xclip -selection clipboard -in'
+bind -T copy-mode-vi y send -X copy-selection-and-cancel
+bind -T copy-mode-vi Y send -X copy-pipe-and-cancel 'xclip -selection clipboard -in'
 
 # Automatically start pipe-pane on new sessions/windows/splits.
 set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
@@ -128,15 +132,25 @@ set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 run '~/.tmux/plugins/tpm/tpm'</code></pre>
 <h3>tmux copy / selection / paste — Vim keybindings</h3>
-<p><strong>Default prefix in this configuration:</strong> press <kbd>Ctrl+A</kbd>, <em>release</em>, then the next key; do not press <kbd>Ctrl+B</kbd>. The <code>xclip</code> command sends copies to the Kali X11 clipboard when <code>DISPLAY</code> is available.</p>
+<p><strong>Default prefix:</strong> press <kbd>Ctrl+A</kbd>, <em>release</em>, then the next key (not <kbd>Ctrl+B</kbd>). <b>Reload this file first:</b> in a running tmux terminal run <code>tmux source-file ~/.tmux.conf</code>. Existing tmux sessions otherwise keep old bindings.</p>
+<h4>First confirm the bindings are active (run inside tmux)</h4>
+<pre class="ref-code"><code class="language-bash">echo "TMUX=$TMUX"
+tmux source-file ~/.tmux.conf
+tmux show-options -g prefix
+tmux show-options -gw mode-keys
+tmux list-keys -T prefix | grep -E 'copy-mode|paste-buffer'
+tmux list-keys -T copy-mode-vi | grep -E 'begin-selection|copy-selection|copy-pipe'
+# Expected: prefix C-a and mode-keys vi
+# tmux list-keys -T copy-mode-vi should show v, y, and Y.</code></pre>
+<p>If <code>$TMUX</code> is empty, you are not inside a tmux client; start a session with <code>tmux new -s oscp</code>. If the source command reports an error, fix that configuration line before testing. If <kbd>Ctrl+A</kbd> moves your cursor to the start of a Bash command, the tmux prefix has not been activated in that terminal.</p>
 <ol>
 <li><strong>Enter copy mode:</strong> <kbd>Ctrl+A</kbd>, then <kbd>[</kbd>. Use arrow keys or <kbd>h</kbd>/<kbd>j</kbd>/<kbd>k</kbd>/<kbd>l</kbd> to move through output.</li>
 <li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
-<li><strong>Copy:</strong> press <kbd>y</kbd>. The configured <code>copy-pipe-and-cancel</code> copies to the tmux buffer and, if X11 clipboard access works, the desktop clipboard.</li>
-<li><strong>Paste:</strong> <kbd>Ctrl+Shift+V</kbd> in a terminal/application supporting that shortcut. Inside tmux, <kbd>Ctrl+A</kbd>, then <kbd>]</kbd> pastes from tmux's own buffer even if <code>xclip</code> cannot access a desktop clipboard.</li>
+<li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
+<li><strong>Paste inside tmux:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. If you need the <em>desktop</em> clipboard instead, repeat the selection and press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>), then <kbd>Ctrl+Shift+V</kbd> in a compatible desktop terminal. Desktop copy requires an accessible X11 <code>DISPLAY</code> and installed <code>xclip</code>.</li>
 <li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
 </ol>
-<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, normal dragging can be intercepted by tmux. Use the keyboard method above; in many terminal emulators hold <kbd>Shift</kbd> while dragging for native terminal selection. <strong>Clipboard troubleshooting:</strong> run <code>echo "$DISPLAY"</code>, <code>command -v xclip</code> and <code>printf 'tmux-copy-test' | xclip -selection clipboard</code> from a Kali desktop terminal. On a remote SSH-only session, <code>xclip</code> may not be able to reach the local clipboard; use tmux's own paste buffer or your terminal's supported selection mechanism.</p>
+<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, tmux can intercept dragging; use keyboard selection or hold <kbd>Shift</kbd> while dragging where your terminal supports native selection. <strong>Desktop clipboard troubleshooting:</strong> on Kali check <code>echo "$DISPLAY"</code> and <code>command -v xclip</code>, then test <code>printf 'tmux-copy-test' | xclip -selection clipboard</code>. Remote SSH/Wayland-only terminals may not have X11 clipboard access. Use lowercase <kbd>y</kbd> followed by <kbd>Ctrl+A</kbd>, <kbd>]</kbd> for a dependable terminal-only method.</p>
 <p><strong>Long output:</strong> <kbd>Ctrl+A</kbd> then <kbd>S</kbd> saves pane scrollback in <code>~/oscp/logs/</code> using this configuration. Pane logs may contain credentials, so keep them on approved local storage. This is different from selecting and copying text.</p>
 <h3>~/bin/target.sh — one target per session</h3>
 <pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
