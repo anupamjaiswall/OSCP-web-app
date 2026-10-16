@@ -131,27 +131,6 @@ set-hook -g after-split-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 run '~/.tmux/plugins/tpm/tpm'</code></pre>
-<h3>tmux copy / selection / paste — Vim keybindings</h3>
-<p><strong>Default prefix:</strong> press <kbd>Ctrl+A</kbd>, <em>release</em>, then the next key (not <kbd>Ctrl+B</kbd>). <b>Reload this file first:</b> in a running tmux terminal run <code>tmux source-file ~/.tmux.conf</code>. Existing tmux sessions otherwise keep old bindings.</p>
-<h4>First confirm the bindings are active (run inside tmux)</h4>
-<pre class="ref-code"><code class="language-bash">echo "TMUX=$TMUX"
-tmux source-file ~/.tmux.conf
-tmux show-options -g prefix
-tmux show-options -gw mode-keys
-tmux list-keys -T prefix | grep -E 'copy-mode|paste-buffer'
-tmux list-keys -T copy-mode-vi | grep -E 'begin-selection|copy-selection|copy-pipe'
-# Expected: prefix C-a and mode-keys vi
-# tmux list-keys -T copy-mode-vi should show v, y, and Y.</code></pre>
-<p>If <code>$TMUX</code> is empty, you are not inside a tmux client; start a session with <code>tmux new -s oscp</code>. If the source command reports an error, fix that configuration line before testing. If <kbd>Ctrl+A</kbd> moves your cursor to the start of a Bash command, the tmux prefix has not been activated in that terminal.</p>
-<ol>
-<li><strong>Enter copy mode:</strong> <kbd>Ctrl+A</kbd>, then <kbd>[</kbd>. Use arrow keys or <kbd>h</kbd>/<kbd>j</kbd>/<kbd>k</kbd>/<kbd>l</kbd> to move through output.</li>
-<li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
-<li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
-<li><strong>Paste inside tmux:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. If you need the <em>desktop</em> clipboard instead, repeat the selection and press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>), then <kbd>Ctrl+Shift+V</kbd> in a compatible desktop terminal. Desktop copy requires an accessible X11 <code>DISPLAY</code> and installed <code>xclip</code>.</li>
-<li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
-</ol>
-<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, tmux can intercept dragging; use keyboard selection or hold <kbd>Shift</kbd> while dragging where your terminal supports native selection. <strong>Desktop clipboard troubleshooting:</strong> on Kali check <code>echo "$DISPLAY"</code> and <code>command -v xclip</code>, then test <code>printf 'tmux-copy-test' | xclip -selection clipboard</code>. Remote SSH/Wayland-only terminals may not have X11 clipboard access. Use lowercase <kbd>y</kbd> followed by <kbd>Ctrl+A</kbd>, <kbd>]</kbd> for a dependable terminal-only method.</p>
-<p><strong>Long output:</strong> <kbd>Ctrl+A</kbd> then <kbd>S</kbd> saves pane scrollback in <code>~/oscp/logs/</code> using this configuration. Pane logs may contain credentials, so keep them on approved local storage. This is different from selecting and copying text.</p>
 <h3>~/bin/target.sh — one target per session</h3>
 <pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
 set -euo pipefail
@@ -192,29 +171,17 @@ while IFS= read -r -d '' f; do
   ansi2txt &lt; "$f" &gt; "$dst/$rel"
 done
 echo "Clean logs: $dst"</code></pre>
-<h3>Daily use and validation</h3>
-<pre class="ref-code"><code class="language-bash">target.sh 10.10.10.5  # target session, folder ~/oscp/10.10.10.5
-target.sh 10.10.10.6
-target.sh AD_set      # no $IP; set DC/WS1/WS2 separately
-tmux set-environment -t AD_set DC 10.10.10.100
-tmux ls
-tmux show-hooks -g
-tmux list-panes -a -F '#{session_name} #{window_name} #{pane_id} #{pane_pipe}'
-ls -lt ~/oscp/logs/$(date +%F)/ | head
-# Test in EACH new pane: echo "logging-test-$(date +%s)"
-# Ctrl+A | or - = split; Ctrl+A h/j/k/l = move; H/J/K/L = resize
-# Ctrl+A z = zoom; [ = scroll; S = save scrollback; c = new window
-# Ctrl+A s = sessions; d = detach; r = reload; X = kill dead pane
-# Ctrl+A Ctrl+s = save layout; Ctrl+A Ctrl+r = restore layout (plugin)
-# IMPORTANT: reload does not auto-start logging on already-open panes:
-tmux list-panes -a -F '#{pane_id}' | while read -r p; do ~/bin/tmux-start-log.sh "$p"; done
-# Logs are plaintext, may contain secrets; preserve locally.
-# For tool output: follow section 3.1: mkdir -p scans/nmap ; nmap -sCV -oA scans/nmap/full "$IP"
-~/bin/clean-logs.sh
-grep -rn -B3 -A15 'sudo -l' ~/oscp/logs-clean/
-# Local backup; do NOT upload credentials/proofs to cloud:
-cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
-<p><strong>Notes:</strong> New windows and panes are logged independently. Pane numbering can change; the unique pane ID in the filename prevents collisions. Commands launched without shell echo, invisible keystrokes, and GUI activity are not necessarily captured. Use tool-native <code>-oA</code> outputs for critical evidence. Keep all sensitive evidence on approved local storage.</p>
+<h3>Validate tmux BEFORE exam day</h3>
+<pre class="ref-code"><code class="language-bash">echo "TMUX=$TMUX"
+tmux source-file ~/.tmux.conf
+tmux show-options -g prefix
+tmux show-options -gw mode-keys
+tmux list-keys -T prefix | grep -E 'copy-mode|paste-buffer'
+tmux list-keys -T copy-mode-vi | grep -E 'begin-selection|copy-selection|copy-pipe'
+# Expected: prefix C-a and mode-keys vi
+# tmux list-keys -T copy-mode-vi should show v, y, and Y.</code></pre>
+<p>If <code>$TMUX</code> is empty, you are not inside a tmux client; start a session with <code>tmux new -s oscp</code>. If the source command reports an error, fix that configuration line before testing. If <kbd>Ctrl+A</kbd> moves your cursor to the start of a Bash command, the tmux prefix has not been activated in that terminal.</p>
+<p><b>Setup stops here.</b> Before exam day, install tmux/plugins, create scripts, source <code>~/.tmux.conf</code>, verify copy/paste and logging. During the actual exam, open <a href="#ref-exam-tmux-operator-runbook">During Exam → tmux Runbook</a> for commands and shortcuts without scrolling through the install instructions.</p>
 </details>
 <details id="ref-1-4-wordlists-every-important-path">
 <summary>📚 1.4 Wordlists --- Every Important Path</summary>
@@ -293,6 +260,47 @@ rusthound-ce -h 2&gt;/dev/null | head
 </code></pre>
 </details>
 <hr/>
+<hr/>
+<h2 id="ref-exam-operations">DURING EXAM — Operator Runbooks</h2>
+<details id="ref-exam-tmux-operator-runbook">
+<summary>🖥️ tmux During Exam — launch target, copy/paste, manage panes &amp; logs</summary>
+<p><b>Do not reinstall tmux/plugins or rewrite scripts during the exam.</b> Setup and verification belongs in <a href="#ref-1-3-tmux-setup-never-work-without-it">Pre-Engagement → 1.3 tmux Setup</a>. Use the already-tested <code>target.sh</code> and tmux bindings.</p>
+<h3>Target sessions, panes, logging and review</h3>
+<pre class="ref-code"><code class="language-bash">target.sh 10.10.10.5  # target session, folder ~/oscp/10.10.10.5
+target.sh 10.10.10.6
+target.sh AD_set      # no $IP; set DC/WS1/WS2 separately
+tmux set-environment -t AD_set DC 10.10.10.100
+tmux ls
+tmux show-hooks -g
+tmux list-panes -a -F '#{session_name} #{window_name} #{pane_id} #{pane_pipe}'
+ls -lt ~/oscp/logs/$(date +%F)/ | head
+# Test in EACH new pane: echo "logging-test-$(date +%s)"
+# Ctrl+A | or - = split; Ctrl+A h/j/k/l = move; H/J/K/L = resize
+# Ctrl+A z = zoom; [ = scroll; S = save scrollback; c = new window
+# Ctrl+A s = sessions; d = detach; r = reload; X = kill dead pane
+# Ctrl+A Ctrl+s = save layout; Ctrl+A Ctrl+r = restore layout (plugin)
+# IMPORTANT: reload does not auto-start logging on already-open panes:
+tmux list-panes -a -F '#{pane_id}' | while read -r p; do ~/bin/tmux-start-log.sh "$p"; done
+# Logs are plaintext, may contain secrets; preserve locally.
+# For tool output: follow section 3.1: mkdir -p scans/nmap ; nmap -sCV -oA scans/nmap/full "$IP"
+~/bin/clean-logs.sh
+grep -rn -B3 -A15 'sudo -l' ~/oscp/logs-clean/
+# Local backup; do NOT upload credentials/proofs to cloud:
+cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
+<p><strong>Notes:</strong> New windows and panes are logged independently. Pane numbering can change; the unique pane ID in the filename prevents collisions. Commands launched without shell echo, invisible keystrokes, and GUI activity are not necessarily captured. Use tool-native <code>-oA</code> outputs for critical evidence. Keep all sensitive evidence on approved local storage.</p>
+<h3>tmux copy / selection / paste — Vim keybindings</h3>
+<p><strong>Default prefix:</strong> press <kbd>Ctrl+A</kbd>, <em>release</em>, then the next key (not <kbd>Ctrl+B</kbd>). <b>Reload this file first:</b> in a running tmux terminal run <code>tmux source-file ~/.tmux.conf</code>. Existing tmux sessions otherwise keep old bindings.</p>
+<ol>
+<li><strong>Enter copy mode:</strong> <kbd>Ctrl+A</kbd>, then <kbd>[</kbd>. Use arrow keys or <kbd>h</kbd>/<kbd>j</kbd>/<kbd>k</kbd>/<kbd>l</kbd> to move through output.</li>
+<li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
+<li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
+<li><strong>Paste inside tmux:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. If you need the <em>desktop</em> clipboard instead, repeat the selection and press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>), then <kbd>Ctrl+Shift+V</kbd> in a compatible desktop terminal. Desktop copy requires an accessible X11 <code>DISPLAY</code> and installed <code>xclip</code>.</li>
+<li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
+</ol>
+<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, tmux can intercept dragging; use keyboard selection or hold <kbd>Shift</kbd> while dragging where your terminal supports native selection. <strong>Desktop clipboard troubleshooting:</strong> on Kali check <code>echo "$DISPLAY"</code> and <code>command -v xclip</code>, then test <code>printf 'tmux-copy-test' | xclip -selection clipboard</code>. Remote SSH/Wayland-only terminals may not have X11 clipboard access. Use lowercase <kbd>y</kbd> followed by <kbd>Ctrl+A</kbd>, <kbd>]</kbd> for a dependable terminal-only method.</p>
+<p><strong>Long output:</strong> <kbd>Ctrl+A</kbd> then <kbd>S</kbd> saves pane scrollback in <code>~/oscp/logs/</code> using this configuration. Pane logs may contain credentials, so keep them on approved local storage. This is different from selecting and copying text.</p>
+
+</details>
 <h2 id="ref-2-reconnaissance-host-discovery">2. RECONNAISSANCE &amp; HOST DISCOVERY</h2>
 <details id="ref-2-1-network-sweep-find-live-hosts">
 <summary>🌐 2.1 Network Sweep --- Find Live Hosts</summary>
