@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.61.0 — 2026-10-16
+
+### Keyboard shortcut reliability
+- Fixed the web app's central Alt shortcut routing conflict: Alt+H was routed to Hypothesis before the Active Work panel; Alt+I was routed to Reliability before the Notes Index. Their designated feature handlers now own those keys.
+- Added browser-safe, typing-aware two-key **G then key** navigation with a 2-second expiry: G→L Linux; G→W Windows; G→A AD; G→C Exam Clock; G→T Method Trees; G→B Bank Proof; G→P Palette; G→H Work State; G→I Notes Index; G→N Quick Note, plus other workflow shortcuts.
+- Updated the in-app help dialog with clear directions and removed the duplicate/misleading Alt+Y entry. The existing Alt shortcuts remain best-effort where browsers intercept them.
+- Made tmux Ctrl+A [ and Ctrl+A ] explicit, decoupled lowercase y from X11 clipboard availability and assigned uppercase Y to optional xclip desktop copying. Added source reload and live binding diagnostics in Full Reference.
+- Added unit and browser smoke regression checks for shortcut routing, editing safety, Alt conflicts and tmux configuration.
+
+
 ## V34.60.0 — 2026-10-14
 
 ### Exam clock fix and tmux copy-mode reference
