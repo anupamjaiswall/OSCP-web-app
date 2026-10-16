@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.62.0 — 2026-10-16
+
+### Full-screen reference and separate exam phases
+- Added an immersive **Full screen** toggle to Full Reference with browser fullscreen when available and a CSS-only fallback, a persistent Exit control and responsive layouts.
+- Added a searchable, sticky **left-side reference navigation**, grouped by the actual embedded section headings and loaded after offline reference hydration. Every section uses the existing `openRef` workflow, preserving deep links and search.
+- Added quick links for **Pre-exam tmux setup** and **During-exam tmux operations**, keeping installation/config/scripts before the exam and target sessions/copy/paste/pane/log management in a distinct During Exam reference section.
+- Kept the original pre-exam tmux anchor for existing bookmarks and linked between pre-exam setup and the exam runbook.
+- Added static and headless-browser regressions for reader navigation, fullscreen fallback, mobile/sidebar controls and the separated tmux anchors.
+
+
 ## V34.61.0 — 2026-10-16
 
 ### Keyboard shortcut reliability
