@@ -194,7 +194,14 @@
   const GO_KEYS=Object.freeze({
     '1':'simpleExamView','l':'linuxStrategyView','w':'windowsStrategyView','a':'adStrategyView',
     'c':'clockView','t':'methodTreesView','m':'methodologyView','r':'referenceView',
-    's':'serviceRouterView','b':'workspaceView'
+    's':'serviceRouterView'
+  });
+  const GO_ACTIONS=Object.freeze({
+    'b':()=>window.OSCP_PROOF_BANK?.open?.(),
+    'h':()=>window.OSCP_V26?.openWork?.(),
+    'i':()=>window.OSCP_V27?.openIndex?.('services'),
+    'n':()=>window.OSCP_V25?.note?.(true),
+    'p':()=>window.OSCP_V26?.openPalette?.()
   });
   let goPending=false,goTimer=0;
   function cancelGo(){goPending=false;clearTimeout(goTimer);goTimer=0;}
@@ -216,7 +223,9 @@
     if(!goPending)return;
     cancelGo();
     const v=GO_KEYS[k];
-    if(v){e.preventDefault();e.stopImmediatePropagation();switchView(v);}
+    if(v){e.preventDefault();e.stopImmediatePropagation();switchView(v);return;}
+    const run=GO_ACTIONS[k];
+    if(run){e.preventDefault();e.stopImmediatePropagation();run();}
   },true);
 
   // Initial deep link / last-view restoration without adding a fake history entry.
@@ -236,7 +245,7 @@
   else setTimeout(()=>window.scrollTo({top:initialY,behavior:'auto'}),20);
 
   // Small testable surface for the built-in self-test and manual debugging.
-  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},goKeys:{...GO_KEYS},setAdvancedMode,expandReferencePath,back:()=>history.back(),forward:()=>history.forward()};
+  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},goKeys:{...GO_KEYS},goActions:Object.keys(GO_ACTIONS),setAdvancedMode,expandReferencePath,back:()=>history.back(),forward:()=>history.forward()};
   try{
     if(typeof V16_SELF_TESTS!=='undefined'){
       V16_SELF_TESTS.push(
