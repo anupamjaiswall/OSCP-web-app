@@ -182,20 +182,41 @@
 
   // One capture-phase router owns exam shortcuts; inherited duplicate listeners were removed.
   const SHORTCUTS={
-    'x':'operatorView','c':'coverageView','d':'debtView','h':'hypothesisView','r':'correlationView',
+    'x':'operatorView','c':'coverageView','d':'debtView','r':'correlationView',
     'a':'auditView','e':'vaultView','s':'sanityView','t':'regressionView','f':'freshnessView','k':'clockView',
     'v':'revertView','u':'submissionView','p':'v16HighSignalView','l':'linuxStrategyView','w':'windowsStrategyView','q':'serviceRouterView','y':'methodTreesView',
-    'i':'v15ReliabilityView','g':'guardView','j':'journalView','o':'analyzerView',
+    'g':'guardView','j':'journalView','o':'analyzerView',
     '1':'simpleExamView','2':'workspaceView','3':'credentialsView','4':'reportsView','5':'referenceView','6':'toolArsenalView','m':'methodologyView',
     '7':'intakeView','8':'boardView','9':'commandsView'
   };
+  // Alt shortcuts are best-effort: browsers/OS can intercept them before JS sees them.
+  // Reliable in-app alternative: press G, release, then a destination key within 2 seconds.
+  const GO_KEYS=Object.freeze({
+    '1':'simpleExamView','l':'linuxStrategyView','w':'windowsStrategyView','a':'adStrategyView',
+    'c':'clockView','t':'methodTreesView','m':'methodologyView','r':'referenceView',
+    's':'serviceRouterView','b':'workspaceView'
+  });
+  let goPending=false,goTimer=0;
+  function cancelGo(){goPending=false;clearTimeout(goTimer);goTimer=0;}
   document.addEventListener('keydown',e=>{
-    if(!e.altKey||e.ctrlKey||e.metaKey)return;
     const k=String(e.key||'').toLowerCase();
-    if(k==='arrowleft'){e.preventDefault();e.stopImmediatePropagation();history.back();return;}
-    if(k==='arrowright'){e.preventDefault();e.stopImmediatePropagation();history.forward();return;}
-    const v=SHORTCUTS[k];if(!v)return;
-    e.preventDefault();e.stopImmediatePropagation();switchView(v);
+    if(e.defaultPrevented||e.ctrlKey||e.metaKey||e.isComposing)return;
+    if(e.altKey){
+      // Do not capture Alt+H or Alt+I; the existing work-state and index handlers own them.
+      if(k==='arrowleft'||k==='arrowright'){e.preventDefault();e.stopImmediatePropagation();k==='arrowleft'?history.back():history.forward();return;}
+      const v=SHORTCUTS[k];if(!v)return;
+      e.preventDefault();e.stopImmediatePropagation();switchView(v);return;
+    }
+    // Never intercept normal typing, modal keyboard handling, or editable controls.
+    const editing=e.target?.closest?.('input,textarea,select,[contenteditable], [role="textbox"]');
+    const modal=document.querySelector('.v26Backdrop.open, #examHelpBackdrop.open, #examBankModal.open, #quickNoteBackdrop.open, #examIndexBackdrop.open');
+    if(editing||modal||e.repeat||e.shiftKey){cancelGo();return;}
+    if(k==='escape'){cancelGo();return;}
+    if(k==='g'){cancelGo();goPending=true;goTimer=setTimeout(cancelGo,2000);return;}
+    if(!goPending)return;
+    cancelGo();
+    const v=GO_KEYS[k];
+    if(v){e.preventDefault();e.stopImmediatePropagation();switchView(v);}
   },true);
 
   // Initial deep link / last-view restoration without adding a fake history entry.
@@ -215,14 +236,14 @@
   else setTimeout(()=>window.scrollTo({top:initialY,behavior:'auto'}),20);
 
   // Small testable surface for the built-in self-test and manual debugging.
-  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},setAdvancedMode,expandReferencePath,back:()=>history.back(),forward:()=>history.forward()};
+  window.OSCP_NAV={activeView,isView,hashParts,shortcuts:{...SHORTCUTS},goKeys:{...GO_KEYS},setAdvancedMode,expandReferencePath,back:()=>history.back(),forward:()=>history.forward()};
   try{
     if(typeof V16_SELF_TESTS!=='undefined'){
       V16_SELF_TESTS.push(
         ['Browser history navigation layer',()=>[!!window.OSCP_NAV&&typeof history.pushState==='function','history+OSCP_NAV']],
         ['Navigation deep-link parser',()=>[OSCP_NAV.isView('linuxStrategyView')&&OSCP_NAV.isView('windowsStrategyView')&&OSCP_NAV.isView('referenceView'),'views resolvable']],
         ['Reference jumps expand collapsed ancestors',()=>{const outer=document.createElement('details'),inner=document.createElement('details'),leaf=document.createElement('div');inner.appendChild(leaf);outer.appendChild(inner);document.body.appendChild(outer);OSCP_NAV.expandReferencePath(leaf);const ok=outer.open&&inner.open;outer.remove();return[ok,'nested details opened']}],
-        ['Shortcut conflicts removed',()=>[OSCP_NAV.shortcuts.c==='coverageView'&&OSCP_NAV.shortcuts.h==='hypothesisView'&&OSCP_NAV.shortcuts.e==='vaultView'&&OSCP_NAV.shortcuts.k==='clockView'&&OSCP_NAV.shortcuts.p==='v16HighSignalView','C/H/E/K/P unique']],
+        ['Shortcut conflicts removed',()=>[!('h' in OSCP_NAV.shortcuts)&&!('i' in OSCP_NAV.shortcuts)&&OSCP_NAV.goKeys.a==='adStrategyView'&&OSCP_NAV.goKeys.l==='linuxStrategyView'&&OSCP_NAV.shortcuts.k==='clockView','H/I reserved for feature handlers; G shortcuts available']],
         ['Simple exam mode available',()=>[OSCP_NAV.isView('simpleExamView')&&OSCP_NAV.isView('methodologyView')&&typeof OSCP_NAV.setAdvancedMode==='function','simple+method+toggle']]
       );
     }
