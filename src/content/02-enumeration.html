@@ -1,30 +1,31 @@
-<h2 id="ref-0-v5-navigation-note">0. LEGACY NAVIGATION NOTE</h2>
-<p>The former duplicated Rapid-Response block was removed in an earlier build. The anchor is retained for old bookmarks.</p>
-<p>Use:</p>
-<pre class="ref-code"><code class="language-text">Layer 1 / Exam Cockpit
-    ↓
-search tag
-    ↓
-Layer 2 / full reference
-</code></pre>
-<p>Key global tags:</p>
-<pre class="ref-code"><code class="language-text">[TRUST]
-[FALSE-POSITIVE]
-[V5:TRUST]                 # legacy alias retained
-[V5:FALSE-POSITIVE]        # legacy alias retained
-[CREDS:FANOUT]
-[LINUX:TREE]
-[WIN:TREE]
-[AD:FLOW]
-[PIVOT:FLOW]
-[EXPLOIT:GATE]
-[EVIDENCE:PACKET]
-[STUCK:RESET]
-</code></pre>
-<hr/>
+<h2 id="ref-0-v5-navigation-note">0. START HERE — one machine at a time</h2>
+<div class="refExamQuickstart">
+<h3>60-second multi-machine workflow</h3>
+<p><strong>One target = one tmux session + one folder.</strong> Never use a persistent/global <code>export IP</code> for the entire OSCP exam. Use <code>~/bin/target.sh</code> (installed and tested before the exam) to set per-session variables.</p>
+<pre class="ref-code"><code class="language-bash"># Run ONE command, then detach (Ctrl+A, d) or use another terminal
+~/bin/target.sh 10.10.10.5 --lport 4444
+~/bin/target.sh 10.10.10.6 --lport 4445
+
+# Active Directory: separate sessions for each in-scope host
+~/bin/target.sh DC01 --ip 10.10.10.100 --domain corp.local --dc 10.10.10.100 --lport 4446
+~/bin/target.sh WS01 --ip 10.10.10.101 --domain corp.local --dc 10.10.10.100 --lport 4447
+~/bin/target.sh WS02 --ip 10.10.10.102 --domain corp.local --dc 10.10.10.100 --lport 4448
+
+# Optional NOTES session, NOT a machine to scan:
+~/bin/target.sh AD_set --domain corp.local --dc 10.10.10.100
+
+# In the target pane: check before EVERY scan or listener
+printf 'TARGET=%s IP=%s LHOST=%s LPORT=%s DOMAIN=%s DC=%s\n' \
+ "$TARGET" "$IP" "$LHOST" "$LPORT" "$DOMAIN" "$DC"
+pwd
+test -n "$IP" &amp;&amp; mkdir -p scans/nmap &amp;&amp; sudo nmap -Pn -n -p- --open -oA scans/nmap/tcp-all "$IP"</code></pre>
+<p><strong>Why:</strong> working files stay under <code>~/oscp/&lt;target&gt;/</code>; <code>LHOST</code> comes from your local <code>tun0</code> when the session starts, and simultaneous listeners need unique <code>LPORT</code>s. The <code>AD_set</code> session deliberately has no <code>IP</code>. Use the real assigned IPs, not the examples above.</p>
+<p><strong>Session switching:</strong> <kbd>Ctrl+A</kbd>, then <kbd>s</kbd> (tmux session picker). Re-running <code>target.sh</code> for an existing session <em>reattaches</em> without replacing its variables. <code>tmux set-environment</code> affects <em>future</em> processes, not open shells; avoid changing target IPs in place.</p>
+<div class="quickLinks"><a href="#ref-1-3-tmux-setup-never-work-without-it">Pre-exam: install scripts</a><a href="#ref-exam-tmux-operator-runbook">During exam: tmux + logs</a><a href="#ref-3-1-nmap-workflow-fast-default-adaptive-rate">Nmap workflow</a><a href="#ref-4-5-http-https-ports-80-443-8080-8443-8000-8888">HTTP / Nikto</a></div>
+</div>
 <h2 id="ref-1-pre-engagement-setup">1. PRE-ENGAGEMENT SETUP</h2>
 <details id="ref-1-1-environment-variables">
-<summary>⚙️ 1.1 Pre-exam environment checks (not a global target IP)</summary>
+<summary>⚙️ 1.1 Target variables — no global IP</summary>
 <p><b>Multiple OSCP machines:</b> do <b>not</b> put <code>export IP=10.10.10.x</code> into <code>~/.bashrc</code>, <code>~/.zshrc</code> or a shared terminal. Every machine must have its own IP, evidence and scan path. The <a href="#ref-1-3-tmux-setup-never-work-without-it">tmux target.sh setup</a> defines environment variables separately per session; the <a href="#ref-exam-tmux-operator-runbook">During Exam runbook</a> shows launching several sessions.</p>
 <pre class="ref-code"><code class="language-bash"># Verify BEFORE exam day: commands and display interfaces
 command -v tmux nmap awk sed
@@ -306,10 +307,11 @@ rusthound-ce -h 2&gt;/dev/null | head
 <hr/>
 <h2 id="ref-exam-operations">DURING EXAM — Operator Runbooks</h2>
 <details id="ref-exam-tmux-operator-runbook">
-<summary>🖥️ tmux During Exam — launch target, copy/paste, manage panes &amp; logs</summary>
+<summary>🖥️ During exam: target sessions + logs (quick reference)</summary>
 <p><b>Do not reinstall tmux/plugins or rewrite scripts during the exam.</b> Setup and verification belongs in <a href="#ref-1-3-tmux-setup-never-work-without-it">Pre-Engagement → 1.3 tmux Setup</a>. Use the already-tested <code>target.sh</code> and tmux bindings.</p>
 <h3>Multi-machine exam desk — launch one tmux session per target</h3>
-<p><b>Example IPs below are placeholders:</b> substitute only the machines and domain actually assigned in your control panel. <code>~/bin/target.sh</code> does not scan or attempt to connect; it only creates separate working sessions.</p>
+<p><b>Quick path first:</b> use <a href="#ref-0-v5-navigation-note">Start Here</a> for the minimum commands. The following contains optional session-management and logging details. IPs shown are examples from a fictional lab, not exam assignments. <code>target.sh</code> only sets up the workspace: it does not scan or connect to a target.</p>
+<p><b>Important:</b> each <code>target.sh</code> call attaches/switches to a session. Detach with <kbd>Ctrl+A</kbd>, then <kbd>d</kbd>, or use a second terminal <em>before launching the next session</em>; do not paste the entire sequence into a single attached shell.</p>
 <pre class="ref-code"><code class="language-bash"># Standalone machines: different target/IP, working directory and listener port
 ~/bin/target.sh 10.10.10.5 --lport 4444
 ~/bin/target.sh 10.10.10.6 --lport 4445
@@ -338,8 +340,9 @@ printf 'target=%s ip=%s domain=%s dc=%s lhost=%s lport=%s\n' \
 pwd
 # Expected for WS01: TARGET=WS01 IP=10.10.10.101; pwd = ~/oscp/WS01
 # Only run Section 3.1 Nmap commands after IP and pwd are verified.
-# LPORT is optional: choose unique ports when simultaneous listeners are needed.
-# LHOST is sampled from tun0 at creation. If VPN changes, update each active pane.</code></pre>
+# LPORT is optional: specify unique ports for simultaneous listeners.
+# LHOST is sampled from tun0 at creation. If VPN changes, update each active pane.
+# To check another host, SWITCH SESSION first; never globally overwrite IP.</code></pre>
 <p><b>Crucial distinction:</b> <code>tmux set-environment -t ...</code> updates the session environment for <em>new</em> processes, not shells already running. Changing <code>DOMAIN</code>, <code>DC</code> or <code>IP</code> there does not refresh open panes. Use the correct values when launching each target or explicitly <code>export</code> the correction inside every affected live shell.</p>
 <h3>Manage panes, verify log capture and save evidence</h3>
 <pre class="ref-code"><code class="language-bash">tmux ls
