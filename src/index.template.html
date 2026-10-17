@@ -36,6 +36,7 @@
 <style id="v34RuntimeDiagnosticsStyles">/* @inject:style:13-v34-runtime-diagnostics.css */</style>
 <style id="v33ExamIntegrationStyles">/* @inject:style:13-v33-exam-integration.css */</style>
 <style id="referenceReaderStyles">/* @inject:style:14-reference-reader.css */</style>
+<style id="comfortableThemeStyles">/* @inject:style:15-comfort.css */</style>
 </head>
 <body>
 <script>window.__OSCP_PARSE_STAGE__='body-start';</script>
@@ -147,7 +148,7 @@ Return trigger:"></textarea>
   <button class="btn good" id="examBankBtn" type="button" title="Score-safe proof banking (Alt+B)" aria-haspopup="dialog">✓ BANK</button>
   <button class="btn" id="readabilityBtn" type="button" title="Reading controls (Alt+Z toggles Focus)" aria-haspopup="dialog" aria-expanded="false">Aa Read</button>
   <button class="btn" id="examHelpBtn" type="button" title="Exam navigation help (?)" aria-haspopup="dialog">?</button>
-  <button class="btn" id="themeBtn" title="Toggle reference theme">◐</button>
+  <button class="btn" id="themeBtn" title="Switch between soft-paper and dusk reference">◐</button>
 </div>
 <div class="layout">
 <nav class="side" id="nav">
@@ -1070,7 +1071,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  <aside class="refReaderTocWrap" id="refReaderTocWrap" aria-label="Full reference left navigation">
   <div class="refReaderTocHeader">Reference index <span id="refReaderCount">Loading…</span></div>
   <div class="row"><input id="refReaderFilter" type="search" autocomplete="off" aria-label="Filter reference sections" placeholder="Filter sections: tmux, AD, nmap…" style="flex:1"><button class="btn" id="refReaderClear" type="button" aria-label="Clear index filter">×</button></div>
-  <div class="refReaderQuick"><button class="btn" id="refReaderPre" type="button">Pre-exam tmux</button><button class="btn" id="refReaderDuring" type="button">During-exam tmux</button></div>
+  <div class="refReaderQuick"><button class="btn" id="refReaderStart" type="button">Start here</button><button class="btn" id="refReaderPre" type="button">Setup</button><button class="btn" id="refReaderDuring" type="button">During exam</button></div>
   <nav id="refReaderToc" aria-label="Reference section tree"><span class="tiny">The offline reference index loads automatically.</span></nav>
   <div class="tiny">Select a heading to jump directly. The main app navigation remains unchanged.</div>
  </aside>
