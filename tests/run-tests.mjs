@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import {fileURLToPath} from 'node:url';
+import os from 'node:os';
+import {spawnSync} from 'node:child_process';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
@@ -127,6 +129,43 @@ test('fullscreen reference reader has accessible offline left navigation',()=>{
  ok(js.includes('document.documentElement.requestFullscreen()')&&css.includes('body.referenceReaderMode .top'),'native fullscreen plus CSS fallback');
  ok(css.includes('@media(max-width:900px)')&&css.includes('#referenceView.refTocOpen .refReaderTocWrap'),'mobile sidebar remains reachable');
  ok(!/\.innerHTML\s*=/.test(js),'reader must not increase DOM innerHTML safety ratchet');
+});
+test('target.sh keeps multiple OSCP machine environments separate from the first pane',()=>{
+ const html=read('src/content/02-enumeration.html');
+ const anchor=html.indexOf('<h3>~/bin/target.sh');
+ const codeStart=html.indexOf('<code class="language-bash">',anchor)+'<code class="language-bash">'.length;
+ const codeEnd=html.indexOf('</code></pre>',codeStart);
+ ok(anchor>=0&&codeStart>anchor&&codeEnd>codeStart,'target.sh source embedded in setup');
+ const script=html.slice(codeStart,codeEnd).replaceAll('&lt;','<').replaceAll('&gt;','>').replaceAll('&amp;','&');
+ let out=spawnSync('bash',['-n'],{input:script,encoding:'utf8'});
+ ok(out.status===0,'target.sh bash syntax: '+out.stderr);
+ ok(script.includes('-e "IP=$ip"')&&script.includes('-e "DOMAIN=$domain"')&&script.includes('-e "DC=$dc"'),'all panes inherit per-session variables at creation');
+ ok(!script.includes('tmux set-environment -t')&&!script.includes('tmux send-keys -t "$session:recon.0" "export IP='),'initial pane not patched after creation');
+ const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-multi-test-'));
+ try{
+  const bin=path.join(tmp,'bin');fs.mkdirSync(bin);
+  const trace=path.join(tmp,'tmux-commands.log');
+  fs.writeFileSync(path.join(bin,'tmux'),'#!/usr/bin/env bash\nif [[ "$1" == "has-session" ]]; then exit 1; fi\nprintf "%s\\n" "$*" >> "$TRACE"\n',{mode:0o755});
+  fs.writeFileSync(path.join(bin,'ip'),'#!/usr/bin/env bash\necho "2: tun0 inet 10.10.14.15/24 scope global tun0"\n',{mode:0o755});
+  const env={...process.env,HOME:tmp,TRACE:trace,TMUX:'test-client',PATH:bin+':'+process.env.PATH};
+  const run=args=>{const x=spawnSync('bash',['-s','--',...args],{input:script,encoding:'utf8',env});ok(x.status===0,'target '+args.join(' ')+': '+x.stderr+' '+x.stdout)};
+  run(['10.10.10.5','--lport','4444']);
+  run(['10.10.10.6','--lport','4445']);
+  run(['WS01','--ip','10.10.10.101','--domain','corp.local','--dc','10.10.10.100']);
+  run(['AD_set','--domain','corp.local','--dc','10.10.10.100']);
+  const creations=fs.readFileSync(trace,'utf8').split('\n').filter(x=>x.startsWith('new-session '));
+  ok(creations.length===4,'four distinct tmux sessions created, got '+creations.length);
+  const each=(needle)=>creations.find(x=>x.includes(needle))||'';
+  ok(each('oscp_10_10_10_5').includes('IP=10.10.10.5')&&each('oscp_10_10_10_5').includes('LPORT=4444'),'standalone A variables');
+  ok(each('oscp_10_10_10_6').includes('IP=10.10.10.6')&&each('oscp_10_10_10_6').includes('LPORT=4445'),'standalone B variables');
+  ok(each('oscp_WS01').includes('IP=10.10.10.101')&&each('oscp_WS01').includes('DOMAIN=corp.local')&&each('oscp_WS01').includes('DC=10.10.10.100'),'AD workstation variables');
+  ok(each('oscp_AD_set').includes('IP= ')&&each('oscp_AD_set').includes('TARGET=AD_set'),'AD coordination has intentionally empty IP');
+  ok(creations.every(x=>x.includes('LHOST=10.10.14.15')),'tun0 host IP initialized per session');
+  ok(fs.existsSync(path.join(tmp,'oscp','10.10.10.5','loot'))&&fs.existsSync(path.join(tmp,'oscp','10.10.10.6','loot')),'independent target directories');
+  ok(!fs.existsSync(path.join(tmp,'oscp','10.10.10.5','scans','nmap')),'Nmap directory created only by Nmap workflow');
+  out=spawnSync('bash',['-s','--','WS99','--ip','10.10.10.999'],{input:script,encoding:'utf8',env});
+  ok(out.status!==0,'invalid IPv4 must be rejected');
+ }finally{fs.rmSync(tmp,{recursive:true,force:true})}
 });
 test('pre-engagement tmux setup is separate from during-exam tmux runbook',()=>{
  const ref=read('src/content/02-enumeration.html');
