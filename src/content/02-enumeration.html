@@ -57,9 +57,10 @@ ip -4 -o addr show dev tun0  # run again after connecting the exam VPN
 <h3>One-time installation (Kali)</h3>
 <pre class="ref-code"><code class="language-bash">sudo apt install -y tmux xclip wl-clipboard colorized-logs moreutils
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+# Download scripts/clipboard.sh using the commands immediately below; it is NOT installed by opening this web app.
 mkdir -p ~/bin ~/oscp/logs ~/oscp/logs-clean
-# Save the following files with vim, then:
-chmod +x ~/bin/{tmux-log.sh,tmux-start-log.sh,tmux-clipboard.sh,target.sh,clean-logs.sh}
+# Save the tmux config/other scripts with vim. For clipboard.sh, use the direct download below:
+chmod +x ~/bin/{tmux-log.sh,tmux-start-log.sh,clipboard.sh,target.sh,clean-logs.sh}
 # Ctrl+A I (capital I) installs tmux plugins after starting tmux.
 # All tools/scripts must be installed and tested BEFORE exam day.</code></pre>
 <h3>~/bin/tmux-log.sh — timestamp one line per output line</h3>
@@ -82,40 +83,67 @@ session="${session//[^a-zA-Z0-9_-]/_}"
 name="${session}_w${window}_p${num}_id${id}_$(date +%H%M%S)"
 # -o prevents accidental duplicate pipes when reloading settings.
 tmux pipe-pane -o -t "$pane" "$HOME/bin/tmux-log.sh '$name'"</code></pre>
-<h3>~/bin/tmux-clipboard.sh — desktop clipboard bridge (X11 / Wayland)</h3>
-<p><b>Why Shift+Y sometimes fails:</b> <code>xclip</code> works with X11, not a Wayland-only or disconnected desktop. A local/remote terminal must also have access to the display. This helper uses <code>wl-copy</code>/<code>wl-paste</code> when <code>WAYLAND_DISPLAY</code> is set, otherwise <code>xclip</code> when <code>DISPLAY</code> is set. It cannot magically forward remote clipboard contents through SSH or VM boundaries. Install and test it before exam day.</p>
+<h3>~/bin/clipboard.sh — actual downloadable X11/Wayland tmux helper</h3>
+<p><b>The helper is now a real repository file:</b> <a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/clipboard.sh" target="_blank" rel="noopener noreferrer">scripts/clipboard.sh</a>. Download it and verify it on Kali <strong>before the exam</strong>. The full source is also included below so the offline reference remains self-contained. The browser app cannot install scripts to Kali by itself.</p>
+<h4>Install once, in your Kali graphical terminal</h4>
+<pre class="ref-code"><code class="language-bash">mkdir -p "$HOME/bin"
+curl -fL --retry 2 https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh -o "$HOME/bin/clipboard.sh"
+chmod 700 "$HOME/bin/clipboard.sh"
+# After installing xclip/wl-clipboard, run the helper's checks:
+"$HOME/bin/clipboard.sh" check
+printf 'oscp-clipboard-test' | "$HOME/bin/clipboard.sh" copy
+"$HOME/bin/clipboard.sh" paste; echo
+# Expected: oscp-clipboard-test
+# Reload tmux bindings AFTER saving the updated ~/.tmux.conf:
+tmux source-file ~/.tmux.conf</code></pre>
+<p><b>Why Shift+Y can fail:</b> X11 requires a reachable <code>DISPLAY</code> and <code>xclip</code>; Wayland needs <code>WAYLAND_DISPLAY</code> and <code>wl-clipboard</code>. The clipboard inside a VM/SSH desktop does not automatically become the host's clipboard. The <code>check</code> command identifies the selected provider; the copy/paste round-trip tests real access.</p>
+<h4>Script source — scripts/clipboard.sh (offline fallback)</h4>
 <pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
-# Used locally by tmux; requires graphical clipboard access.
+# OSCP tmux desktop clipboard bridge (X11 / Wayland).
+# Install to ~/bin/clipboard.sh before the exam, then chmod 700 it.
+# Usage: clipboard.sh copy|paste|check
 set -euo pipefail
+
+provider() {
+  if [[ -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp; command -v wl-copy &gt;/dev/null 2&gt;&amp;1 &amp;&amp; command -v wl-paste &gt;/dev/null 2&gt;&amp;1; then
+    printf '%s\n' wayland
+  elif [[ -n "${DISPLAY:-}" ]] &amp;&amp; command -v xclip &gt;/dev/null 2&gt;&amp;1; then
+    printf '%s\n' x11
+  else
+    printf '%s\n' none
+  fi
+}
+
 case "${1:-}" in
+  check)
+    case "$(provider)" in
+      wayland) printf 'Wayland clipboard: wl-copy / wl-paste (display access still needs testing)\n';;
+      x11) printf 'X11 clipboard: xclip (display access still needs testing)\n';;
+      none) printf 'No desktop clipboard available. Use tmux copy-mode y, then prefix + ].\n' &gt;&amp;2; exit 1;;
+    esac
+    ;;
   copy)
-    if [[ -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp; command -v wl-copy &gt;/dev/null 2&gt;&amp;1; then
-      exec wl-copy --type text/plain
-    elif [[ -n "${DISPLAY:-}" ]] &amp;&amp; command -v xclip &gt;/dev/null 2&gt;&amp;1; then
-      exec xclip -selection clipboard -in &gt;/dev/null 2&gt;&amp;1
-    else
-      # Consume selection so tmux never hangs waiting for the pipe.
-      cat &gt;/dev/null
-      echo 'No usable desktop clipboard: test DISPLAY/WAYLAND_DISPLAY and xclip/wl-copy.' &gt;&amp;2
-      exit 1
-    fi
+    case "$(provider)" in
+      wayland) exec wl-copy --type text/plain;;
+      x11) exec xclip -selection clipboard -in &gt;/dev/null 2&gt;&amp;1;;
+      none)
+        # Drain piped tmux selection instead of leaving the pipe blocked.
+        cat &gt;/dev/null
+        printf 'No clipboard display. Check DISPLAY/WAYLAND_DISPLAY and install wl-clipboard or xclip.\n' &gt;&amp;2
+        exit 1
+        ;;
+    esac
     ;;
   paste)
-    if [[ -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp; command -v wl-paste &gt;/dev/null 2&gt;&amp;1; then
-      exec wl-paste --no-newline
-    elif [[ -n "${DISPLAY:-}" ]] &amp;&amp; command -v xclip &gt;/dev/null 2&gt;&amp;1; then
-      exec xclip -selection clipboard -out
-    else
-      echo 'Desktop clipboard unavailable; use tmux y then Ctrl+A ] instead.' &gt;&amp;2
-      exit 1
-    fi
+    case "$(provider)" in
+      wayland) exec wl-paste --no-newline;;
+      x11) exec xclip -selection clipboard -out;;
+      none) printf 'No desktop clipboard available; use tmux prefix + ] instead.\n' &gt;&amp;2; exit 1;;
+    esac
     ;;
-  *)
-    echo 'Usage: tmux-clipboard.sh copy|paste' &gt;&amp;2
-    exit 2
-    ;;
+  *) printf 'Usage: %s copy|paste|check\n' "${0##*/}" &gt;&amp;2; exit 2;;
 esac</code></pre>
-<p><b>Save as:</b> <code>~/bin/tmux-clipboard.sh</code> and run <code>chmod +x ~/bin/tmux-clipboard.sh</code>. If both clipboard tools fail, use tmux's internal clipboard instead. A failed desktop clipboard copy may still leave a tmux paste buffer; confirm with <code>tmux show-buffer</code>.</p>
+<p>Save this exact block as <code>~/bin/clipboard.sh</code> if you cannot download the script, then <code>chmod 700 ~/bin/clipboard.sh</code>. Always keep the tmux-only fallback: <kbd>Ctrl+A</kbd>, <kbd>[</kbd>, <kbd>v</kbd>, lowercase <kbd>y</kbd>, then <kbd>Ctrl+A</kbd>, <kbd>]</kbd>.</p>
 <h3>~/.tmux.conf — full exam-safe tmux config</h3>
 <pre class="ref-code"><code class="language-bash">unbind C-b
 set -g prefix C-a
@@ -150,9 +178,9 @@ setw -g mode-keys vi
 set -s set-clipboard off
 bind -T copy-mode-vi v send -X begin-selection
 bind -T copy-mode-vi y send -X copy-selection-and-cancel
-bind -T copy-mode-vi Y send -X copy-pipe-and-cancel '"$HOME/bin/tmux-clipboard.sh" copy'
+bind -T copy-mode-vi Y send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
 # Prefix + ] pastes tmux buffer. Prefix + Y pastes desktop clipboard.
-bind Y run-shell '"$HOME/bin/tmux-clipboard.sh" paste | tmux load-buffer - &amp;&amp; tmux paste-buffer -t "#{pane_id}"'
+bind Y run-shell '"$HOME/bin/clipboard.sh" paste | tmux load-buffer - &amp;&amp; tmux paste-buffer -t "#{pane_id}"'
 
 # Automatically start pipe-pane on new sessions/windows/splits.
 set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
@@ -256,6 +284,7 @@ tmux show-options -g prefix
 tmux show-options -gw mode-keys
 tmux list-keys -T prefix | grep -E 'copy-mode|paste-buffer'
 tmux list-keys -T copy-mode-vi | grep -E 'begin-selection|copy-selection|copy-pipe'
+~/bin/clipboard.sh check
 # Expected: prefix C-a and mode-keys vi
 # tmux list-keys -T copy-mode-vi should show v, y, and Y.</code></pre>
 <p>If <code>$TMUX</code> is empty, you are not inside a tmux client; start a session with <code>tmux new -s oscp</code>. If the source command reports an error, fix that configuration line before testing. If <kbd>Ctrl+A</kbd> moves your cursor to the start of a Bash command, the tmux prefix has not been activated in that terminal.</p>
@@ -403,7 +432,7 @@ cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
 <li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
 <li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
 <li><strong>Paste tmux's internal buffer:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. This works after lowercase <kbd>y</kbd>, even with no desktop clipboard.</li>
-<li><strong>Copy to the desktop clipboard (conditional):</strong> after selecting with <kbd>v</kbd>, press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>). This uses the <code>tmux-clipboard.sh</code> helper and requires working X11/<code>xclip</code> or Wayland/<code>wl-copy</code>. <b>Shift+Y copies; it does not paste.</b> To paste into the desktop terminal, use its own Paste command (often <kbd>Ctrl+Shift+V</kbd>).</li>
+<li><strong>Copy to the desktop clipboard (conditional):</strong> after selecting with <kbd>v</kbd>, press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>). This uses the <code>clipboard.sh</code> helper and requires working X11/<code>xclip</code> or Wayland/<code>wl-copy</code>. <b>Shift+Y copies; it does not paste.</b> To paste into the desktop terminal, use its own Paste command (often <kbd>Ctrl+Shift+V</kbd>).</li>
 <li><strong>Paste the desktop clipboard into tmux:</strong> outside copy mode, press <kbd>Ctrl+A</kbd>, then capital <kbd>Y</kbd>. This uses <code>wl-paste</code> or <code>xclip</code>; unlike lowercase <kbd>y</kbd>, it is not guaranteed over SSH, remote desktops, or VM boundaries.</li>
 <li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
 </ol>
@@ -413,8 +442,8 @@ cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
 printf 'Wayland=%s X11=%s Session=%s\n' "${WAYLAND_DISPLAY:-unset}" "${DISPLAY:-unset}" "${XDG_SESSION_TYPE:-unset}"
 command -v wl-copy wl-paste xclip || true
 # Test only harmless text:
-printf 'oscp-clipboard-test' | ~/bin/tmux-clipboard.sh copy
-~/bin/tmux-clipboard.sh paste; echo
+printf 'oscp-clipboard-test' | ~/bin/clipboard.sh copy
+~/bin/clipboard.sh paste; echo
 # Expected output: oscp-clipboard-test
 # Then inside tmux:
 tmux source-file ~/.tmux.conf
