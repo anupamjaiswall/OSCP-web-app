@@ -1,7 +1,7 @@
 # 🔐 OSCP Exam OS
 
 <!-- build-version:start -->
-**V34.69.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.70.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 <!-- build-version:end -->
 
 One self-contained `index.html` designed to be the main reference open during the exam. It has no required CDN, package install, AI service, or runtime network dependency.
@@ -19,7 +19,7 @@ One self-contained `index.html` designed to be the main reference open during th
 - **Reference Find:** highlight every match, show current/total count, and navigate with Previous/Next, Enter/Shift+Enter, or F3.
 - **Active Target Workspace + Next Actions:** keeps current target context and ranks a small set of relevant next steps locally.
 - **Service Router:** turns discovered ports/services into a focused enumeration queue.
-- **X11/Wayland tmux clipboard:** Shift+Y uses a verified desktop clipboard bridge (xclip/wl-copy); lowercase y and Ctrl+A ] always remain the fallback. Troubleshooting commands are in the pre-exam tmux section.
+- **Actual downloadable clipboard helper:** [`scripts/clipboard.sh`](scripts/clipboard.sh) supports X11/Wayland. Install before the exam with `curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh -o ~/bin/clipboard.sh && chmod 700 ~/bin/clipboard.sh`. Configure `Shift+Y` using the full tmux config under Section 1.3; tmux `y` / prefix + `]` work without a graphical clipboard.
 - **Multi-machine tmux OSCP workflow:** one session and folder per machine (standalone/AD); no global `IP` export. Start at Full Reference → **Start here** for the 60-second launch/verify/scan steps.
 - **Fullscreen Full Reference reader:** unified Light/Dark theme for the entire app, including sidebar, top bar, cards, controls and Full Reference; both theme switches stay synchronized and persist locally without changing text wrapping.
 - **Linux / Windows / AD Method Trees:** branch-oriented exam methodology instead of a flat command dump.
