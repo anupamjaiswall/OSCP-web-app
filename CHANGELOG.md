@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.67.0 — 2026-10-17
+
+### Readable, contrast-checked colors without layout regression
+- Restyled the dark app shell with less harsh blue-grey cards, readable navigation, clear selected actions and subdued separators; made no changes to the app's sizing, columns or wrapping.
+- Gave daytime reference pages soft neutral paper, dark ink, obvious links/headings, readable inline code, and restrained tables/quotes. Night notes use charcoal-slate with high-contrast teal links and bright commands.
+- Added a Day notes / Night notes button inside Full Reference (including immersive mode) with local preference and synchronization with the existing top-bar toggle.
+- Added WCAG AA text color pair assertions and browser tests for theme toggling, computed colors, word wrapping and sidebar widths.
+
+
 ## V34.66.0 — 2026-10-17
 
 ### Fix cramped theme and per-character text wrapping
