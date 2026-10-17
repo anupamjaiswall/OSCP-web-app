@@ -218,6 +218,16 @@ async function main(){
     if(!(readerState.count>30&&readerState.pre&&readerState.during&&readerState.filtered>0&&readerState.immersive&&readerState.exited))
       throw new Error('reference reader fullscreen/sidebar failure: '+readerStateRaw);
 
+    // Layout regression: prevent one-character-per-line reader/sidebar rendering.
+    const widths=JSON.parse(await evalValue(`(()=>{
+      const view=document.getElementById('referenceView');
+      const width=e=>e?.getBoundingClientRect().width||0;
+      const buttons=[...(view?.querySelectorAll('.refReaderQuick button')||[])];
+      return JSON.stringify({article:width(view?.querySelector('.refReaderArticleCol')),paper:width(document.getElementById('referenceRoot')),buttons:buttons.map(width)});
+    })()`));
+    if(!(widths.article>320&&widths.paper>320&&widths.buttons.every(w=>w>140)))
+      throw new Error('reference too narrow / per-character wrap: '+JSON.stringify(widths));
+
     // Real interaction 1: typo-tolerant search must produce results after lazy reference hydration.
     await evalValue(`(()=>{const i=document.getElementById('globalSearch');i.value='seimpersonte';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
     const typoSearch=await waitFor(async()=>{
