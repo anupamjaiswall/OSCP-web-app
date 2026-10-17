@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.71.0 — 2026-10-17
+
+### tmux mouse select, copy and paste
+- Enabled left-button drag selection with automatic copy to tmux buffer and attempted system clipboard via the real `~/bin/clipboard.sh` helper (X11 / Wayland).
+- Added middle-click paste into the selected tmux pane, with event forwarding for applications that request mouse input; preserves native Shift+drag and terminal clipboard shortcuts.
+- Shipped `scripts/tmux-mouse.conf` as a separate downloadable overlay and embedded its complete source in the offline notes with install, verification and fallback instructions.
+- Added a test ensuring the standalone mouse configuration matches the embedded reference and retains keyboard copy/paste.
+
+
 ## V34.70.0 — 2026-10-17
 
 ### Actual clipboard.sh shipped and linked
