@@ -10,18 +10,39 @@
  const store='oscp:reference-reader:v1';
  const themeStorage='oscp:reference-theme:v1';
  const themeControl=$('refReaderTheme');
+ const topThemeControl=$('themeBtn');
  function syncTheme(){
    const night=root.classList.contains('darkRef');
+   document.body.classList.toggle('themeLight',!night);
+   document.documentElement.style.colorScheme=night?'dark':'light';
    if(themeControl){
-     themeControl.textContent=night?'☀ Day notes':'☾ Night notes';
+     themeControl.textContent=night?'☀ Light theme':'☾ Dark theme';
      themeControl.setAttribute('aria-pressed',String(night));
-     themeControl.title=night?'Use light reference colors':'Use dark reference colors';
+     themeControl.title=night?'Switch entire app to light theme':'Switch entire app to dark theme';
+   }
+   if(topThemeControl){
+     topThemeControl.textContent=night?'☀ Light':'☾ Dark';
+     topThemeControl.setAttribute('aria-pressed',String(night));
+     topThemeControl.setAttribute('aria-label',night?'Switch entire app to light theme':'Switch entire app to dark theme');
+     topThemeControl.title=night?'Switch entire app to light theme':'Switch entire app to dark theme';
    }
    try{localStorage.setItem(themeStorage,night?'night':'day')}catch(_){}
  }
- try{if(localStorage.getItem(themeStorage)==='night')root.classList.add('darkRef')}catch(_){}
- themeControl?.addEventListener('click',()=>{root.classList.toggle('darkRef');syncTheme()});
+ function setNight(night){
+   root.classList.toggle('darkRef',!!night);
+   syncTheme();
+ }
+ // Preserve an existing preference. New installations begin in dark mode,
+ // matching the old app shell, until Light theme is selected.
+ try{
+   const saved=localStorage.getItem(themeStorage);
+   root.classList.toggle('darkRef',saved!=='day');
+ }catch(_){root.classList.add('darkRef')}
+ themeControl?.addEventListener('click',()=>setNight(!root.classList.contains('darkRef')));
+ // Override the legacy reference-only onclick from core-app.js.
+ if(topThemeControl)topThemeControl.onclick=()=>setNight(!root.classList.contains('darkRef'));
  new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['class']});
+ window.OSCP_THEME={setNight,toggle:()=>setNight(!root.classList.contains('darkRef'))};
  syncTheme();
  function isActive(){return view.classList.contains('active')}
  function setToc(open){
