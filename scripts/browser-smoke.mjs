@@ -228,6 +228,23 @@ async function main(){
     if(!(widths.article>320&&widths.paper>320&&widths.buttons.every(w=>w>140)))
       throw new Error('reference too narrow / per-character wrap: '+JSON.stringify(widths));
 
+    // Regression: verify paper/night colors, toggle state and restoration in a real browser.
+    const themeColors=JSON.parse(await evalValue(`(()=>{
+      const root=document.getElementById('referenceRoot'),btn=document.getElementById('refReaderTheme');
+      if(!root||!btn)return JSON.stringify({error:'missing theme controls'});
+      if(root.classList.contains('darkRef'))btn.click();
+      const paper=getComputedStyle(root).backgroundColor;
+      btn.click();
+      const night=getComputedStyle(root).backgroundColor;
+      const pressed=btn.getAttribute('aria-pressed');
+      const nightSaved=localStorage.getItem('oscp:reference-theme:v1');
+      btn.click();
+      const restored=getComputedStyle(root).backgroundColor;
+      return JSON.stringify({paper,night,pressed,nightSaved,restored});
+    })()`));
+    if(!(themeColors.paper==='rgb(236, 240, 235)'&&themeColors.night==='rgb(30, 43, 52)'&&themeColors.pressed==='true'&&themeColors.nightSaved==='night'&&themeColors.restored===themeColors.paper))
+      throw new Error('reference color toggle/regression: '+JSON.stringify(themeColors));
+
     // Real interaction 1: typo-tolerant search must produce results after lazy reference hydration.
     await evalValue(`(()=>{const i=document.getElementById('globalSearch');i.value='seimpersonte';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
     const typoSearch=await waitFor(async()=>{
