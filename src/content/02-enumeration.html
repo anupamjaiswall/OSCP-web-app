@@ -57,6 +57,7 @@ ip -4 -o addr show dev tun0  # run again after connecting the exam VPN
 <h3>One-time installation (Kali)</h3>
 <pre class="ref-code"><code class="language-bash">sudo apt install -y tmux xclip wl-clipboard colorized-logs moreutils
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+# Use the mouse setup in this section for drag-copy / middle-click paste.
 # Download scripts/clipboard.sh using the commands immediately below; it is NOT installed by opening this web app.
 mkdir -p ~/bin ~/oscp/logs ~/oscp/logs-clean
 # Save the tmux config/other scripts with vim. For clipboard.sh, use the direct download below:
@@ -144,6 +145,42 @@ case "${1:-}" in
   *) printf 'Usage: %s copy|paste|check\n' "${0##*/}" &gt;&amp;2; exit 2;;
 esac</code></pre>
 <p>Save this exact block as <code>~/bin/clipboard.sh</code> if you cannot download the script, then <code>chmod 700 ~/bin/clipboard.sh</code>. Always keep the tmux-only fallback: <kbd>Ctrl+A</kbd>, <kbd>[</kbd>, <kbd>v</kbd>, lowercase <kbd>y</kbd>, then <kbd>Ctrl+A</kbd>, <kbd>]</kbd>.</p>
+<h3>tmux mouse configuration — drag to copy, middle-click to paste</h3>
+<p><b>New:</b> <a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/tmux-mouse.conf" target="_blank" rel="noopener noreferrer">scripts/tmux-mouse.conf</a> is an actual repository file. The main <code>~/.tmux.conf</code> code below already contains these mouse bindings. <b>You only need one copy of the bindings</b>; use the separate file as an easy install/overlay if your existing config is already set up.</p>
+<pre class="ref-code"><code class="language-bash"># Install OPTIONAL mouse-only overlay on Kali (before exam)
+mkdir -p ~/bin
+curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-mouse.conf -o ~/bin/tmux-mouse.conf
+# Requires ~/bin/clipboard.sh already installed from the step above
+# Option A: apply to the current running tmux server (until next restart)
+tmux source-file ~/bin/tmux-mouse.conf
+# Option B: make persistent if the bindings aren't already in ~/.tmux.conf:
+# printf '\nsource-file ~/bin/tmux-mouse.conf\n' &gt;&gt; ~/.tmux.conf
+# tmux source-file ~/.tmux.conf</code></pre>
+<p><b>Mouse behaviour:</b> drag the <b>left button</b> across regular tmux pane output and release to copy into the <b>tmux buffer</b>, plus the <b>desktop clipboard</b> if the graphical clipboard helper works. Press the <b>middle mouse button</b> (scroll wheel) over the target pane to paste tmux's newest buffer. You can also use <kbd>Ctrl+Shift+V</kbd> for the <b>desktop</b> clipboard where your terminal supports it. The right mouse button retains the default terminal/tmux menu; it is not remapped to paste.</p>
+<p><b>Terminal native mouse selection:</b> hold <kbd>Shift</kbd> while dragging to bypass tmux in terminals that support it, then use the terminal's Copy command (often <kbd>Ctrl+Shift+C</kbd>). Pasting in graphical apps outside tmux may require that native selection or a functioning <code>~/bin/clipboard.sh</code> provider. Programs that capture mouse input (Vim/htop) may handle events themselves, and some SSH/VM environments do not expose the host's clipboard.</p>
+<h4>Standalone mouse config source (available offline)</h4>
+<pre class="ref-code"><code class="language-tmux"># OSCP tmux mouse selection / copy / paste — companion to scripts/clipboard.sh
+# Requires a modern tmux, and ~/bin/clipboard.sh installed on Kali.
+# These bindings can be sourced with: tmux source-file ~/bin/tmux-mouse.conf
+# For persistence, keep the same block in ~/.tmux.conf or source this file there.
+#
+# Left drag over regular shell output: copy to tmux buffer AND attempt desktop clipboard.
+# Middle click over shell output: paste the latest tmux buffer.
+# Shift+drag: use terminal-native selection (terminal-dependent).
+# Ctrl+Shift+V: paste desktop clipboard (terminal-dependent).
+
+set -g mouse on
+setw -g mode-keys vi
+set -s set-clipboard off
+
+# Mouse selection ends in the copy-mode-vi table; keep copy-mode too for compatibility.
+bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+bind -T copy-mode MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+
+# Select the clicked pane; middle click pastes tmux buffer.
+# Forward events to interactive applications (Vim, htop) when they capture the mouse.
+bind -n MouseDown2Pane select-pane -t= \; if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'paste-buffer -p -t='</code></pre>
+<p><b>Exam-safe verification:</b> print <code>printf 'DRAG-COPY-TEST\n'</code> in a normal shell pane, drag over that text, then middle-click in a second shell pane. It should paste the selected text. Check desktop clipboard by pasting into a graphical text editor. <b>Do not try the paste test at a live privileged command prompt; it may contain newlines.</b></p>
 <h3>~/.tmux.conf — full exam-safe tmux config</h3>
 <pre class="ref-code"><code class="language-bash">unbind C-b
 set -g prefix C-a
@@ -181,6 +218,14 @@ bind -T copy-mode-vi y send -X copy-selection-and-cancel
 bind -T copy-mode-vi Y send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
 # Prefix + ] pastes tmux buffer. Prefix + Y pastes desktop clipboard.
 bind Y run-shell '"$HOME/bin/clipboard.sh" paste | tmux load-buffer - &amp;&amp; tmux paste-buffer -t "#{pane_id}"'
+
+# MOUSE (tmux output): left drag -> tmux buffer + desktop clipboard if available.
+# Mouse drag ends in copy-mode-vi; also define emacs copy-mode for compatibility.
+bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+bind -T copy-mode MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+# Middle click pastes the tmux buffer into the pane you clicked.
+# Don't override mouse input inside applications that requested it (Vim, htop).
+bind -n MouseDown2Pane select-pane -t= \; if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'paste-buffer -p -t='
 
 # Automatically start pipe-pane on new sessions/windows/splits.
 set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
@@ -425,9 +470,11 @@ grep -rn -B3 -A15 'sudo -l' ~/oscp/logs-clean/
 # Local backup: all target folders; NEVER upload credentials or proof to cloud
 cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
 <p><b>Do not mix results:</b> every target has its own <code>~/oscp/&lt;target&gt;/</code> directory. Pipe-pane logs remain named by tmux session and pane ID. Use Nmap's native <code>-oA scans/nmap/…</code> inside the correct target folder for reliable per-host evidence. Never reuse another host's <code>$IP</code> or proof.</p>
-<h3>tmux copy / selection / paste — Vim keybindings</h3>
+<h3>tmux copy / selection / paste — keyboard and mouse</h3>
+<p><strong>Fastest mouse flow:</strong> left-click and <b>drag-select</b> shell output inside tmux; release to copy. <b>Middle-click</b> the target pane to paste the tmux buffer (not necessarily the desktop clipboard). <b>Shift+drag</b> can select natively in your terminal, followed by <kbd>Ctrl+Shift+C</kbd>. For GUI paste use <kbd>Ctrl+Shift+V</kbd> where supported. Set up <a href="#ref-1-3-tmux-setup-never-work-without-it">the mouse bindings and clipboard helper above</a> first.</p>
 <p><strong>Default prefix:</strong> press <kbd>Ctrl+A</kbd>, <em>release</em>, then the next key (not <kbd>Ctrl+B</kbd>). <b>Reload this file first:</b> in a running tmux terminal run <code>tmux source-file ~/.tmux.conf</code>. Existing tmux sessions otherwise keep old bindings.</p>
 <ol>
+<li><strong>Use your mouse:</strong> with <code>set -g mouse on</code> and bindings loaded, drag left-to-right across output; release to copy. <b>Middle-click</b> to paste tmux's buffer. This is an alternative to keyboard copy mode.</li>
 <li><strong>Enter copy mode:</strong> <kbd>Ctrl+A</kbd>, then <kbd>[</kbd>. Use arrow keys or <kbd>h</kbd>/<kbd>j</kbd>/<kbd>k</kbd>/<kbd>l</kbd> to move through output.</li>
 <li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
 <li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
@@ -447,6 +494,14 @@ printf 'oscp-clipboard-test' | ~/bin/clipboard.sh copy
 # Expected output: oscp-clipboard-test
 # Then inside tmux:
 tmux source-file ~/.tmux.conf
+# Mouse bindings and options:
+tmux show-options -g mouse
+tmux list-keys -T copy-mode-vi MouseDragEnd1Pane
+tmux list-keys -T copy-mode MouseDragEnd1Pane
+tmux list-keys -T root MouseDown2Pane
+# Test: print some text, drag over it in one pane, middle-click in another
+# Fallback: prefix [ ; v ; select ; y ; prefix ]
+
 tmux show-options -gw mode-keys
 tmux list-keys -T copy-mode-vi | grep -E '(^| )Y '
 tmux list-keys -T prefix | grep -E '(^| )Y '
