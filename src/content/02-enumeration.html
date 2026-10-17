@@ -108,12 +108,16 @@ bind [ copy-mode
 bind ] paste-buffer
 bind S capture-pane -p -S - \; run-shell 'tmux capture-pane -p -S - &gt; "$HOME/oscp/logs/pane-$(date +%F_%H%M%S).txt"' \; display-message 'Scrollback saved'
 
-# Always-working copy: y stores selection in tmux buffer. Ctrl+A ] pastes it.
-# Desktop copy when a Kali X11 display is available: Shift+Y (capital Y).
+# In copy mode: v selects; y copies to tmux; Shift+Y copies to desktop (X11).
+# After copying: Ctrl+A ] pastes tmux buffer; Ctrl+A Y pastes desktop clipboard.
+# Capital Y ALONE does not paste. Test X11 clipboard before the exam.
 setw -g mode-keys vi
 bind -T copy-mode-vi v send -X begin-selection
 bind -T copy-mode-vi y send -X copy-selection-and-cancel
-bind -T copy-mode-vi Y send -X copy-pipe-and-cancel 'xclip -selection clipboard -in'
+# Redirect xclip stdout to prevent the tmux copy-mode hang.
+bind -T copy-mode-vi Y send -X copy-pipe-and-cancel 'xclip -selection clipboard -in &gt;/dev/null 2&gt;&amp;1'
+# Prefix + capital Y: paste desktop clipboard into current tmux pane.
+bind Y run-shell 'xclip -selection clipboard -out | tmux load-buffer - &amp;&amp; tmux paste-buffer'
 
 # Automatically start pipe-pane on new sessions/windows/splits.
 set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
@@ -361,10 +365,12 @@ cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
 <li><strong>Enter copy mode:</strong> <kbd>Ctrl+A</kbd>, then <kbd>[</kbd>. Use arrow keys or <kbd>h</kbd>/<kbd>j</kbd>/<kbd>k</kbd>/<kbd>l</kbd> to move through output.</li>
 <li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
 <li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
-<li><strong>Paste inside tmux:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. If you need the <em>desktop</em> clipboard instead, repeat the selection and press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>), then <kbd>Ctrl+Shift+V</kbd> in a compatible desktop terminal. Desktop copy requires an accessible X11 <code>DISPLAY</code> and installed <code>xclip</code>.</li>
+<li><strong>Paste tmux's internal buffer:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. This works after lowercase <kbd>y</kbd>, even with no desktop clipboard.</li>
+<li><strong>Copy text to the desktop clipboard:</strong> in copy mode, select with <kbd>v</kbd>, then press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>). <b>Shift+Y copies — it does not paste.</b> To paste in a compatible desktop terminal use <kbd>Ctrl+Shift+V</kbd>.</li>
+<li><strong>Paste the desktop clipboard into tmux:</strong> outside copy mode press <kbd>Ctrl+A</kbd>, release, then capital <kbd>Y</kbd>. The desktop copy/paste shortcuts need <code>xclip</code> and a working X11 <code>DISPLAY</code>.</li>
 <li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
 </ol>
-<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, tmux can intercept dragging; use keyboard selection or hold <kbd>Shift</kbd> while dragging where your terminal supports native selection. <strong>Desktop clipboard troubleshooting:</strong> on Kali check <code>echo "$DISPLAY"</code> and <code>command -v xclip</code>, then test <code>printf 'tmux-copy-test' | xclip -selection clipboard</code>. Remote SSH/Wayland-only terminals may not have X11 clipboard access. Use lowercase <kbd>y</kbd> followed by <kbd>Ctrl+A</kbd>, <kbd>]</kbd> for a dependable terminal-only method.</p>
+<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, tmux can intercept dragging; use keyboard selection or hold <kbd>Shift</kbd> while dragging where your terminal supports native selection. <strong>If Shift+Y appears broken:</strong> reload with <code>tmux source-file ~/.tmux.conf</code>; inspect <code>tmux list-keys -T copy-mode-vi</code> and <code>tmux list-keys -T prefix</code>; confirm <code>echo "$DISPLAY"</code> and <code>command -v xclip</code>. Test X11 separately with <code>printf 'tmux-copy-test' | xclip -selection clipboard &gt;/dev/null 2&gt;&amp;1</code> and <code>xclip -selection clipboard -out</code>. A remote SSH or Wayland-only terminal may lack X11 clipboard access. In that case use lowercase <kbd>y</kbd> followed by <kbd>Ctrl+A</kbd>, <kbd>]</kbd>, or configure the appropriate desktop clipboard bridge before the exam.</p>
 <p><strong>Long output:</strong> <kbd>Ctrl+A</kbd> then <kbd>S</kbd> saves pane scrollback in <code>~/oscp/logs/</code> using this configuration. Pane logs may contain credentials, so keep them on approved local storage. This is different from selecting and copying text.</p>
 
 </details>
@@ -424,8 +430,8 @@ verify_ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' scans/nmap/tcp
 echo "Verify TCP: $verify_ports"
 # If lists differ materially: inspect --reason, packet loss, VPN/pivot path and one known service.
 
-# STEP 2: TARGETED FINGERPRINT — confirmed opens only
-test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sC -sV -p "$ports" -oA scans/nmap/tcp-detail "$IP"
+# STEP 2: TARGETED VERSION FINGERPRINT — confirmed opens only
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sV -p "$ports" -oA scans/nmap/tcp-detail "$IP"
 
 # OPTIONAL ACCELERATION — only after the path behaves consistently
 # sudo nmap -Pn -n -p- --open --min-rate 1000 --max-retries 2 -oA scans/nmap/tcp-fast "$IP"
@@ -434,14 +440,20 @@ test -n "$ports" &amp;&amp; sudo nmap -Pn -n -sC -sV -p "$ports" -oA scans/nmap/
 sudo nmap -Pn -n -sU --top-ports 100 --max-retries 2 -oA scans/nmap/udp-top100 "$IP"
 # High-value UDP examples: 53,69,111,123,137,138,161,162,500,514,1194
 
-# STEP 4: Selected NSE only after reading what the script does
-SCRIPT='&lt;relevant-script&gt;'
-nmap --script-help "$SCRIPT"
-test -n "$ports" &amp;&amp; sudo nmap -Pn -n --script "$SCRIPT" -p "$ports" -oA scans/nmap/nse-selected "$IP"
+# STEP 4: DEFAULT NSE on confirmed open TCP ports
+# -sC = --script=default. Review the default scripts before the exam:
+nmap --script-help default
+# Some default scripts are intrusive: run only on authorized in-scope hosts.
+test -n "$ports" &amp;&amp; sudo nmap -Pn -n --script=default -p "$ports" -oA scans/nmap/nse-default "$IP"
+
+# OPTIONAL: targeted scripts if service evidence justifies them.
+# First run: nmap --script-help smb-enum-shares
+# Then: sudo nmap -Pn -n -p 445 --script smb-enum-shares -oA scans/nmap/nse-smb-shares "$IP"
 
 # STEP 5: OS detection only if it changes the next decision
 test -n "$ports" &amp;&amp; sudo nmap -Pn -n -O --osscan-guess -p "$ports" -oA scans/nmap/os "$IP"
 </code></pre>
+<p><strong>HTTP(S) detected?</strong> Open <a href="#ref-4-5-http-https-ports-80-443-8080-8443-8000-8888">4.5 HTTP / HTTPS</a>: confirm each web URL (scheme, port and hostname), run <strong>Nikto</strong>, then follow up with content discovery and manual verification. Do not launch Nikto against non-web ports.</p>
 <h3>Scan sanity ladder</h3>
 <pre class="ref-code"><code class="language-text">PORT MAP LOOKS WRONG?
   ↓
@@ -712,35 +724,43 @@ dig @$IP domain.com DS
 <details id="ref-4-5-http-https-ports-80-443-8080-8443-8000-8888">
 <summary>🌍 4.5 HTTP / HTTPS --- Ports 80, 443, 8080, 8443, 8000, 8888</summary>
 <p><code>[WEB:ENUM] [PORT:80] [PORT:443] [VHOST]</code></p>
+<p><strong>Run Nikto after confirming each HTTP/HTTPS service.</strong> Do this for the actual scheme, port, and virtual host (not blindly against every open port). It is a noisy scanner; validate every finding manually. Use separate scan files per target/port.</p>
 <pre class="ref-code"><code class="language-bash">
 # __ Nginx _________________
 https://github.com/DepthFirstDisclosures/Nginx-Rift
 
-# ── INITIAL FINGERPRINT ───────────────────────────────────────
-whatweb http://$IP -a 3    # -a 3 = aggressive
-curl -I http://$IP          # Headers (Server, X-Powered-By, etc.)
-curl -sL http://$IP | head -100   # Quick source check
+# ── INITIAL FINGERPRINT: SET THE REAL CONFIRMED WEB URL ─────
+mkdir -p scans/web
+WEB_URL="http://$IP:80"    # Change to https://$IP:443 or the actual vhost/port
+whatweb "$WEB_URL" -a 3
+curl -I "$WEB_URL"         # Headers (Server, X-Powered-By, etc.)
+curl -sL "$WEB_URL" | head -100
 
-# ── CONTENT DISCOVERY COMBO (run all simultaneously) ──────────
+# ── NIKTO: RUN ON EACH CONFIRMED HTTP(S) SERVICE ─────────────
+nikto -h "$WEB_URL" -output scans/web/nikto-80.txt -Format txt
+# HTTPS example (save separately):
+# nikto -h "https://$IP:443" -output scans/web/nikto-443.txt -Format txt
+# Set WEB_URL to a hostname if virtual-host routing requires it.
+
+# ── CONTENT DISCOVERY COMBO (run as needed) ──────────────────
 # Gobuster — fast, reliable
 # try DirBuster-2007_directory-list-2.3-medium.txt if you get nothing from raft
-gobuster dir -u http://$IP \
+gobuster dir -u "$WEB_URL" \
   -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt \
   -x php,html,txt,asp,aspx,jsp,py,rb,bak,old,zip,gz,sql,json,xml,config \
   -t 50 -o scans/web/gobuster.txt
 
 # Feroxbuster — recursive (finds /admin/login, /api/v1/users etc.)
-feroxbuster -u http://$IP \
+feroxbuster -u "$WEB_URL" \
   -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt \
   -x php,html,txt,asp,aspx -t 50 --depth 3 -o scans/web/ferox.txt
 
 # FFUF — best for parameter fuzzing
-ffuf -u http://$IP/FUZZ \
+ffuf -u "$WEB_URL/FUZZ" \
   -w /usr/share/seclists/Discovery/Web-Content/common.txt \
   -o scans/web/ffuf.txt -of md
 
-# Nikto — vuln scanner
-nikto -h http://$IP -output scans/web/nikto.txt -Format txt
+# Nikto ran above; review its findings alongside manual web checks.
 
 # ── MANUAL CHECKS (do these by hand!) ────────────────────────
 # Essential paths to always check:
