@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.69.0 — 2026-10-17
+
+### Fix Shift+Y desktop clipboard guidance
+- Replaced the brittle X11-only tmux clipboard binding with a `~/bin/tmux-clipboard.sh` helper for X11 (`xclip`) and Wayland (`wl-copy` / `wl-paste`).
+- Kept `y` and prefix + `]` as the dependable tmux internal-buffer workflow regardless of desktop clipboard access.
+- Added install instructions, harmless clipboard echo test, tmux binding inspection, display/remote-desktop troubleshooting and warnings about clipboard sharing boundaries.
+- Added a regression test for Bash syntax and tmux bindings in the reference.
+
+
 ## V34.68.0 — 2026-10-17
 
 ### Full light mode for the entire OSCP workspace
