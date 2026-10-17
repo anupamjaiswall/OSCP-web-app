@@ -140,6 +140,24 @@ test('comfortable exam theme and isolated multi-machine launch quickstart',()=>{
  for(const token of ['.reference details','.refExamQuickstart','.reference#referenceRoot.darkRef','@media print'])ok(css.includes(token),'theme contract missing '+token);
  ok(!css.includes('display:none!important}.reference pre'),'reference commands must remain visible');
 });
+test('entire-app light theme includes left sidebar and maintains AA contrasts',()=>{
+ const css=read('src/styles/15-comfort.css'),reader=read('src/js/22b-reference-reader.js'),tpl=read('src/index.template.html');
+ const lum=h=>{let c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);c=c.map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+ const contrast=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ for(const [label,fg,bg] of [
+  ['app','#21343e','#ffffff'],['muted','#506471','#ffffff'],['sidebar','#344e57','#ecf2ed'],
+  ['active navigation','#164e53','#cfe6db'],['link','#145c70','#ffffff'],
+  ['reference TOC','#365660','#edf4ee'],['code','#23404b','#eaf0ec'],
+  ['button','#21343e','#e9f0eb'],['section heading','#285562','#edf4ee']
+ ]){ok(css.includes(fg)&&css.includes(bg),label+' theme colors absent');ok(contrast(fg,bg)>=4.5,label+' light-mode contrast below WCAG AA');}
+ for(const selector of ['body.themeLight','body.themeLight .top','body.themeLight .side','body.themeLight .navbtn.active','body.themeLight .card','body.themeLight #referenceView .refReaderTocWrap','body.themeLight #referenceView .refReaderLink','body.themeLight #referenceView .reference pre','body.themeLight #readabilityPanel'])
+  ok(css.includes(selector),'whole-app light style missing '+selector);
+ ok(reader.includes("document.body.classList.toggle('themeLight',!night)"),'theme must toggle body, not just the article');
+ ok(reader.includes("topThemeControl.onclick=()=>setNight("),'existing top-bar toggle must use unified setter');
+ ok(reader.includes("localStorage.setItem(themeStorage")&&reader.includes('window.OSCP_THEME={setNight'),'theme saved and externally synchronized');
+ ok(tpl.includes('id="themeBtn"')&&tpl.includes('id="refReaderTheme"'),'top and reader toggles remain');
+ ok(css.includes('grid-template-columns:minmax(0,1fr)')&&css.includes('white-space:pre;overflow-x:auto'),'layout and command wrapping remain safe');
+});
 test('readable day/night theme maintains AA text contrast and safe reference widths',()=>{
  const css=read('src/styles/15-comfort.css');
  const tpl=read('src/index.template.html');
