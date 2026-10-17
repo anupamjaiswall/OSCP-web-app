@@ -245,6 +245,27 @@ async function main(){
     if(!(themeColors.paper==='rgb(236, 240, 235)'&&themeColors.night==='rgb(30, 43, 52)'&&themeColors.pressed==='true'&&themeColors.nightSaved==='night'&&themeColors.restored===themeColors.paper))
       throw new Error('reference color toggle/regression: '+JSON.stringify(themeColors));
 
+    // Regression: Light must recolor the entire shell, left menu AND reference TOC.
+    const fullTheme=JSON.parse(await evalValue(`(()=>{
+      const reader=document.getElementById('refReaderTheme'),top=document.getElementById('themeBtn');
+      const root=document.getElementById('referenceRoot'),side=document.querySelector('.side'),toc=document.getElementById('refReaderTocWrap');
+      if(root.classList.contains('darkRef')===false)reader.click();
+      const dark={body:getComputedStyle(document.body).backgroundColor,side:getComputedStyle(side).backgroundColor};
+      top.click();
+      const light={body:getComputedStyle(document.body).backgroundColor,side:getComputedStyle(side).backgroundColor,toc:getComputedStyle(toc).backgroundColor,mode:document.body.classList.contains('themeLight'),stored:localStorage.getItem('oscp:reference-theme:v1')};
+      const nav=document.querySelector('.side .navbtn');
+      light.navText=nav?getComputedStyle(nav).color:null;
+      reader.click(); // return to dark, preserving test isolation
+      const restored=!document.body.classList.contains('themeLight');
+      return JSON.stringify({dark,light,restored});
+    })()`));
+    if(!(fullTheme.light.mode&&fullTheme.light.stored==='day'&&
+       fullTheme.light.body==='rgb(243, 246, 242)'&&fullTheme.light.side==='rgb(236, 242, 237)'&&
+       fullTheme.light.toc==='rgb(237, 244, 238)'&&
+       fullTheme.light.navText==='rgb(52, 78, 87)'&&
+       fullTheme.dark.body!==fullTheme.light.body&&fullTheme.restored))
+      throw new Error('full light theme missed shell or navigation: '+JSON.stringify(fullTheme));
+
     // Real interaction 1: typo-tolerant search must produce results after lazy reference hydration.
     await evalValue(`(()=>{const i=document.getElementById('globalSearch');i.value='seimpersonte';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
     const typoSearch=await waitFor(async()=>{
