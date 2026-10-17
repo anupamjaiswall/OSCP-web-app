@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.70.0 — 2026-10-17
+
+### Actual clipboard.sh shipped and linked
+- Added the real standalone `scripts/clipboard.sh` file in the repository (X11, Wayland, `copy|paste|check`).
+- Added a direct Kali install command and GitHub file link in Section 1.3; the full script remains in the offline reference as a verifiable fallback.
+- Fixed all tmux binding/diagnostic paths to point to `~/bin/clipboard.sh` instead of a helper that was documented but never committed.
+- Regression test asserts the real script matches the embedded offline version, validates Bash syntax and preserves the tmux-only clipboard fallback.
+
+
 ## V34.69.0 — 2026-10-17
 
 ### Fix Shift+Y desktop clipboard guidance
