@@ -35,7 +35,7 @@ ip -4 -o addr show dev tun0  # run again after connecting the exam VPN
 </details>
 <details id="ref-1-2-directory-structure">
 <summary>📁 1.2 Per-machine directory layout (no shared scan output)</summary>
-<p><code>target.sh</code> creates a separate folder under <code>~/oscp/</code> for each host. Do not manually run one shared <code>newbox</code> or keep changing a global <code>$IP</code>.</p>
+<p><code>~/bin/target.sh</code> creates a separate folder under <code>~/oscp/</code> for each host. Do not manually run one shared <code>newbox</code> or keep changing a global <code>$IP</code>.</p>
 <pre class="ref-code"><code class="language-text">~/oscp/
 ├── 10.10.10.5/            # target A: session oscp_10_10_10_5
 │   ├── loot/
@@ -133,7 +133,7 @@ run '~/.tmux/plugins/tpm/tpm'</code></pre>
 set -euo pipefail
 # Usage: target.sh IP [--domain DOMAIN --dc DC_IP --lport PORT]
 #        target.sh LABEL --ip IP [--domain DOMAIN --dc DC_IP]
-#        target.sh AD_set --domain DOMAIN --dc DC_IP  # coordination only
+#        ~/bin/target.sh AD_set --domain DOMAIN --dc DC_IP  # coordination only
 if [[ $# -lt 1 ]]; then
   echo "Usage: target.sh &lt;IP-or-label&gt; [--ip IPv4] [--domain DNS] [--dc DC] [--lport PORT]" &gt;&amp;2
   exit 2
@@ -196,7 +196,7 @@ go
 # All new panes/windows inherit session-specific environment variables.
 # tmux set-environment changes FUTURE processes, NOT existing shell variables.
 </code></pre>
-<p><b>Existing session behavior:</b> running <code>target.sh</code> again reattaches to that session; it never silently replaces the environment of already-open shells. To use different IP/domain information, create a new correctly named session or explicitly update the relevant shells. <code>AD_set</code> is a coordination/notes session, not a network target, unless an IP is explicitly provided.</p>
+<p><b>Existing session behavior:</b> running <code>~/bin/target.sh</code> again reattaches to that session; it never silently replaces the environment of already-open shells. To use different IP/domain information, create a new correctly named session or explicitly update the relevant shells. <code>AD_set</code> is a coordination/notes session, not a network target, unless an IP is explicitly provided.</p>
 <h3>~/bin/clean-logs.sh — strip ANSI for searchable report text</h3>
 <pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
 set -euo pipefail
@@ -305,23 +305,23 @@ rusthound-ce -h 2&gt;/dev/null | head
 <summary>🖥️ tmux During Exam — launch target, copy/paste, manage panes &amp; logs</summary>
 <p><b>Do not reinstall tmux/plugins or rewrite scripts during the exam.</b> Setup and verification belongs in <a href="#ref-1-3-tmux-setup-never-work-without-it">Pre-Engagement → 1.3 tmux Setup</a>. Use the already-tested <code>target.sh</code> and tmux bindings.</p>
 <h3>Multi-machine exam desk — launch one tmux session per target</h3>
-<p><b>Example IPs below are placeholders:</b> substitute only the machines and domain actually assigned in your control panel. <code>target.sh</code> does not scan or attempt to connect; it only creates separate working sessions.</p>
+<p><b>Example IPs below are placeholders:</b> substitute only the machines and domain actually assigned in your control panel. <code>~/bin/target.sh</code> does not scan or attempt to connect; it only creates separate working sessions.</p>
 <pre class="ref-code"><code class="language-bash"># Standalone machines: different target/IP, working directory and listener port
-target.sh 10.10.10.5 --lport 4444
-target.sh 10.10.10.6 --lport 4445
+~/bin/target.sh 10.10.10.5 --lport 4444
+~/bin/target.sh 10.10.10.6 --lport 4445
 
 # AD set: one named session PER MACHINE, sharing only explicit DC/domain context
-target.sh DC01 --ip 10.10.10.100 --domain corp.local --dc 10.10.10.100
-target.sh WS01 --ip 10.10.10.101 --domain corp.local --dc 10.10.10.100
-target.sh WS02 --ip 10.10.10.102 --domain corp.local --dc 10.10.10.100
-target.sh AD_set --domain corp.local --dc 10.10.10.100
+~/bin/target.sh DC01 --ip 10.10.10.100 --domain corp.local --dc 10.10.10.100
+~/bin/target.sh WS01 --ip 10.10.10.101 --domain corp.local --dc 10.10.10.100
+~/bin/target.sh WS02 --ip 10.10.10.102 --domain corp.local --dc 10.10.10.100
+~/bin/target.sh AD_set --domain corp.local --dc 10.10.10.100
 # AD_set is optional coordination/notes. IP intentionally blank — do not scan from it.
 
 # Jump between EXISTING sessions: Ctrl+A, then s (interactive session picker)
 tmux list-sessions -F '#{session_name} : #{session_windows} windows'
 tmux switch-client -t =oscp_WS01   # inside tmux; never changes other sessions
 tmux switch-client -t =oscp_10_10_10_5
-# Outside tmux: target.sh WS01 (reattach); tmux attach -t =oscp_WS01
+# Outside tmux: ~/bin/target.sh WS01 (reattach); tmux attach -t =oscp_WS01
 
 # Verify from OUTSIDE the session (tmux stores per-session environments)
 tmux show-environment -t =oscp_WS01 IP
