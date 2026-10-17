@@ -111,6 +111,22 @@ test('exam clock never rewrites in-progress datetime input during each tick',()=
  ok(src.includes('clockStartInput.validity.valid')&&src.includes("safeStoreSet(STORE+'examClock'"),'validate and persist start time');
  ok(tpl.includes('id="clockInputFeedback"')&&tpl.includes('id="examStart" type="datetime-local"'),'clock controls exist');
 });
+test('exam Nmap default NSE, first-pass Nikto and tmux clipboard workflow',()=>{
+ const ref=read('src/content/02-enumeration.html');
+ const nmap=ref.slice(ref.indexOf('# STEP 2: TARGETED VERSION'),ref.indexOf('# STEP 5: OS detection'));
+ ok(nmap.includes('-sV -p "$ports"')&&!nmap.includes('-sC -sV'),'version fingerprint should not repeat default NSE');
+ ok(nmap.includes('nmap --script-help default')&&nmap.includes('--script=default')&&nmap.includes('scans/nmap/nse-default'),'default NSE must be explicit Step 4');
+ ok(!nmap.includes("SCRIPT='&lt;relevant-script&gt;'"),'default workflow must not have mandatory placeholder');
+ const web=ref.slice(ref.indexOf('id="ref-4-5-http-https'),ref.indexOf('</details>',ref.indexOf('id="ref-4-5-http-https')));
+ ok(web.includes('WEB_URL="http://$IP:80"'),'Nikto must use explicit configurable URL');
+ ok(web.indexOf('nikto -h "$WEB_URL"')>0&&web.indexOf('nikto -h "$WEB_URL"')<web.indexOf('gobuster dir'),'Nikto should run before content discovery');
+ ok(web.includes('mkdir -p scans/web')&&web.includes('nikto-443.txt'),'Nikto output dir and HTTPS shown');
+ const conf=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
+ ok(conf.includes('bind -T copy-mode-vi Y send -X copy-pipe-and-cancel'),'Shift+Y must copy selection');
+ ok(conf.includes("bind Y run-shell 'xclip -selection clipboard -out"),'prefix Y should paste desktop clipboard');
+ ok(conf.includes('xclip -selection clipboard -in &gt;/dev/null'),'avoid xclip stdout hang');
+ ok(ref.includes('Shift+Y copies — it does not paste.'),'clipboard behavior must be clearly explained');
+});
 test('tmux copy workflow documented without creating duplicate nmap output directories',()=>{
  const ref=read('src/content/02-enumeration.html');
  ok(ref.includes('tmux copy / selection / paste')&&ref.includes('copy-pipe-and-cancel')&&ref.includes('Ctrl+Shift+V'),'tmux selection and both clipboards explained');
