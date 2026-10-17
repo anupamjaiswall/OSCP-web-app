@@ -1,7 +1,7 @@
 # 🔐 OSCP Exam OS
 
 <!-- build-version:start -->
-**V34.65.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.66.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 <!-- build-version:end -->
 
 One self-contained `index.html` designed to be the main reference open during the exam. It has no required CDN, package install, AI service, or runtime network dependency.
@@ -20,7 +20,7 @@ One self-contained `index.html` designed to be the main reference open during th
 - **Active Target Workspace + Next Actions:** keeps current target context and ranks a small set of relevant next steps locally.
 - **Service Router:** turns discovered ports/services into a focused enumeration queue.
 - **Multi-machine tmux OSCP workflow:** one session and folder per machine (standalone/AD); no global `IP` export. Start at Full Reference → **Start here** for the 60-second launch/verify/scan steps.
-- **Fullscreen Full Reference reader:** gentle soft-paper/dusk notes, muted slate UI, searchable left section tree, and one-click Start here / Setup / During exam navigation (offline).
+- **Fullscreen Full Reference reader:** stable app layout, gentle soft-paper/dusk reference, one-column sidebar shortcuts, and normal word/command wrapping (offline).
 - **Linux / Windows / AD Method Trees:** branch-oriented exam methodology instead of a flat command dump.
 - **WIN Linux / WIN Windows / WIN AD:** three separate 12-step exam-time winning desks with per-target checklists, copyable commands, deep links, and evidence banking; AD credential, Kerberos, BloodHound/AD CS, edge and troubleshooting tools stay available under WIN AD.
 - **Fresh-Eyes Reset:** structured re-enumeration when progress stalls.
