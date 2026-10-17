@@ -217,6 +217,24 @@ test('real scripts/clipboard.sh matches offline notes, loads as bash and has a f
  const noDisplay=spawnSync('bash',['-c',script+'\n'],{input:'',encoding:'utf8',env:{PATH:'/usr/bin:/bin',HOME:'/tmp',WAYLAND_DISPLAY:'',DISPLAY:''}});
  ok(noDisplay.status===2,'help should reject blank action');
 });
+test('tmux split shortcuts describe divider direction and have a standalone final override',()=>{
+ const ref=read('src/content/02-enumeration.html'),override=read('scripts/tmux-splits.conf').trimEnd();
+ const anchor='<h4>Standalone split-key override (available offline)</h4>';
+ const a=ref.indexOf(anchor),b=ref.indexOf('<pre class="ref-code"><code class="language-tmux">',a);
+ const end=ref.indexOf('</code></pre>',b);
+ ok(a>=0&&b>=0&&end>b,'split orientation override embedded offline');
+ const embedded=ref.slice(b+'<pre class="ref-code"><code class="language-tmux">'.length,end)
+   .replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
+ ok(embedded===override,'split override and offline notes must match');
+ ok(override.includes("bind-key -T prefix | split-window -h -c '#{pane_current_path}'"),'| must create side-by-side panes');
+ ok(override.includes("bind-key -T prefix - split-window -v -c '#{pane_current_path}'"),'- must create stacked panes');
+ ok(ref.includes('VERTICAL divider')&&ref.includes('HORIZONTAL divider'),'visual orientation described explicitly');
+ ok(ref.includes('raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-splits.conf'),'real file has one-click download command');
+ ok(ref.includes('tmux list-keys -T prefix')&&ref.includes('source LAST'),'active binding diagnosis and plugin override documented');
+ const main=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
+ ok(main.includes("bind | split-window -h -c '#{pane_current_path}'"),'main config visual vertical divider');
+ ok(main.includes("bind - split-window -v -c '#{pane_current_path}'"),'main config visual horizontal divider');
+});
 test('real mouse tmux configuration matches reference and leaves internal paste available',()=>{
  const doc=read('src/content/02-enumeration.html'), config=read('scripts/tmux-mouse.conf').trimEnd();
  const anchor='<h4>Standalone mouse config source (available offline)</h4>';
