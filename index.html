@@ -700,6 +700,43 @@ body.themeLight #referenceView .reference :not(pre)>code{background:#dfebe3;colo
 body.themeLight #referenceView .reference mark.refFindMark{background:#ffe8a0;color:#222d30!important}
 body.themeLight #referenceView .reference mark.refFindMark.refFindCurrent{background:#ffc477;color:#222d30!important}
 @media print{body.themeLight{background:#fff;color:#111}}
+
+
+/* Auxiliary exam surfaces share Light mode; backdrop scrims remain translucent
+   so the open dialog is visually distinguishable. */
+body.themeLight .activeWorkStrip,body.themeLight #refNavigator{
+ background:rgba(248,251,248,.98);color:#21343e;border-color:#c0d2c8;
+}
+body.themeLight #refNavigator .refCrumbHome{color:#145c70}
+body.themeLight #refNavigator #refBreadcrumbCurrent{color:#203843}
+body.themeLight #refNavigator .btn.active{background:#d2e9dc;color:#164f49;border-color:#7fbaa5}
+body.themeLight :is(.examResetDialog,.examBankDialog,.examHelpDialog,.v26Dialog,.v33Dialog){
+ background:#ffffff;color:#21343e;border-color:#bbcfc4;
+ box-shadow:0 18px 56px rgba(30,48,47,.19);
+}
+body.themeLight :is(.examResetStep,.examBankStep,.examBankClosure,.examBankClosureItem,.examHelpKey,.examHelpRule,.workStateGrid textarea,.paletteSearch,.indexCard,.v33TargetSummary,.v33ServiceCard,.v34NextSummary,.v34NextCard,.v33Check,.outputTruthGrid>div){
+ background:#f1f6f2;color:#21343e;border-color:#c5d7cc;
+}
+body.themeLight .workStateGrid label{color:#344f5a}
+body.themeLight .paletteSearch input{background:transparent;color:#21343e}
+body.themeLight .paletteItem{color:#21343e}
+body.themeLight :is(.paletteItem:hover,.paletteItem.active,.indexCard:hover,.indexCard:focus-visible){background:#e1eee6;border-color:#8cb8a7;color:#204d4c}
+body.themeLight :is(.paletteKind,.indexCard .indexMeta,.workStripCell .k){color:#536974}
+body.themeLight :is(.indexCard .indexTag,.v33Endpoint,.v34NextMeta){color:#205c70}
+body.themeLight .v33ServicePart b{color:#294c58}
+body.themeLight .v34NextRank{background:#d9eae0;color:#2a5863}
+body.themeLight .v34NextGuard,body.themeLight .examResetRule{background:#f6eed8;color:#69511e}
+body.themeLight .examBankDanger{background:#f8e6e5;color:#843f43}
+body.themeLight .examBankClosureStatus.pending{background:#f8efd6;color:#755314;border-color:#c4ac6b}
+body.themeLight .examBankClosureStatus.complete{background:#ddf0e5;color:#236345;border-color:#89bfa2}
+body.themeLight .examBankClosureItem:has(input:checked){background:#e1f0e7;border-color:#8ebba7}
+body.themeLight .examBankCommand{background:#e5eee8;color:#254554;border-color:#b4cbc0}
+body.themeLight .examBankRuleNote{background:#e5eff1;color:#31545f;border-left-color:#5e9cb3}
+body.themeLight .examHelpKey kbd{background:#e4ece6;color:#2c4e58;border-color:#bacbc5}
+body.themeLight .v33PreflightSummary.pass{background:#dff0e5;color:#236344}
+body.themeLight .v33PreflightSummary.warn{background:#f6eed8;color:#755314}
+body.themeLight .v33PreflightSummary.fail{background:#f7e5e4;color:#843f43}
+body.themeLight .graphShell{background:#edf3f0}
 </style>
 </head>
 <body>
