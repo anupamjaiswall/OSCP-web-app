@@ -1,5 +1,16 @@
 # Changelog
 
+## V34.63.0 — 2026-10-17
+
+### Per-machine OSCP terminal workflows
+- Replaced the misleading global `export IP=10.10.10.x` pre-engagement example with a pre-exam verification flow and clearly identified per-machine `IP`, `TARGET`, `LHOST`, `LPORT`, optional `DOMAIN` and `DC` variables.
+- Reworked `~/bin/target.sh` so tmux `new-session -e` seeds the target-specific environment before the very first pane starts, masking any tmux global host variables, rather than injecting `export IP` into a pane after creation.
+- Added `--ip`, `--domain`, `--dc`, `--lport` options, IPv4/port validation, session identity checking, clear behavior when reattaching, and a `tun0`-derived LHOST.
+- Updated the During Exam runbook for distinct standalone sessions, individual AD DC/member machine sessions, and optional `AD_set` coordination with intentionally blank IP. Emphasized that `tmux set-environment` does not update already running shells.
+- Standardized runnable examples to `~/bin/target.sh` so a shell PATH update is not required. Kept Nmap output folder initialization only in section 3.1 and removed conflicting shared `newbox` instructions.
+- Added an executable mocked-tmux Bash regression test for two standalone machines, AD member and AD coordination session, including invalid IP rejection and per-host workspace isolation.
+
+
 ## V34.62.0 — 2026-10-16
 
 ### Full-screen reference and separate exam phases
