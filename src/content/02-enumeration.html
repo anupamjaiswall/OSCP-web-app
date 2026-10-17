@@ -304,12 +304,41 @@ rusthound-ce -h 2&gt;/dev/null | head
 <details id="ref-exam-tmux-operator-runbook">
 <summary>🖥️ tmux During Exam — launch target, copy/paste, manage panes &amp; logs</summary>
 <p><b>Do not reinstall tmux/plugins or rewrite scripts during the exam.</b> Setup and verification belongs in <a href="#ref-1-3-tmux-setup-never-work-without-it">Pre-Engagement → 1.3 tmux Setup</a>. Use the already-tested <code>target.sh</code> and tmux bindings.</p>
-<h3>Target sessions, panes, logging and review</h3>
-<pre class="ref-code"><code class="language-bash">target.sh 10.10.10.5  # target session, folder ~/oscp/10.10.10.5
-target.sh 10.10.10.6
-target.sh AD_set      # no $IP; set DC/WS1/WS2 separately
-tmux set-environment -t AD_set DC 10.10.10.100
-tmux ls
+<h3>Multi-machine exam desk — launch one tmux session per target</h3>
+<p><b>Example IPs below are placeholders:</b> substitute only the machines and domain actually assigned in your control panel. <code>target.sh</code> does not scan or attempt to connect; it only creates separate working sessions.</p>
+<pre class="ref-code"><code class="language-bash"># Standalone machines: different target/IP, working directory and listener port
+target.sh 10.10.10.5 --lport 4444
+target.sh 10.10.10.6 --lport 4445
+
+# AD set: one named session PER MACHINE, sharing only explicit DC/domain context
+target.sh DC01 --ip 10.10.10.100 --domain corp.local --dc 10.10.10.100
+target.sh WS01 --ip 10.10.10.101 --domain corp.local --dc 10.10.10.100
+target.sh WS02 --ip 10.10.10.102 --domain corp.local --dc 10.10.10.100
+target.sh AD_set --domain corp.local --dc 10.10.10.100
+# AD_set is optional coordination/notes. IP intentionally blank — do not scan from it.
+
+# Jump between EXISTING sessions: Ctrl+A, then s (interactive session picker)
+tmux list-sessions -F '#{session_name} : #{session_windows} windows'
+tmux switch-client -t =oscp_WS01   # inside tmux; never changes other sessions
+tmux switch-client -t =oscp_10_10_10_5
+# Outside tmux: target.sh WS01 (reattach); tmux attach -t =oscp_WS01
+
+# Verify from OUTSIDE the session (tmux stores per-session environments)
+tmux show-environment -t =oscp_WS01 IP
+tmux show-environment -t =oscp_WS01 DOMAIN
+tmux show-environment -t =oscp_10_10_10_5 IP
+
+# Verify from INSIDE EACH target's pane BEFORE scanning or launching a listener
+printf 'target=%s ip=%s domain=%s dc=%s lhost=%s lport=%s\n' \
+  "$TARGET" "$IP" "$DOMAIN" "$DC" "$LHOST" "$LPORT"
+pwd
+# Expected for WS01: TARGET=WS01 IP=10.10.10.101; pwd = ~/oscp/WS01
+# Only run Section 3.1 Nmap commands after IP and pwd are verified.
+# LPORT is optional: choose unique ports when simultaneous listeners are needed.
+# LHOST is sampled from tun0 at creation. If VPN changes, update each active pane.</code></pre>
+<p><b>Crucial distinction:</b> <code>tmux set-environment -t ...</code> updates the session environment for <em>new</em> processes, not shells already running. Changing <code>DOMAIN</code>, <code>DC</code> or <code>IP</code> there does not refresh open panes. Use the correct values when launching each target or explicitly <code>export</code> the correction inside every affected live shell.</p>
+<h3>Manage panes, verify log capture and save evidence</h3>
+<pre class="ref-code"><code class="language-bash">tmux ls
 tmux show-hooks -g
 tmux list-panes -a -F '#{session_name} #{window_name} #{pane_id} #{pane_pipe}'
 ls -lt ~/oscp/logs/$(date +%F)/ | head
@@ -318,15 +347,14 @@ ls -lt ~/oscp/logs/$(date +%F)/ | head
 # Ctrl+A z = zoom; [ = scroll; S = save scrollback; c = new window
 # Ctrl+A s = sessions; d = detach; r = reload; X = kill dead pane
 # Ctrl+A Ctrl+s = save layout; Ctrl+A Ctrl+r = restore layout (plugin)
-# IMPORTANT: reload does not auto-start logging on already-open panes:
+# Reloading tmux config does not start logging on EXISTING panes:
 tmux list-panes -a -F '#{pane_id}' | while read -r p; do ~/bin/tmux-start-log.sh "$p"; done
-# Logs are plaintext, may contain secrets; preserve locally.
-# For tool output: follow section 3.1: mkdir -p scans/nmap ; nmap -sCV -oA scans/nmap/full "$IP"
+# Nmap output setup lives ONLY in Section 3.1, inside the chosen target folder.
 ~/bin/clean-logs.sh
 grep -rn -B3 -A15 'sudo -l' ~/oscp/logs-clean/
-# Local backup; do NOT upload credentials/proofs to cloud:
+# Local backup: all target folders; NEVER upload credentials or proof to cloud
 cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
-<p><strong>Notes:</strong> New windows and panes are logged independently. Pane numbering can change; the unique pane ID in the filename prevents collisions. Commands launched without shell echo, invisible keystrokes, and GUI activity are not necessarily captured. Use tool-native <code>-oA</code> outputs for critical evidence. Keep all sensitive evidence on approved local storage.</p>
+<p><b>Do not mix results:</b> every target has its own <code>~/oscp/&lt;target&gt;/</code> directory. Pipe-pane logs remain named by tmux session and pane ID. Use Nmap's native <code>-oA scans/nmap/…</code> inside the correct target folder for reliable per-host evidence. Never reuse another host's <code>$IP</code> or proof.</p>
 <h3>tmux copy / selection / paste — Vim keybindings</h3>
 <p><strong>Default prefix:</strong> press <kbd>Ctrl+A</kbd>, <em>release</em>, then the next key (not <kbd>Ctrl+B</kbd>). <b>Reload this file first:</b> in a running tmux terminal run <code>tmux source-file ~/.tmux.conf</code>. Existing tmux sessions otherwise keep old bindings.</p>
 <ol>
