@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.72.0 — 2026-10-17
+
+### Clarify pane orientation and repair reversed tmux bindings
+- Explained tmux's surprising `split-window -h` (side-by-side) versus `-v` (top/bottom) terminology using visual pane diagrams, labelled by the separator direction.
+- Shipped the real `scripts/tmux-splits.conf` override to restore `Ctrl+A | → left/right` and `Ctrl+A - → top/bottom` after other plugin/config overrides.
+- Added a direct install/source/persist sequence, active `tmux list-keys` checks, and an instruction to test in a disposable window.
+- Added a regression test ensuring the override matches the embedded offline source and main tmux config.
+
+
 ## V34.71.0 — 2026-10-17
 
 ### tmux mouse select, copy and paste
