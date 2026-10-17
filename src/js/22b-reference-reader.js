@@ -8,6 +8,21 @@
  const mode=$('refReaderFullscreen'),close=$('refReaderExit'),toggle=$('refReaderTocToggle'),filter=$('refReaderFilter');
  let built=false,native=false,entries=[],active='',allGroups=[];
  const store='oscp:reference-reader:v1';
+ const themeStorage='oscp:reference-theme:v1';
+ const themeControl=$('refReaderTheme');
+ function syncTheme(){
+   const night=root.classList.contains('darkRef');
+   if(themeControl){
+     themeControl.textContent=night?'☀ Day notes':'☾ Night notes';
+     themeControl.setAttribute('aria-pressed',String(night));
+     themeControl.title=night?'Use light reference colors':'Use dark reference colors';
+   }
+   try{localStorage.setItem(themeStorage,night?'night':'day')}catch(_){}
+ }
+ try{if(localStorage.getItem(themeStorage)==='night')root.classList.add('darkRef')}catch(_){}
+ themeControl?.addEventListener('click',()=>{root.classList.toggle('darkRef');syncTheme()});
+ new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['class']});
+ syncTheme();
  function isActive(){return view.classList.contains('active')}
  function setToc(open){
    view.classList.toggle('refTocOpen',!!open);
