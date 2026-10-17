@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.68.0 — 2026-10-17
+
+### Full light mode for the entire OSCP workspace
+- Unified the top-bar toggle and Full Reference day/night switch: both now control the complete app and retain the preference locally.
+- Light mode changes the page, left navigation, active links, top bar, search/inputs, action buttons, card panels, dialogs, reference TOC, and code blocks to a matching high-contrast light palette.
+- Dark mode restores the existing slate appearance. Kept V34.66 safe grid widths, one-column reader shortcuts and command wrapping intact.
+- Added accessibility color contrast assertions and a browser-level smoke check for both theme switches, sidebar and full-reference colours.
+
+
 ## V34.67.0 — 2026-10-17
 
 ### Readable, contrast-checked colors without layout regression
