@@ -191,7 +191,11 @@ set -g allow-rename off
 setw -g automatic-rename off
 set -g remain-on-exit on
 
-# Splits, navigation, resize
+# Splits — name the DIVIDER, not tmux's arrangement flag.
+# Prefix + | : VERTICAL divider, panes SIDE BY SIDE (tmux -h).
+# Prefix + - : HORIZONTAL divider, panes TOP/BOTTOM (tmux -v).
+# -h means the new pane is placed horizontally beside the first pane.
+# -v means the new pane is placed vertically below the first pane.
 bind | split-window -h -c '#{pane_current_path}'
 bind - split-window -v -c '#{pane_current_path}'
 bind h select-pane -L
@@ -239,6 +243,53 @@ set-hook -g after-split-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 run '~/.tmux/plugins/tpm/tpm'</code></pre>
+<h3>tmux pane splitting — vertical divider vs horizontal divider</h3>
+<p><strong>Visual rule (Ctrl+A is the prefix):</strong> <kbd>Ctrl+A</kbd> then <kbd>|</kbd> creates <strong>left + right</strong> panes with a <em>vertical dividing line</em>. <kbd>Ctrl+A</kbd> then <kbd>-</kbd> creates <strong>top + bottom</strong> panes with a <em>horizontal dividing line</em>. This is intentional: tmux's <code>-h</code> means panes are arranged horizontally (next to each other), while <code>-v</code> means they stack vertically. The flag describes the <strong>direction panes are arranged</strong>, not the direction of the dividing line.</p>
+<pre class="ref-code"><code class="language-text">Ctrl+A then |     VERTICAL divider (tmux -h)
++---------+---------+
+|  pane 1 |  pane 2 |
++---------+---------+
+
+Ctrl+A then -     HORIZONTAL divider (tmux -v)
++-------------------+
+|      pane 1       |
++-------------------+
+|      pane 2       |
++-------------------+</code></pre>
+<p><strong>If your real tmux behaves the opposite way, its active key table differs from this config.</strong> Source the override <em>last</em>, after other configuration/plugins. The override is a real repository file: <a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/tmux-splits.conf" target="_blank" rel="noopener noreferrer">scripts/tmux-splits.conf</a>. It only changes the two pane-splitting keys; mouse/clipboard bindings and existing panes remain untouched.</p>
+<pre class="ref-code"><code class="language-bash"># One-time install from Kali BEFORE exam day:
+mkdir -p ~/bin
+curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-splits.conf -o ~/bin/tmux-splits.conf
+
+# Apply immediately to a RUNNING tmux server:
+tmux source-file ~/bin/tmux-splits.conf
+
+# Confirm current binding table:
+tmux list-keys -T prefix | grep -E 'split-window.*(-h|-v)'
+# Expected: | uses -h; - uses -v.
+# Use Ctrl+A then | for SIDE BY SIDE; Ctrl+A then - for TOP/BOTTOM.
+
+# For persistence, source LAST in ~/.tmux.conf (after plugins/other binds):
+grep -qxF 'source-file ~/bin/tmux-splits.conf' ~/.tmux.conf ||
+  printf '\nsource-file ~/bin/tmux-splits.conf\n' &gt;&gt; ~/.tmux.conf
+
+tmux source-file ~/.tmux.conf
+tmux list-keys -T prefix | grep -E 'split-window.*(-h|-v)'</code></pre>
+<h4>Standalone split-key override (available offline)</h4>
+<pre class="ref-code"><code class="language-tmux"># OSCP tmux split orientation — visual dividers, not tmux -h/-v names.
+# Source this LAST if other configs/plugins override split bindings:
+#   tmux source-file ~/bin/tmux-splits.conf
+#
+# Ctrl+A then | : vertical dividing LINE (panes LEFT | RIGHT).
+# Ctrl+A then - : horizontal dividing LINE (panes TOP / BOTTOM).
+# tmux -h places panes horizontally (side by side), while -v stacks them.
+# Do not swap these flags when describing the divider orientation.
+
+unbind-key -T prefix |
+unbind-key -T prefix -
+bind-key -T prefix | split-window -h -c '#{pane_current_path}'
+bind-key -T prefix - split-window -v -c '#{pane_current_path}'</code></pre>
+<p><b>Test safely:</b> in a disposable tmux window, use both keys and inspect the resulting pane positions. Do not close any active exploit, listener or log pane merely to test the split behaviour. If you <em>actually prefer the opposite visual mapping</em>, swap the <code>-h</code> and <code>-v</code> flags in the override on your own machine—this app documents the standard visual <kbd>|</kbd>/<kbd>-</kbd> convention.</p>
 <h3>~/bin/target.sh — independent shell environment per machine</h3>
 <p><b>Why:</b> each OSCP target gets its own tmux session, current directory, IP, optional AD context and optional listener port. This prevents machine B from accidentally being scanned with machine A's `$IP` or output path. The new-session <code>-e</code> flags apply before the <b>first</b> pane starts. Requires a tmux version supporting <code>new-session -e</code> (verify before exam day).</p>
 <pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
