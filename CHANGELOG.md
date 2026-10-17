@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.66.0 — 2026-10-17
+
+### Fix cramped theme and per-character text wrapping
+- Kept the proven main app shell palette/layout, scoping eye-comfort colors to the reference only.
+- Replaced the reader's cramped three-column shortcuts with full-width rows; guarded reader widths and restored normal word wrapping.
+- Kept commands in horizontally scrollable preformatted blocks and mobile reading in one column.
+- Preserved soft-paper and dusk modes; added static/browser layout regression coverage.
+
+
 ## V34.65.0 — 2026-10-17
 
 ### One-machine-per-session exam workflow and eye-comfort theme
