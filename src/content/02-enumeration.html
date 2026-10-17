@@ -55,11 +55,11 @@ ip -4 -o addr show dev tun0  # run again after connecting the exam VPN
 <summary>🖥️ 1.3 tmux Setup — per-target sessions + automatic per-pane timestamped logs</summary>
 <p><strong>Exam workflow:</strong> tmux + pipe-pane for terminal output, Obsidian/Vim for reasoning and proof screenshots. No nested <code>script</code> recorder. Do not treat pane transcripts as guaranteed captures of every keystroke. Test in Kali before exam day.</p>
 <h3>One-time installation (Kali)</h3>
-<pre class="ref-code"><code class="language-bash">sudo apt install -y tmux xclip colorized-logs moreutils
+<pre class="ref-code"><code class="language-bash">sudo apt install -y tmux xclip wl-clipboard colorized-logs moreutils
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 mkdir -p ~/bin ~/oscp/logs ~/oscp/logs-clean
 # Save the following files with vim, then:
-chmod +x ~/bin/{tmux-log.sh,tmux-start-log.sh,target.sh,clean-logs.sh}
+chmod +x ~/bin/{tmux-log.sh,tmux-start-log.sh,tmux-clipboard.sh,target.sh,clean-logs.sh}
 # Ctrl+A I (capital I) installs tmux plugins after starting tmux.
 # All tools/scripts must be installed and tested BEFORE exam day.</code></pre>
 <h3>~/bin/tmux-log.sh — timestamp one line per output line</h3>
@@ -82,6 +82,40 @@ session="${session//[^a-zA-Z0-9_-]/_}"
 name="${session}_w${window}_p${num}_id${id}_$(date +%H%M%S)"
 # -o prevents accidental duplicate pipes when reloading settings.
 tmux pipe-pane -o -t "$pane" "$HOME/bin/tmux-log.sh '$name'"</code></pre>
+<h3>~/bin/tmux-clipboard.sh — desktop clipboard bridge (X11 / Wayland)</h3>
+<p><b>Why Shift+Y sometimes fails:</b> <code>xclip</code> works with X11, not a Wayland-only or disconnected desktop. A local/remote terminal must also have access to the display. This helper uses <code>wl-copy</code>/<code>wl-paste</code> when <code>WAYLAND_DISPLAY</code> is set, otherwise <code>xclip</code> when <code>DISPLAY</code> is set. It cannot magically forward remote clipboard contents through SSH or VM boundaries. Install and test it before exam day.</p>
+<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
+# Used locally by tmux; requires graphical clipboard access.
+set -euo pipefail
+case "${1:-}" in
+  copy)
+    if [[ -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp; command -v wl-copy &gt;/dev/null 2&gt;&amp;1; then
+      exec wl-copy --type text/plain
+    elif [[ -n "${DISPLAY:-}" ]] &amp;&amp; command -v xclip &gt;/dev/null 2&gt;&amp;1; then
+      exec xclip -selection clipboard -in &gt;/dev/null 2&gt;&amp;1
+    else
+      # Consume selection so tmux never hangs waiting for the pipe.
+      cat &gt;/dev/null
+      echo 'No usable desktop clipboard: test DISPLAY/WAYLAND_DISPLAY and xclip/wl-copy.' &gt;&amp;2
+      exit 1
+    fi
+    ;;
+  paste)
+    if [[ -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp; command -v wl-paste &gt;/dev/null 2&gt;&amp;1; then
+      exec wl-paste --no-newline
+    elif [[ -n "${DISPLAY:-}" ]] &amp;&amp; command -v xclip &gt;/dev/null 2&gt;&amp;1; then
+      exec xclip -selection clipboard -out
+    else
+      echo 'Desktop clipboard unavailable; use tmux y then Ctrl+A ] instead.' &gt;&amp;2
+      exit 1
+    fi
+    ;;
+  *)
+    echo 'Usage: tmux-clipboard.sh copy|paste' &gt;&amp;2
+    exit 2
+    ;;
+esac</code></pre>
+<p><b>Save as:</b> <code>~/bin/tmux-clipboard.sh</code> and run <code>chmod +x ~/bin/tmux-clipboard.sh</code>. If both clipboard tools fail, use tmux's internal clipboard instead. A failed desktop clipboard copy may still leave a tmux paste buffer; confirm with <code>tmux show-buffer</code>.</p>
 <h3>~/.tmux.conf — full exam-safe tmux config</h3>
 <pre class="ref-code"><code class="language-bash">unbind C-b
 set -g prefix C-a
@@ -109,16 +143,16 @@ bind [ copy-mode
 bind ] paste-buffer
 bind S capture-pane -p -S - \; run-shell 'tmux capture-pane -p -S - &gt; "$HOME/oscp/logs/pane-$(date +%F_%H%M%S).txt"' \; display-message 'Scrollback saved'
 
-# In copy mode: v selects; y copies to tmux; Shift+Y copies to desktop (X11).
-# After copying: Ctrl+A ] pastes tmux buffer; Ctrl+A Y pastes desktop clipboard.
-# Capital Y ALONE does not paste. Test X11 clipboard before the exam.
+# Copy mode: lowercase y = tmux internal clipboard (always works locally).
+# Shift+Y = desktop clipboard via helper, provided DISPLAY/Wayland works.
+# The desktop bridge is optional. Do not rely on it without testing.
 setw -g mode-keys vi
+set -s set-clipboard off
 bind -T copy-mode-vi v send -X begin-selection
 bind -T copy-mode-vi y send -X copy-selection-and-cancel
-# Redirect xclip stdout to prevent the tmux copy-mode hang.
-bind -T copy-mode-vi Y send -X copy-pipe-and-cancel 'xclip -selection clipboard -in &gt;/dev/null 2&gt;&amp;1'
-# Prefix + capital Y: paste desktop clipboard into current tmux pane.
-bind Y run-shell 'xclip -selection clipboard -out | tmux load-buffer - &amp;&amp; tmux paste-buffer'
+bind -T copy-mode-vi Y send -X copy-pipe-and-cancel '"$HOME/bin/tmux-clipboard.sh" copy'
+# Prefix + ] pastes tmux buffer. Prefix + Y pastes desktop clipboard.
+bind Y run-shell '"$HOME/bin/tmux-clipboard.sh" paste | tmux load-buffer - &amp;&amp; tmux paste-buffer -t "#{pane_id}"'
 
 # Automatically start pipe-pane on new sessions/windows/splits.
 set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
@@ -369,11 +403,28 @@ cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
 <li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
 <li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
 <li><strong>Paste tmux's internal buffer:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. This works after lowercase <kbd>y</kbd>, even with no desktop clipboard.</li>
-<li><strong>Copy text to the desktop clipboard:</strong> in copy mode, select with <kbd>v</kbd>, then press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>). <b>Shift+Y copies — it does not paste.</b> To paste in a compatible desktop terminal use <kbd>Ctrl+Shift+V</kbd>.</li>
-<li><strong>Paste the desktop clipboard into tmux:</strong> outside copy mode press <kbd>Ctrl+A</kbd>, release, then capital <kbd>Y</kbd>. The desktop copy/paste shortcuts need <code>xclip</code> and a working X11 <code>DISPLAY</code>.</li>
+<li><strong>Copy to the desktop clipboard (conditional):</strong> after selecting with <kbd>v</kbd>, press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>). This uses the <code>tmux-clipboard.sh</code> helper and requires working X11/<code>xclip</code> or Wayland/<code>wl-copy</code>. <b>Shift+Y copies; it does not paste.</b> To paste into the desktop terminal, use its own Paste command (often <kbd>Ctrl+Shift+V</kbd>).</li>
+<li><strong>Paste the desktop clipboard into tmux:</strong> outside copy mode, press <kbd>Ctrl+A</kbd>, then capital <kbd>Y</kbd>. This uses <code>wl-paste</code> or <code>xclip</code>; unlike lowercase <kbd>y</kbd>, it is not guaranteed over SSH, remote desktops, or VM boundaries.</li>
 <li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
 </ol>
-<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, tmux can intercept dragging; use keyboard selection or hold <kbd>Shift</kbd> while dragging where your terminal supports native selection. <strong>If Shift+Y appears broken:</strong> reload with <code>tmux source-file ~/.tmux.conf</code>; inspect <code>tmux list-keys -T copy-mode-vi</code> and <code>tmux list-keys -T prefix</code>; confirm <code>echo "$DISPLAY"</code> and <code>command -v xclip</code>. Test X11 separately with <code>printf 'tmux-copy-test' | xclip -selection clipboard &gt;/dev/null 2&gt;&amp;1</code> and <code>xclip -selection clipboard -out</code>. A remote SSH or Wayland-only terminal may lack X11 clipboard access. In that case use lowercase <kbd>y</kbd> followed by <kbd>Ctrl+A</kbd>, <kbd>]</kbd>, or configure the appropriate desktop clipboard bridge before the exam.</p>
+<p><strong>Mouse note:</strong> With <code>set -g mouse on</code>, tmux may intercept drag selections; use copy mode or hold <kbd>Shift</kbd> while dragging where the terminal supports native text selection. <strong>If Shift+Y is broken:</strong> first confirm lowercase <kbd>y</kbd> and <kbd>Ctrl+A</kbd> then <kbd>]</kbd> work. Check <code>tmux list-keys -T copy-mode-vi | grep ' Y '</code>, test the desktop clipboard <em>outside</em> tmux (see below), and reload <code>tmux source-file ~/.tmux.conf</code>. Terminal/SSH/VM shared clipboard support varies; a clipboard working on Kali does not automatically imply clipboard sharing with the Windows host.</p>
+<h4>Desktop clipboard 30-second diagnosis</h4>
+<pre class="ref-code"><code class="language-bash"># Check environment in the SAME terminal where tmux was started:
+printf 'Wayland=%s X11=%s Session=%s\n' "${WAYLAND_DISPLAY:-unset}" "${DISPLAY:-unset}" "${XDG_SESSION_TYPE:-unset}"
+command -v wl-copy wl-paste xclip || true
+# Test only harmless text:
+printf 'oscp-clipboard-test' | ~/bin/tmux-clipboard.sh copy
+~/bin/tmux-clipboard.sh paste; echo
+# Expected output: oscp-clipboard-test
+# Then inside tmux:
+tmux source-file ~/.tmux.conf
+tmux show-options -gw mode-keys
+tmux list-keys -T copy-mode-vi | grep -E '(^| )Y '
+tmux list-keys -T prefix | grep -E '(^| )Y '
+# Repeat: Ctrl+A [, move, v, select, Shift+Y, then desktop Paste.
+# If helper test fails, do NOT debug during exam: use y + Ctrl+A ].
+</code></pre>
+<p><b>Common failure:</b> tmux started before X11/Wayland was available may have outdated display variables in its server environment; inspect <code>tmux show-environment -g DISPLAY</code> and <code>tmux show-environment -g WAYLAND_DISPLAY</code>. Do not invent a <code>DISPLAY</code> value. Start a new tmux server from a working desktop terminal before exam day, or fix the server environment deliberately. If Kali is accessed through SSH or a VM, copying inside Kali does not necessarily reach the host computer.</p>
 <p><strong>Long output:</strong> <kbd>Ctrl+A</kbd> then <kbd>S</kbd> saves pane scrollback in <code>~/oscp/logs/</code> using this configuration. Pane logs may contain credentials, so keep them on approved local storage. This is different from selecting and copying text.</p>
 
 </details>
