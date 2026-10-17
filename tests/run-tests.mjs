@@ -137,8 +137,19 @@ test('comfortable exam theme and isolated multi-machine launch quickstart',()=>{
  ok(ref.includes('tmux set-environment')&&ref.includes('not open shells'),'no false environment propagation promise');
  ok(tpl.includes('@inject:style:15-comfort.css')&&tpl.includes('id="refReaderStart"'),'comfort CSS included and quickstart reachable');
  ok(reader.includes("jump('ref-0-v5-navigation-note')"),'start button must jump to quickstart');
- for(const token of ['--bg:#171f25','--accent:#a2d1ca','.reference details','.refExamQuickstart','.reference#referenceRoot.darkRef','@media print'])ok(css.includes(token),'theme contract missing '+token);
+ for(const token of ['.reference details','.refExamQuickstart','.reference#referenceRoot.darkRef','@media print'])ok(css.includes(token),'theme contract missing '+token);
  ok(!css.includes('display:none!important}.reference pre'),'reference commands must remain visible');
+});
+test('reference reader prevents character-wide word wrapping',()=>{
+ const css=read('src/styles/15-comfort.css');
+ ok(css.includes('grid-template-columns:minmax(0,1fr)'),'sidebar quick buttons must stack');
+ ok(!css.includes('repeat(3,minmax(0,1fr))'),'three tiny columns break labels into one-character lines');
+ ok(!css.includes('max-width:95ch'),'remove unneeded prose width clamp');
+ ok(css.includes('grid-template-columns:minmax(220px,260px) minmax(0,1fr)'),'article must have shrinkable grid column');
+ ok(css.includes('word-break:normal;overflow-wrap:break-word'),'normal word breaks needed');
+ ok(css.includes('white-space:pre;overflow-x:auto'),'commands scroll horizontally');
+ ok(css.includes('@media(max-width:900px)')&&css.includes('display:block;width:100%;max-width:100%'),'mobile reader single column');
+ ok(!css.includes(':root{'),'no global shell theme override');
 });
 test('tmux copy workflow documented without creating duplicate nmap output directories',()=>{
  const ref=read('src/content/02-enumeration.html');
