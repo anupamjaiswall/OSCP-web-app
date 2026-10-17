@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.65.0 — 2026-10-17
+
+### One-machine-per-session exam workflow and eye-comfort theme
+- Replaced the first legacy navigation block with a copyable, compact multi-target quickstart: separate standalone and AD tmux sessions, explicit unique listener ports, per-target environment verification and target-local Nmap output.
+- Documented that `target.sh` attaches/switches to its session, so sequential invocations require detaching or a second terminal. The optional `AD_set` session is notes-only; never use global `export IP`.
+- Added a reader-sidebar Start here button and shortened the Setup / During exam labels, preserving existing deep links.
+- Added eye-comfort slate shell and soft-paper full reference with a matching gentle dusk toggle, clearer selected navigation, low-glare code blocks and readable spacing. Print remains light.
+- Added deterministic regression coverage for multi-host quickstart, navigation and theme source contracts.
+
+
 ## V34.64.0 — 2026-10-17
 
 ### Default NSE, explicit Nikto and tmux clipboard correction
