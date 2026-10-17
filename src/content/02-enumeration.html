@@ -24,35 +24,31 @@ Layer 2 / full reference
 <hr/>
 <h2 id="ref-1-pre-engagement-setup">1. PRE-ENGAGEMENT SETUP</h2>
 <details id="ref-1-1-environment-variables">
-<summary>⚙️ 1.1 Environment &amp; Variables</summary>
-<pre class="ref-code"><code class="language-bash"># Set once, use everywhere
-export IP=10.10.10.x
-export LHOST=10.10.14.x       # Your tun0 IP
-export LPORT=4444
-export DOMAIN=domain.local
-export DC=dc01.domain.local
-
-# Get your tun0 IP automatically
-export LHOST=$(ip -4 addr show tun0 | grep -oP '(?&lt;=inet\s)\d+(\.\d+){3}')
-
-# Confirm
-echo "[*] Target: $IP | LHOST: $LHOST:$LPORT"
-</code></pre>
+<summary>⚙️ 1.1 Pre-exam environment checks (not a global target IP)</summary>
+<p><b>Multiple OSCP machines:</b> do <b>not</b> put <code>export IP=10.10.10.x</code> into <code>~/.bashrc</code>, <code>~/.zshrc</code> or a shared terminal. Every machine must have its own IP, evidence and scan path. The <a href="#ref-1-3-tmux-setup-never-work-without-it">tmux target.sh setup</a> defines environment variables separately per session; the <a href="#ref-exam-tmux-operator-runbook">During Exam runbook</a> shows launching several sessions.</p>
+<pre class="ref-code"><code class="language-bash"># Verify BEFORE exam day: commands and display interfaces
+command -v tmux nmap awk sed
+tmux -V  # target.sh requires tmux with 'new-session -e' support
+ip -4 -o addr show dev tun0  # run again after connecting the exam VPN
+# No persistent/exported IP or DOMAIN/DC at global shell startup.</code></pre>
+<p><b>During the exam:</b> <code>IP</code> = that machine only; <code>TARGET</code> = machine label; <code>DOMAIN</code> and <code>DC</code> are optional AD context; <code>LHOST</code> is captured from <code>tun0</code> at session creation; <code>LPORT</code> is optional and should be different when running simultaneous listeners.</p>
 </details>
 <details id="ref-1-2-directory-structure">
-<summary>📁 1.2 Directory Structure</summary>
-<pre class="ref-code"><code class="language-bash">mkdir -p ~/oscp/$IP/{scans/{nmap,web,smb},exploit,loot/{hashes,creds,keys,files},shells,screenshots,notes}
-cd ~/oscp/$IP
-
-# Fast template function — add to ~/.bashrc
-function newbox() {
-  export IP=$1
-  mkdir -p ~/oscp/$IP/{scans/{nmap,web,smb},exploit,loot/{hashes,creds,keys,files},shells,screenshots,notes}
-  cd ~/oscp/$IP
-  echo "[+] Workspace ready for $IP"
-}
-# Usage: newbox 10.10.10.x
-</code></pre>
+<summary>📁 1.2 Per-machine directory layout (no shared scan output)</summary>
+<p><code>target.sh</code> creates a separate folder under <code>~/oscp/</code> for each host. Do not manually run one shared <code>newbox</code> or keep changing a global <code>$IP</code>.</p>
+<pre class="ref-code"><code class="language-text">~/oscp/
+├── 10.10.10.5/            # target A: session oscp_10_10_10_5
+│   ├── loot/
+│   ├── exploits/
+│   └── scans/nmap/         # created by Nmap workflow, NOT tmux setup
+├── 10.10.10.6/            # target B: different session + scan files
+│   ├── loot/
+│   ├── exploits/
+│   └── scans/nmap/
+└── AD_set/                # optional separate AD notes/coordination session
+    ├── loot/
+    └── exploits/</code></pre>
+<p>Run Nmap from <b>inside the correct target session</b>. Section 3.1 creates <code>scans/nmap</code> in that session's current directory; the <code>-oA</code> base name is local to that machine. Never scan machine B from machine A's session without explicitly changing the output path.</p>
 </details>
 <details id="ref-1-3-tmux-setup-never-work-without-it">
 <summary>🖥️ 1.3 tmux Setup — per-target sessions + automatic per-pane timestamped logs</summary>
