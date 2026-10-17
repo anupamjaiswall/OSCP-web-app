@@ -217,6 +217,28 @@ test('real scripts/clipboard.sh matches offline notes, loads as bash and has a f
  const noDisplay=spawnSync('bash',['-c',script+'\n'],{input:'',encoding:'utf8',env:{PATH:'/usr/bin:/bin',HOME:'/tmp',WAYLAND_DISPLAY:'',DISPLAY:''}});
  ok(noDisplay.status===2,'help should reject blank action');
 });
+test('real mouse tmux configuration matches reference and leaves internal paste available',()=>{
+ const doc=read('src/content/02-enumeration.html'), config=read('scripts/tmux-mouse.conf').trimEnd();
+ const anchor='<h4>Standalone mouse config source (available offline)</h4>';
+ const a=doc.indexOf(anchor),start=doc.indexOf('<pre class="ref-code"><code class="language-tmux">',a),end=doc.indexOf('</code></pre>',start);
+ ok(a>=0&&start>=0&&end>start,'mouse conf should be available offline');
+ const embedded=doc.slice(start+'<pre class="ref-code"><code class="language-tmux">'.length,end)
+  .replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
+ ok(config===embedded,'mouse config in notes must match the standalone file');
+ for(const action of [
+  'set -g mouse on',
+  'bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel',
+  'bind -T copy-mode MouseDragEnd1Pane send -X copy-pipe-and-cancel',
+  'bind -n MouseDown2Pane select-pane -t=',
+  'paste-buffer -p -t=',
+  'bin/clipboard.sh" copy',
+  "send-keys -M"
+ ])ok(config.includes(action),'missing mouse action '+action);
+ ok(doc.includes('tmux list-keys -T root MouseDown2Pane'),'help users verify actual mouse paste binding');
+ ok(doc.includes('Shift+drag')&&doc.includes('Ctrl+Shift+V'),'native terminal fallback documented');
+ ok(doc.includes('raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-mouse.conf'),'installable file is linked');
+ ok(doc.includes('bind ] paste-buffer')&&doc.includes('bind -T copy-mode-vi y send -X copy-selection-and-cancel'),'keyboard fallback preserved');
+});
 test('tmux copy workflow documented without creating duplicate nmap output directories',()=>{
  const ref=read('src/content/02-enumeration.html');
  ok(ref.includes('tmux copy / selection / paste')&&ref.includes('copy-pipe-and-cancel')&&ref.includes('Ctrl+Shift+V'),'tmux selection and both clipboards explained');
