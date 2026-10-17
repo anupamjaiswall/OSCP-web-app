@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.66.0">
+<meta name="oscp-build-version" content="34.67.0">
 <meta name="oscp-build-date" content="2026-10-17">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -485,7 +485,7 @@ body.referenceReaderMode #focusExitBtn{display:none!important}
  #referenceView .refReaderCanvas{display:block}
 }
 </style>
-<style id="comfortableThemeStyles">/* V34.66: conservative low-glare reference. Do not change the global app shell. */
+<style id="comfortableThemeStyles">/* V34.67: conservative low-glare reference. Do not change the global app shell. */
 #referenceView .refReaderCanvas{width:100%;max-width:100%;min-width:0;grid-template-columns:minmax(220px,260px) minmax(0,1fr)}
 #referenceView .refReaderTocWrap{min-width:0;max-width:100%;background:#17222c;border-color:#354650}
 #referenceView .refReaderQuick{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
@@ -529,6 +529,93 @@ body.referenceReaderMode #focusExitBtn{display:none!important}
 @media(max-width:1050px){#referenceView .refReaderCanvas,body.referenceReaderMode #referenceView .refReaderCanvas{grid-template-columns:220px minmax(0,1fr)}}
 @media(max-width:900px){#referenceView .refReaderCanvas,body.referenceReaderMode #referenceView .refReaderCanvas{display:block;width:100%;max-width:100%}#referenceView .refReaderTocWrap{width:min(320px,calc(100vw - 20px));max-width:none}#referenceView .refReaderArticleCol{width:100%}#referenceView .reference{padding:14px}#referenceView .refExamQuickstart{padding:12px}}
 @media print{#referenceView .reference,#referenceView .reference#referenceRoot.darkRef{background:#fff!important;color:#172127!important}#referenceView .reference details,#referenceView .reference#referenceRoot.darkRef details{background:#fff!important;color:#172127!important}#referenceView .refExamQuickstart{background:#fff!important}}
+
+/* V34.67: accessible color hierarchy only; all V34.66 sizing, grid,
+   word-breaking, mobile and print rules above remain unchanged. */
+body{
+ --bg:#131c25;--panel:#1b2630;--panel2:#24333e;
+ --text:#e9f0ee;--muted:#b6c7d1;--line:#3d515d;
+ --accent:#a5ddd6;--chip:#283b47;
+ --shadow:0 7px 22px rgba(4,11,18,.20);
+ background:var(--bg);color:var(--text);
+}
+.top{background:rgba(20,30,40,.97)}
+.side{background:#17222b}
+.card,.target,.result,.decoder{background:var(--panel);border-color:var(--line)}
+.btn,.quick,.opsTab{background:var(--panel2);border-color:var(--line);color:var(--text)}
+.btn:hover,.quick:hover{border-color:#7397a1}
+.btn.primary{background:#224b54;border-color:#679a99;color:#f0f8f4}
+.navbtn{color:#c3d2d6}
+.navbtn:hover,.navbtn.active{background:#2b4147;color:#f2f7f5}
+.muted,.tiny,.readerLabel{color:var(--muted)}
+.searchbar input,input,select,textarea{background:#1e2c36;color:var(--text);border-color:var(--line)}
+pre{background:#14212b;color:#e3edef;border-color:#415968}
+.copybtn{background:#344752;color:#e8f2ee;border-color:#61818c}
+a{color:#a5ddd6}
+/* Search/navigation legibility (no changes to sizing). */
+#referenceView .refReaderTocWrap{background:#17222b;border-color:#48616b}
+#referenceView .refReaderGroup{border-top-color:#415662}
+#referenceView .refReaderGroup>summary{color:#dce9e8}
+#referenceView .refReaderLink{color:#c3d2d6}
+#referenceView .refReaderLink:hover,#referenceView .refReaderLink:focus-visible{background:#304a50;color:#f6faf7}
+#referenceView .refReaderLink.active{background:#264843;color:#e1f2ec;border-left-color:#9ed3c6}
+#referenceView #refReaderFilter{background:#22333e;border-color:#506674;color:#e9f0ee}
+#referenceView .refReaderQuick .btn{background:#22333e;border-color:#4c6470;color:#e8f1ed}
+#referenceView .refReaderQuick .btn:hover{background:#304950;color:#fff}
+#referenceView .refReaderToolbar h1{color:#e9f0ee}
+/* Day mode: neutral desaturated paper, dark text, unmistakable headings. */
+#referenceView .reference{background:#ecf0eb;color:#20323b}
+#referenceView .reference h1,#referenceView .reference h2,#referenceView .reference h3{color:#204c56}
+#referenceView .reference h2{border-bottom-color:#c0d0cb}
+#referenceView .reference details{background:#f7f8f5;border-color:#cbd6d0}
+#referenceView .reference summary{color:#225065}
+#referenceView .reference details[open]>summary{color:#184f5e;border-bottom-color:#cbdad3}
+#referenceView .reference a{color:#165974}
+#referenceView .reference a:hover{color:#104458;text-decoration:underline}
+#referenceView .reference pre{background:#14232e;color:#e3edef;border-color:#425c67}
+#referenceView .reference .copybtn{background:#344752;color:#e8f2ee;border-color:#6b8790}
+#referenceView .reference :not(pre)>code{background:#e2ebe6;color:#284958;border-radius:4px;padding:.08em .25em}
+#referenceView .reference pre code{background:transparent;color:inherit;padding:0}
+#referenceView .reference table thead th{background:#dfe8e2;color:#253e45}
+#referenceView .reference th,#referenceView .reference td{border-color:#c8d5ce}
+#referenceView .reference tbody tr:nth-child(even){background:#eff3ee}
+#referenceView .reference tbody tr:hover{background:#e3ece5}
+#referenceView .reference blockquote{background:#e0eae4;color:#3f565d;border-left-color:#6a9b90}
+#referenceView .reference .tagRefLink{background:#dfece8;border-color:#a3c7c1;color:#165974}
+#referenceView .refExamQuickstart{background:#e0eae4;border-color:#a9c4b8;border-left-color:#528c7e}
+#referenceView .refExamQuickstart h3{color:#204c56}
+#referenceView .refExamQuickstart .quickLinks a{background:#f7f8f5;border-color:#accbc1;color:#165974}
+/* Night mode: cool slate, never pure black or faint gray on gray. */
+#referenceView .reference#referenceRoot.darkRef{background:#1e2b34;color:#e5efed}
+#referenceView .reference#referenceRoot.darkRef h1,
+#referenceView .reference#referenceRoot.darkRef h2,
+#referenceView .reference#referenceRoot.darkRef h3{color:#d4ebe5}
+#referenceView .reference#referenceRoot.darkRef h2{border-bottom-color:#52666b}
+#referenceView .reference#referenceRoot.darkRef details{background:#2b3c45;border-color:#50656e}
+#referenceView .reference#referenceRoot.darkRef summary{color:#d5e8e2}
+#referenceView .reference#referenceRoot.darkRef details[open]>summary{color:#b7e4d6;border-bottom-color:#56727a}
+#referenceView .reference#referenceRoot.darkRef a{color:#a1ddda}
+#referenceView .reference#referenceRoot.darkRef a:hover{color:#d2f1ed}
+#referenceView .reference#referenceRoot.darkRef pre{background:#14232e;color:#e3edef;border-color:#56707a}
+#referenceView .reference#referenceRoot.darkRef :not(pre)>code{background:#354e54;color:#eaf4ed}
+#referenceView .reference#referenceRoot.darkRef pre code{background:transparent;color:inherit;padding:0}
+#referenceView .reference#referenceRoot.darkRef th,#referenceView .reference#referenceRoot.darkRef td{border-color:#51666d}
+#referenceView .reference#referenceRoot.darkRef table thead th{background:#354b52;color:#ebf3f0}
+#referenceView .reference#referenceRoot.darkRef tbody tr:nth-child(even){background:#283943}
+#referenceView .reference#referenceRoot.darkRef tbody tr:hover{background:#354a51}
+#referenceView .reference#referenceRoot.darkRef blockquote{background:#314641;color:#dfede8;border-left-color:#8ec5b2}
+#referenceView .reference#referenceRoot.darkRef .tagRefLink{background:#314d51;border-color:#587d80;color:#c4e9e2}
+#referenceView .reference#referenceRoot.darkRef .refExamQuickstart{background:#2c453f;border-color:#5c8376;border-left-color:#a1d3bf}
+#referenceView .reference#referenceRoot.darkRef .refExamQuickstart h3{color:#c5e9df}
+#referenceView .reference#referenceRoot.darkRef .refExamQuickstart .quickLinks a{background:#344f4b;border-color:#648b81;color:#d5efea}
+/* Code-block and search highlights must always keep dark ink on gold. */
+#referenceView .reference mark.refFindMark{background:#fce8a2;color:#162a35!important}
+#referenceView .reference mark.refFindMark.refFindCurrent{background:#ffc477;color:#162a35!important;outline-color:#6e4a14}
+@media print{
+ body{background:#fff;color:#111}
+ #referenceView .reference,#referenceView .reference#referenceRoot.darkRef{background:#fff!important;color:#162027!important}
+ #referenceView .reference details,#referenceView .reference#referenceRoot.darkRef details{background:#fff!important;color:#162027!important}
+}
 </style>
 </head>
 <body>
@@ -1555,6 +1642,7 @@ certipy find -u "$AUTH_USER@$DOMAIN" -p "$AUTH_PASS" -dc-ip "$DC_IP" -enabled -v
  <div class="row">
   <button class="btn refReaderTocToggle" id="refReaderTocToggle" type="button" aria-expanded="false" aria-controls="refReaderTocWrap">☰ Sections</button>
   <button class="btn primary" id="refReaderFullscreen" type="button" aria-pressed="false">⛶ Full screen</button>
+  <button class="btn" id="refReaderTheme" type="button" aria-pressed="false" title="Switch daytime/nighttime reference colours">☾ Night notes</button>
   <button class="btn" id="refReaderExit" type="button">Exit to app</button>
   <button class="btn" id="collapseDetails" type="button">Collapse all</button>
   <button class="btn" id="expandDetails" type="button">Expand all</button>
@@ -1638,7 +1726,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.66.0',
+  version:'34.67.0',
   label:'V34',
   date:'2026-10-17',
   sessionSchema:19
@@ -7102,6 +7190,21 @@ saveTargets();saveAccessLadder();renderV19ResumeWorkspace();renderWindowsStrateg
  const mode=$('refReaderFullscreen'),close=$('refReaderExit'),toggle=$('refReaderTocToggle'),filter=$('refReaderFilter');
  let built=false,native=false,entries=[],active='',allGroups=[];
  const store='oscp:reference-reader:v1';
+ const themeStorage='oscp:reference-theme:v1';
+ const themeControl=$('refReaderTheme');
+ function syncTheme(){
+   const night=root.classList.contains('darkRef');
+   if(themeControl){
+     themeControl.textContent=night?'☀ Day notes':'☾ Night notes';
+     themeControl.setAttribute('aria-pressed',String(night));
+     themeControl.title=night?'Use light reference colors':'Use dark reference colors';
+   }
+   try{localStorage.setItem(themeStorage,night?'night':'day')}catch(_){}
+ }
+ try{if(localStorage.getItem(themeStorage)==='night')root.classList.add('darkRef')}catch(_){}
+ themeControl?.addEventListener('click',()=>{root.classList.toggle('darkRef');syncTheme()});
+ new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['class']});
+ syncTheme();
  function isActive(){return view.classList.contains('active')}
  function setToc(open){
    view.classList.toggle('refTocOpen',!!open);
