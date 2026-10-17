@@ -127,6 +127,19 @@ test('exam Nmap default NSE, first-pass Nikto and tmux clipboard workflow',()=>{
  ok(conf.includes('xclip -selection clipboard -in &gt;/dev/null'),'avoid xclip stdout hang');
  ok(ref.includes('Shift+Y copies — it does not paste.'),'clipboard behavior must be clearly explained');
 });
+test('comfortable exam theme and isolated multi-machine launch quickstart',()=>{
+ const ref=read('src/content/02-enumeration.html'),tpl=read('src/index.template.html'),css=read('src/styles/15-comfort.css'),reader=read('src/js/22b-reference-reader.js');
+ const start=ref.slice(ref.indexOf('id="ref-0-v5-navigation-note"'),ref.indexOf('id="ref-1-pre-engagement-setup"'));
+ ok(start.includes('one machine at a time')&&start.includes('60-second multi-machine workflow'),'clear quickstart first');
+ for(const snippet of ['~/bin/target.sh 10.10.10.5 --lport 4444','~/bin/target.sh 10.10.10.6 --lport 4445','~/bin/target.sh DC01 --ip','~/bin/target.sh WS01 --ip','~/bin/target.sh WS02 --ip','~/bin/target.sh AD_set','test -n "$IP"','Ctrl+A','scans/nmap/tcp-all'])ok(start.includes(snippet),'quickstart misses '+snippet);
+ ok(start.includes('Detach')||start.includes('detach'),'must warn sequential launches require detaching');
+ ok(!start.includes('export IP='),'quickstart must not instruct shared IP export');
+ ok(ref.includes('tmux set-environment')&&ref.includes('not open shells'),'no false environment propagation promise');
+ ok(tpl.includes('@inject:style:15-comfort.css')&&tpl.includes('id="refReaderStart"'),'comfort CSS included and quickstart reachable');
+ ok(reader.includes("jump('ref-0-v5-navigation-note')"),'start button must jump to quickstart');
+ for(const token of ['--bg:#171f25','--accent:#a2d1ca','.reference details','.refExamQuickstart','.reference#referenceRoot.darkRef','@media print'])ok(css.includes(token),'theme contract missing '+token);
+ ok(!css.includes('display:none!important}.reference pre'),'reference commands must remain visible');
+});
 test('tmux copy workflow documented without creating duplicate nmap output directories',()=>{
  const ref=read('src/content/02-enumeration.html');
  ok(ref.includes('tmux copy / selection / paste')&&ref.includes('copy-pipe-and-cancel')&&ref.includes('Ctrl+Shift+V'),'tmux selection and both clipboards explained');
