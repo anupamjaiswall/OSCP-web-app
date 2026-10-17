@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
 <meta name="description" content="Offline-first OSCP exam methodology, decision support, evidence tracking, and service routing.">
-<meta name="oscp-build-version" content="34.65.0">
+<meta name="oscp-build-version" content="34.66.0">
 <meta name="oscp-build-date" content="2026-10-17">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0e14'/%3E%3Cpath d='M32 7 52 15v15c0 13-8 22-20 27C20 52 12 43 12 30V15z' fill='%2317212d' stroke='%2344d18d' stroke-width='4'/%3E%3Cpath d='m22 24 8 8-8 8M35 40h9' fill='none' stroke='%23e9eef7' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
@@ -485,91 +485,50 @@ body.referenceReaderMode #focusExitBtn{display:none!important}
  #referenceView .refReaderCanvas{display:block}
 }
 </style>
-<style id="comfortableThemeStyles">/* V34.65: eye-comfort theme. A low-glare slate shell + soft-paper reference.
-   Visual changes only: no hidden command output, no network or persistent secrets. */
-:root{
- --bg:#171f25;--panel:#202b32;--panel2:#26343c;
- --text:#e5eae8;--muted:#b0c0c1;--line:#3b4b52;
- --accent:#a2d1ca;--good:#a3d8b1;--warn:#e9c987;--bad:#e5a2a2;
- --chip:#2a3a42;--shadow:0 6px 22px rgba(5,13,18,.12);
-}
-html{color-scheme:dark}
-body{background:var(--bg);color:var(--text)}
-.top{background:rgba(24,33,39,.97);border-bottom-color:var(--line)}
-.side{background:#1b252c}
-.card,.target,.decoder,.result,.boardCard{box-shadow:0 3px 16px rgba(5,12,16,.10)}
-.card,.result,.target{border-color:var(--line)}
-.navbtn.active{background:#304149;color:#ecf1ee;box-shadow:inset 3px 0 0 #a2d1ca}
-.navbtn:hover{background:#293941}
-input,select,textarea,.searchbar input{background:#202d35;color:var(--text)}
-.btn.primary,.quick:hover{background:#2b454b;color:#eff7f3;border-color:#608781}
-pre{background:#18242c;color:#e0ece9;border-color:#40525a}
-.copybtn{background:#24343d;color:#dce8e4}
-a{color:#acd9d2}
-:where(.card,.reference) h1,:where(.card,.reference) h2,:where(.card,.reference) h3{letter-spacing:-.015em}
-#referenceView .refReaderTocWrap{background:#202c33;border-color:#3e5056}
-#referenceView .refReaderGroup{border-top-color:#405158}
-#referenceView .refReaderGroup>summary{color:#e0eae8}
-#referenceView .refReaderLink{color:#c2d0cd;line-height:1.45;padding:9px 10px}
-#referenceView .refReaderLink:hover,#referenceView .refReaderLink:focus-visible{background:#344a4b;color:#f4f8f6}
-#referenceView .refReaderLink.active{background:#294a45;color:#d6f6e7;border-left-color:#a2d1ca}
-#referenceView .refReaderQuick{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-#referenceView .refReaderQuick .btn{font-size:12px;line-height:1.4;padding:9px 6px}
-#referenceView:fullscreen{background:var(--bg)}
-/* Most of the exam reference is paper-like; avoid bright pure-white details. */
-.reference{background:#e9eee8;color:#223237;padding:clamp(16px,2.2vw,28px);line-height:1.67}
-.reference details{background:#f4f6f1;border:1px solid #cdd9d1;border-radius:10px;margin:10px 0;padding:11px 14px;box-shadow:none}
-.reference details[open]>summary{color:#345d5d;border-bottom-color:#d9e3dc}
-.reference summary{color:#2c4547;line-height:1.52}
-.reference details>summary:hover{color:#1f625f}
-.reference a{color:#235e65;text-decoration-thickness:1px;text-underline-offset:2px}
-.reference pre{background:#202e37;color:#e9f0ee;border:1px solid #43545a;border-radius:9px;font-size:var(--examCode,14px);line-height:1.6}
-.reference code{color:inherit}
-.reference th,.reference td{border-color:#d2ddd5}
-.reference table thead th{background:#dae6e0;color:#243b40}
-.reference tbody tr:nth-child(even){background:#eff4ee}
-.reference tbody tr:hover{background:#e3eee6}
-.reference blockquote{background:#e0ebe5;border-left-color:#7ca49d;color:#3b5858;padding:10px 12px}
-.reference h2{margin-top:32px;padding-bottom:6px;border-bottom:1px solid #cbd9d2}
-.reference h3{margin-top:22px}
-.reference p,.reference li{max-width:95ch}
-.refExamQuickstart{background:#e0eae3;border:1px solid #b8cdc1;border-left:4px solid #619587;border-radius:12px;padding:18px 18px 14px;margin:14px 0 22px}
-.refExamQuickstart h3{margin:0 0 7px;font-size:19px;color:#264c49}
-.refExamQuickstart p{margin:7px 0}
-.refExamQuickstart pre{margin:10px 0 12px;max-width:100%}
-.refExamQuickstart .quickLinks{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-.refExamQuickstart .quickLinks a{display:inline-block;background:#f7f9f4;border:1px solid #bbd3ca;border-radius:8px;padding:8px 10px;font-weight:650;text-decoration:none}
-/* Explicit dusk reference retains readability when the existing theme toggle is used. */
-.reference#referenceRoot.darkRef{background:#202b31;color:#e4edeb}
-.reference#referenceRoot.darkRef details{background:#28363d;border-color:#45575c}
-.reference#referenceRoot.darkRef summary{color:#e3eeec}
-.reference#referenceRoot.darkRef details[open]>summary{border-bottom-color:#4b6265;color:#b7e0d2}
-.reference#referenceRoot.darkRef a{color:#b6e1db}
-.reference#referenceRoot.darkRef blockquote{background:#324742;color:#dcece6;border-color:#86aea0}
-.reference#referenceRoot.darkRef .refExamQuickstart{background:#2c423c;border-color:#537565;border-left-color:#9bcbbb}
-.reference#referenceRoot.darkRef .refExamQuickstart h3{color:#d3ebe2}
-.reference#referenceRoot.darkRef .refExamQuickstart .quickLinks a{background:#30463f;border-color:#6a8e81}
-.reference#referenceRoot.darkRef h2{border-bottom-color:#516569}
-.reference#referenceRoot.darkRef tbody tr:nth-child(even){background:#29383d}
-.reference#referenceRoot.darkRef tbody tr:hover{background:#35494a}
-.reference#referenceRoot.darkRef table thead th{background:#35474a;color:#ebf2ec}
-body.examHighContrast .reference{color:#1d292e}
-body.examHighContrast .reference#referenceRoot.darkRef{color:#ecf6f3}
-@media(max-width:900px){
- #referenceView .refReaderQuick{grid-template-columns:repeat(3,minmax(0,1fr))}
- .refExamQuickstart{padding:13px}
- .reference{padding:15px}
-}
-@media(max-width:540px){#referenceView .refReaderQuick .btn{font-size:11px;padding:8px 4px}}
-@media print{
- .reference,.reference#referenceRoot.darkRef{background:#fff!important;color:#172127!important}
- .reference details,.reference#referenceRoot.darkRef details{background:#fff!important;color:#172127!important}
- .refExamQuickstart{background:#fff!important;border-color:#999!important}
-}
-@media(prefers-reduced-motion:reduce){
- html{scroll-behavior:auto}
- *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
-}
+<style id="comfortableThemeStyles">/* V34.66: conservative low-glare reference. Do not change the global app shell. */
+#referenceView .refReaderCanvas{width:100%;max-width:100%;min-width:0;grid-template-columns:minmax(220px,260px) minmax(0,1fr)}
+#referenceView .refReaderTocWrap{min-width:0;max-width:100%;background:#17222c;border-color:#354650}
+#referenceView .refReaderQuick{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+#referenceView .refReaderQuick .btn{display:block;width:100%;min-width:0;text-align:left;padding:10px 12px;font-size:12px;line-height:1.45;white-space:normal;word-break:normal;overflow-wrap:break-word}
+#referenceView .refReaderGroup>summary,#referenceView .refReaderLink{min-width:0;word-break:normal;overflow-wrap:break-word}
+#referenceView .refReaderArticleCol{min-width:0;width:100%;max-width:100%}
+#referenceView .refReaderArticleCol .reference{display:block;width:100%;max-width:100%;min-width:0;margin:0;box-sizing:border-box}
+#referenceView .reference{background:#edf0e9;color:#23323a;line-height:1.63;padding:clamp(14px,2vw,24px)}
+#referenceView .reference details{display:block;min-width:0;max-width:100%;background:#f5f6f2;border:1px solid #d1dbd4;border-radius:10px;padding:10px 13px;margin:12px 0}
+#referenceView .reference details[open]>summary{color:#245e63;border-bottom-color:#d4e0d8}
+#referenceView .reference summary{color:#244750}
+#referenceView .reference :is(p,li,dd,dt,blockquote,h1,h2,h3,h4,summary){max-width:100%;min-width:0;word-break:normal;overflow-wrap:break-word}
+#referenceView .reference :is(p,li,dd,dt){line-height:1.63}
+#referenceView .reference pre{display:block;width:100%;max-width:100%;min-width:0;white-space:pre;overflow-x:auto;overflow-y:hidden;overflow-wrap:normal;word-break:normal;background:#1d2b34;color:#e7f0ed;border-color:#394c56;border-radius:9px;line-height:1.55}
+#referenceView .reference a{color:#185a6d;text-underline-offset:2px}
+#referenceView .reference blockquote{background:#e4ebe5;color:#395354;border-left-color:#769e99;padding:10px 12px}
+#referenceView .reference table thead th{background:#e0e9e1;color:#23383f}
+#referenceView .reference tbody tr:nth-child(even){background:#f0f3ed}
+#referenceView .reference h2{border-bottom:1px solid #cddad2;padding-bottom:6px}
+#referenceView .refReaderLink.active{background:#244640;color:#dbf2e9;border-left-color:#87c9b7}
+#referenceView .refReaderLink:hover,#referenceView .refReaderLink:focus-visible{background:#293d45;color:#fff}
+#referenceView:fullscreen{background:#101820}
+#referenceView .reference#referenceRoot.darkRef{background:#19262e;color:#e7efec}
+#referenceView .reference#referenceRoot.darkRef details{background:#25343c;border-color:#40535c}
+#referenceView .reference#referenceRoot.darkRef summary{color:#dbece9}
+#referenceView .reference#referenceRoot.darkRef details[open]>summary{color:#b6ded3;border-bottom-color:#496064}
+#referenceView .reference#referenceRoot.darkRef a{color:#a9dfe0}
+#referenceView .reference#referenceRoot.darkRef blockquote{background:#304440;color:#e3efe8;border-color:#83b2a2}
+#referenceView .reference#referenceRoot.darkRef table thead th{background:#2e454b;color:#e7efed}
+#referenceView .reference#referenceRoot.darkRef tbody tr:nth-child(even){background:#233238}
+#referenceView .reference#referenceRoot.darkRef tbody tr:hover{background:#30434a}
+#referenceView .reference#referenceRoot.darkRef h2{border-bottom-color:#4b6268}
+#referenceView .refExamQuickstart{min-width:0;max-width:100%;padding:16px;margin:14px 0 22px;background:#e3ebe4;border:1px solid #bdcec3;border-left:4px solid #6b9a8c;border-radius:10px}
+#referenceView .refExamQuickstart h3{margin:0 0 8px;color:#234f4c}
+#referenceView .refExamQuickstart p{margin:8px 0}
+#referenceView .refExamQuickstart .quickLinks{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+#referenceView .refExamQuickstart .quickLinks a{display:inline-block;max-width:100%;background:#f5f8f4;border:1px solid #bdd2c6;border-radius:8px;padding:7px 10px;text-decoration:none;font-weight:650}
+#referenceView .reference#referenceRoot.darkRef .refExamQuickstart{background:#2b403d;border-color:#55776a;border-left-color:#96c7b5}
+#referenceView .reference#referenceRoot.darkRef .refExamQuickstart h3{color:#d4eee2}
+#referenceView .reference#referenceRoot.darkRef .quickLinks a{background:#304841;border-color:#5b8576}
+@media(max-width:1050px){#referenceView .refReaderCanvas,body.referenceReaderMode #referenceView .refReaderCanvas{grid-template-columns:220px minmax(0,1fr)}}
+@media(max-width:900px){#referenceView .refReaderCanvas,body.referenceReaderMode #referenceView .refReaderCanvas{display:block;width:100%;max-width:100%}#referenceView .refReaderTocWrap{width:min(320px,calc(100vw - 20px));max-width:none}#referenceView .refReaderArticleCol{width:100%}#referenceView .reference{padding:14px}#referenceView .refExamQuickstart{padding:12px}}
+@media print{#referenceView .reference,#referenceView .reference#referenceRoot.darkRef{background:#fff!important;color:#172127!important}#referenceView .reference details,#referenceView .reference#referenceRoot.darkRef details{background:#fff!important;color:#172127!important}#referenceView .refExamQuickstart{background:#fff!important}}
 </style>
 </head>
 <body>
@@ -1679,7 +1638,7 @@ Re-check official OffSec rules immediately before exam day.</pre></div></section
 <script>window.__OSCP_PARSE_STAGE__='ui-complete';window.__OSCP_BOOT_STAGE__='start';</script>
 <script id="buildMetaScript">/* Generated at build time from src/meta/build.json tokens. */
 window.OSCP_BUILD=Object.freeze({
-  version:'34.65.0',
+  version:'34.66.0',
   label:'V34',
   date:'2026-10-17',
   sessionSchema:19
