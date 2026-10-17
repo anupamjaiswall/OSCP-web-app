@@ -129,3 +129,87 @@ a{color:#a5ddd6}
  #referenceView .reference,#referenceView .reference#referenceRoot.darkRef{background:#fff!important;color:#162027!important}
  #referenceView .reference details,#referenceView .reference#referenceRoot.darkRef details{background:#fff!important;color:#162027!important}
 }
+
+/* V34.68 — Entire-app light palette. COLOR OVERRIDES ONLY.
+   Keep every V34.66 reader column, shortcut width and word-wrapping rule. */
+body.themeLight{
+ --bg:#f3f6f2;--panel:#ffffff;--panel2:#e9f0eb;
+ --text:#21343e;--muted:#506471;--line:#c9d8d0;
+ --accent:#145c70;--good:#216f51;--warn:#755112;--bad:#933f46;
+ --chip:#e1eae5;--shadow:0 3px 14px rgba(43,66,62,.09);
+ background:var(--bg);color:var(--text);
+ color-scheme:light;
+}
+body.themeLight .top{background:rgba(248,250,247,.98);border-bottom-color:var(--line);color:var(--text)}
+body.themeLight .brand{color:#243c46}
+body.themeLight .side{background:#ecf2ed;border-right-color:var(--line);color:var(--text)}
+body.themeLight .side .navSectionLabel,body.themeLight .side .tiny{color:#536874}
+body.themeLight .navbtn{color:#344e57}
+body.themeLight .navbtn:hover{background:#dce9e2;color:#203940}
+body.themeLight .navbtn.active{background:#cfe6db;color:#164e53;box-shadow:inset 3px 0 0 #207263}
+body.themeLight .navsep{background:var(--line)}
+body.themeLight .main{color:var(--text)}
+body.themeLight :is(.card,.result,.target,.decoder,.boardCard,.scanHost,.resumeCard,.detectCard,.gateItem,.shortcut,.cmdItem,.cmdList,.rec){
+ background:var(--panel);border-color:var(--line);color:var(--text);
+}
+body.themeLight :is(.card,.result,.target,.decoder,.boardCard){box-shadow:var(--shadow)}
+body.themeLight .main :is(.hero h1,.card h2,.card h3){color:#224c56}
+body.themeLight :is(.muted,.tiny,.readerLabel,.resultText,.score,.recWhy,.timelineTime,.opsMetricLabel){color:var(--muted)}
+body.themeLight :is(.quick,.btn,.opsTab,.signal,.chip,.opsTabs button,.shortcut,.methodTreeTabs .btn){
+ background:var(--panel2);color:var(--text);border-color:var(--line);
+}
+body.themeLight :is(.btn,.quick,.opsTab,.signal):hover{background:#dce9e2;border-color:#88ada1;color:#183b43}
+body.themeLight .btn.primary{background:#d1e9df;border-color:#83b7a5;color:#164b43}
+body.themeLight .btn.good{background:#d9f0e2;border-color:#8ebca4;color:#205f43}
+body.themeLight .btn.bad{background:#f7e1e0;border-color:#cea19e;color:#81383a}
+body.themeLight .chip{color:#36545e}
+body.themeLight :is(input,select,textarea,.searchbar input,#refReaderFilter){
+ background:#ffffff;color:#21343e;border-color:#b7ccc2;
+}
+body.themeLight :is(input,select,textarea,.searchbar input):focus{border-color:#267a84}
+body.themeLight :is(input,textarea)::placeholder{color:#60737a;opacity:1}
+body.themeLight :is(.field label,.decoder dt,.readerLabel){color:#526974}
+body.themeLight :is(a,.quick a){color:#145c70}
+body.themeLight .progress,body.themeLight .scoreBar{background:#d9e6df;border-color:#b9cec4}
+body.themeLight :is(.flow .step,.evidenceGrid label,.portChip,.credTable,.credWrap,.serviceTable,.preflightTable,.graphShell){
+ background:#f7faf7;color:#21343e;border-color:var(--line);
+}
+body.themeLight :is(.credTable th,.credTable td,.serviceTable th,.serviceTable td,.preflightTable th,.preflightTable td){border-color:#cbdad3;color:var(--text)}
+body.themeLight :is(.credTable th,.credTable td:first-child,.credTable th:first-child){background:#e9f1ec}
+body.themeLight :is(.privacy,.rec.p1){background:#e3f0e9;color:#245c48}
+body.themeLight .rec.p2{background:#f7efda;color:#67511e}
+body.themeLight .rec.p3{background:#f8e9e8;color:#853d42}
+body.themeLight pre{background:#eaf0ec;color:#23404b;border-color:#bdcec7}
+body.themeLight .copybtn{background:#d7e7de;color:#205364;border-color:#a7c4b8}
+body.themeLight #readabilityPanel{background:#ffffff;color:#21343e;border-color:#b9cdc3;box-shadow:0 12px 32px rgba(31,52,49,.18)}
+body.themeLight #readabilityPanel .readerGroup{border-top-color:#ccdbd3}
+body.themeLight .readerButtons .btn.active,body.themeLight .methodTreeTabs .btn.active{background:#d1e9df;border-color:#7eae9d;color:#174e48}
+body.themeLight .methodTreeTabs{background:rgba(246,249,245,.98);border-color:#bdcec5}
+body.themeLight .toast,body.themeLight .runtimeDiagError{background:#ffffff;color:#20343e;border-color:#b4cac0}
+body.themeLight .badge{background:#e5f2e8;border-color:#8dbca4;color:#236448}
+/* Full reference toolbar and LEFT reference index follow Day notes too. */
+body.themeLight #referenceView .refReaderToolbar{color:var(--text)}
+body.themeLight #referenceView .refReaderToolbar h1{color:#224c56}
+body.themeLight #referenceView .refReaderTocWrap{background:#edf4ee;border-color:#c0d3c8;box-shadow:0 3px 12px rgba(28,53,43,.06)}
+body.themeLight #referenceView .refReaderTocHeader{color:#25424b}
+body.themeLight #referenceView .refReaderTocHeader span{color:#566b73}
+body.themeLight #referenceView .refReaderGroup{border-top-color:#ccdcd1}
+body.themeLight #referenceView .refReaderGroup>summary{color:#285562}
+body.themeLight #referenceView .refReaderLink{color:#365660}
+body.themeLight #referenceView .refReaderLink:hover,body.themeLight #referenceView .refReaderLink:focus-visible{background:#d9ebe0;color:#174c4d}
+body.themeLight #referenceView .refReaderLink.active{background:#c9e4d6;color:#174d47;border-left-color:#347e6b}
+body.themeLight #referenceView #refReaderFilter{background:#ffffff;color:#253f49;border-color:#adc7bb}
+body.themeLight #referenceView .refReaderQuick .btn{background:#ffffff;color:#285361;border-color:#c4d9cd}
+body.themeLight #referenceView .refReaderQuick .btn:hover{background:#daece2;color:#174a49}
+body.themeLight #referenceView:fullscreen{background:#f3f6f2}
+body.themeLight #refFindBar{background:#eaf2ec;color:#233a44;border-color:#bccfc5}
+body.themeLight #refFindCount{color:#435d67}
+body.themeLight .tagRefLink{color:#185b67;background:#dcece4;border-color:#b3d0c1}
+/* Reader pre blocks are light only in day mode; no layout or wrapping changes. */
+body.themeLight #referenceView .reference pre{background:#e7eee9;color:#203c48;border-color:#bdcec6}
+body.themeLight #referenceView .reference pre code{background:transparent;color:inherit}
+body.themeLight #referenceView .reference .copybtn{background:#d2e5dc;color:#224f60;border-color:#a9c6b8}
+body.themeLight #referenceView .reference :not(pre)>code{background:#dfebe3;color:#264a59}
+body.themeLight #referenceView .reference mark.refFindMark{background:#ffe8a0;color:#222d30!important}
+body.themeLight #referenceView .reference mark.refFindMark.refFindCurrent{background:#ffc477;color:#222d30!important}
+@media print{body.themeLight{background:#fff;color:#111}}
