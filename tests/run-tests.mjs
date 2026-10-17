@@ -123,8 +123,9 @@ test('exam Nmap default NSE, first-pass Nikto and tmux clipboard workflow',()=>{
  ok(web.includes('mkdir -p scans/web')&&web.includes('nikto-443.txt'),'Nikto output dir and HTTPS shown');
  const conf=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
  ok(conf.includes('bind -T copy-mode-vi Y send -X copy-pipe-and-cancel'),'Shift+Y must copy selection');
- ok(conf.includes("bind Y run-shell 'xclip -selection clipboard -out"),'prefix Y should paste desktop clipboard');
- ok(conf.includes('xclip -selection clipboard -in &gt;/dev/null'),'avoid xclip stdout hang');
+ ok(conf.includes('bind Y run-shell')&&conf.includes('tmux-clipboard.sh" paste'),'prefix Y should paste through display-aware helper');
+ ok(conf.includes('tmux-clipboard.sh" copy'),'Shift+Y should copy through display-aware helper');
+ ok(ref.includes('wl-copy')&&ref.includes('wl-paste')&&ref.includes('xclip'),'X11 and Wayland clipboard providers included');
  ok(ref.includes('Shift+Y copies — it does not paste.'),'clipboard behavior must be clearly explained');
 });
 test('comfortable exam theme and isolated multi-machine launch quickstart',()=>{
@@ -190,6 +191,23 @@ test('reference reader prevents character-wide word wrapping',()=>{
  ok(css.includes('white-space:pre;overflow-x:auto'),'commands scroll horizontally');
  ok(css.includes('@media(max-width:900px)')&&css.includes('display:block;width:100%;max-width:100%'),'mobile reader single column');
  ok(!css.includes(':root{'),'no global shell theme override');
+});
+test('tmux desktop clipboard helper has valid bash syntax and a documented fallback',()=>{
+ const ref=read('src/content/02-enumeration.html');
+ const start=ref.indexOf('<h3>~/bin/tmux-clipboard.sh'),a=ref.indexOf('<pre class="ref-code"><code class="language-bash">',start),b=ref.indexOf('</code></pre>',a);
+ ok(start>=0&&a>=0&&b>a,'clipboard helper included in pre-exam section');
+ const script=ref.slice(a+'<pre class="ref-code"><code class="language-bash">'.length,b)
+   .replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
+ const checked=spawnSync('bash',['-n'],{input:script,encoding:'utf8'});
+ ok(checked.status===0,'clipboard helper Bash syntax: '+checked.stderr);
+ for(const token of ['WAYLAND_DISPLAY','wl-copy','wl-paste','DISPLAY','xclip -selection clipboard -in','xclip -selection clipboard -out','copy|paste']){
+  ok(script.includes(token),'missing clipboard check '+token);
+ }
+ const conf=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
+ ok(conf.includes('set -s set-clipboard off'),'avoid OSC52/external provider conflict');
+ ok(conf.includes('bind -T copy-mode-vi y send -X copy-selection-and-cancel'),'tmux-only copy must not depend on a system display');
+ ok(conf.includes('bind -T copy-mode-vi Y send -X copy-pipe-and-cancel'),'shift+Y external copy exists');
+ ok(ref.includes('oscp-clipboard-test')&&ref.includes('tmux list-keys -T copy-mode-vi'),'diagnostics must be actionable');
 });
 test('tmux copy workflow documented without creating duplicate nmap output directories',()=>{
  const ref=read('src/content/02-enumeration.html');
