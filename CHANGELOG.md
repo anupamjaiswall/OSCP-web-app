@@ -1,5 +1,14 @@
 # Changelog
 
+## V34.64.0 — 2026-10-17
+
+### Default NSE, explicit Nikto and tmux clipboard correction
+- Made the Nmap workflow run `-sV` for targeted version detection in Step 2 and `--script=default` in Step 4, avoiding duplicated default NSE scans and replacing the required script-name placeholder.
+- Added a clear Nmap-to-HTTP enumeration handoff and surfaced Nikto immediately after the confirmed HTTP(S) endpoint fingerprint, with distinct HTTP/HTTPS output files and manual validation guidance.
+- Explained that Shift+Y in tmux copy mode **copies** to the X11 clipboard, not pastes; added Ctrl+A then capital Y to paste from that clipboard. Redirected xclip stdout to avoid tmux copy-mode hangs and expanded binding/X11 diagnostics.
+- Added deterministic source tests for these exam-time commands and clipboard bindings.
+
+
 ## V34.63.0 — 2026-10-17
 
 ### Per-machine OSCP terminal workflows
