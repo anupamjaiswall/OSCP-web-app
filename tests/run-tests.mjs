@@ -140,6 +140,28 @@ test('comfortable exam theme and isolated multi-machine launch quickstart',()=>{
  for(const token of ['.reference details','.refExamQuickstart','.reference#referenceRoot.darkRef','@media print'])ok(css.includes(token),'theme contract missing '+token);
  ok(!css.includes('display:none!important}.reference pre'),'reference commands must remain visible');
 });
+test('readable day/night theme maintains AA text contrast and safe reference widths',()=>{
+ const css=read('src/styles/15-comfort.css');
+ const tpl=read('src/index.template.html');
+ const reader=read('src/js/22b-reference-reader.js');
+ const bright=(hex)=>{let rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);rgb=rgb.map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]};
+ const contrast=(a,b)=>{const x=bright(a),y=bright(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ const pairs=[
+ ['app text','#e9f0ee','#1b2630'],['app muted','#b6c7d1','#1b2630'],
+ ['navigation','#c3d2d6','#17222b'],['active nav','#e1f2ec','#264843'],
+ ['paper body','#20323b','#ecf0eb'],['paper summary','#225065','#f7f8f5'],
+ ['paper link','#165974','#f7f8f5'],['paper inline code','#284958','#e2ebe6'],
+ ['night body','#e5efed','#1e2b34'],['night summary','#d5e8e2','#2b3c45'],
+ ['night link','#a1ddda','#2b3c45'],['terminal','#e3edef','#14232e'],
+ ['copy','#e8f2ee','#344752'],['find highlight','#162a35','#fce8a2']
+ ];
+ for(const [label,fg,bg] of pairs){ok(css.includes(fg)&&css.includes(bg),'missing documented color: '+label);ok(contrast(fg,bg)>=4.5,label+' below WCAG AA contrast: '+contrast(fg,bg).toFixed(2));}
+ ok(tpl.includes('id="refReaderTheme"'),'reader theme button must be visible in full-reference toolbar');
+ ok(reader.includes("localStorage.setItem(themeStorage")&&reader.includes("localStorage.getItem(themeStorage"),'night/day choice should survive reload');
+ ok(reader.includes('new MutationObserver(syncTheme)'), 'top theme toggle should also stay synchronized');
+ ok(css.includes('grid-template-columns:minmax(0,1fr)')&&!css.includes('repeat(3,minmax(0,1fr))'),'reader sidebar cannot revert to cramped three-column');
+ ok(css.includes('white-space:pre;overflow-x:auto'),'code block must scroll, not wrap by character');
+});
 test('reference reader prevents character-wide word wrapping',()=>{
  const css=read('src/styles/15-comfort.css');
  ok(css.includes('grid-template-columns:minmax(0,1fr)'),'sidebar quick buttons must stack');
