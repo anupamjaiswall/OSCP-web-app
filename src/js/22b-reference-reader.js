@@ -113,6 +113,7 @@
  toggle.addEventListener('click',()=>setToc(!view.classList.contains('refTocOpen')));
  filter.addEventListener('input',applyFilter);
  $('refReaderClear')?.addEventListener('click',()=>{filter.value='';applyFilter();filter.focus();});
+ $('refReaderStart')?.addEventListener('click',()=>jump('ref-0-v5-navigation-note'));
  $('refReaderPre')?.addEventListener('click',()=>jump('ref-1-3-tmux-setup-never-work-without-it'));
  $('refReaderDuring')?.addEventListener('click',()=>jump('ref-exam-tmux-operator-runbook'));
  document.addEventListener('fullscreenchange',()=>{
