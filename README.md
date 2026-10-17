@@ -1,7 +1,7 @@
 # 🔐 OSCP Exam OS
 
 <!-- build-version:start -->
-**V34.71.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.72.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 <!-- build-version:end -->
 
 One self-contained `index.html` designed to be the main reference open during the exam. It has no required CDN, package install, AI service, or runtime network dependency.
@@ -19,6 +19,7 @@ One self-contained `index.html` designed to be the main reference open during th
 - **Reference Find:** highlight every match, show current/total count, and navigate with Previous/Next, Enter/Shift+Enter, or F3.
 - **Active Target Workspace + Next Actions:** keeps current target context and ranks a small set of relevant next steps locally.
 - **Service Router:** turns discovered ports/services into a focused enumeration queue.
+- **Unambiguous split panes:** `Ctrl+A` then `|` makes left/right panes (vertical divider), and `Ctrl+A` then `-` makes top/bottom panes (horizontal divider). [`scripts/tmux-splits.conf`](scripts/tmux-splits.conf) is a last-loaded override if your actual tmux bindings are reversed; examples and checks in Section 1.3.
 - **Mouse-friendly tmux:** drag left mouse to copy tmux output into its buffer and, where available, the desktop clipboard; middle-click pastes tmux buffer into the clicked pane. Optional [`scripts/tmux-mouse.conf`](scripts/tmux-mouse.conf) and Section 1.3 include both the setup and test steps.
 - **Actual downloadable clipboard helper:** [`scripts/clipboard.sh`](scripts/clipboard.sh) supports X11/Wayland. Install before the exam with `curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh -o ~/bin/clipboard.sh && chmod 700 ~/bin/clipboard.sh`. Configure `Shift+Y` using the full tmux config under Section 1.3; tmux `y` / prefix + `]` work without a graphical clipboard.
 - **Multi-machine tmux OSCP workflow:** one session and folder per machine (standalone/AD); no global `IP` export. Start at Full Reference → **Start here** for the 60-second launch/verify/scan steps.
