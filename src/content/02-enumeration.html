@@ -182,7 +182,7 @@ bind -T copy-mode MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/cli
 bind -n MouseDown2Pane select-pane -t= \; if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'paste-buffer -p -t='</code></pre>
 <p><b>Exam-safe verification:</b> print <code>printf 'DRAG-COPY-TEST\n'</code> in a normal shell pane, drag over that text, then middle-click in a second shell pane. It should paste the selected text. Check desktop clipboard by pasting into a graphical text editor. <b>Do not try the paste test at a live privileged command prompt; it may contain newlines.</b></p>
 <h3>~/.tmux.conf — full exam-safe tmux config</h3>
-<pre class="ref-code"><code class="language-bash">unbind C-b
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">unbind C-b
 set -g prefix C-a
 bind C-a send-prefix
 set -g mouse on
