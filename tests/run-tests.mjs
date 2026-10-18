@@ -457,4 +457,19 @@ test('conventions and release metadata docs are present',()=>{
   ok(read('docs/CONVENTIONS.md').includes('Version/build workflow'));ok(read('docs/REPO-METADATA.md').includes('Suggested topics'));ok(read('docs/RELEASE-PROCESS.md').includes('Stable release checklist'));
 });
 
+test('Metasploit handler documents repeat callbacks and preserves OSCP scope safeguards',()=>{
+ const doc=read('src/content/00-preface.html');
+ const start=doc.indexOf('Metasploit multi/handler — keep the listener running');
+ const end=doc.indexOf('<h3>Responder</h3>',start);
+ ok(start>0&&end>start,'persistent handler documentation is present');
+ const block=doc.slice(start,end);
+ for(const command of ['use exploit/multi/handler','set ExitOnSession false','run -j','jobs -v','sessions -l']){
+   ok(block.includes(command),'missing background handler command: '+command);
+ }
+ ok(block.includes('not</em> a Meterpreter')&&block.includes('one selected target'),
+  'keep non-Meterpreter example and restricted target policy together');
+ ok(doc.includes('Metasploit may NOT be used for pivoting.'),
+  'existing exam rule must not change');
+});
+
 console.log('\n'+passed+' tests passed');
