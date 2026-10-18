@@ -73,3 +73,91 @@ html[data-theme] .timer{color:var(--text)}
 html[data-theme] #referenceView .reference mark.refFindMark{background:#eed98c;color:#29261f!important}
 html[data-theme] #referenceView .reference mark.refFindMark.refFindCurrent{background:#e5b96e;color:#29261f!important}
 @media print{html[data-theme] body,html[data-theme] #referenceView .reference{background:white!important;color:black!important}}
+
+
+/* V34.76 — dCode-inspired compact utility layout (original CSS, not copied).
+   Light blue/white workplace with strong blue section accents and dense controls. */
+html[data-theme="paper"]{
+ --bg:#edf2f7;--panel:#ffffff;--panel2:#f1f5f9;--sunk:#e8eef5;
+ --line:#cbd7e3;--text:#233448;--muted:#596b7d;--accent:#205b91;
+ --good:#346f51;--warn:#865a18;--bad:#a2454e;--chip:#e6eef7;
+ --focus:#3075ae;--selection:#dceafa;
+}
+html[data-theme="paper"] body{background:var(--bg)}
+html[data-theme="paper"] .top{
+ background:#244e76;color:#f6fbff;border-color:#193e61;
+ box-shadow:none;
+}
+html[data-theme="paper"] .top :is(.brand,.muted,.tiny){color:#f6fbff}
+html[data-theme="paper"] .top :is(.btn,.kbd){background:#315f88;color:#f8fbff;border-color:#6286a7}
+html[data-theme="paper"] .top .searchbar input{
+ background:#fff;color:#233448;border-color:#d5e0e9;
+}
+html[data-theme="paper"] .side{background:#f7f9fc;border-color:#cbd7e3}
+html[data-theme="paper"] .navbtn{color:#32485d;border-radius:3px}
+html[data-theme="paper"] .navbtn:hover{background:#e3ebf4;color:#1f568b}
+html[data-theme="paper"] .navbtn.active{
+ background:#e0ebf7;color:#164f87;border-left:3px solid #286da3;
+}
+html[data-theme="paper"] :is(.card,.target,.result,.decoder,.boardCard,.scanHost,.resumeCard,.detectCard,.gateItem){
+ background:var(--panel);border:1px solid var(--line);border-radius:4px;box-shadow:none;
+}
+html[data-theme="paper"] :is(.hero h1,.card h2,.card h3){color:#244e76}
+html[data-theme="paper"] :is(.btn,.quick,.opsTab,.signal){
+ background:#eef4fa;border:1px solid #c3d5e5;color:#244d72;border-radius:4px;
+}
+html[data-theme="paper"] :is(.btn,.quick,.opsTab,.signal):hover{
+ background:#dfeaf6;border-color:#75a3c8;color:#164b7d;
+}
+html[data-theme="paper"] :is(.btn.primary,.btn.good,.btn.bad){
+ background:#245d91;border-color:#1d527f;color:#fff;
+}
+html[data-theme="paper"] :is(input,select,textarea,.searchbar input){
+ background:#fff;border:1px solid #bfcedd;color:#233448;border-radius:4px;
+}
+html[data-theme="paper"] #referenceView .refReaderTocWrap{
+ background:#f5f8fc;border:1px solid var(--line);box-shadow:none;
+}
+html[data-theme="paper"] #referenceView .refReaderLink.active{
+ background:#dceaf7;border-left:3px solid #286da3;color:#164f87;
+}
+html[data-theme="paper"] #referenceView .reference{
+ background:#fff;color:#27384a;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+ font-size:16px;line-height:1.65;
+}
+html[data-theme="paper"] #referenceView .reference :is(h1,h2,h3,h4){
+ color:#245783;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+html[data-theme="paper"] #referenceView .reference h2{
+ border-bottom:1px solid #c8d8e5;padding-bottom:8px;
+}
+html[data-theme="paper"] #referenceView .reference details{
+ background:#fff;border:1px solid #cbd7e3;border-radius:3px;
+}
+html[data-theme="paper"] #referenceView .reference details[open]{
+ background:#fbfdff;border-color:#a6c2dc;
+}
+html[data-theme="paper"] #referenceView .reference summary{color:#245783}
+html[data-theme="paper"] #referenceView .reference pre{
+ background:#f0f4f8;color:#263b50;border:1px solid #ccd9e4;
+}
+html[data-theme="paper"] #referenceView .reference :not(pre)>code{
+ background:#e9f0f7;color:#244e76;
+}
+html[data-theme="paper"] #referenceView .reference table thead th{
+ background:#e5eff8;color:#264b6b;
+}
+html[data-theme="paper"] #referenceView .reference tbody tr:nth-child(even){background:#f5f8fc}
+html[data-theme="paper"] #referenceView .reference tbody tr:hover{background:#e9f2fa}
+html[data-theme="paper"] #referenceView .reference blockquote{
+ background:#edf4fb;color:#38566d;border-left:3px solid #8fb5d3;
+}
+html[data-theme="paper"] #referenceView .refExamQuickstart{
+ background:#edf4fb;border:1px solid #c2d7e8;border-left:3px solid #518bb9;
+}
+html[data-theme="paper"] #referenceView .refExamQuickstart h3{color:#245783}
+html[data-theme="paper"] #referenceView .refExamQuickstart .quickLinks a{
+ background:#fff;color:#205b91;border-color:#c7d9e7;
+}
+html[data-theme="paper"] #refFindBar{background:#e8f2f9;color:#24445f;border-color:#c4d6e6}
+html[data-theme="paper"] :is(.badge,.chip){border-radius:3px}
