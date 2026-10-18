@@ -141,6 +141,27 @@ test('comfortable exam theme and isolated multi-machine launch quickstart',()=>{
  for(const token of ['.reference details','.refExamQuickstart','.reference#referenceRoot.darkRef','@media print'])ok(css.includes(token),'theme contract missing '+token);
  ok(!css.includes('display:none!important}.reference pre'),'reference commands must remain visible');
 });
+test('one visible Appearance control and stable OSCP original fonts',()=>{
+ const tpl=read('src/index.template.html');
+ const vintage=read('src/styles/17-vintage-coverage.css');
+ const base=read('src/styles/16-paper-dusk.css');
+ ok(tpl.includes('id="themePickerSidebar"'),'Appearance picker remains visible in sidebar');
+ ok(!tpl.includes('id="themePicker"'),'duplicate top selector must not render');
+ ok(/id="themeBtn"[^>]*hidden/.test(tpl),'legacy top button should stay hidden');
+ ok(/id="refReaderTheme"[^>]*hidden/.test(tpl),'reader mode must not show a second theme button');
+ ok(!/font-family:Georgia|font-family:Charter|font-variant:small-caps/.test(vintage+base),'Vintage must not override original system fonts');
+ ok(vintage.includes('system-ui')&&vintage.includes('font-variant:normal'),'reference text must retain original typography');
+});
+test('tmux Ctrl+A repair is idempotent, verifies live prefix, and is documented',()=>{
+ const src=read('scripts/fix-tmux-prefix.sh');
+ const doc=read('src/content/02-enumeration.html');
+ const syntax=spawnSync('bash',['-n'],{input:src,encoding:'utf8'});
+ ok(syntax.status===0,'prefix repair script must parse as Bash');
+ for(const item of ['set-option -g prefix C-a','bind-key -T prefix C-a send-prefix',
+  'tmux show-options -gv prefix','tmux list-keys -T prefix C-a'])ok(src.includes(item),'missing repair step: '+item);
+ ok(src.includes('awk -v start=')&&src.includes("cat >> \"$conf\""),'repair must not append duplicate managed blocks');
+ ok(doc.includes('scripts/fix-tmux-prefix.sh')&&doc.includes('tmux set-option -g prefix C-a'),'offline notes explain direct recovery and permanent install');
+});
 test('entire-app light theme includes left sidebar and maintains AA contrasts',()=>{
  const css=read('src/styles/15-comfort.css'),reader=read('src/js/22b-reference-reader.js'),tpl=read('src/index.template.html');
  const lum=h=>{let c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);c=c.map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
