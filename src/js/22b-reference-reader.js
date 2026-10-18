@@ -14,6 +14,7 @@
  function syncTheme(){
    const night=root.classList.contains('darkRef');
    document.body.classList.toggle('themeLight',!night);
+   document.documentElement.dataset.theme=night?'dusk':'paper';
    document.documentElement.style.colorScheme=night?'dark':'light';
    if(themeControl){
      themeControl.textContent=night?'☀ Light theme':'☾ Dark theme';
@@ -36,8 +37,8 @@
  // matching the old app shell, until Light theme is selected.
  try{
    const saved=localStorage.getItem(themeStorage);
-   root.classList.toggle('darkRef',saved!=='day');
- }catch(_){root.classList.add('darkRef')}
+   root.classList.toggle('darkRef',saved==='night'||(saved!=='day'&&window.matchMedia?.('(prefers-color-scheme: dark)').matches));
+ }catch(_){root.classList.toggle('darkRef',!!window.matchMedia?.('(prefers-color-scheme: dark)').matches)}
  themeControl?.addEventListener('click',()=>setNight(!root.classList.contains('darkRef')));
  // Override the legacy reference-only onclick from core-app.js.
  if(topThemeControl)topThemeControl.onclick=()=>setNight(!root.classList.contains('darkRef'));
