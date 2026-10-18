@@ -12,7 +12,8 @@
  const themeControl=$('refReaderTheme');
  const topThemeControl=$('themeBtn');
  const themePicker=$('themePicker');
- let theme='dusk';
+ const sideThemePicker=$('themePickerSidebar');
+ let theme='parchment';
  function syncTheme(){
    const night=root.classList.contains('darkRef');
    if(night)theme='dusk';
@@ -21,6 +22,7 @@
    document.documentElement.dataset.theme=theme;
    document.documentElement.style.colorScheme=night?'dark':'light';
    if(themePicker)themePicker.value=theme;
+   if(sideThemePicker)sideThemePicker.value=theme;
    if(themeControl){
      themeControl.textContent=night?'☀ Light theme':'☾ Dark theme';
      themeControl.setAttribute('aria-pressed',String(night));
@@ -42,12 +44,13 @@
  function setNight(night){setTheme(night?'dusk':'paper')}
  try{
    const saved=localStorage.getItem(themeStorage);
-   theme=saved==='parchment'?'parchment':saved==='day'?'paper':saved==='night'?'dusk':(window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dusk':'paper');
+   theme=saved==='parchment'?'parchment':saved==='day'?'paper':saved==='night'?'dusk':('parchment');
  }catch(_){theme=window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dusk':'paper'}
  root.classList.toggle('darkRef',theme==='dusk');
  themeControl?.addEventListener('click',()=>setNight(!root.classList.contains('darkRef')));
  if(topThemeControl)topThemeControl.onclick=()=>setNight(!root.classList.contains('darkRef'));
  themePicker?.addEventListener('change',()=>setTheme(themePicker.value));
+ sideThemePicker?.addEventListener('change',()=>setTheme(sideThemePicker.value));
  new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['class']});
  window.OSCP_THEME={setNight,setTheme,toggle:()=>setNight(!root.classList.contains('darkRef'))};
  syncTheme();
