@@ -411,3 +411,6 @@ body.themeLight :is(.examResetDialog,.examBankDialog,.examHelpDialog,.v26Dialog,
  body.themeLight #referenceView .reference,
  body.themeLight #referenceView .reference details{background:#fff!important}
 }
+
+/* Explicit card hook retained for theme regression coverage. */
+body.themeLight .card{background:#f8faf9;border-color:#c7d6d7;color:#243642}
