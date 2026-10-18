@@ -1,0 +1,227 @@
+/* Vintage coverage • V34.80
+ * One intentional design language for every exam screen.
+ * Scoped strictly to html[data-theme="parchment"] — no effect on Light/Dark.
+ * Palette: parchment / vellum / wheat / ink / antique brass.
+ * Do not alter layout, display, overflow, position, or code white-space. */
+html[data-theme="parchment"] {
+  --bg:#f3ecd2;--panel:#fbf4df;--panel2:#eee3c2;--sunk:#e9debd;
+  --line:#d5c6a2;--text:#302916;--muted:#695e40;--accent:#77520e;
+  --good:#526831;--warn:#86580f;--bad:#943e30;--chip:#eee3c2;
+  --shadow:none;--v-paper:#fbf4df;--v-cream:#fff8e8;--v-panel:#f5ecd2;
+  --v-nav:#eee3c3;--v-line:#d5c39a;--v-ink:#302916;
+  --v-subtle:#665835;--v-brass:#805b18;--v-olive:#415d30;
+  --v-warn:#805010;--v-danger:#923d30;--v-hover:#e9dab5;
+  color-scheme:light;
+}
+html[data-theme="parchment"] body {background:var(--bg);color:var(--text)}
+/* Base shell: warm rather than blue-grey, including sticky regions. */
+html[data-theme="parchment"] :is(.top,.side,.activeWorkStrip,#refNavigator,
+  #referenceView .refReaderToolbar,.methodTreeTabs,.opsTabs,.readerButtons) {
+  color:var(--v-ink);border-color:var(--v-line);
+  box-shadow:none;backdrop-filter:none;
+}
+html[data-theme="parchment"] .top {background:#e9ddb9}
+html[data-theme="parchment"] .side {background:var(--v-nav)}
+html[data-theme="parchment"] :is(.activeWorkStrip,#refNavigator,.methodTreeTabs) {background:var(--v-panel)}
+html[data-theme="parchment"] :is(.brand,.navSectionLabel,.refReaderToolbar h1,
+  .hero h1,.card h2,.card h3,.playhead,.indexSectionTitle,.readerQuickTitle) {
+  color:#644714;
+}
+html[data-theme="parchment"] :is(.hero h1,.card h2,.card h3,.indexSectionTitle,.readerQuickTitle) {
+  font-family:Georgia,"Iowan Old Style",serif;
+}
+html[data-theme="parchment"] :is(.muted,.tiny,.navbtn,.readerLabel,.score,
+  .resultText,.workStripCell .k,.paletteDesc,.paletteKind,.topTargetContext,
+  .readerQuickEmpty,.searchKeyboardHint,.quickNoteMeta) {color:var(--v-subtle)}
+html[data-theme="parchment"] :is(.navbtn:hover,.paletteItem:hover,.indexCard:hover,.indexCard:focus-visible) {
+  background:var(--v-hover);color:#59400f;
+}
+html[data-theme="parchment"] :is(.navbtn.active,.paletteItem.active,#refNavigator .btn.active) {
+  background:#e2d2aa;color:#573a0a;border-color:#b8a06b;box-shadow:none;
+}
+html[data-theme="parchment"] :is(.navsep,.readerGroup,.navSectionLabel) {border-color:var(--v-line)}
+/* Sheets and tools: eliminate cold gradients and neon shadows. */
+html[data-theme="parchment"] :is(.card,.result,.target,.decoder,.resumeCard,.boardCard,.detectCard,
+  .mentalCard,.hypCard,.corrCard,.sanityCard,.fallbackCard,.toolCard,.v16SignalCard,
+  .serviceRouterHero,.serviceCard,.methodTreeHero,.methodTreeCard,.v25StateRouter,
+  .ruleLockCard,.simpleRiskCard,.credentialRouter,.usernameGenCard,
+  .usernamePattern,.usernameGenStats>div,.usernameGenNotice,
+  .scoreSummary,.serviceParseSummary,.attemptLedgerPanel,.attemptWorkspaceItem,
+  .outputTruthCard,.outputTruthGrid>div,.v15Runbook,.v16Core,.v16Conditional,
+  .v16Sensitive,.v16Legacy,.v16Last,.v16Lab,.serviceRoleHint,
+  .adEdgePlanBlock,.pointProtect,.captureBuilder,.workStripCell,
+  .workStripTarget,.ruleSnapshot,.parkGate,.accessLadder,.appHealthWarning) {
+  background:var(--v-paper);
+  background-image:none!important;
+  border-color:var(--v-line);
+  box-shadow:none;
+  color:var(--v-ink);
+  border-radius:4px;
+}
+html[data-theme="parchment"] :is(.v25StateRouter,.serviceRouterHero,.methodTreeHero,.simpleRiskCard,.ruleLockCard,
+  .credentialRouter,.detectCard,.mentalCard,.hypCard,.toolCard) {
+  border-left-color:var(--v-line);
+}
+html[data-theme="parchment"] :is(.quick,.btn,.opsTab,.opsTabs button,
+  .signal,.chip,.badge,.autoBadge,.endpointPill,.pointStatus,.evidenceBadge,
+  .adQuickBadge,.v34NextRank,.v33Endpoint,.portChip,.tagRefLink,.topTargetContext,
+  .kbd,.readerButtons .btn,.ruleLockState,.step,.simpleStep .num,.attemptStreak) {
+  background:var(--panel2);background-image:none;
+  border-color:#cbb88b;color:#5d451c;
+  box-shadow:none;border-radius:3px;
+}
+html[data-theme="parchment"] :is(.btn,.quick,.opsTab,.chip,.signal,
+  .stateRoute,.serviceCard,.methodTreeCard):hover {
+  background:var(--v-hover);border-color:#ab8f56;color:#4d390f;
+}
+html[data-theme="parchment"] :is(.btn.primary,.btn.good,.btn.bad,.readerButtons .btn.active,
+  .methodTreeTabs .btn.active) {background:#e4d2a7;color:#573b10;border-color:#b69b64;box-shadow:none}
+html[data-theme="parchment"] :is(.btn.primary,.btn.good,.btn.bad):hover {background:#d9c393}
+html[data-theme="parchment"] :is(.shortcut,.cmdItem,.cmdList,.flow .step,
+  .evidenceGrid label,.preflightTable,.credWrap,.credTable,.serviceTable,
+  .attemptRow,.attemptResult,.attemptEntryGrid input,.attemptEntryGrid select,
+  .graphShell,.encBox,.ruleLockCheck,.simpleStep,.serviceRoleHint,.serviceCard .ports) {
+  background:var(--v-panel);color:var(--v-ink);border-color:var(--v-line);
+  box-shadow:none;border-radius:3px;
+}
+/* Controls and overlays: inputs, nested modals, palettes, diagnostics. */
+html[data-theme="parchment"] :is(input,select,textarea,.searchbar input,
+  #refReaderFilter,#examIndexFilter,#quickNoteText,#themePickerSidebar,
+  .paletteSearch,.paletteSearch input,.examIndexControls input,
+  .workStateGrid textarea,.v33Toolbar select) {
+  background:var(--v-cream);color:var(--v-ink);border-color:#cbb994;
+  border-radius:3px;box-shadow:none;
+}
+html[data-theme="parchment"] :is(input,textarea)::placeholder {color:#776749;opacity:1}
+html[data-theme="parchment"] :is(input,select,textarea,button,summary,a):focus-visible {
+  outline:2px solid #8c6926;outline-offset:2px;
+}
+html[data-theme="parchment"] :is(.examResetDialog,.examBankDialog,.examHelpDialog,
+  .v26Dialog,.v33Dialog,.quickNoteDialog,#readabilityPanel,
+  .toast,.runtimeDiagError,.runtimeDiagLine,.multiTabWarning,
+  .readerGroup,.paletteFooter,.paletteItem,.indexCard,.v33TargetSummary,
+  .v33ServiceCard,.v34NextSummary,.v34NextCard,.v33Check,
+  .examResetStep,.examResetRule,.examResetHint,.examBankStep,
+  .examBankClosure,.examBankClosureItem,.examBankCommand,.examBankRuleNote,
+  .examHelpKey,.examHelpRule,.v34NextGuard,.v33StartCard) {
+  background:var(--v-paper);color:var(--v-ink);border-color:var(--v-line);
+  box-shadow:none;border-radius:4px;
+}
+html[data-theme="parchment"] :is(.examResetBackdrop,.examBankBackdrop,#examHelpBackdrop,
+  .v26Backdrop,.v33Backdrop,#quickNoteBackdrop) {background:rgba(46,35,16,.68);backdrop-filter:blur(2px)}
+html[data-theme="parchment"] :is(.examBankClosureItem:has(input:checked),
+  .examBankClosureStatus.complete,.v33PreflightSummary.pass,.guardStatus.ok,
+  .pointStatus.safe,.evidenceBadge.ok,.scoreSummary.good) {
+  background:#e1e8cf;color:#385326;border-color:#aab992;
+}
+html[data-theme="parchment"] :is(.examBankDanger,.examBankClosureStatus.pending,
+  .v33PreflightSummary.warn,.fatigueClock.warn,.scoreSummary.warn,
+  .attemptOutcome.negative,.attemptStreak.warn,.attention.p4,
+  .resumePacketNotice.warn) {
+  background:#f3e4c1;color:#765015;border-color:#c8aa6d;
+}
+html[data-theme="parchment"] :is(.v33PreflightSummary.fail,.v33Check.fail,
+  .fatigueClock.bad,.attemptOutcome.blocked,.attemptStreak.bad,
+  .runtimeDiagError,.resumePacketNotice.bad) {
+  background:#f2ded4;color:#813d2b;border-color:#d1a394;
+}
+/* Dense data: all dashboard tables, score/credential/tracking matrices. */
+html[data-theme="parchment"] :is(.reference table,.credTable,.serviceTable,
+  .preflightTable,.vaultTable,.debtTable,.journalTable,.regressionTable,
+  .compatTable,.credentialRouteGrid,.toolCmd,.winStrategyCmd) {
+  color:var(--v-ink);border-color:var(--v-line);box-shadow:none;
+}
+html[data-theme="parchment"] :is(.credTable,.serviceTable,.preflightTable,.vaultTable,
+  .debtTable,.journalTable,.regressionTable,.compatTable) :is(th,td) {
+  border-color:var(--v-line);color:var(--v-ink);
+}
+html[data-theme="parchment"] :is(.credTable,.serviceTable,.preflightTable,.vaultTable,
+  .debtTable,.journalTable,.regressionTable,.compatTable) th {
+  background:#e6d7b2;color:#5d4115;
+}
+html[data-theme="parchment"] :is(.credTable,.serviceTable,.preflightTable,.vaultTable,
+  .debtTable,.journalTable,.regressionTable,.compatTable) tr:nth-child(even) td {
+  background:#f5ebd1;
+}
+html[data-theme="parchment"] :is(.credTable,.serviceTable,.preflightTable,.vaultTable,
+  .debtTable,.journalTable,.regressionTable,.compatTable) tr:hover td {
+  background:#eee0bc;
+}
+html[data-theme="parchment"] :is(.progress,.scoreBar,.coverageBar,.freshBar,
+  #readProgressTrack) {background:#e2d3b1;border-color:#cbb88d;box-shadow:none}
+html[data-theme="parchment"] :is(.bar,#readProgressBar) {background:#8b7144}
+html[data-theme="parchment"] :is(.pointProtect,.stateRoute.goodRoute) {
+  background:#e3ead4;color:#334a27;border-color:#acb994;
+}
+html[data-theme="parchment"] :is(.stateRoute.goodRoute b,.scoreSummary.good,.pointStatus.safe){color:#385526}
+/* Semantic status distinctions without dark green/black fills. */
+html[data-theme="parchment"] :is(.adQuickBadge.block,.m-blocked,.h-killed,.conf-dead) {
+  background:#f0dcd3;color:#873b2b;border-color:#cf9f90;
+}
+html[data-theme="parchment"] :is(.adQuickBadge.guard,.m-untested,.h-queued,.conf-prereq) {
+  background:#efe1be;color:#755216;border-color:#c9ac74;
+}
+html[data-theme="parchment"] :is(.adQuickBadge.core,.m-valid,.m-admin,.h-proven,
+  .conf-high,.conf-exploited,.v15ChainStatus.ok) {
+  background:#e1e8d3;color:#3f592f;border-color:#abbd98;
+}
+html[data-theme="parchment"] :is(.check,.ruleLockState,.workStripCell .v,.v33ServicePart b,
+  .v34NextMeta,.v34NextKind,.v33CheckDetail,.paletteSearch kbd,.endpointPill) {color:#5b4724}
+html[data-theme="parchment"] :is(.v34NextRank,.v33Endpoint,.indexCard .indexTag,
+  .adEdgePlanBlock,.v16-ref-tier,.refReaderGroup>summary) {color:#745016}
+/* Reader: typography and every nested UI follows the same paper stock. */
+html[data-theme="parchment"] #referenceView .reference {
+  background:var(--v-paper);color:var(--v-ink);
+  font-family:Georgia,"Iowan Old Style",serif;line-height:1.65;
+}
+html[data-theme="parchment"] #referenceView .reference :is(h1,h2,h3,h4) {
+  color:#674712;font-family:Georgia,"Iowan Old Style",serif;
+  font-variant:small-caps;
+}
+html[data-theme="parchment"] #referenceView :is(.refReaderTocWrap,.refReaderTocHeader,
+  .refReaderGroup,.refReaderQuick,.refExamQuickstart,#refFindBar) {
+  background:var(--v-panel);color:var(--v-ink);border-color:var(--v-line);box-shadow:none;
+}
+html[data-theme="parchment"] #referenceView :is(.refReaderQuick .btn,.refReaderLink,
+  .refReaderGroup>summary,.refExamQuickstart .quickLinks a) {
+  background:var(--v-panel);color:#634718;border-color:var(--v-line);
+}
+html[data-theme="parchment"] #referenceView :is(.refReaderLink:hover,.refReaderLink.active) {
+  background:#e2d2ac;color:#503809;border-color:#ad925a;
+}
+html[data-theme="parchment"] #referenceView .reference :is(details,blockquote) {
+  background:var(--v-cream);color:var(--v-ink);border-color:var(--v-line);
+}
+html[data-theme="parchment"] #referenceView .reference details[open] {
+  background:#fff6de;border-color:#bfa875;
+}
+html[data-theme="parchment"] #referenceView .reference :is(pre,pre code) {
+  background:#ebe0c6;color:var(--v-ink);border-color:#ccbc94;
+  text-shadow:none;box-shadow:none;
+}
+html[data-theme="parchment"] :is(pre,code,.toolCmd,.winStrategyCmd) {text-shadow:none}
+html[data-theme="parchment"] #referenceView .reference :not(pre)>code {
+  background:#ecdfbd;color:#654415;
+}
+html[data-theme="parchment"] #referenceView .reference .copybtn {
+  background:#e2d1aa;color:#563c12;border-color:#b69d6a;
+}
+html[data-theme="parchment"] #referenceView .reference table thead th {
+  background:#e7d8b5;color:#5d4215;
+}
+html[data-theme="parchment"] #referenceView .reference :is(th,td){border-color:var(--v-line)}
+html[data-theme="parchment"] #referenceView .reference tbody tr:nth-child(even){background:#f2e7cb}
+html[data-theme="parchment"] #referenceView .reference blockquote{border-left:3px solid #ab9162}
+html[data-theme="parchment"] #referenceView .reference a{color:#815110}
+html[data-theme="parchment"] #referenceView .reference a:hover{color:#58380f}
+html[data-theme="parchment"] :is(.sideThemeControl,.sideThemeControl select){
+  border-color:var(--v-line);
+}
+html[data-theme="parchment"] :is(.sideThemeControl label,.sideThemeControl select) {
+  color:#57411e;
+}
+/* Keep printed exam evidence on white paper. */
+@media print {
+  html[data-theme="parchment"] body,
+  html[data-theme="parchment"] #referenceView .reference {background:#fff!important;color:#111!important}
+}
