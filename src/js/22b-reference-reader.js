@@ -11,11 +11,16 @@
  const themeStorage='oscp:reference-theme:v1';
  const themeControl=$('refReaderTheme');
  const topThemeControl=$('themeBtn');
+ const themePicker=$('themePicker');
+ let theme='dusk';
  function syncTheme(){
    const night=root.classList.contains('darkRef');
+   if(night)theme='dusk';
+   else if(theme==='dusk')theme='paper';
    document.body.classList.toggle('themeLight',!night);
-   document.documentElement.dataset.theme=night?'dusk':'paper';
+   document.documentElement.dataset.theme=theme;
    document.documentElement.style.colorScheme=night?'dark':'light';
+   if(themePicker)themePicker.value=theme;
    if(themeControl){
      themeControl.textContent=night?'☀ Light theme':'☾ Dark theme';
      themeControl.setAttribute('aria-pressed',String(night));
@@ -27,23 +32,24 @@
      topThemeControl.setAttribute('aria-label',night?'Switch entire app to light theme':'Switch entire app to dark theme');
      topThemeControl.title=night?'Switch entire app to light theme':'Switch entire app to dark theme';
    }
-   try{localStorage.setItem(themeStorage,night?'night':'day')}catch(_){}
+   try{localStorage.setItem(themeStorage,theme==='dusk'?'night':theme==='paper'?'day':'parchment')}catch(_){}
  }
- function setNight(night){
-   root.classList.toggle('darkRef',!!night);
+ function setTheme(next){
+   theme=next==='parchment'?'parchment':next==='dusk'?'dusk':'paper';
+   root.classList.toggle('darkRef',theme==='dusk');
    syncTheme();
  }
- // Preserve an existing preference. New installations begin in dark mode,
- // matching the old app shell, until Light theme is selected.
+ function setNight(night){setTheme(night?'dusk':'paper')}
  try{
    const saved=localStorage.getItem(themeStorage);
-   root.classList.toggle('darkRef',saved==='night'||(saved!=='day'&&window.matchMedia?.('(prefers-color-scheme: dark)').matches));
- }catch(_){root.classList.toggle('darkRef',!!window.matchMedia?.('(prefers-color-scheme: dark)').matches)}
+   theme=saved==='parchment'?'parchment':saved==='day'?'paper':saved==='night'?'dusk':(window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dusk':'paper');
+ }catch(_){theme=window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dusk':'paper'}
+ root.classList.toggle('darkRef',theme==='dusk');
  themeControl?.addEventListener('click',()=>setNight(!root.classList.contains('darkRef')));
- // Override the legacy reference-only onclick from core-app.js.
  if(topThemeControl)topThemeControl.onclick=()=>setNight(!root.classList.contains('darkRef'));
+ themePicker?.addEventListener('change',()=>setTheme(themePicker.value));
  new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['class']});
- window.OSCP_THEME={setNight,toggle:()=>setNight(!root.classList.contains('darkRef'))};
+ window.OSCP_THEME={setNight,setTheme,toggle:()=>setNight(!root.classList.contains('darkRef'))};
  syncTheme();
  function isActive(){return view.classList.contains('active')}
  function setToc(open){
