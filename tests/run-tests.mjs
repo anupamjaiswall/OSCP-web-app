@@ -122,11 +122,11 @@ test('exam Nmap default NSE, first-pass Nikto and tmux clipboard workflow',()=>{
  ok(web.indexOf('nikto -h "$WEB_URL"')>0&&web.indexOf('nikto -h "$WEB_URL"')<web.indexOf('gobuster dir'),'Nikto should run before content discovery');
  ok(web.includes('mkdir -p scans/web')&&web.includes('nikto-443.txt'),'Nikto output dir and HTTPS shown');
  const conf=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
- ok(conf.includes('bind -T copy-mode-vi Y send -X copy-pipe-and-cancel'),'Shift+Y must copy selection');
- ok(conf.includes('bind Y run-shell')&&conf.includes('clipboard.sh" paste'),'prefix Y should paste through display-aware helper');
- ok(conf.includes('clipboard.sh" copy'),'Shift+Y should copy through display-aware helper');
+ ok(conf.includes("set -g @plugin 'tmux-plugins/tmux-yank'"),'tmux-yank plugin must be installed via TPM');
+ ok(conf.includes("set -g @yank_selection_mouse 'clipboard'"),'mouse selection should target system clipboard');
+ ok(!conf.includes("bind -T copy-mode-vi Y send -X copy-pipe-and-cancel"),'legacy clipboard helper should not override tmux-yank');
  ok(ref.includes('wl-copy')&&ref.includes('wl-paste')&&ref.includes('xclip'),'X11 and Wayland clipboard providers included');
- ok(ref.includes('Shift+Y copies — it does not paste.'),'clipboard behavior must be clearly explained');
+ ok(ref.includes('tmux-yank (preferred)')&&ref.includes('Ctrl+Shift+V'),'tmux-yank copy and paste workflow must be explained');
 });
 test('comfortable exam theme and isolated multi-machine launch quickstart',()=>{
  const ref=read('src/content/02-enumeration.html'),tpl=read('src/index.template.html'),css=read('src/styles/15-comfort.css'),reader=read('src/js/22b-reference-reader.js');
