@@ -20,7 +20,7 @@ if grep -Fq "$start" "$conf"; then
   ' "$conf" > "$tmp"
   cat "$tmp" > "$conf"
 fi
-cat >> "$conf" <<'TMUX_PREFIX'
+printf '\n' >> "$conf"\ncat >> "$conf" <<'TMUX_PREFIX'
 # >>> OSCP Ctrl+A prefix override >>>
 # Keep at the END, after TPM and any other config/source lines.
 set-option -g prefix C-a
