@@ -13,7 +13,14 @@ html[data-theme="parchment"] {
   --v-warn:#805010;--v-danger:#923d30;--v-hover:#e9dab5;
   color-scheme:light;
 }
-html[data-theme="parchment"] body {background:var(--bg);color:var(--text)}
+html[data-theme="parchment"] body {
+  /* body.themeLight previously re-declared the Light palette, shadowing
+     root custom properties. Apply Vintage tokens on body as well. */
+  --bg:#f3ecd2;--panel:#fbf4df;--panel2:#eee3c2;--sunk:#e9debd;
+  --line:#d5c6a2;--text:#302916;--muted:#695e40;--accent:#77520e;
+  --good:#526831;--warn:#86580f;--bad:#943e30;--chip:#eee3c2;--shadow:none;
+  background:var(--bg);color:var(--text)
+}
 /* Base shell: warm rather than blue-grey, including sticky regions. */
 html[data-theme="parchment"] :is(.top,.side,.activeWorkStrip,#refNavigator,
   #referenceView .refReaderToolbar,.methodTreeTabs,.opsTabs,.readerButtons) {
