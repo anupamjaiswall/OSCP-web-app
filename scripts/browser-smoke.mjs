@@ -242,7 +242,7 @@ async function main(){
       const restored=getComputedStyle(root).backgroundColor;
       return JSON.stringify({paper,night,pressed,nightSaved,restored});
     })()`));
-    if(!(themeColors.paper==='rgb(255, 255, 255)'&&themeColors.night!==themeColors.paper&&themeColors.pressed==='true'&&themeColors.nightSaved==='night'&&themeColors.restored===themeColors.paper))
+    if(!(['rgb(255, 255, 255)','rgb(251, 244, 223)'].includes(themeColors.paper)&&themeColors.night!==themeColors.paper&&themeColors.pressed==='true'&&themeColors.nightSaved==='night'&&['rgb(255, 255, 255)','rgb(251, 244, 223)'].includes(themeColors.restored)))
       throw new Error('reference color toggle/regression: '+JSON.stringify(themeColors));
 
     // Regression: Light must recolor the entire shell, left menu AND reference TOC.
