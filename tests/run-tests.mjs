@@ -208,10 +208,9 @@ test('real scripts/clipboard.sh matches offline notes, loads as bash and has a f
   ok(script.includes(token),'missing clipboard provider/command: '+token);
  }
  const conf=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
- ok(conf.includes('set -s set-clipboard off'),'avoid OSC52/external provider conflict');
- ok(conf.includes('bind -T copy-mode-vi y send -X copy-selection-and-cancel'),'y stays a display-independent copy');
- ok(conf.includes('bind -T copy-mode-vi Y send -X copy-pipe-and-cancel'),'Shift+Y runs the actual bridge');
- ok(conf.includes('bin/clipboard.sh" copy')&&conf.includes('bin/clipboard.sh" paste'),'tmux config must reference the installed script');
+ ok(conf.includes("set -g @plugin 'tmux-plugins/tmux-yank'"),'tmux-yank must be registered with TPM');
+ ok(conf.includes("set -g @yank_selection_mouse 'clipboard'"),'mouse should copy to clipboard selection');
+ ok(!conf.includes('copy-pipe-and-cancel'),'legacy clipboard copy bindings must not conflict with tmux-yank');
  ok(ref.includes('raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh'),'actual install URL shown');
  ok(ref.includes('oscp-clipboard-test')&&ref.includes('tmux list-keys -T copy-mode-vi'),'diagnostics must be actionable');
  const noDisplay=spawnSync('bash',['-c',script+'\n'],{input:'',encoding:'utf8',env:{PATH:'/usr/bin:/bin',HOME:'/tmp',WAYLAND_DISPLAY:'',DISPLAY:''}});
