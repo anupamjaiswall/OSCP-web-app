@@ -181,6 +181,27 @@ bind -T copy-mode MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/cli
 # Forward events to interactive applications (Vim, htop) when they capture the mouse.
 bind -n MouseDown2Pane select-pane -t= \; if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'paste-buffer -p -t='</code></pre>
 <p><b>Exam-safe verification:</b> print <code>printf 'DRAG-COPY-TEST\n'</code> in a normal shell pane, drag over that text, then middle-click in a second shell pane. It should paste the selected text. Check desktop clipboard by pasting into a graphical text editor. <b>Do not try the paste test at a live privileged command prompt; it may contain newlines.</b></p>
+<h3>tmux-yank — recommended Kali clipboard method</h3>
+<p><strong>Install before the exam:</strong> <code>tmux-yank</code> is the default clipboard workflow in the full configuration below. It requires access to the <em>same graphical clipboard session</em> where the terminal is running. Over SSH, inside a VM without clipboard integration, or without DISPLAY/WAYLAND_DISPLAY, no plugin can automatically guarantee host clipboard access.</p>
+<pre class="ref-code"><code class="language-bash">sudo apt update
+sudo apt install -y tmux xsel xclip wl-clipboard
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm 2>/dev/null || true
+# Paste the full ~/.tmux.conf below into ~/.tmux.conf.
+tmux source-file ~/.tmux.conf
+# Inside tmux: Ctrl+A then Shift+I (capital I), installs tmux-yank.
+# Then restart your tmux server if the plugin did not reload automatically.
+tmux show -g @plugin
+echo "DISPLAY=$DISPLAY WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
+# From the same graphical terminal, test the actual clipboard:
+printf 'OSCP-CLIPBOARD-TEST' | xsel --clipboard --input
+xsel --clipboard --output
+# On Wayland, instead:
+printf 'OSCP-CLIPBOARD-TEST' | wl-copy
+wl-paste
+# In tmux: Ctrl+A [ ; move cursor ; Space/v ; select ; y
+# Paste into a graphical text editor with Ctrl+V.
+# With mouse on, drag over shell output and release; then Ctrl+V.
+</code></pre>
 <h3>~/.tmux.conf — full exam-safe tmux config</h3>
 <pre class="ref-code" data-copy-plain="true"><code class="language-bash">unbind C-b
 set -g prefix C-a
@@ -212,25 +233,17 @@ bind [ copy-mode
 bind ] paste-buffer
 bind S capture-pane -p -S - \; run-shell 'tmux capture-pane -p -S - &gt; "$HOME/oscp/logs/pane-$(date +%F_%H%M%S).txt"' \; display-message 'Scrollback saved'
 
-# Copy mode: lowercase y = tmux internal clipboard (always works locally).
-# Shift+Y = desktop clipboard via helper, provided DISPLAY/Wayland works.
-# The desktop bridge is optional. Do not rely on it without testing.
+# tmux-yank: system clipboard on X11 / Wayland (install xsel or wl-clipboard).
+# TPM loads plugins last. Do not override its y / mouse bindings below.
 setw -g mode-keys vi
-set -s set-clipboard off
+set -g mouse on
+set -g @yank_selection 'clipboard'
+set -g @yank_selection_mouse 'clipboard'
 bind -T copy-mode-vi v send -X begin-selection
-bind -T copy-mode-vi y send -X copy-selection-and-cancel
-bind -T copy-mode-vi Y send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
-# Prefix + ] pastes tmux buffer. Prefix + Y pastes desktop clipboard.
-bind Y run-shell '"$HOME/bin/clipboard.sh" paste | tmux load-buffer - &amp;&amp; tmux paste-buffer -t "#{pane_id}"'
-
-# MOUSE (tmux output): left drag -> tmux buffer + desktop clipboard if available.
-# Mouse drag ends in copy-mode-vi; also define emacs copy-mode for compatibility.
-bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
-bind -T copy-mode MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
-# Middle click pastes the tmux buffer into the pane you clicked.
-# Don't override mouse input inside applications that requested it (Vim, htop).
-bind -n MouseDown2Pane select-pane -t= \; if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'paste-buffer -p -t='
-
+# Copy selection: Ctrl+A, [ then Space/v select, y to system clipboard.
+# Mouse: drag then release to copy to CLIPBOARD.
+# Ctrl+A ] pastes tmux buffer. Ctrl+Shift+V pastes system clipboard via terminal.
+# Avoid previous clipboard.sh bindings for y/Y/MouseDragEnd1Pane: they conflict.
 # Automatically start pipe-pane on new sessions/windows/splits.
 set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
 set-hook -g after-new-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
@@ -242,6 +255,7 @@ set-hook -g after-split-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane
 # source-file ~/.tmux-theme.conf
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-yank'
 run '~/.tmux/plugins/tpm/tpm'</code></pre>
 <h3>tmux pane splitting — vertical divider vs horizontal divider</h3>
 <p><strong>Visual rule (Ctrl+A is the prefix):</strong> <kbd>Ctrl+A</kbd> then <kbd>|</kbd> creates <strong>left + right</strong> panes with a <em>vertical dividing line</em>. <kbd>Ctrl+A</kbd> then <kbd>-</kbd> creates <strong>top + bottom</strong> panes with a <em>horizontal dividing line</em>. This is intentional: tmux's <code>-h</code> means panes are arranged horizontally (next to each other), while <code>-v</code> means they stack vertically. The flag describes the <strong>direction panes are arranged</strong>, not the direction of the dividing line.</p>
@@ -530,7 +544,7 @@ cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
 <li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
 <li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
 <li><strong>Paste tmux's internal buffer:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. This works after lowercase <kbd>y</kbd>, even with no desktop clipboard.</li>
-<li><strong>Copy to the desktop clipboard (conditional):</strong> after selecting with <kbd>v</kbd>, press capital <kbd>Y</kbd> (<kbd>Shift+Y</kbd>). This uses the <code>clipboard.sh</code> helper and requires working X11/<code>xclip</code> or Wayland/<code>wl-copy</code>. <b>Shift+Y copies — it does not paste.</b> To paste into the desktop terminal, use its own Paste command (often <kbd>Ctrl+Shift+V</kbd>).</li>
+<li><strong>tmux-yank (preferred):</strong> install TPM plugin <code>tmux-plugins/tmux-yank</code>, reload and press <kbd>Ctrl+A</kbd> then capital <kbd>I</kbd> to install plugins. In copy mode, select using <kbd>v</kbd>, press lowercase <kbd>y</kbd> to copy to the desktop clipboard. <b>Shift+Y copies — it does not paste.</b> With tmux-yank, uppercase <kbd>Y</kbd> in copy mode instead means copy and paste to the command line. Paste desktop clipboard using your terminal’s <kbd>Ctrl+Shift+V</kbd>.</li>
 <li><strong>Paste the desktop clipboard into tmux:</strong> outside copy mode, press <kbd>Ctrl+A</kbd>, then capital <kbd>Y</kbd>. This uses <code>wl-paste</code> or <code>xclip</code>; unlike lowercase <kbd>y</kbd>, it is not guaranteed over SSH, remote desktops, or VM boundaries.</li>
 <li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
 </ol>
