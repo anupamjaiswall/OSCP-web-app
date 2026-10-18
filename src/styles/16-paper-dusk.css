@@ -18,8 +18,9 @@
 /* The theme lives on html; override legacy hardcoded styling without
    altering element structure, layout or existing search interaction. */
 html[data-theme] body{background:var(--bg);color:var(--text)}
-html[data-theme] :is(.top,.side,.card,.target,.result,.decoder,.boardCard,.scanHost,.resumeCard,.detectCard,.gateItem,.shortcut,.cmdItem,.cmdList,.rec,.v26Dialog,.v33Dialog,.examResetDialog,.examBankDialog,.examHelpDialog,#readabilityPanel){
+html[data-theme] :is(.top,.side,.card,.target,.result,.decoder,.boardCard,.scanHost,.resumeCard,.detectCard,.gateItem,.shortcut,.cmdItem,.cmdList,.rec,.v26Dialog,.v33Dialog,.examResetDialog,.examBankDialog,.examHelpDialog){
  background:var(--panel);border-color:var(--line);color:var(--text);box-shadow:none}
+html[data-theme] #readabilityPanel{background:var(--panel);border-color:var(--line);color:var(--text);box-shadow:none}
 html[data-theme] .top{background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:none}
 html[data-theme] .side{background:var(--panel);border-right:1px solid var(--line)}
 html[data-theme] :is(.btn,.quick,.opsTab,.chip,.signal,.opsTabs button,.kbd,.copybtn,.tagRefLink){
