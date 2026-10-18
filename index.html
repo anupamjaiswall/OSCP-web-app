@@ -1145,6 +1145,39 @@ html[data-theme="parchment"] .stateRouteGrid .stateRoute.goodRoute{
  background:#ece7cc;border-color:#b8bf8c;
 }
 html[data-theme="parchment"] .stateRouteGrid .stateRoute.goodRoute b{color:#465d2b}
+
+
+/* V34.79 — vintage consistency across all exam surfaces; one visible theme picker. */
+html[data-theme] #themeBtn[hidden]{display:none!important}
+html[data-theme="parchment"] :is(.main,.view,.layout){color:var(--text)}
+html[data-theme="parchment"] :is(.activeWorkStrip,#refNavigator,.v26Dialog,.v33Dialog,.v34NextCard,.v33ServiceCard,.examResetStep,.examBankStep,.examBankClosure,.examBankClosureItem,.examHelpKey,.indexCard,.paletteSearch,.outputTruthGrid>div,.workStateGrid textarea,.v33TargetSummary,.v34NextSummary,.v33Check,.graphShell,.methodTreeTabs,.rec,.shortcut,.cmdItem,.cmdList,.credWrap,.credTable,.serviceTable,.preflightTable){
+ background:#f7efd7;color:#302916;border-color:#d1bf96;box-shadow:none;
+}
+html[data-theme="parchment"] :is(.quick,.opsTab,.opsTabs button,.methodTreeTabs .btn,.copybtn,.tagRefLink,.badge,.chip,.ruleLockState,.signal,.portChip,.refCrumbHome){
+ background:#eee3c2;color:#604414;border-color:#ccb990;box-shadow:none;
+}
+html[data-theme="parchment"] :is(.v33PreflightSummary,.v34NextGuard,.examResetRule,.examBankRuleNote,.examBankCommand,.examBankDanger,.examBankClosureStatus,.toast){
+ background:#f2e5c6;color:#503c1b;border-color:#c9b588;box-shadow:none;
+}
+html[data-theme="parchment"] :is(.table,.credTable,.serviceTable,.preflightTable,.reference table){color:#302916}
+html[data-theme="parchment"] :is(.credTable th,.serviceTable th,.preflightTable th){background:#e7d9b5;color:#50360d}
+html[data-theme="parchment"] :is(.credTable td,.serviceTable td,.preflightTable td){background:#fbf3df;color:#302916;border-color:#d1bf96}
+html[data-theme="parchment"] :is(.resultText,.muted,.tiny,.readerLabel,.score,.workStripCell .k,.paletteKind,.indexMeta){color:#665936}
+html[data-theme="parchment"] :is(.card h2,.card h3,.playhead,.refReaderToolbar h1,.v26Dialog h2,.v33Dialog h2){color:#73531a}
+html[data-theme="parchment"] :is(.navbtn.active,.paletteItem.active,.indexCard:hover,.indexCard:focus-visible){
+ background:#e8dbb6;color:#5e4110;border-color:#bda36e;
+}
+html[data-theme="parchment"] :is(.btn.primary,.btn.good,.btn.bad){background:#e8d9b3;color:#65430e;border-color:#bca575}
+html[data-theme="parchment"] :is(.btn.primary,.btn.good,.btn.bad):hover{background:#e0cca0}
+html[data-theme="parchment"] :is(.progress,.scoreBar){background:#e5d8b7;border-color:#c8b58c}
+html[data-theme="parchment"] :is(.flow .step,.evidenceGrid label,.ruleLockCheck,.v34NextRank,.v33Endpoint){background:#f1e5c6;color:#514020;border-color:#d2be93}
+html[data-theme="parchment"] :is(.searchbar input,#refReaderFilter,#examIndexFilter,#themePickerSidebar){background:#fff9e9;color:#302916;border-color:#cdbb93}
+html[data-theme="parchment"] #referenceView :is(.refReaderQuick .btn,.refReaderLink,.refReaderGroup>summary){background:#efe3c3;color:#5a411a;border-color:#d1bd95}
+html[data-theme="parchment"] #referenceView .refReaderLink:hover{background:#e6d6ae;color:#5b4015}
+html[data-theme="parchment"] #referenceView .refReaderLink.active{background:#dfcda1;color:#593e0b}
+html[data-theme="parchment"] #referenceView .reference tbody tr:hover{background:#ebddba}
+html[data-theme="parchment"] #referenceView .reference .copybtn{background:#e7d7b1;color:#594019;border-color:#c7af7c}
+html[data-theme="parchment"] .themePickerLabel{color:#5d4a2a}
 </style>
 </head>
 <body>
@@ -1257,8 +1290,9 @@ Return trigger:"></textarea>
   <button class="btn good" id="examBankBtn" type="button" title="Score-safe proof banking (Alt+B)" aria-haspopup="dialog">✓ BANK</button>
   <button class="btn" id="readabilityBtn" type="button" title="Reading controls (Alt+Z toggles Focus)" aria-haspopup="dialog" aria-expanded="false">Aa Read</button>
   <button class="btn" id="examHelpBtn" type="button" title="Exam navigation help (?)" aria-haspopup="dialog">?</button>
-  <label class="themePickerLabel" for="themePicker">Theme</label><select id="themePicker" aria-label="Application colour theme"><option value="paper">Light</option><option value="dusk">Dark</option><option value="parchment">Vintage parchment</option></select><button class="btn" id="themeBtn" title="Quick switch between light and dark">◐</button>
+  
 </div>
+<button id="themeBtn" type="button" hidden aria-hidden="true" tabindex="-1">Theme compatibility</button>
 <div class="layout">
 <nav class="side" id="nav">
   <div class="sideThemeControl"><label for="themePickerSidebar">Appearance</label><select id="themePickerSidebar" aria-label="Choose website theme"><option value="parchment">Vintage parchment</option><option value="paper">Light</option><option value="dusk">Dark</option></select></div>
