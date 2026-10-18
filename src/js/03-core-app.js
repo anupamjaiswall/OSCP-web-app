@@ -146,7 +146,7 @@ function prepareCode(){
    const pre=blocks[i],code=pre.querySelector('code');if(!code)continue;
    if(!code.dataset.raw)code.dataset.raw=code.textContent;
    code.textContent=substitute(code.dataset.raw);
-   if(!pre.querySelector('.copybtn')){const b=document.createElement('button');b.className='copybtn noPrint';b.textContent='Copy';b.onclick=async()=>await guardedCopyText(code.textContent,'Reference snippet',null,{allowPlaceholders:true});pre.appendChild(b)}
+   if(!pre.querySelector('.copybtn')){const b=document.createElement('button');b.className='copybtn noPrint';b.textContent='Copy';b.onclick=async()=>{if(pre.dataset.copyPlain==='true'){const ok=await copyText(code.textContent);toast(ok?'Configuration copied':'Copy blocked by browser — select text manually');return}await guardedCopyText(code.textContent,'Reference snippet',null,{allowPlaceholders:true})};pre.appendChild(b)}
   }
   if(i<blocks.length)setTimeout(pump,0);else{__prepareCodeQueued=false;window.OSCP_CODE_BLOCKS_READY=true}
  };
