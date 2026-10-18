@@ -34,7 +34,7 @@ function enforceBands(dir,ext,allowedTies){
   for(const name of expected){const marker=`@inject:${ext==='.js'?'script':'style'}:${name}`;const at=template.indexOf(marker);if(at<0)throw new Error(`Declared tied-band file is not injected by the template: ${name}`);if(at<=previous)throw new Error(`Tied prefix ${prefix} order drifted; expected ${expected.join(' -> ')}`);previous=at}
  }
 }
-enforceBands('src/js','.js',{'19':['19-v34-runtime-diagnostics.js','19-v33-exam-integration.js']});
+enforceBands('src/js','.js',{'05':['05-windows-strategy.js','05-linux-strategy.js','05-ad-strategy.js'],'19':['19-v34-runtime-diagnostics.js','19-v33-exam-integration.js']});
 enforceBands('src/styles','.css',{'13':['13-v34-runtime-diagnostics.css','13-v33-exam-integration.css']});
 
 const workflow=read('.github/workflows/ci.yml');
