@@ -265,6 +265,34 @@ async function main(){
        fullTheme.restored))
       throw new Error('full light theme missed shell or navigation: '+JSON.stringify(fullTheme));
 
+    // Vintage coverage: use the ONE visible Appearance picker, then inspect the
+    // real computed surfaces instead of relying on source-text or screenshots.
+    const vintage=JSON.parse(await evalValue(`(()=>{
+      const picker=document.getElementById('themePickerSidebar');
+      const read=s=>{const e=document.querySelector(s);return e?getComputedStyle(e).backgroundColor:null};
+      if(!picker)return JSON.stringify({error:'missing visible Appearance control'});
+      picker.value='parchment';picker.dispatchEvent(new Event('change',{bubbles:true}));
+      const results={
+        theme:document.documentElement.dataset.theme,
+        stored:localStorage.getItem('oscp:reference-theme:v1'),
+        picker:picker.value,
+        duplicateVisible:!!document.querySelector('#themeBtn:not([hidden]),#themePicker'),
+        body:read('body'),side:read('.side'),card:read('.card'),
+        route:read('.stateRoute.goodRoute'),reader:read('#referenceRoot'),
+        dialog:read('.examResetDialog'),
+        gradient:(()=>{const x=document.querySelector('.v25StateRouter');return x?getComputedStyle(x).backgroundImage:null})()
+      };
+      picker.value='dusk';picker.dispatchEvent(new Event('change',{bubbles:true}));
+      return JSON.stringify(results);
+    })()`));
+    if(!(vintage.theme==='parchment'&&vintage.stored==='parchment'&&vintage.picker==='parchment'&&
+         !vintage.duplicateVisible&&
+         vintage.side==='rgb(238, 227, 195)'&&vintage.card==='rgb(251, 244, 223)'&&
+         vintage.reader==='rgb(251, 244, 223)'&&
+         vintage.dialog==='rgb(251, 244, 223)'&&
+         vintage.gradient==='none'))
+      throw new Error('Vintage theme misses shell/tools/reader or duplicates switcher: '+JSON.stringify(vintage));
+
     // Real interaction 1: typo-tolerant search must produce results after lazy reference hydration.
     await evalValue(`(()=>{const i=document.getElementById('globalSearch');i.value='seimpersonte';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
     const typoSearch=await waitFor(async()=>{
