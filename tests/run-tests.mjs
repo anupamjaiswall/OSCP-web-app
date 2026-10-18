@@ -332,10 +332,10 @@ test('browser-safe navigation shortcuts do not conflict with feature handlers',(
  ok(tpl.includes('<kbd>G</kbd> → <kbd>A</kbd>')&&tpl.includes('<kbd>G</kbd> → <kbd>P</kbd>'),'help documents reliable keys');
  ok(tpl.split('<kbd>Alt+Y</kbd>').length===2,'Alt+Y help must not be duplicated');
 });
-test('tmux Vim copy shortcuts work without desktop clipboard and provide reload verification',()=>{
+test('tmux Vim copy shortcuts use tmux-yank and allow reload verification',()=>{
  const ref=read('src/content/02-enumeration.html');
- for(const line of ['bind [ copy-mode','bind ] paste-buffer','bind -T copy-mode-vi v send -X begin-selection','bind -T copy-mode-vi y send -X copy-selection-and-cancel','bind -T copy-mode-vi Y send -X copy-pipe-and-cancel','tmux source-file ~/.tmux.conf','tmux show-options -g prefix'])ok(ref.includes(line),line);
- ok(!ref.includes("bind -T copy-mode-vi y send -X copy-pipe-and-cancel"),'lowercase y is not dependent on X11');
+ for(const line of ['bind [ copy-mode','bind ] paste-buffer','bind -T copy-mode-vi v send -X begin-selection',"set -g @plugin 'tmux-plugins/tmux-yank'",'tmux source-file ~/.tmux.conf','tmux show-options -g prefix'])ok(ref.includes(line),line);
+ ok(!ref.includes('bind -T copy-mode-vi y send -X copy-pipe-and-cancel'),'do not override the tmux-yank copy key');
 });
 test('WIN Windows and WIN AD are distinct first-class exam desks',()=>{
  const tpl=read('src/index.template.html'),w=read('src/js/05-windows-strategy.js'),ad=read('src/js/05-ad-strategy.js'),nav=read('src/js/07-navigation-reliability.js'),palette=read('src/js/16-v26-scratch-architecture.js');
