@@ -1,0 +1,75 @@
+/* V34.75 — Paper / Dusk design system.
+   This is the final colour authority after legacy CSS. Older structural CSS
+   remains until its selectors can be migrated with browser coverage. */
+:root,[data-theme="dusk"]{
+ --bg:#1d1f21;--panel:#25282b;--panel2:#2d3032;--sunk:#181a1c;
+ --line:#414448;--text:#d8d5cc;--muted:#aaa79e;--accent:#8fb7a6;
+ --good:#9bbf8f;--warn:#d6a85a;--bad:#d1797f;--chip:#303633;
+ --shadow:none;--focus:#a5cbbc;--selection:#384b44;
+ color-scheme:dark;
+}
+[data-theme="paper"]{
+ --bg:#f2ede1;--panel:#faf6ec;--panel2:#eee8db;--sunk:#e9e3d4;
+ --line:#d3cbb8;--text:#2c2a26;--muted:#666156;--accent:#2f5f5a;
+ --good:#3f6b3a;--warn:#8a5a14;--bad:#9a3d3d;--chip:#eae4d6;
+ --shadow:none;--focus:#397b70;--selection:#d9e8db;
+ color-scheme:light;
+}
+/* The theme lives on html; override legacy hardcoded styling without
+   altering element structure, layout or existing search interaction. */
+html[data-theme] body{background:var(--bg);color:var(--text)}
+html[data-theme] :is(.top,.side,.card,.target,.result,.decoder,.boardCard,.scanHost,.resumeCard,.detectCard,.gateItem,.shortcut,.cmdItem,.cmdList,.rec,.v26Dialog,.v33Dialog,.examResetDialog,.examBankDialog,.examHelpDialog,#readabilityPanel){
+ background:var(--panel);border-color:var(--line);color:var(--text);box-shadow:none}
+html[data-theme] .top{background:var(--bg);border-bottom:1px solid var(--line);backdrop-filter:none}
+html[data-theme] .side{background:var(--panel);border-right:1px solid var(--line)}
+html[data-theme] :is(.btn,.quick,.opsTab,.chip,.signal,.opsTabs button,.kbd,.copybtn,.tagRefLink){
+ background:var(--panel2);color:var(--text);border-color:var(--line);box-shadow:none}
+html[data-theme] :is(.btn,.quick,.opsTab,.navbtn):hover{background:var(--sunk);color:var(--text);border-color:var(--accent)}
+html[data-theme] .navbtn{color:var(--muted)}
+html[data-theme] .navbtn.active{background:var(--panel2);color:var(--accent);box-shadow:none;border-left:2px solid var(--accent)}
+html[data-theme] :is(.navsep,.divider){background:var(--line)}
+html[data-theme] :is(.muted,.tiny,.readerLabel,.resultText,.score){color:var(--muted)}
+html[data-theme] :is(a,.reference a){color:var(--accent)}
+html[data-theme] :is(input,select,textarea,.searchbar input,#refReaderFilter,.paletteSearch){
+ background:var(--sunk);color:var(--text);border-color:var(--line)}
+html[data-theme] :is(input,select,textarea)::placeholder{color:var(--muted)}
+html[data-theme] :is(button,a,input,textarea,select,summary):focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+html[data-theme] :is(.btn,.quick,.card,.target,.result,.decoder,.chip,.reference details,.copybtn){border-radius:5px}
+html[data-theme] :is(.card,.target,.result,.decoder){border-left-color:var(--line)}
+html[data-theme] :is(.hero h1,.card h2,.card h3){color:var(--text)}
+html[data-theme] :is(.progress,.scoreBar,.flow .step,.evidenceGrid label,.portChip,.credTable,.credWrap,.serviceTable,.preflightTable,.graphShell,.v34NextCard,.v33ServiceCard,.indexCard){
+ background:var(--panel2);border-color:var(--line);color:var(--text)}
+html[data-theme] :is(.privacy,.rec.p1,.rec.p2,.rec.p3){background:var(--panel2);color:var(--text);border-color:var(--line)}
+html[data-theme] :is(.btn.primary,.btn.good,.btn.bad){background:var(--panel2);color:var(--accent);border-color:var(--line)}
+html[data-theme] :is(pre,#referenceView .reference pre){background:var(--sunk);color:var(--text);border:1px solid var(--line);box-shadow:none}
+html[data-theme] pre .copybtn{background:var(--panel2);color:var(--muted);border-color:var(--line);border-radius:4px}
+html[data-theme] pre .copybtn:hover{color:var(--accent);border-color:var(--accent)}
+html[data-theme] #referenceView .refReaderTocWrap{background:var(--panel);border-color:var(--line);box-shadow:none}
+html[data-theme] #referenceView .refReaderGroup{border-color:var(--line)}
+html[data-theme] #referenceView :is(.refReaderGroup>summary,.refReaderLink,.refReaderToolbar h1){color:var(--text)}
+html[data-theme] #referenceView .refReaderLink.active{background:var(--panel2);color:var(--accent);border-left-color:var(--accent)}
+html[data-theme] #referenceView .refReaderLink:hover{background:var(--panel2);color:var(--text)}
+html[data-theme] #referenceView .refReaderQuick .btn{background:var(--panel2);color:var(--text);border-color:var(--line)}
+html[data-theme] #referenceView .reference{background:var(--panel);color:var(--text);font-family:Charter,"Iowan Old Style",Georgia,serif;font-size:16px;line-height:1.65;box-shadow:none}
+html[data-theme] #referenceView .reference :is(h1,h2,h3,h4){font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);line-height:1.35}
+html[data-theme] #referenceView .reference :is(p,li,dd,dt,blockquote){max-width:75ch;line-height:1.65}
+html[data-theme] #referenceView .reference details{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+html[data-theme] #referenceView .reference summary{color:var(--text)}
+html[data-theme] #referenceView .reference details[open]>summary{color:var(--accent);border-color:var(--line)}
+html[data-theme] #referenceView .reference :not(pre)>code{background:var(--sunk);color:var(--text)}
+html[data-theme] #referenceView .reference table thead th{background:var(--panel2);color:var(--text)}
+html[data-theme] #referenceView .reference :is(th,td){border-color:var(--line);color:var(--text)}
+html[data-theme] #referenceView .reference tbody tr:nth-child(even){background:var(--panel2)}
+html[data-theme] #referenceView .reference tbody tr:hover{background:var(--sunk)}
+html[data-theme] #referenceView .reference blockquote{background:var(--panel2);color:var(--muted);border-left:2px solid var(--line)}
+html[data-theme] #referenceView .refExamQuickstart{background:var(--panel2);color:var(--text);border-color:var(--line);border-left-width:1px}
+html[data-theme] #referenceView .refExamQuickstart h3{color:var(--text)}
+html[data-theme] #referenceView .refExamQuickstart .quickLinks a{background:var(--panel);color:var(--accent);border-color:var(--line)}
+html[data-theme] #refFindBar{background:var(--panel2);color:var(--text);border-color:var(--line)}
+html[data-theme] #refFindCount{color:var(--muted)}
+html[data-theme] .toast{background:var(--panel);color:var(--text);border-color:var(--line)}
+html[data-theme] .badge{border-radius:4px}
+html[data-theme] .timer{color:var(--text)}
+html[data-theme] #referenceView .reference mark.refFindMark{background:#eed98c;color:#29261f!important}
+html[data-theme] #referenceView .reference mark.refFindMark.refFindCurrent{background:#e5b96e;color:#29261f!important}
+@media print{html[data-theme] body,html[data-theme] #referenceView .reference{background:white!important;color:black!important}}
