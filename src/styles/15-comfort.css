@@ -340,3 +340,74 @@ body.themeLight .toast{background:#edf5f3;border-color:#a9c5c4}
  body.themeLight,
  body.themeLight #referenceView .reference{background:#fff!important;color:#172127!important}
 }
+
+
+/* V34.74 — cohesive daylight theme: cool canvas, warm reading surfaces,
+   more distinguishable hierarchy and accessible focus indicators.
+   No layout, dimensions, clipboard behaviour or night-theme selectors changed. */
+body.themeLight{
+ --bg:#e8eef0;--panel:#f8faf9;--panel2:#e2ebec;
+ --text:#243642;--muted:#526773;--line:#bfd0d3;
+ --accent:#166477;--chip:#dce9e8;
+ --shadow:0 2px 9px rgba(30,57,65,.07);
+}
+body.themeLight .top{
+ background:rgba(240,245,245,.98);
+ border-bottom:1px solid #b7cbd0;
+ box-shadow:0 1px 9px rgba(25,53,60,.045);
+}
+body.themeLight .side{background:#dfe9eb;border-right:1px solid #b5c9cf}
+body.themeLight .side .navSectionLabel{color:#4e6671;letter-spacing:.04em}
+body.themeLight .navbtn.active{
+ background:#c5dfe0;color:#134d5a;
+ box-shadow:inset 3px 0 0 #247d8c;
+ font-weight:650;
+}
+body.themeLight .main :is(.hero h1,.card h2,.card h3){color:#214b59}
+body.themeLight :is(.card,.target,.result,.decoder,.boardCard,.scanHost,.resumeCard,.detectCard,.gateItem){
+ background:#f8faf9;border-color:#c7d6d7;
+ box-shadow:0 2px 10px rgba(31,57,63,.055);
+}
+body.themeLight :is(.btn,.quick,.opsTab,.signal,.chip){
+ background:#e4edec;color:#244554;border-color:#bfd0d2;
+}
+body.themeLight :is(.btn,.quick,.opsTab,.signal):hover{background:#d3e4e4;border-color:#82afb7}
+body.themeLight :is(button,a,input,select,textarea,summary):focus-visible{
+ outline:3px solid #328b99;outline-offset:2px;
+}
+body.themeLight :is(input,select,textarea,.searchbar input){
+ background:#f5f8f7;border-color:#b3cbd0;
+}
+body.themeLight #referenceView .refReaderTocWrap{
+ background:#e4eeee;border-color:#b9cdd0;
+}
+body.themeLight #referenceView .reference{background:#f1f4ef;color:#243941}
+body.themeLight #referenceView .reference details{
+ background:#fafbf8;border-color:#ccd8d2;
+}
+body.themeLight #referenceView .reference details[open]{
+ background:#f7faf6;border-color:#aac8c4;
+}
+body.themeLight #referenceView .reference :is(h1,h2,h3){color:#225569}
+body.themeLight #referenceView .reference blockquote{
+ background:#e3eeea;border-left-color:#5b998f;color:#385963;
+}
+body.themeLight #referenceView .reference pre{
+ background:#e0e9e9;color:#213c49;border-color:#b6cbd0;
+}
+body.themeLight #referenceView .reference table thead th{
+ background:#dce9e5;color:#29434b;
+}
+body.themeLight #referenceView .reference tbody tr:nth-child(even){background:#eaf1ec}
+body.themeLight #referenceView .reference tbody tr:hover{background:#dbe9e5}
+body.themeLight #referenceView .refReaderLink.active{
+ background:#c6e3e0;border-left-color:#2a7f88;color:#175260;
+}
+body.themeLight #refFindBar{background:#e3eeee;border-color:#b5cdd0}
+body.themeLight :is(.examResetDialog,.examBankDialog,.examHelpDialog,.v26Dialog,.v33Dialog,#readabilityPanel){
+ background:#f5f8f6;border-color:#bacfd0;
+}
+@media print{
+ body.themeLight #referenceView .reference,
+ body.themeLight #referenceView .reference details{background:#fff!important}
+}
