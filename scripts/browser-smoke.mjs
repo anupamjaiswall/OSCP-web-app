@@ -226,7 +226,7 @@ async function main(){
       const root=document.getElementById('referenceRoot');
       const quote=root?.querySelector('blockquote');
       const paragraph=quote?.querySelector('p');
-      const info=e=>{const cs=e?getComputedStyle(e):null;return e?{width:width(e),scrollWidth:e.scrollWidth,display:cs?.display,position:cs?.position,maxWidth:cs?.maxWidth,minWidth:cs?.minWidth,whiteSpace:cs?.whiteSpace,overflowWrap:cs?.overflowWrap,wordBreak:cs?.wordBreak,gridTemplateColumns:cs?.gridTemplateColumns,writingMode:cs?.writingMode}:null};
+      const info=e=>{const cs=e?getComputedStyle(e):null;return e?{width:width(e),scrollWidth:e.scrollWidth,display:cs?.display,position:cs?.position,maxWidth:cs?.maxWidth,minWidth:cs?.minWidth,whiteSpace:cs?.whiteSpace,overflowWrap:cs?.overflowWrap,wordBreak:cs?.wordBreak,gridTemplateColumns:cs?.gridTemplateColumns,writingMode:cs?.writingMode,font:cs?.font,fontSize:cs?.fontSize,fontFamily:cs?.fontFamily,padding:cs?.padding,margin:cs?.margin,boxSizing:cs?.boxSizing,clientWidth:e.clientWidth,offsetWidth:e.offsetWidth,parentWidth:e.parentElement?.getBoundingClientRect().width,styleAttr:e.getAttribute('style')}:null};
       return JSON.stringify({article:width(view?.querySelector('.refReaderArticleCol')),paper:width(root),buttons:buttons.map(width),quote:info(quote),paragraph:info(paragraph),root:info(root),theme:document.documentElement.dataset.theme});
 
     })()`));
