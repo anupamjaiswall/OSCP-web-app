@@ -250,3 +250,93 @@ body.themeLight .v33PreflightSummary.pass{background:#dff0e5;color:#236344}
 body.themeLight .v33PreflightSummary.warn{background:#f6eed8;color:#755314}
 body.themeLight .v33PreflightSummary.fail{background:#f7e5e4;color:#843f43}
 body.themeLight .graphShell{background:#edf3f0}
+
+
+/* V34.73 — low-glare, fully coordinated light workspace.
+   Scoped to themeLight: dark mode, layout, scroll and code wrapping stay intact. */
+body.themeLight{
+ --bg:#e9eef0; --panel:#f7f9f8; --panel2:#e1e9e9;
+ --text:#223541; --muted:#506570; --line:#c4d2d4;
+ --accent:#176579; --chip:#dce8e7;
+ --shadow:0 3px 14px rgba(33,56,66,.065);
+ background:var(--bg);
+}
+body.themeLight .top{
+ background:rgba(231,239,241,.97);border-bottom-color:#b7cbd0;
+}
+body.themeLight .side{
+ background:#e0e9eb;border-right-color:#b9cbd0;
+}
+body.themeLight .navbtn:hover{background:#cfdee2;color:#183d4d}
+body.themeLight .navbtn.active{
+ background:#c5dee0;color:#145569;
+ box-shadow:inset 3px 0 0 #277b88;
+}
+body.themeLight .main{background:transparent}
+body.themeLight :is(.card,.result,.target,.decoder,.boardCard,.scanHost,.resumeCard,.detectCard,.gateItem,.shortcut,.cmdItem,.cmdList,.rec){
+ background:#f7f9f8;border-color:#c7d5d6;
+}
+body.themeLight :is(.quick,.btn,.opsTab,.signal,.chip,.opsTabs button,.methodTreeTabs .btn){
+ background:#e2ebeb;border-color:#c1d2d4;color:#244451;
+}
+body.themeLight :is(.btn,.quick,.opsTab,.signal):hover{
+ background:#d0e1e3;border-color:#8eb2b9;
+}
+body.themeLight .btn.primary{background:#c7e1e5;border-color:#83acb5;color:#164c5b}
+body.themeLight :is(input,select,textarea,.searchbar input,#refReaderFilter){
+ background:#f2f6f6;color:#223541;border-color:#b6cacf;
+}
+body.themeLight :is(input,select,textarea,.searchbar input):focus{
+ background:#f8fbfb;border-color:#347f90;
+}
+body.themeLight .kbd{background:#dbe7e8;color:#4b6570;border-color:#b7cbd0}
+body.themeLight pre{
+ background:#dfe9eb;color:#233e4a;border-color:#b9ccd0;
+}
+body.themeLight .copybtn{background:#ccdee0;color:#204e5b;border-color:#a4c0c4}
+body.themeLight .progress,body.themeLight .scoreBar{background:#d1dfe1}
+body.themeLight :is(.flow .step,.evidenceGrid label,.portChip,.credTable,.credWrap,.serviceTable,.preflightTable,.graphShell){
+ background:#edf3f2;border-color:#c4d3d4;
+}
+body.themeLight #referenceView .refReaderTocWrap{
+ background:#e1eced;border-color:#b9ccd0;
+}
+body.themeLight #referenceView .refReaderLink:hover,
+body.themeLight #referenceView .refReaderLink:focus-visible{
+ background:#cee0e1;
+}
+body.themeLight #referenceView .refReaderLink.active{
+ background:#c0dfe0;color:#184e5c;border-left-color:#317988;
+}
+body.themeLight #referenceView .refReaderQuick .btn{
+ background:#edf4f3;border-color:#b9d0d0;
+}
+body.themeLight #referenceView .reference{
+ background:#eef3f1;color:#213944;
+}
+body.themeLight #referenceView .reference details{
+ background:#f7faf8;border-color:#c2d3d1;
+}
+body.themeLight #referenceView .reference table thead th{background:#d8e6e4}
+body.themeLight #referenceView .reference tbody tr:nth-child(even){background:#e6eeeb}
+body.themeLight #referenceView .reference tbody tr:hover{background:#d8e8e5}
+body.themeLight #referenceView .reference pre{
+ background:#dbe6e8;color:#213b49;border-color:#b5cbd0;
+}
+body.themeLight #referenceView .refExamQuickstart{
+ background:#ddebe7;border-color:#afc9c2;
+}
+body.themeLight #refFindBar{background:#dfebea;border-color:#b8cdce}
+body.themeLight #readabilityPanel,
+body.themeLight :is(.examResetDialog,.examBankDialog,.examHelpDialog,.v26Dialog,.v33Dialog){
+ background:#f1f6f5;color:#213944;border-color:#bdd0d1;
+}
+body.themeLight :is(.examResetStep,.examBankStep,.examBankClosure,.examBankClosureItem,.examHelpKey,.paletteSearch,.indexCard,.v33TargetSummary,.v33ServiceCard,.v34NextSummary,.v34NextCard,.v33Check,.outputTruthGrid>div){
+ background:#e8f0ef;border-color:#c1d2d1;
+}
+body.themeLight .toast{background:#edf5f3;border-color:#a9c5c4}
+/* A consciously light print mode remains white for paper and ink. */
+@media print{
+ body.themeLight,
+ body.themeLight #referenceView .reference{background:#fff!important;color:#172127!important}
+}
