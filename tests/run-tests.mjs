@@ -254,7 +254,7 @@ test('real mouse tmux configuration matches reference and leaves internal paste 
  ok(doc.includes('tmux list-keys -T root MouseDown2Pane'),'help users verify actual mouse paste binding');
  ok(doc.includes('Shift+drag')&&doc.includes('Ctrl+Shift+V'),'native terminal fallback documented');
  ok(doc.includes('raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-mouse.conf'),'installable file is linked');
- ok(doc.includes('bind ] paste-buffer')&&doc.includes('bind -T copy-mode-vi y send -X copy-selection-and-cancel'),'keyboard fallback preserved');
+ ok(doc.includes('bind ] paste-buffer')&&doc.includes("set -g @plugin 'tmux-plugins/tmux-yank'"),'keyboard fallback and tmux-yank preserved');
 });
 test('tmux copy workflow documented without creating duplicate nmap output directories',()=>{
  const ref=read('src/content/02-enumeration.html');
