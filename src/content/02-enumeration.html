@@ -202,6 +202,23 @@ wl-paste
 # Paste into a graphical text editor with Ctrl+V.
 # With mouse on, drag over shell output and release; then Ctrl+V.
 </code></pre>
+<h3>Repair Ctrl+A when tmux is already open</h3>
+<p><strong>If Ctrl+A moves to the start of the Bash line instead of activating tmux:</strong> the live server probably still uses the default <code>Ctrl+B</code> prefix. You do <em>not</em> need a working prefix to repair it. Run these shell commands <strong>inside your current tmux pane</strong>:</p>
+<pre class="ref-code"><code class="language-bash">tmux show-options -gv prefix        # C-b = wrong, C-a = expected
+tmux set-option -g prefix C-a     # change the LIVE tmux server immediately
+tmux bind-key -T prefix C-a send-prefix
+tmux show-options -gv prefix        # must print C-a
+tmux list-keys -T prefix C-a       # verify the key binding
+
+# Permanent, idempotent repair: append a managed override LAST.
+mkdir -p ~/bin
+curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/fix-tmux-prefix.sh -o ~/bin/fix-tmux-prefix.sh
+bash ~/bin/fix-tmux-prefix.sh
+
+# Afterward press Ctrl+A, RELEASE the keys, then | or - (not all together).
+# Ctrl+A then | = left/right panes; Ctrl+A then - = top/bottom panes.
+</code></pre>
+<p><b>Why this happens:</b> tmux starts with <code>Ctrl+B</code> unless its configuration was actually loaded into the running server; a new config file does not alter an existing tmux server automatically. The repair script adds a persistent final override to <code>~/.tmux.conf</code> without replacing your configuration and changes the live server immediately. If <code>tmux show-options -gv prefix</code> already reports <code>C-a</code> but the shortcut does not work, check terminal key interception or nested tmux; try <code>Ctrl+B</code> only as a diagnostic of an unchanged default config.</p>
 <h3>~/.tmux.conf — full exam-safe tmux config</h3>
 <pre class="ref-code" data-copy-plain="true"><code class="language-bash">unbind C-b
 set -g prefix C-a
