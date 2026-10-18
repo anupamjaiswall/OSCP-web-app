@@ -35,7 +35,7 @@ html[data-theme="parchment"] :is(.brand,.navSectionLabel,.refReaderToolbar h1,
   color:#644714;
 }
 html[data-theme="parchment"] :is(.hero h1,.card h2,.card h3,.indexSectionTitle,.readerQuickTitle) {
-  font-family:Georgia,"Iowan Old Style",serif;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
 }
 html[data-theme="parchment"] :is(.muted,.tiny,.navbtn,.readerLabel,.score,
   .resultText,.workStripCell .k,.paletteDesc,.paletteKind,.topTargetContext,
@@ -179,11 +179,11 @@ html[data-theme="parchment"] :is(.v34NextRank,.v33Endpoint,.indexCard .indexTag,
 /* Reader: typography and every nested UI follows the same paper stock. */
 html[data-theme="parchment"] #referenceView .reference {
   background:var(--v-paper);color:var(--v-ink);
-  font-family:Georgia,"Iowan Old Style",serif;line-height:1.65;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;line-height:1.65;
 }
 html[data-theme="parchment"] #referenceView .reference :is(h1,h2,h3,h4) {
-  color:#674712;font-family:Georgia,"Iowan Old Style",serif;
-  font-variant:small-caps;
+  color:#674712;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+  font-variant:normal;
 }
 html[data-theme="parchment"] #referenceView :is(.refReaderTocWrap,.refReaderTocHeader,
   .refReaderGroup,.refReaderQuick,.refExamQuickstart,#refFindBar) {
@@ -231,4 +231,13 @@ html[data-theme="parchment"] :is(.sideThemeControl label,.sideThemeControl selec
 @media print {
   html[data-theme="parchment"] body,
   html[data-theme="parchment"] #referenceView .reference {background:#fff!important;color:#111!important}
+}
+
+/* V34.81 — stable pre-redesign typography for all three themes.
+   Leave pre/code and input-driven monospace fields at their existing font. */
+html[data-theme] #referenceView .reference,
+html[data-theme] #referenceView .reference :is(h1,h2,h3,h4),
+html[data-theme] :is(.hero h1,.card h2,.card h3,.indexSectionTitle,.readerQuickTitle) {
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+ font-variant:normal;
 }
