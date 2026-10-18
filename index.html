@@ -1065,6 +1065,50 @@ html[data-theme="paper"] #referenceView .refExamQuickstart .quickLinks a{
 }
 html[data-theme="paper"] #refFindBar{background:#e8f2f9;color:#24445f;border-color:#c4d6e6}
 html[data-theme="paper"] :is(.badge,.chip){border-radius:3px}
+
+
+/* V34.77 — Vintage parchment, inspired by the supplied dCode screenshot.
+   The texture is simulated with warm solid surfaces; works fully offline. */
+html[data-theme="parchment"]{
+ --bg:#f3ecd2;--panel:#fbf4df;--panel2:#eee3c2;--sunk:#e9debd;
+ --line:#d5c6a2;--text:#302916;--muted:#695e40;--accent:#77520e;
+ --good:#526831;--warn:#93620d;--bad:#a33222;--chip:#eee3c2;
+ --shadow:none;--focus:#98762d;--selection:#eee2b0;color-scheme:light;
+}
+html[data-theme="parchment"] body{background:var(--bg);color:var(--text)}
+html[data-theme="parchment"] .top{background:#e5dab6;color:#332916;border-bottom:2px solid #b7a56d;backdrop-filter:none;box-shadow:none}
+html[data-theme="parchment"] :is(.top .brand,.top .muted,.top .tiny){color:#45371c}
+html[data-theme="parchment"] .side{background:#eee4c6;border-color:#d4c59e}
+html[data-theme="parchment"] .navbtn{color:#56411e;border-radius:2px}
+html[data-theme="parchment"] .navbtn:hover{background:#e5d7af;color:#61410e}
+html[data-theme="parchment"] .navbtn.active{background:#e0d0a1;color:#62410c;border-left:3px solid #96722b}
+html[data-theme="parchment"] :is(.card,.target,.result,.decoder,.boardCard,.scanHost,.resumeCard,.detectCard,.gateItem){background:var(--panel);border:1px solid var(--line);border-radius:3px;box-shadow:none}
+html[data-theme="parchment"] :is(.hero h1,.card h2,.card h3){color:#695016;font-family:Georgia,"Times New Roman",serif;font-variant:small-caps}
+html[data-theme="parchment"] :is(.btn,.quick,.opsTab,.signal,.chip){background:#eee3c2;border:1px solid #c9b88f;color:#5b4216;border-radius:3px;box-shadow:none}
+html[data-theme="parchment"] :is(.btn,.quick,.opsTab,.signal):hover{background:#e3d4ab;border-color:#ab9059}
+html[data-theme="parchment"] :is(input,textarea,select,.searchbar input){background:#fff9e9;color:#302916;border-color:#cdbb93}
+html[data-theme="parchment"] #referenceView .refReaderTocWrap{background:#efe4c5;border-color:#d0bf99;box-shadow:none}
+html[data-theme="parchment"] #referenceView .refReaderLink.active{background:#e6d8b1;color:#60420f;border-left-color:#a17d31}
+html[data-theme="parchment"] #referenceView .reference{background:#fbf4df;color:#302916;font-family:Georgia,"Iowan Old Style",serif;font-size:16px;line-height:1.65}
+html[data-theme="parchment"] #referenceView .reference :is(h1,h2,h3,h4){font-family:Georgia,"Times New Roman",serif;font-variant:small-caps;color:#745515}
+html[data-theme="parchment"] #referenceView .reference h2{border-bottom:1px solid #d0bd8e}
+html[data-theme="parchment"] #referenceView .reference details{background:#fff8e5;border:1px solid #d8c8a1;border-radius:2px}
+html[data-theme="parchment"] #referenceView .reference summary{color:#725016}
+html[data-theme="parchment"] #referenceView .reference pre{background:#eee4cd;color:#382b17;border:1px solid #d3c4a0}
+html[data-theme="parchment"] #referenceView .reference :not(pre)>code{background:#eee2c6;color:#62450e}
+html[data-theme="parchment"] #referenceView .reference table thead th{background:#e8dbb8;color:#553b10}
+html[data-theme="parchment"] #referenceView .reference tbody tr:nth-child(even){background:#f5e9cd}
+html[data-theme="parchment"] #referenceView .reference tbody tr:hover{background:#ede0bb}
+html[data-theme="parchment"] #referenceView .reference blockquote{background:#f0e4c5;color:#554325;border-left:3px solid #b49b62}
+html[data-theme="parchment"] #referenceView .refExamQuickstart{background:#f0e3bf;border-color:#d2bd8e}
+html[data-theme="parchment"] #referenceView .refExamQuickstart h3{color:#745515}
+html[data-theme="parchment"] #referenceView .refExamQuickstart .quickLinks a{background:#fff8e8;color:#745515;border-color:#d8c59e}
+html[data-theme="parchment"] :is(.v26Dialog,.v33Dialog,.examResetDialog,.examBankDialog,.examHelpDialog,#readabilityPanel){background:#faf1d8;color:#302916;border-color:#d1bf96}
+html[data-theme="parchment"] #refFindBar{background:#ede0c0;color:#3c301d;border-color:#d0bd94}
+html[data-theme] .themePickerLabel{font-size:12px;color:var(--muted)}
+html[data-theme] #themePicker{max-width:160px;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--text);font-size:13px}
+html[data-theme="paper"] .themePickerLabel{color:#f5f9ff}
+@media(max-width:650px){html[data-theme] .themePickerLabel{display:none}html[data-theme] #themePicker{max-width:125px;font-size:12px}}
 </style>
 </head>
 <body>
@@ -1177,7 +1221,7 @@ Return trigger:"></textarea>
   <button class="btn good" id="examBankBtn" type="button" title="Score-safe proof banking (Alt+B)" aria-haspopup="dialog">✓ BANK</button>
   <button class="btn" id="readabilityBtn" type="button" title="Reading controls (Alt+Z toggles Focus)" aria-haspopup="dialog" aria-expanded="false">Aa Read</button>
   <button class="btn" id="examHelpBtn" type="button" title="Exam navigation help (?)" aria-haspopup="dialog">?</button>
-  <button class="btn" id="themeBtn" title="Switch between soft-paper and dusk reference">◐</button>
+  <label class="themePickerLabel" for="themePicker">Theme</label><select id="themePicker" aria-label="Application colour theme"><option value="paper">Light</option><option value="dusk">Dark</option><option value="parchment">Vintage parchment</option></select><button class="btn" id="themeBtn" title="Quick switch between light and dark">◐</button>
 </div>
 <div class="layout">
 <nav class="side" id="nav">
@@ -7710,11 +7754,16 @@ install();
  const themeStorage='oscp:reference-theme:v1';
  const themeControl=$('refReaderTheme');
  const topThemeControl=$('themeBtn');
+ const themePicker=$('themePicker');
+ let theme='dusk';
  function syncTheme(){
    const night=root.classList.contains('darkRef');
+   if(night)theme='dusk';
+   else if(theme==='dusk')theme='paper';
    document.body.classList.toggle('themeLight',!night);
-   document.documentElement.dataset.theme=night?'dusk':'paper';
+   document.documentElement.dataset.theme=theme;
    document.documentElement.style.colorScheme=night?'dark':'light';
+   if(themePicker)themePicker.value=theme;
    if(themeControl){
      themeControl.textContent=night?'☀ Light theme':'☾ Dark theme';
      themeControl.setAttribute('aria-pressed',String(night));
@@ -7726,23 +7775,24 @@ install();
      topThemeControl.setAttribute('aria-label',night?'Switch entire app to light theme':'Switch entire app to dark theme');
      topThemeControl.title=night?'Switch entire app to light theme':'Switch entire app to dark theme';
    }
-   try{localStorage.setItem(themeStorage,night?'night':'day')}catch(_){}
+   try{localStorage.setItem(themeStorage,theme==='dusk'?'night':theme==='paper'?'day':'parchment')}catch(_){}
  }
- function setNight(night){
-   root.classList.toggle('darkRef',!!night);
+ function setTheme(next){
+   theme=next==='parchment'?'parchment':next==='dusk'?'dusk':'paper';
+   root.classList.toggle('darkRef',theme==='dusk');
    syncTheme();
  }
- // Preserve an existing preference. New installations begin in dark mode,
- // matching the old app shell, until Light theme is selected.
+ function setNight(night){setTheme(night?'dusk':'paper')}
  try{
    const saved=localStorage.getItem(themeStorage);
-   root.classList.toggle('darkRef',saved==='night'||(saved!=='day'&&window.matchMedia?.('(prefers-color-scheme: dark)').matches));
- }catch(_){root.classList.toggle('darkRef',!!window.matchMedia?.('(prefers-color-scheme: dark)').matches)}
+   theme=saved==='parchment'?'parchment':saved==='day'?'paper':saved==='night'?'dusk':(window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dusk':'paper');
+ }catch(_){theme=window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dusk':'paper'}
+ root.classList.toggle('darkRef',theme==='dusk');
  themeControl?.addEventListener('click',()=>setNight(!root.classList.contains('darkRef')));
- // Override the legacy reference-only onclick from core-app.js.
  if(topThemeControl)topThemeControl.onclick=()=>setNight(!root.classList.contains('darkRef'));
+ themePicker?.addEventListener('change',()=>setTheme(themePicker.value));
  new MutationObserver(syncTheme).observe(root,{attributes:true,attributeFilter:['class']});
- window.OSCP_THEME={setNight,toggle:()=>setNight(!root.classList.contains('darkRef'))};
+ window.OSCP_THEME={setNight,setTheme,toggle:()=>setNight(!root.classList.contains('darkRef'))};
  syncTheme();
  function isActive(){return view.classList.contains('active')}
  function setToc(open){
