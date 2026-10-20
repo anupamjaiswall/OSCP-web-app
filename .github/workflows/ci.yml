@@ -1,4 +1,4 @@
-name: V34.72 build and validation
+name: V34.73 build and validation
 on:
   push:
     branches: [ main ]
@@ -68,7 +68,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add index.html README.md
-            git commit -m "build: sync V34.72 generated artifacts"
+            git commit -m "build: sync V34.73 generated artifacts"
             git push
           fi
       - name: Verify generated artifacts are clean after main sync
