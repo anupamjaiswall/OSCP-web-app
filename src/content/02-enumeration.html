@@ -534,6 +534,23 @@ pwd
 # LHOST is sampled from tun0 at creation. If VPN changes, update each active pane.
 # To check another host, SWITCH SESSION first; never globally overwrite IP.</code></pre>
 <p><b>Crucial distinction:</b> <code>tmux set-environment -t ...</code> updates the session environment for <em>new</em> processes, not shells already running. Changing <code>DOMAIN</code>, <code>DC</code> or <code>IP</code> there does not refresh open panes. Use the correct values when launching each target or explicitly <code>export</code> the correction inside every affected live shell.</p>
+<h3>tmux cleanup — kill a pane, window, session or server</h3>
+<p><b>Safer alternative:</b> To leave tmux without stopping scans, shells or listeners, press <code>Ctrl+A</code>, release, then <code>d</code> (detach). Kill commands below terminate the selected tmux target and can interrupt running commands.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash"># See every session BEFORE choosing what to terminate
+tmux ls
+
+# Inside tmux: close ONLY the current pane (Ctrl+A, then Shift+X with this config)
+tmux kill-pane
+
+# Inside tmux: close the current window and its panes
+tmux kill-window
+
+# Close ONE named target session — replace oscp_WS01 with the exact session name from tmux ls
+tmux kill-session -t =oscp_WS01
+
+# DANGER: end ALL sessions, windows, panes and processes running under this tmux server
+tmux kill-server</code></pre>
+<p><strong>OSCP warning:</strong> Check <code>tmux ls</code> and preserve needed output/evidence before terminating anything. <code>tmux kill-session -t =oscp_WS01</code> uses an exact-name match; substitute your actual session name. <code>tmux kill-server</code> is a last-resort cleanup command, <b>not</b> a normal way to exit tmux: it affects every session on that server and can stop active listeners, scans and work in progress. Saved log files may remain, but unsaved terminal output can be lost.</p>
 <h3>Manage panes, verify log capture and save evidence</h3>
 <pre class="ref-code"><code class="language-bash">tmux ls
 tmux show-hooks -g
