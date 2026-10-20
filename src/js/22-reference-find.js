@@ -105,11 +105,11 @@ mark.refFindMark.refFindCurrent{background:#ff9f43;color:#111!important;outline:
   return 0;
  }
  function find(value,{anchor='',scroll=true}={}){
-  ensureBar();const nextQuery=String(value||'').trim();clearMarks();query=nextQuery;
-  const input=$('refFindInput');if(input&&input.value!==nextQuery)input.value=nextQuery;
+  ensureBar();const rawValue=String(value??'');const nextQuery=rawValue.trim();clearMarks();query=nextQuery;
+  const input=$('refFindInput');if(input&&input.value!==rawValue)input.value=rawValue;
   if(!nextQuery){updateControls();return state()}
   if(nextQuery.length<2){updateControls('Type 2+ chars');return state()}
-  if(window.OSCP_REFERENCE_READY!==true){pending={value:nextQuery,anchor,scroll};window.OSCP_REFERENCE?.start?.();updateControls('Loading…');return {...state(),pending:true}}
+  if(window.OSCP_REFERENCE_READY!==true){pending={value:rawValue,anchor,scroll};window.OSCP_REFERENCE?.start?.();updateControls('Loading…');return {...state(),pending:true}}
   const root=$('referenceRoot');if(!root){updateControls('Reference unavailable');return state()}
   const nodes=collectTextNodes(root,nextQuery);
   for(const node of nodes){if(marks.length>=MAX_MARKS)break;markNode(node,nextQuery)}

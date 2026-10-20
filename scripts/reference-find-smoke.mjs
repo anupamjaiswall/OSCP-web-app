@@ -27,6 +27,19 @@ async function main(){
   const total=direct.state.total;
   await evaluate(`(()=>{window.OSCP_REFERENCE_FIND.clear();const i=document.getElementById('refFindInput');i.value='api';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
   const first=await waitFor(async()=>{const raw=await evaluate(`JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),marks:document.querySelectorAll('#referenceRoot mark.refFindMark').length,active:document.querySelectorAll('#referenceRoot mark.refFindCurrent').length,count:document.getElementById('refFindCount')?.textContent||''})`);const s=JSON.parse(raw||'{}');return s.state?.total===total&&s.marks===total&&s.active===1&&s.state.current===1?s:false},5000);if(!first)throw new Error('Reference input/debounce path failed');
+  // Regression: typing a space must not be trimmed out of the focused search field.
+  await evaluate(`(()=>{const i=document.getElementById('refFindInput');i.focus();i.setSelectionRange(i.value.length,i.value.length);return true})()`);
+  await c.send('Input.insertText',{text:' '});
+  await delay(350); // Longer than the 110ms search debounce.
+  const spaced=JSON.parse(await evaluate(`JSON.stringify({value:document.getElementById('refFindInput')?.value,state:window.OSCP_REFERENCE_FIND.state()})`));
+  if(spaced.value!=='api '||spaced.state.query!=='api'||spaced.state.total!==total)throw new Error('Typing a space was lost during search debounce: '+JSON.stringify(spaced));
+  await c.send('Input.insertText',{text:'test'});
+  await delay(350);
+  const phrase=JSON.parse(await evaluate(`JSON.stringify({value:document.getElementById('refFindInput')?.value,query:window.OSCP_REFERENCE_FIND.state().query})`));
+  if(phrase.value!=='api test'||phrase.query!=='api test')throw new Error('Multi-word reference input was changed: '+JSON.stringify(phrase));
+  await evaluate(`(()=>{const i=document.getElementById('refFindInput');i.value='api';i.dispatchEvent(new Event('input',{bubbles:true}));return true})()`);
+  const restored=await waitFor(async()=>JSON.parse(await evaluate(`JSON.stringify(window.OSCP_REFERENCE_FIND.state())`)).total===total,5000);
+  if(!restored)throw new Error('Reference matches did not recover after multi-word input');
   const next=JSON.parse(await evaluate(`(()=>{document.getElementById('refFindNext').click();return JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),count:document.getElementById('refFindCount').textContent,active:document.querySelectorAll('#referenceRoot mark.refFindCurrent').length})})()`));if(next.state.current!==2||!next.count.startsWith(`2 / ${total} · `)||next.active!==1)throw new Error('Next navigation failed: '+JSON.stringify(next));
   const prev=JSON.parse(await evaluate(`(()=>{document.getElementById('refFindPrev').click();return JSON.stringify({state:window.OSCP_REFERENCE_FIND.state(),count:document.getElementById('refFindCount').textContent})})()`));if(prev.state.current!==1||!prev.count.startsWith(`1 / ${total} · `))throw new Error('Previous navigation failed: '+JSON.stringify(prev));
   const shiftEnter=JSON.parse(await evaluate(`(()=>{const i=document.getElementById('refFindInput');i.focus();i.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',shiftKey:true,bubbles:true,cancelable:true}));return JSON.stringify(window.OSCP_REFERENCE_FIND.state())})()`));if(shiftEnter.current!==total)throw new Error('Shift+Enter did not wrap to previous match');
@@ -34,7 +47,7 @@ async function main(){
   const f3=JSON.parse(await evaluate(`(()=>{document.dispatchEvent(new KeyboardEvent('keydown',{key:'F3',bubbles:true,cancelable:true}));return JSON.stringify(window.OSCP_REFERENCE_FIND.state())})()`));if(f3.current!==2)throw new Error('F3 did not advance to next match');
   const detailsOpen=await evaluate(`(()=>{window.OSCP_REFERENCE_FIND.find('subdomain',{scroll:false});const m=[...document.querySelectorAll('#referenceRoot mark.refFindMark')].find(x=>x.closest('details'));if(!m)return 'missing';const d=m.closest('details');d.open=false;m.click();return d.open===true})()`);if(detailsOpen!==true)throw new Error('Hidden match did not expand ancestor details: '+String(detailsOpen));
   const cleared=JSON.parse(await evaluate(`(()=>{document.getElementById('refFindClear').click();return JSON.stringify({marks:document.querySelectorAll('#referenceRoot mark.refFindMark').length,state:window.OSCP_REFERENCE_FIND.state(),count:document.getElementById('refFindCount')?.textContent,input:document.getElementById('refFindInput')?.value})})()`));if(cleared.marks!==0||cleared.state.total!==0||cleared.count!=='0 / 0'||cleared.input!=='')throw new Error('Clearing reference finder failed: '+JSON.stringify(cleared));
-  const exceptions=c.events.filter(e=>e.method==='Runtime.exceptionThrown');if(exceptions.length)throw new Error('Uncaught browser exception: '+JSON.stringify(exceptions[0].params?.exceptionDetails||{}).slice(0,1000));ws.close();console.log('Reference find browser gate passed:',JSON.stringify({apiMatches:total,next:true,previous:true,keyboard:true,f3:true,collapsedDetails:true,clear:true}));
+  const exceptions=c.events.filter(e=>e.method==='Runtime.exceptionThrown');if(exceptions.length)throw new Error('Uncaught browser exception: '+JSON.stringify(exceptions[0].params?.exceptionDetails||{}).slice(0,1000));ws.close();console.log('Reference find browser gate passed:',JSON.stringify({apiMatches:total,next:true,previous:true,keyboard:true,spacedQueries:true,f3:true,collapsedDetails:true,clear:true}));
  }finally{try{child.kill('SIGKILL')}catch(_){}try{server.close()}catch(_){}try{fs.rmSync(tmp,{recursive:true,force:true})}catch(_){}}
 }
 main().catch(e=>{console.error('Reference find browser gate failed:',e.message);process.exitCode=1});
