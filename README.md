@@ -13,6 +13,25 @@ One self-contained `index.html` designed to be the main reference open during th
 - GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
 - Or download `index.html` and open it locally in a modern browser.
 
+## Restore OSCP tmux on Kali
+
+Run in your graphical Kali terminal, not with `sudo bash install.sh`:
+
+```bash
+git clone https://github.com/anupamjaiswall/OSCP-web-app.git
+cd OSCP-web-app
+bash install.sh
+bash install.sh --check
+
+# Verify the actual Kali desktop clipboard:
+printf 'oscp-clipboard-test' | ~/bin/clipboard.sh copy
+~/bin/clipboard.sh paste; echo
+```
+
+The installer installs `~/.tmux.conf`, `~/.tmux-theme.conf` and all the helper scripts under `~/bin/`, creates timestamped backups of existing files, and reloads any running tmux server **without killing exam panes**. Re-running is idempotent. Use `bash install.sh --no-apt --no-plugins` if dependencies and TPM are already handled. The theme uses ordinary fonts and a high-contrast amber/teal palette.
+
+Copy: `Ctrl+A`, `[`, `v`, select, `y`; paste to desktop apps with `Ctrl+V`. Left-drag mouse selection also copies; `Ctrl+A`, `]` pastes inside tmux. The graphical Kali desktop clipboard is not automatically the host clipboard of a virtual machine or SSH client.
+
 ## Most useful exam features
 
 - **Global Search:** typo-tolerant search across the app and methodology.
@@ -20,9 +39,9 @@ One self-contained `index.html` designed to be the main reference open during th
 - **Active Target Workspace + Next Actions:** keeps current target context and ranks a small set of relevant next steps locally.
 - **Service Router:** turns discovered ports/services into a focused enumeration queue.
 - **Unambiguous split panes:** `Ctrl+A` then `|` makes left/right panes (vertical divider), and `Ctrl+A` then `-` makes top/bottom panes (horizontal divider). [`scripts/tmux-splits.conf`](scripts/tmux-splits.conf) is a last-loaded override if your actual tmux bindings are reversed; examples and checks in Section 1.3.
-- **Mouse-friendly tmux:** drag left mouse to copy tmux output into its buffer and, where available, the desktop clipboard; middle-click pastes tmux buffer into the clicked pane. Optional [`scripts/tmux-mouse.conf`](scripts/tmux-mouse.conf) and Section 1.3 include both the setup and test steps.
-- **Emergency tmux → X11 clipboard rescue:** after copying into a tmux buffer (`Ctrl+A`, `[`, `v`, select, `y`), run `tmux save-buffer - | xclip -selection clipboard` in Kali X11; use `tmux show-buffer` first and `xclip -selection clipboard -o` to verify. On Wayland use `tmux save-buffer - | wl-copy`. See the exam-time tmux copy/paste runbook.
-- **Actual downloadable clipboard helper:** [`scripts/clipboard.sh`](scripts/clipboard.sh) supports X11/Wayland. Install before the exam with `curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh -o ~/bin/clipboard.sh && chmod 700 ~/bin/clipboard.sh`. Configure `Shift+Y` using the full tmux config under Section 1.3; tmux `y` / prefix + `]` work without a graphical clipboard.
+- **Installable Night Ops tmux setup:** [install.sh](install.sh) restores the amber/teal status bar, active pane highlights, mouse selection, Ctrl+A split bindings, timestamped pane logs, and an isolated target launcher. Existing configuration files are backed up.
+- **Single clipboard bridge:** [scripts/tmux-mouse.conf](scripts/tmux-mouse.conf) uses y/Y/mouse-drag → [scripts/clipboard.sh](scripts/clipboard.sh) → xclip (X11) or wl-copy (Wayland). No conflicting tmux-yank plugin configuration; copying also retains tmux's own buffer.
+- **Emergency clipboard rescue:** `tmux save-buffer - | xclip -selection clipboard` (X11), or `tmux save-buffer - | wl-copy` (Wayland). This requires a populated tmux buffer and a working local graphical display.
 - **Multi-machine tmux OSCP workflow:** one session and folder per machine (standalone/AD); no global `IP` export. Start at Full Reference → **Start here** for the 60-second launch/verify/scan steps.
 - **Fullscreen Full Reference reader:** unified Light/Dark theme for the entire app, including sidebar, top bar, cards, controls and Full Reference; both theme switches stay synchronized and persist locally without changing text wrapping.
 - **Linux / Windows / AD Method Trees:** branch-oriented exam methodology instead of a flat command dump.
