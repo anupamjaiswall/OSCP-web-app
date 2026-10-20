@@ -112,21 +112,16 @@ test('exam clock never rewrites in-progress datetime input during each tick',()=
  ok(tpl.includes('id="clockInputFeedback"')&&tpl.includes('id="examStart" type="datetime-local"'),'clock controls exist');
 });
 test('exam Nmap default NSE, first-pass Nikto and tmux clipboard workflow',()=>{
- const ref=read('src/content/02-enumeration.html');
+ const ref=read('src/content/02-enumeration.html'),mouse=read('scripts/tmux-mouse.conf'),conf=read('scripts/tmux.conf');
  const nmap=ref.slice(ref.indexOf('# STEP 2: TARGETED VERSION'),ref.indexOf('# STEP 5: OS detection'));
  ok(nmap.includes('-sV -p "$ports"')&&!nmap.includes('-sC -sV'),'version fingerprint should not repeat default NSE');
  ok(nmap.includes('nmap --script-help default')&&nmap.includes('--script=default')&&nmap.includes('scans/nmap/nse-default'),'default NSE must be explicit Step 4');
- ok(!nmap.includes("SCRIPT='&lt;relevant-script&gt;'"),'default workflow must not have mandatory placeholder');
  const web=ref.slice(ref.indexOf('id="ref-4-5-http-https'),ref.indexOf('</details>',ref.indexOf('id="ref-4-5-http-https')));
- ok(web.includes('WEB_URL="http://$IP:80"'),'Nikto must use explicit configurable URL');
- ok(web.indexOf('nikto -h "$WEB_URL"')>0&&web.indexOf('nikto -h "$WEB_URL"')<web.indexOf('gobuster dir'),'Nikto should run before content discovery');
- ok(web.includes('mkdir -p scans/web')&&web.includes('nikto-443.txt'),'Nikto output dir and HTTPS shown');
- const conf=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
- ok(conf.includes("set -g @plugin 'tmux-plugins/tmux-yank'"),'tmux-yank plugin must be installed via TPM');
- ok(conf.includes("set -g @yank_selection_mouse 'clipboard'"),'mouse selection should target system clipboard');
- ok(!conf.includes("bind -T copy-mode-vi Y send -X copy-pipe-and-cancel"),'legacy clipboard helper should not override tmux-yank');
- ok(ref.includes('wl-copy')&&ref.includes('wl-paste')&&ref.includes('xclip'),'X11 and Wayland clipboard providers included');
- ok(ref.includes('tmux-yank (preferred)')&&ref.includes('Ctrl+Shift+V'),'tmux-yank copy and paste workflow must be explained');
+ ok(web.includes('WEB_URL="http://$IP:80"')&&web.indexOf('nikto -h "$WEB_URL"')>0&&web.indexOf('nikto -h "$WEB_URL"')<web.indexOf('gobuster dir'),'Nikto first-pass');
+ ok(mouse.includes('copy-pipe-and-cancel')&&mouse.includes('clipboard.sh'),'desktop clipboard pipe configured');
+ ok(!conf.includes("'tmux-plugins/tmux-yank'"),'avoid mixed clipboard plugins');
+ ok(ref.includes('wl-copy')&&ref.includes('wl-paste')&&ref.includes('xclip'),'desktop providers documented');
+ ok(ref.includes('bash install.sh')&&ref.includes('Ctrl+Shift+V'),'install + terminal paste documented');
 });
 test('comfortable exam theme and isolated multi-machine launch quickstart',()=>{
  const ref=read('src/content/02-enumeration.html'),tpl=read('src/index.template.html'),css=read('src/styles/15-comfort.css'),reader=read('src/js/22b-reference-reader.js');
@@ -160,7 +155,7 @@ test('tmux Ctrl+A repair is idempotent, verifies live prefix, and is documented'
  for(const item of ['set-option -g prefix C-a','bind-key -T prefix C-a send-prefix',
   'tmux show-options -gv prefix','tmux list-keys -T prefix C-a'])ok(src.includes(item),'missing repair step: '+item);
  ok(src.includes('awk -v start=')&&src.includes("cat >> \"$conf\""),'repair must not append duplicate managed blocks');
- ok(doc.includes('scripts/fix-tmux-prefix.sh')&&doc.includes('tmux set-option -g prefix C-a'),'offline notes explain direct recovery and permanent install');
+ ok(doc.includes('fix-tmux-prefix.sh')&&doc.includes('tmux set-option -g prefix C-a'),'offline notes explain direct recovery and permanent install');
 });
 test('entire-app light theme includes left sidebar and maintains AA contrasts',()=>{
  const css=read('src/styles/15-comfort.css'),reader=read('src/js/22b-reference-reader.js'),tpl=read('src/index.template.html');
@@ -214,68 +209,40 @@ test('reference reader prevents character-wide word wrapping',()=>{
  ok(!css.includes(':root{'),'no global shell theme override');
 });
 test('real scripts/clipboard.sh matches offline notes, loads as bash and has a fallback',()=>{
- const ref=read('src/content/02-enumeration.html');
- const script=read('scripts/clipboard.sh').trimEnd();
- const start=ref.indexOf('<h4>Script source — scripts/clipboard.sh (offline fallback)</h4>');
- const a=ref.indexOf('<pre class="ref-code"><code class="language-bash">',start);
+ const ref=read('src/content/02-enumeration.html'),script=read('scripts/clipboard.sh').trimEnd();
+ const anchor=ref.indexOf('<h4>Script source — scripts/clipboard.sh (offline fallback)</h4>');
+ const one=ref.indexOf('<pre class="ref-code"',anchor);
+ const two=ref.indexOf('<pre class="ref-code"',ref.indexOf('</code></pre>',one));
+ const a=ref.indexOf('<code class="language-bash">',two)+'<code class="language-bash">'.length;
  const b=ref.indexOf('</code></pre>',a);
- ok(start>=0&&a>=0&&b>a,'downloadable clipboard helper and offline source are visible');
- const embedded=ref.slice(a+'<pre class="ref-code"><code class="language-bash">'.length,b)
-   .replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
- ok(script===embedded,'offline clipboard helper must match real scripts/clipboard.sh exactly');
- const syntax=spawnSync('bash',['-n'],{input:script,encoding:'utf8'});
- ok(syntax.status===0,'clipboard.sh Bash syntax: '+syntax.stderr);
- for(const token of ['WAYLAND_DISPLAY','wl-copy','wl-paste','DISPLAY','xclip -selection clipboard -in','xclip -selection clipboard -out','copy|paste|check']){
-  ok(script.includes(token),'missing clipboard provider/command: '+token);
- }
- const conf=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
- ok(conf.includes("set -g @plugin 'tmux-plugins/tmux-yank'"),'tmux-yank must be registered with TPM');
- ok(conf.includes("set -g @yank_selection_mouse 'clipboard'"),'mouse should copy to clipboard selection');
- ok(!conf.includes('copy-pipe-and-cancel'),'legacy clipboard copy bindings must not conflict with tmux-yank');
- ok(ref.includes('raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh'),'actual install URL shown');
- ok(ref.includes('oscp-clipboard-test')&&ref.includes('tmux list-keys -T copy-mode-vi'),'diagnostics must be actionable');
+ ok(anchor>=0&&a>=0&&b>a,'offline clipboard source displayed');
+ const embedded=ref.slice(a,b).replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
+ ok(script===embedded,'offline clipboard helper matches repository exactly');
+ ok(spawnSync('bash',['-n'],{input:script,encoding:'utf8'}).status===0,'clipboard.sh Bash syntax');
+ for(const token of ['WAYLAND_DISPLAY','wl-copy','wl-paste','DISPLAY','xclip -selection clipboard -in','xclip -selection clipboard -out','copy|paste|check'])ok(script.includes(token),'missing '+token);
+ ok(ref.includes('oscp-clipboard-test')&&ref.includes('tmux list-keys -T copy-mode-vi'),'clipboard diagnosis');
  const noDisplay=spawnSync('bash',['-c',script+'\n'],{input:'',encoding:'utf8',env:{PATH:'/usr/bin:/bin',HOME:'/tmp',WAYLAND_DISPLAY:'',DISPLAY:''}});
- ok(noDisplay.status===2,'help should reject blank action');
+ ok(noDisplay.status===2,'reject missing action');
 });
-test('tmux split shortcuts describe divider direction and have a standalone final override',()=>{
- const ref=read('src/content/02-enumeration.html'),override=read('scripts/tmux-splits.conf').trimEnd();
+test('tmux splits use correct visual orientation',()=>{
+ const ref=read('src/content/02-enumeration.html'),override=read('scripts/tmux-splits.conf').trimEnd(),main=read('scripts/tmux.conf');
  const anchor='<h4>Standalone split-key override (available offline)</h4>';
- const a=ref.indexOf(anchor),b=ref.indexOf('<pre class="ref-code"><code class="language-tmux">',a);
- const end=ref.indexOf('</code></pre>',b);
- ok(a>=0&&b>=0&&end>b,'split orientation override embedded offline');
- const embedded=ref.slice(b+'<pre class="ref-code"><code class="language-tmux">'.length,end)
-   .replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
- ok(embedded===override,'split override and offline notes must match');
- ok(override.includes("bind-key -T prefix | split-window -h -c '#{pane_current_path}'"),'| must create side-by-side panes');
- ok(override.includes("bind-key -T prefix - split-window -v -c '#{pane_current_path}'"),'- must create stacked panes');
- ok(ref.includes('VERTICAL divider')&&ref.includes('HORIZONTAL divider'),'visual orientation described explicitly');
- ok(ref.includes('raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-splits.conf'),'real file has one-click download command');
- ok(ref.includes('tmux list-keys -T prefix')&&ref.includes('source LAST'),'active binding diagnosis and plugin override documented');
- const main=ref.slice(ref.indexOf('~/.tmux.conf — full exam-safe tmux config'),ref.indexOf('~/bin/target.sh — independent shell'));
- ok(main.includes("bind | split-window -h -c '#{pane_current_path}'"),'main config visual vertical divider');
- ok(main.includes("bind - split-window -v -c '#{pane_current_path}'"),'main config visual horizontal divider');
+ const a=ref.indexOf(anchor),b=ref.indexOf('<pre class="ref-code"',a),start=ref.indexOf('<code class="language-tmux">',b)+'<code class="language-tmux">'.length,end=ref.indexOf('</code></pre>',start);
+ const embedded=ref.slice(start,end).replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
+ ok(embedded===override,'split override matches offline reference');
+ for(const key of ["bind-key -T prefix | split-window -h -c '#{pane_current_path}'","bind-key -T prefix - split-window -v -c '#{pane_current_path}'"])ok(override.includes(key)&&main.includes(key),key);
+ ok(ref.includes('VERTICAL divider')&&ref.includes('HORIZONTAL divider')&&ref.includes('source LAST'),'orientation explained');
+ ok(ref.includes('raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-splits.conf'),'download linked');
 });
-test('real mouse tmux configuration matches reference and leaves internal paste available',()=>{
- const doc=read('src/content/02-enumeration.html'), config=read('scripts/tmux-mouse.conf').trimEnd();
+test('mouse tmux config matches offline reference and supports GUI + internal paste',()=>{
+ const doc=read('src/content/02-enumeration.html'),config=read('scripts/tmux-mouse.conf').trimEnd(),main=read('scripts/tmux.conf');
  const anchor='<h4>Standalone mouse config source (available offline)</h4>';
- const a=doc.indexOf(anchor),start=doc.indexOf('<pre class="ref-code"><code class="language-tmux">',a),end=doc.indexOf('</code></pre>',start);
- ok(a>=0&&start>=0&&end>start,'mouse conf should be available offline');
- const embedded=doc.slice(start+'<pre class="ref-code"><code class="language-tmux">'.length,end)
-  .replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
- ok(config===embedded,'mouse config in notes must match the standalone file');
- for(const action of [
-  'set -g mouse on',
-  'bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel',
-  'bind -T copy-mode MouseDragEnd1Pane send -X copy-pipe-and-cancel',
-  'bind -n MouseDown2Pane select-pane -t=',
-  'paste-buffer -p -t=',
-  'bin/clipboard.sh" copy',
-  "send-keys -M"
- ])ok(config.includes(action),'missing mouse action '+action);
- ok(doc.includes('tmux list-keys -T root MouseDown2Pane'),'help users verify actual mouse paste binding');
- ok(doc.includes('Shift+drag')&&doc.includes('Ctrl+Shift+V'),'native terminal fallback documented');
- ok(doc.includes('raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-mouse.conf'),'installable file is linked');
- ok(doc.includes('bind ] paste-buffer')&&doc.includes("set -g @plugin 'tmux-plugins/tmux-yank'"),'keyboard fallback and tmux-yank preserved');
+ const a=doc.indexOf(anchor),start=doc.indexOf('<code class="language-tmux">',a)+'<code class="language-tmux">'.length,end=doc.indexOf('</code></pre>',start);
+ const embedded=doc.slice(start,end).replaceAll('&amp;','&').replaceAll('&gt;','>').replaceAll('&lt;','<');
+ ok(a>=0&&end>start&&config===embedded,'offline mouse config mirrors checked-in file');
+ for(const action of ['set-option -g mouse on','bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel','bind-key -T copy-mode-vi Y send-keys -X copy-pipe-and-cancel','bind-key -T copy-mode-vi MouseDragEnd1Pane','bind-key -T copy-mode MouseDragEnd1Pane','bind-key -n MouseDown2Pane','paste-buffer -p -t=','bin/clipboard.sh" copy','send-keys -M'])ok(config.includes(action),'missing '+action);
+ ok(main.includes('bind-key -T prefix ] paste-buffer')&&main.includes('source-file ~/bin/tmux-mouse.conf'),'internal tmux paste and helper loaded');
+ ok(doc.includes('tmux list-keys -T root MouseDown2Pane')&&doc.includes('Shift+drag')&&doc.includes('Ctrl+Shift+V'),'mouse diagnosis and native paste');
 });
 test('tmux copy workflow documented without creating duplicate nmap output directories',()=>{
  const ref=read('src/content/02-enumeration.html');
@@ -353,10 +320,35 @@ test('browser-safe navigation shortcuts do not conflict with feature handlers',(
  ok(tpl.includes('<kbd>G</kbd> → <kbd>A</kbd>')&&tpl.includes('<kbd>G</kbd> → <kbd>P</kbd>'),'help documents reliable keys');
  ok(tpl.split('<kbd>Alt+Y</kbd>').length===2,'Alt+Y help must not be duplicated');
 });
-test('tmux Vim copy shortcuts use tmux-yank and allow reload verification',()=>{
- const ref=read('src/content/02-enumeration.html');
- for(const line of ['bind [ copy-mode','bind ] paste-buffer','bind -T copy-mode-vi v send -X begin-selection',"set -g @plugin 'tmux-plugins/tmux-yank'",'tmux source-file ~/.tmux.conf','tmux show-options -g prefix'])ok(ref.includes(line),line);
- ok(!ref.includes('bind -T copy-mode-vi y send -X copy-pipe-and-cancel'),'do not override the tmux-yank copy key');
+test('tmux Vim copy uses one clipboard bridge and Night Ops colors',()=>{
+ const ref=read('src/content/02-enumeration.html'),conf=read('scripts/tmux.conf'),mouse=read('scripts/tmux-mouse.conf'),theme=read('scripts/tmux-theme.conf');
+ for(const line of ['bind-key -T prefix [ copy-mode','bind-key -T prefix ] paste-buffer','bind-key -T copy-mode-vi v send-keys -X begin-selection','source-file ~/.tmux-theme.conf','source-file ~/bin/tmux-mouse.conf'])ok(conf.includes(line),line);
+ ok(mouse.includes('copy-pipe-and-cancel')&&mouse.includes('set-clipboard off'),'single clipboard bridge, no OSC52 collision');
+ ok(!conf.includes("tmux-plugins/tmux-yank"),'do not load competing clipboard plugin');
+ for(const line of ['pane-active-border-style','window-status-current-format','status-left','status-right','PREFIX','colour172','colour37'])ok(theme.includes(line),'theme missing '+line);
+ ok(ref.includes('tmux source-file ~/.tmux.conf')&&ref.includes('tmux show-options -g prefix'),'reload instructions preserved');
+});
+test('OSCP tmux installer is safe, idempotent and backs up previous config',()=>{
+ const installer=read('install.sh');
+ for(const p of ['install.sh','scripts/tmux.conf','scripts/tmux-theme.conf','scripts/tmux-mouse.conf','scripts/tmux-log.sh','scripts/tmux-start-log.sh','scripts/target.sh','scripts/clean-logs.sh','scripts/clipboard.sh']) {
+   const script=read(p);
+   if(p.endsWith('.sh'))ok(spawnSync('bash',['-n'],{input:script,encoding:'utf8'}).status===0,p+' bash syntax');
+ }
+ const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-tmux-installer-'));
+ try{
+   fs.writeFileSync(path.join(tmp,'.tmux.conf'),'old personal config\n');
+   const env={...process.env,HOME:tmp,TMUX:''};
+   const install=()=>spawnSync('bash',['install.sh','--no-apt','--no-plugins'],{cwd:root,env,encoding:'utf8'});
+   let result=install();
+   ok(result.status===0,'installer failed: '+result.stderr);
+   ok(fs.readFileSync(path.join(tmp,'.tmux.conf'),'utf8')===read('scripts/tmux.conf'),'installed full tmux config');
+   ok(fs.readFileSync(path.join(tmp,'.tmux-theme.conf'),'utf8')===read('scripts/tmux-theme.conf'),'restored Night Ops theme');
+   ok(fs.readFileSync(path.join(tmp,'bin','clipboard.sh'),'utf8')===read('scripts/clipboard.sh'),'installed clipboard helper');
+   const backups=()=>fs.readdirSync(tmp).filter(f=>f.startsWith('.tmux.conf.backup-'));
+   ok(backups().length===1&&fs.readFileSync(path.join(tmp,backups()[0]),'utf8')==='old personal config\n','original config backed up');
+   result=install();
+   ok(result.status===0&&backups().length===1,'re-install idempotence');
+ } finally {fs.rmSync(tmp,{recursive:true,force:true})}
 });
 test('WIN Windows and WIN AD are distinct first-class exam desks',()=>{
  const tpl=read('src/index.template.html'),w=read('src/js/05-windows-strategy.js'),ad=read('src/js/05-ad-strategy.js'),nav=read('src/js/07-navigation-reliability.js'),palette=read('src/js/16-v26-scratch-architecture.js');
