@@ -156,6 +156,20 @@ test('tmux Ctrl+A repair is idempotent, verifies live prefix, and is documented'
   'tmux show-options -gv prefix','tmux list-keys -T prefix C-a'])ok(src.includes(item),'missing repair step: '+item);
  ok(src.includes('awk -v start=')&&src.includes("cat >> \"$conf\""),'repair must not append duplicate managed blocks');
  ok(doc.includes('fix-tmux-prefix.sh')&&doc.includes('tmux set-option -g prefix C-a'),'offline notes explain direct recovery and permanent install');
+
+ const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-prefix-repair-'));
+ try{
+   const conf=path.join(tmp,'.tmux.conf');
+   fs.writeFileSync(conf,'# original config\n');
+   const run=()=>spawnSync('bash',['scripts/fix-tmux-prefix.sh'],{cwd:root,encoding:'utf8',env:{...process.env,HOME:tmp,TMUX:''}});
+   const once=run();ok(once.status===0,'prefix helper first run: '+once.stderr);
+   const twice=run();ok(twice.status===0,'prefix helper second run: '+twice.stderr);
+   const output=fs.readFileSync(conf,'utf8');
+   ok(output.startsWith('# original config\n'),'original config preserved');
+   ok(output.split('# >>> OSCP Ctrl+A prefix override >>>').length===2,'one managed prefix block after two runs');
+   ok(output.includes('set-option -g prefix C-a')&&output.includes('bind-key -T prefix C-a send-prefix'),'live prefix persisted');
+ }finally{fs.rmSync(tmp,{recursive:true,force:true})}
+
 });
 test('entire-app light theme includes left sidebar and maintains AA contrasts',()=>{
  const css=read('src/styles/15-comfort.css'),reader=read('src/js/22b-reference-reader.js'),tpl=read('src/index.template.html');
