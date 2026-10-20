@@ -1,5 +1,15 @@
 # Changelog
 
+## V34.73.0 — 2026-10-20
+
+### Repair Kali tmux installer, system clipboard and Night Ops colors
+- Added a complete idempotent root-level `install.sh` with timestamped backups, dependency installation, graphical clipboard environment refresh, and live tmux config reload without killing sessions.
+- Restored a high-contrast amber/teal `~/.tmux-theme.conf` with active-window and pane highlights, status clock, session identity, and visible prefix state; uses ordinary fonts.
+- Consolidated copy-mode `y`/`Y` and mouse drag onto one X11/Wayland `clipboard.sh` helper. Copies into both tmux's internal buffer and the graphical desktop clipboard. Disabled competing OSC52/tmux-yank behavior and redirected xclip stdout.
+- Shipped installable target launcher, per-pane timestamped logs, log cleanup and preserved Ctrl+A pane bindings.
+- Replaced conflicting in-app tmux setup instructions with canonical file sources and real install, diagnostics, mouse, clipboard and recovery workflows.
+- Added a temp-HOME installer regression test plus headless tmux runtime and mocked X11 clipboard validation.
+
 ## V34.72.0 — 2026-10-17
 
 ### Clarify pane orientation and repair reversed tmux bindings
