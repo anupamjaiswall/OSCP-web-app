@@ -52,262 +52,174 @@ ip -4 -o addr show dev tun0  # run again after connecting the exam VPN
 <p>Run Nmap from <b>inside the correct target session</b>. Section 3.1 creates <code>scans/nmap</code> in that session's current directory; the <code>-oA</code> base name is local to that machine. Never scan machine B from machine A's session without explicitly changing the output path.</p>
 </details>
 <details id="ref-1-3-tmux-setup-never-work-without-it">
-<summary>🖥️ 1.3 tmux Setup — per-target sessions + automatic per-pane timestamped logs</summary>
-<p><strong>Exam workflow:</strong> tmux + pipe-pane for terminal output, Obsidian/Vim for reasoning and proof screenshots. No nested <code>script</code> recorder. Do not treat pane transcripts as guaranteed captures of every keystroke. Test in Kali before exam day.</p>
+<summary>🖥️ 1.3 tmux Setup — Night Ops theme, working desktop clipboard, automatic evidence logging</summary>
+<p><strong>One installer, one clipboard implementation, one readable theme.</strong> The previous manual configuration had conflicting clipboard plugins and no active theme. This updated setup installs all scripts, backs up any existing ~/.tmux.conf and ~/.tmux-theme.conf, preserves active sessions, and refreshes the tmux display environment. Install and test on the graphical Kali desktop <strong>before exam day</strong>.</p>
 <h3>One-time installation (Kali)</h3>
-<pre class="ref-code"><code class="language-bash">sudo apt install -y tmux xclip wl-clipboard colorized-logs moreutils
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-# Use the mouse setup in this section for drag-copy / middle-click paste.
-# Download scripts/clipboard.sh using the commands immediately below; it is NOT installed by opening this web app.
-mkdir -p ~/bin ~/oscp/logs ~/oscp/logs-clean
-# Save the tmux config/other scripts with vim. For clipboard.sh, use the direct download below:
-chmod +x ~/bin/{tmux-log.sh,tmux-start-log.sh,clipboard.sh,target.sh,clean-logs.sh}
-# Ctrl+A I (capital I) installs tmux plugins after starting tmux.
-# All tools/scripts must be installed and tested BEFORE exam day.</code></pre>
-<h3>~/bin/tmux-log.sh — timestamp one line per output line</h3>
-<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
-set -euo pipefail
-name="${1:?log name required}"
-d="$HOME/oscp/logs/$(date +%F)"
-mkdir -p "$d"
-chmod 700 "$d"
-exec ts '[%F %T]' &gt;&gt; "$d/$name.log"</code></pre>
-<h3>~/bin/tmux-start-log.sh — start a pipe for one pane</h3>
-<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
-set -euo pipefail
-pane="${1:?pane ID required}"
-session=$(tmux display-message -p -t "$pane" -F '#{session_name}')
-window=$(tmux display-message -p -t "$pane" -F '#{window_index}')
-num=$(tmux display-message -p -t "$pane" -F '#{pane_index}')
-id="${pane#%}"
-session="${session//[^a-zA-Z0-9_-]/_}"
-name="${session}_w${window}_p${num}_id${id}_$(date +%H%M%S)"
-# -o prevents accidental duplicate pipes when reloading settings.
-tmux pipe-pane -o -t "$pane" "$HOME/bin/tmux-log.sh '$name'"</code></pre>
-<h3>~/bin/clipboard.sh — actual downloadable X11/Wayland tmux helper</h3>
-<p><b>The helper is now a real repository file:</b> <a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/clipboard.sh" target="_blank" rel="noopener noreferrer">scripts/clipboard.sh</a>. Download it and verify it on Kali <strong>before the exam</strong>. The full source is also included below so the offline reference remains self-contained. The browser app cannot install scripts to Kali by itself.</p>
-<h4>Install once, in your Kali graphical terminal</h4>
-<pre class="ref-code"><code class="language-bash">mkdir -p "$HOME/bin"
-curl -fL --retry 2 https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh -o "$HOME/bin/clipboard.sh"
-chmod 700 "$HOME/bin/clipboard.sh"
-# After installing xclip/wl-clipboard, run the helper's checks:
-"$HOME/bin/clipboard.sh" check
-printf 'oscp-clipboard-test' | "$HOME/bin/clipboard.sh" copy
-"$HOME/bin/clipboard.sh" paste; echo
-# Expected: oscp-clipboard-test
-# Reload tmux bindings AFTER saving the updated ~/.tmux.conf:
-tmux source-file ~/.tmux.conf</code></pre>
-<p><b>Why Shift+Y can fail:</b> X11 requires a reachable <code>DISPLAY</code> and <code>xclip</code>; Wayland needs <code>WAYLAND_DISPLAY</code> and <code>wl-clipboard</code>. The clipboard inside a VM/SSH desktop does not automatically become the host's clipboard. The <code>check</code> command identifies the selected provider; the copy/paste round-trip tests real access.</p>
-<h4>Script source — scripts/clipboard.sh (offline fallback)</h4>
-<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
-# OSCP tmux desktop clipboard bridge (X11 / Wayland).
-# Install to ~/bin/clipboard.sh before the exam, then chmod 700 it.
-# Usage: clipboard.sh copy|paste|check
-set -euo pipefail
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">git clone https://github.com/anupamjaiswall/OSCP-web-app.git
+cd OSCP-web-app
+bash install.sh
+bash install.sh --check
+# If dependencies are already installed: bash install.sh --no-apt
+# If Git access is restricted: bash install.sh --no-plugins
+# Reload anytime: tmux source-file ~/.tmux.conf
+# Test a harmless clipboard round trip:
+printf 'oscp-clipboard-test' | ~/bin/clipboard.sh copy
+~/bin/clipboard.sh paste; echo</code></pre>
+<p><b>What is installed:</b> ~/.tmux.conf, ~/.tmux-theme.conf, and ~/bin/clipboard.sh, tmux-mouse.conf, tmux-splits.conf, tmux-log.sh, tmux-start-log.sh, clean-logs.sh, target.sh, fix-tmux-prefix.sh. The installer keeps timestamped backups. It can update a running tmux server without killing sessions.</p>
+<h3>Visual design — OSCP Night Ops</h3>
+<p>Deep charcoal status bar, warm amber OSCP/session label, teal highlighted active window and active pane borders, visible <b>PREFIX</b> indicator, readable pane command labels, clock and host. Uses tmux 256-colour styles and ordinary fonts (no Nerd Fonts or Powerline required). Source theme LAST, after plugins.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-tmux"># OSCP Night Ops — high-contrast amber + tactical teal, no special font required.
+set -g status on
+set -g status-position bottom
+set -g status-interval 5
+set -g status-justify left
+set -g status-style 'bg=colour234,fg=colour252'
+set -g status-left-length 55
+set -g status-right-length 90
 
+set -g status-left '#[bg=colour172,fg=colour234,bold] OSCP #[bg=colour236,fg=colour252,bold] #{session_name} #[default] '
+set -g window-status-separator ' '
+set -g window-status-format '#[bg=colour236,fg=colour245] #I:#W#{?window_flags,#{window_flags},} #[default]'
+set -g window-status-current-format '#[bg=colour37,fg=colour232,bold] #I:#W#{?window_flags,#{window_flags},} #[default]'
+set -g window-status-activity-style 'fg=colour214,bg=colour236,bold'
+set -g window-status-bell-style 'fg=colour196,bg=colour236,bold'
+set -g status-right '#{?client_prefix,#[bg=colour214,fg=colour232,bold] PREFIX #[default] ,}#[fg=colour109]#{host_short} #[fg=colour245]| #[fg=colour180]%a %d %b #[fg=colour250,bold]%H:%M '
+
+set -g pane-border-style 'fg=colour239'
+set -g pane-active-border-style 'fg=colour37'
+set -g pane-border-status top
+set -g pane-border-format '#[fg=colour109] #{pane_index} #[fg=colour243]#{pane_current_command} '
+set -g message-style 'bg=colour24,fg=colour255,bold'
+set -g message-command-style 'bg=colour236,fg=colour229'
+set -g mode-style 'bg=colour172,fg=colour232,bold'
+set -g clock-mode-colour colour172
+set -g display-panes-colour colour172
+set -g display-panes-active-colour colour37
+set -g display-time 2500</code></pre>
+<h3>Copy and paste — same in every session</h3>
+<p><kbd>Ctrl+A</kbd> then <kbd>[</kbd>, press <kbd>v</kbd>, select and press lowercase <kbd>y</kbd> (or uppercase <kbd>Y</kbd>): copies into BOTH the internal tmux buffer and your Kali graphical clipboard. Paste into GUI apps with <kbd>Ctrl+V</kbd> (or terminal <kbd>Ctrl+Shift+V</kbd>); <kbd>Ctrl+A</kbd> then <kbd>]</kbd> pastes from the tmux buffer. Mouse drag and release copies too. Middle click pastes the tmux buffer, except where interactive apps capture the event; <kbd>Shift+drag</kbd> may use terminal-native selection.</p>
+<p>The direct <code>copy-pipe-and-cancel</code> bridge works without tmux-yank, avoiding competing plugin bindings. OSC52 <code>set-clipboard</code> is disabled intentionally to avoid double-copy. X11 requires a working DISPLAY/xclip; Wayland requires WAYLAND_DISPLAY/wl-clipboard. A Kali VM clipboard will not automatically become your Windows host clipboard without VM guest integration.</p>
+<h4>Script source — scripts/clipboard.sh (offline fallback)</h4>
+<p><a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/clipboard.sh">scripts/clipboard.sh</a> is installed by install.sh. Standalone download if necessary:</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">mkdir -p ~/bin
+curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh -o ~/bin/clipboard.sh
+chmod 700 ~/bin/clipboard.sh
+~/bin/clipboard.sh check</code></pre>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">#!/usr/bin/env bash
+# Clipboard bridge for tmux copy-pipe. No plugin or OSC52 required for local GUI.
+set -euo pipefail
 provider() {
-  if [[ -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp; command -v wl-copy &gt;/dev/null 2&gt;&amp;1 &amp;&amp; command -v wl-paste &gt;/dev/null 2&gt;&amp;1; then
-    printf '%s\n' wayland
-  elif [[ -n "${DISPLAY:-}" ]] &amp;&amp; command -v xclip &gt;/dev/null 2&gt;&amp;1; then
-    printf '%s\n' x11
+  if [[ "${XDG_SESSION_TYPE:-}" == wayland &amp;&amp; -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp;
+      command -v wl-copy &gt;/dev/null &amp;&amp; command -v wl-paste &gt;/dev/null; then
+    echo wayland
+  elif [[ -n "${DISPLAY:-}" ]] &amp;&amp; command -v xclip &gt;/dev/null; then
+    echo x11
+  elif [[ -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp;
+      command -v wl-copy &gt;/dev/null &amp;&amp; command -v wl-paste &gt;/dev/null; then
+    echo wayland
   else
-    printf '%s\n' none
+    echo none
   fi
 }
-
 case "${1:-}" in
   check)
     case "$(provider)" in
-      wayland) printf 'Wayland clipboard: wl-copy / wl-paste (display access still needs testing)\n';;
-      x11) printf 'X11 clipboard: xclip (display access still needs testing)\n';;
-      none) printf 'No desktop clipboard available. Use tmux copy-mode y, then prefix + ].\n' &gt;&amp;2; exit 1;;
+      x11) echo 'X11 clipboard: xclip is installed; verify a real copy/paste.';;
+      wayland) echo 'Wayland clipboard: wl-copy/wl-paste installed; verify real copy/paste.';;
+      none) echo 'No graphical clipboard provider. Internal tmux copy still works.' &gt;&amp;2; exit 1;;
     esac
     ;;
   copy)
     case "$(provider)" in
+      x11) exec xclip -selection clipboard -in &gt;/dev/null;;
       wayland) exec wl-copy --type text/plain;;
-      x11) exec xclip -selection clipboard -in &gt;/dev/null 2&gt;&amp;1;;
       none)
-        # Drain piped tmux selection instead of leaving the pipe blocked.
+        # tmux already saved the selection internally. Drain it if no display.
         cat &gt;/dev/null
-        printf 'No clipboard display. Check DISPLAY/WAYLAND_DISPLAY and install wl-clipboard or xclip.\n' &gt;&amp;2
+        echo 'No graphical clipboard. Check DISPLAY/WAYLAND_DISPLAY.' &gt;&amp;2
         exit 1
         ;;
     esac
     ;;
   paste)
     case "$(provider)" in
-      wayland) exec wl-paste --no-newline;;
       x11) exec xclip -selection clipboard -out;;
-      none) printf 'No desktop clipboard available; use tmux prefix + ] instead.\n' &gt;&amp;2; exit 1;;
+      wayland) exec wl-paste --no-newline;;
+      none) echo 'No graphical clipboard; use Ctrl+A then ] in tmux.' &gt;&amp;2; exit 1;;
     esac
     ;;
-  *) printf 'Usage: %s copy|paste|check\n' "${0##*/}" &gt;&amp;2; exit 2;;
+  *) echo "Usage: ${0##*/} copy|paste|check" &gt;&amp;2; exit 2;;
 esac</code></pre>
-<p>Save this exact block as <code>~/bin/clipboard.sh</code> if you cannot download the script, then <code>chmod 700 ~/bin/clipboard.sh</code>. Always keep the tmux-only fallback: <kbd>Ctrl+A</kbd>, <kbd>[</kbd>, <kbd>v</kbd>, lowercase <kbd>y</kbd>, then <kbd>Ctrl+A</kbd>, <kbd>]</kbd>.</p>
-<h3>tmux mouse configuration — drag to copy, middle-click to paste</h3>
-<p><b>New:</b> <a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/tmux-mouse.conf" target="_blank" rel="noopener noreferrer">scripts/tmux-mouse.conf</a> is an actual repository file. The main <code>~/.tmux.conf</code> code below already contains these mouse bindings. <b>You only need one copy of the bindings</b>; use the separate file as an easy install/overlay if your existing config is already set up.</p>
-<pre class="ref-code"><code class="language-bash"># Install OPTIONAL mouse-only overlay on Kali (before exam)
-mkdir -p ~/bin
-curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-mouse.conf -o ~/bin/tmux-mouse.conf
-# Requires ~/bin/clipboard.sh already installed from the step above
-# Option A: apply to the current running tmux server (until next restart)
-tmux source-file ~/bin/tmux-mouse.conf
-# Option B: make persistent if the bindings aren't already in ~/.tmux.conf:
-# printf '\nsource-file ~/bin/tmux-mouse.conf\n' &gt;&gt; ~/.tmux.conf
-# tmux source-file ~/.tmux.conf</code></pre>
-<p><b>Mouse behaviour:</b> drag the <b>left button</b> across regular tmux pane output and release to copy into the <b>tmux buffer</b>, plus the <b>desktop clipboard</b> if the graphical clipboard helper works. Press the <b>middle mouse button</b> (scroll wheel) over the target pane to paste tmux's newest buffer. You can also use <kbd>Ctrl+Shift+V</kbd> for the <b>desktop</b> clipboard where your terminal supports it. The right mouse button retains the default terminal/tmux menu; it is not remapped to paste.</p>
-<p><b>Terminal native mouse selection:</b> hold <kbd>Shift</kbd> while dragging to bypass tmux in terminals that support it, then use the terminal's Copy command (often <kbd>Ctrl+Shift+C</kbd>). Pasting in graphical apps outside tmux may require that native selection or a functioning <code>~/bin/clipboard.sh</code> provider. Programs that capture mouse input (Vim/htop) may handle events themselves, and some SSH/VM environments do not expose the host's clipboard.</p>
 <h4>Standalone mouse config source (available offline)</h4>
-<pre class="ref-code"><code class="language-tmux"># OSCP tmux mouse selection / copy / paste — companion to scripts/clipboard.sh
-# Requires a modern tmux, and ~/bin/clipboard.sh installed on Kali.
-# These bindings can be sourced with: tmux source-file ~/bin/tmux-mouse.conf
-# For persistence, keep the same block in ~/.tmux.conf or source this file there.
-#
-# Left drag over regular shell output: copy to tmux buffer AND attempt desktop clipboard.
-# Middle click over shell output: paste the latest tmux buffer.
-# Shift+drag: use terminal-native selection (terminal-dependent).
-# Ctrl+Shift+V: paste desktop clipboard (terminal-dependent).
+<p><a href="https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-mouse.conf">Download tmux-mouse.conf</a>; normally install.sh installs this to ~/bin/tmux-mouse.conf.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-tmux"># One OSCP clipboard mechanism — no tmux-yank binding collisions.
+# y/Y/left-drag copy BOTH to tmux buffer and to Kali desktop clipboard.
+# Ctrl+A then ] pastes tmux buffer. GUI Ctrl+V pastes desktop clipboard.
+set-option -g mouse on
+set-window-option -g mode-keys vi
+set-option -s set-clipboard off
+bind-key -T copy-mode-vi v send-keys -X begin-selection
+bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+bind-key -T copy-mode-vi Y send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+bind-key -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+# Middle-click tmux paste except in applications (e.g. Vim) requesting mouse.
+bind-key -n MouseDown2Pane select-pane -t= \; if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'paste-buffer -p -t='</code></pre>
+<h3>Full ~/.tmux.conf — canonical installed configuration</h3>
+<p>All copy bindings and visual styling are sourced after optional plugins. The installed file is authoritative; do not paste older tmux-yank fragments over it.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-tmux"># OSCP tmux — exam-safe, one consistent configuration.
+# Installed as ~/.tmux.conf. Previous file backed up by install.sh.
+unbind-key C-b
+set-option -g prefix C-a
+bind-key -T prefix C-a send-prefix
+set-option -g mouse on
+set-option -g history-limit 100000
+set-option -g focus-events on
+set-option -g allow-rename off
+set-window-option -g automatic-rename off
+set-window-option -g remain-on-exit on
+set-window-option -g mode-keys vi
+set-option -g renumber-windows on
+set-option -s set-clipboard off
 
-set -g mouse on
-setw -g mode-keys vi
-set -s set-clipboard off
+# Ctrl+A then | = side-by-side; Ctrl+A then - = top/bottom.
+bind-key -T prefix | split-window -h -c '#{pane_current_path}'
+bind-key -T prefix - split-window -v -c '#{pane_current_path}'
+bind-key -T prefix h select-pane -L
+bind-key -T prefix j select-pane -D
+bind-key -T prefix k select-pane -U
+bind-key -T prefix l select-pane -R
+bind-key -T prefix H resize-pane -L 5
+bind-key -T prefix J resize-pane -D 5
+bind-key -T prefix K resize-pane -U 5
+bind-key -T prefix L resize-pane -R 5
+bind-key -T prefix X kill-pane
+bind-key -T prefix r source-file ~/.tmux.conf \; display-message 'OSCP tmux reloaded'
+bind-key -T prefix [ copy-mode
+bind-key -T prefix ] paste-buffer
+bind-key -T copy-mode-vi v send-keys -X begin-selection
+bind-key -T prefix S run-shell 'mkdir -p "$HOME/oscp/logs"; chmod 700 "$HOME/oscp/logs"; tmux capture-pane -p -S - &gt; "$HOME/oscp/logs/pane-$(date +%F_%H%M%S).txt"' \; display-message 'Scrollback saved locally'
 
-# Mouse selection ends in the copy-mode-vi table; keep copy-mode too for compatibility.
-bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
-bind -T copy-mode MouseDragEnd1Pane send -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
-
-# Select the clicked pane; middle click pastes tmux buffer.
-# Forward events to interactive applications (Vim, htop) when they capture the mouse.
-bind -n MouseDown2Pane select-pane -t= \; if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'paste-buffer -p -t='</code></pre>
-<p><b>Exam-safe verification:</b> print <code>printf 'DRAG-COPY-TEST\n'</code> in a normal shell pane, drag over that text, then middle-click in a second shell pane. It should paste the selected text. Check desktop clipboard by pasting into a graphical text editor. <b>Do not try the paste test at a live privileged command prompt; it may contain newlines.</b></p>
-<h3>tmux-yank — recommended Kali clipboard method</h3>
-<p><strong>Install before the exam:</strong> <code>tmux-yank</code> is the default clipboard workflow in the full configuration below. It requires access to the <em>same graphical clipboard session</em> where the terminal is running. Over SSH, inside a VM without clipboard integration, or without DISPLAY/WAYLAND_DISPLAY, no plugin can automatically guarantee host clipboard access.</p>
-<pre class="ref-code"><code class="language-bash">sudo apt update
-sudo apt install -y tmux xsel xclip wl-clipboard
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm 2>/dev/null || true
-# Paste the full ~/.tmux.conf below into ~/.tmux.conf.
-tmux source-file ~/.tmux.conf
-# Inside tmux: Ctrl+A then Shift+I (capital I), installs tmux-yank.
-# Then restart your tmux server if the plugin did not reload automatically.
-tmux show -g @plugin
-echo "DISPLAY=$DISPLAY WAYLAND_DISPLAY=$WAYLAND_DISPLAY"
-# From the same graphical terminal, test the actual clipboard:
-printf 'OSCP-CLIPBOARD-TEST' | xsel --clipboard --input
-xsel --clipboard --output
-# On Wayland, instead:
-printf 'OSCP-CLIPBOARD-TEST' | wl-copy
-wl-paste
-# In tmux: Ctrl+A [ ; move cursor ; Space/v ; select ; y
-# Paste into a graphical text editor with Ctrl+V.
-# With mouse on, drag over shell output and release; then Ctrl+V.
-</code></pre>
-<h3>Repair Ctrl+A when tmux is already open</h3>
-<p><strong>If Ctrl+A moves to the start of the Bash line instead of activating tmux:</strong> the live server probably still uses the default <code>Ctrl+B</code> prefix. You do <em>not</em> need a working prefix to repair it. Run these shell commands <strong>inside your current tmux pane</strong>:</p>
-<pre class="ref-code"><code class="language-bash">tmux show-options -gv prefix        # C-b = wrong, C-a = expected
-tmux set-option -g prefix C-a     # change the LIVE tmux server immediately
-tmux bind-key -T prefix C-a send-prefix
-tmux show-options -gv prefix        # must print C-a
-tmux list-keys -T prefix C-a       # verify the key binding
-
-# Permanent, idempotent repair: append a managed override LAST.
-mkdir -p ~/bin
-curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/fix-tmux-prefix.sh -o ~/bin/fix-tmux-prefix.sh
-bash ~/bin/fix-tmux-prefix.sh
-
-# Afterward press Ctrl+A, RELEASE the keys, then | or - (not all together).
-# Ctrl+A then | = left/right panes; Ctrl+A then - = top/bottom panes.
-</code></pre>
-<p><b>Why this happens:</b> tmux starts with <code>Ctrl+B</code> unless its configuration was actually loaded into the running server; a new config file does not alter an existing tmux server automatically. The repair script adds a persistent final override to <code>~/.tmux.conf</code> without replacing your configuration and changes the live server immediately. If <code>tmux show-options -gv prefix</code> already reports <code>C-a</code> but the shortcut does not work, check terminal key interception or nested tmux; try <code>Ctrl+B</code> only as a diagnostic of an unchanged default config.</p>
-<h3>~/.tmux.conf — full exam-safe tmux config</h3>
-<pre class="ref-code" data-copy-plain="true"><code class="language-bash">unbind C-b
-set -g prefix C-a
-bind C-a send-prefix
-set -g mouse on
-set -g history-limit 100000
-set -g allow-rename off
-setw -g automatic-rename off
-set -g remain-on-exit on
-
-# Splits — name the DIVIDER, not tmux's arrangement flag.
-# Prefix + | : VERTICAL divider, panes SIDE BY SIDE (tmux -h).
-# Prefix + - : HORIZONTAL divider, panes TOP/BOTTOM (tmux -v).
-# -h means the new pane is placed horizontally beside the first pane.
-# -v means the new pane is placed vertically below the first pane.
-bind | split-window -h -c '#{pane_current_path}'
-bind - split-window -v -c '#{pane_current_path}'
-bind h select-pane -L
-bind j select-pane -D
-bind k select-pane -U
-bind l select-pane -R
-bind H resize-pane -L 5
-bind J resize-pane -D 5
-bind K resize-pane -U 5
-bind L resize-pane -R 5
-bind X kill-pane
-bind r source-file ~/.tmux.conf \; display-message 'tmux config reloaded'
-bind [ copy-mode
-bind ] paste-buffer
-bind S capture-pane -p -S - \; run-shell 'tmux capture-pane -p -S - &gt; "$HOME/oscp/logs/pane-$(date +%F_%H%M%S).txt"' \; display-message 'Scrollback saved'
-
-# tmux-yank: system clipboard on X11 / Wayland (install xsel or wl-clipboard).
-# TPM loads plugins last. Do not override its y / mouse bindings below.
-setw -g mode-keys vi
-set -g mouse on
-set -g @yank_selection 'clipboard'
-set -g @yank_selection_mouse 'clipboard'
-bind -T copy-mode-vi v send -X begin-selection
-# Copy selection: Ctrl+A, [ then Space/v select, y to system clipboard.
-# Mouse: drag then release to copy to CLIPBOARD.
-# Ctrl+A ] pastes tmux buffer. Ctrl+Shift+V pastes system clipboard via terminal.
-# Avoid previous clipboard.sh bindings for y/Y/MouseDragEnd1Pane: they conflict.
-# Automatically start pipe-pane on new sessions/windows/splits.
+# Timestamped per-pane recording (pipe-pane -o avoids duplicate pipes).
 set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
 set-hook -g after-new-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
 set-hook -g after-split-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
 
-# For existing panes after reload, run manually:
-# tmux list-panes -a -F '#{pane_id}' | while read -r p; do ~/bin/tmux-start-log.sh "$p"; done
-# Theme is optional; create ~/.tmux-theme.conf before enabling:
-# source-file ~/.tmux-theme.conf
-set -g @plugin 'tmux-plugins/tpm'
-set -g @plugin 'tmux-plugins/tmux-resurrect'
-set -g @plugin 'tmux-plugins/tmux-yank'
-run '~/.tmux/plugins/tpm/tpm'</code></pre>
-<h3>tmux pane splitting — vertical divider vs horizontal divider</h3>
-<p><strong>Visual rule (Ctrl+A is the prefix):</strong> <kbd>Ctrl+A</kbd> then <kbd>|</kbd> creates <strong>left + right</strong> panes with a <em>vertical dividing line</em>. <kbd>Ctrl+A</kbd> then <kbd>-</kbd> creates <strong>top + bottom</strong> panes with a <em>horizontal dividing line</em>. This is intentional: tmux's <code>-h</code> means panes are arranged horizontally (next to each other), while <code>-v</code> means they stack vertically. The flag describes the <strong>direction panes are arranged</strong>, not the direction of the dividing line.</p>
-<pre class="ref-code"><code class="language-text">Ctrl+A then |     VERTICAL divider (tmux -h)
-+---------+---------+
-|  pane 1 |  pane 2 |
-+---------+---------+
+# Optional session recovery plugin; clipboard is handled directly, never by yank.
+set-option -g @plugin 'tmux-plugins/tpm'
+set-option -g @plugin 'tmux-plugins/tmux-resurrect'
+if-shell 'test -f "$HOME/.tmux/plugins/tpm/tpm"' 'run-shell "$HOME/.tmux/plugins/tpm/tpm"'
 
-Ctrl+A then -     HORIZONTAL divider (tmux -v)
-+-------------------+
-|      pane 1       |
-+-------------------+
-|      pane 2       |
-+-------------------+</code></pre>
-<p><strong>If your real tmux behaves the opposite way, its active key table differs from this config.</strong> Source the override <em>last</em>, after other configuration/plugins. The override is a real repository file: <a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/tmux-splits.conf" target="_blank" rel="noopener noreferrer">scripts/tmux-splits.conf</a>. It only changes the two pane-splitting keys; mouse/clipboard bindings and existing panes remain untouched.</p>
-<pre class="ref-code"><code class="language-bash"># One-time install from Kali BEFORE exam day:
-mkdir -p ~/bin
-curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-splits.conf -o ~/bin/tmux-splits.conf
-
-# Apply immediately to a RUNNING tmux server:
+# LAST: keep custom clipboard bindings and styles even when plugins load.
+source-file ~/bin/tmux-mouse.conf
+source-file ~/.tmux-theme.conf</code></pre>
+<h3>tmux pane splitting — visual orientation</h3>
+<p><kbd>Ctrl+A</kbd> then <kbd>|</kbd> = <b>VERTICAL divider</b> (left/right panes). <kbd>Ctrl+A</kbd> then <kbd>-</kbd> = <b>HORIZONTAL divider</b> (top/bottom panes). The source LAST override below repairs plugins that swap them.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-splits.conf -o ~/bin/tmux-splits.conf
 tmux source-file ~/bin/tmux-splits.conf
-
-# Confirm current binding table:
-tmux list-keys -T prefix | grep -E 'split-window.*(-h|-v)'
-# Expected: | uses -h; - uses -v.
-# Use Ctrl+A then | for SIDE BY SIDE; Ctrl+A then - for TOP/BOTTOM.
-
-# For persistence, source LAST in ~/.tmux.conf (after plugins/other binds):
-grep -qxF 'source-file ~/bin/tmux-splits.conf' ~/.tmux.conf ||
-  printf '\nsource-file ~/bin/tmux-splits.conf\n' &gt;&gt; ~/.tmux.conf
-
-tmux source-file ~/.tmux.conf
-tmux list-keys -T prefix | grep -E 'split-window.*(-h|-v)'</code></pre>
+tmux list-keys -T prefix | grep split-window</code></pre>
 <h4>Standalone split-key override (available offline)</h4>
-<pre class="ref-code"><code class="language-tmux"># OSCP tmux split orientation — visual dividers, not tmux -h/-v names.
+<pre class="ref-code" data-copy-plain="true"><code class="language-tmux"># OSCP tmux split orientation — visual dividers, not tmux -h/-v names.
 # Source this LAST if other configs/plugins override split bindings:
 #   tmux source-file ~/bin/tmux-splits.conf
 #
@@ -320,10 +232,17 @@ unbind-key -T prefix |
 unbind-key -T prefix -
 bind-key -T prefix | split-window -h -c '#{pane_current_path}'
 bind-key -T prefix - split-window -v -c '#{pane_current_path}'</code></pre>
-<p><b>Test safely:</b> in a disposable tmux window, use both keys and inspect the resulting pane positions. Do not close any active exploit, listener or log pane merely to test the split behaviour. If you <em>actually prefer the opposite visual mapping</em>, swap the <code>-h</code> and <code>-v</code> flags in the override on your own machine—this app documents the standard visual <kbd>|</kbd>/<kbd>-</kbd> convention.</p>
+<h3>Repair Ctrl+A in running tmux</h3>
+<p>Without closing panes, run the following inside tmux. The persistent repair helper is included by install.sh.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">tmux set-option -g prefix C-a
+tmux bind-key -T prefix C-a send-prefix
+tmux show-options -gv prefix
+tmux list-keys -T prefix C-a
+~/bin/fix-tmux-prefix.sh
+tmux source-file ~/.tmux.conf</code></pre>
 <h3>~/bin/target.sh — independent shell environment per machine</h3>
-<p><b>Why:</b> each OSCP target gets its own tmux session, current directory, IP, optional AD context and optional listener port. This prevents machine B from accidentally being scanned with machine A's `$IP` or output path. The new-session <code>-e</code> flags apply before the <b>first</b> pane starts. Requires a tmux version supporting <code>new-session -e</code> (verify before exam day).</p>
-<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
+<p>Each target gets its own folder and tmux session (recon 2×2 + shell/listener/http/notes windows). This keeps the correct IP/DOMAIN/DC/LHOST/LPORT from pane creation; <code>tmux set-environment</code> changes future processes, <b>not open shells</b>. Log output is separate per session/pane. Nmap creates its own scans/nmap directory.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">#!/usr/bin/env bash
 set -euo pipefail
 # Usage: target.sh IP [--domain DOMAIN --dc DC_IP --lport PORT]
 #        target.sh LABEL --ip IP [--domain DOMAIN --dc DC_IP]
@@ -388,34 +307,22 @@ printf 'Created %-22s TARGET=%s IP=%s DOMAIN=%s DC=%s LHOST=%s LPORT=%s\n' \
 [[ -n "$lhost" ]] || echo 'Warning: tun0 has no IPv4. Verify VPN and refresh LHOST inside panes.'
 go
 # All new panes/windows inherit session-specific environment variables.
-# tmux set-environment changes FUTURE processes, NOT existing shell variables.
-</code></pre>
-<p><b>Existing session behavior:</b> running <code>~/bin/target.sh</code> again reattaches to that session; it never silently replaces the environment of already-open shells. To use different IP/domain information, create a new correctly named session or explicitly update the relevant shells. <code>AD_set</code> is a coordination/notes session, not a network target, unless an IP is explicitly provided.</p>
-<h3>~/bin/clean-logs.sh — strip ANSI for searchable report text</h3>
-<pre class="ref-code"><code class="language-bash">#!/usr/bin/env bash
-set -euo pipefail
-src="$HOME/oscp/logs"
-dst="$HOME/oscp/logs-clean"
-mkdir -p "$dst"
-find "$src" -type f -name '*.log' -print0 |
-while IFS= read -r -d '' f; do
-  rel="${f#"$src"/}"
-  mkdir -p "$dst/$(dirname "$rel")"
-  ansi2txt &lt; "$f" &gt; "$dst/$rel"
-done
-echo "Clean logs: $dst"</code></pre>
-<h3>Validate tmux BEFORE exam day</h3>
-<pre class="ref-code"><code class="language-bash">echo "TMUX=$TMUX"
+# tmux set-environment changes FUTURE processes, NOT existing shell variables.</code></pre>
+<h3>Pre-exam verification and troubleshooting</h3>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">bash install.sh --check
 tmux source-file ~/.tmux.conf
 tmux show-options -g prefix
-tmux show-options -gw mode-keys
-tmux list-keys -T prefix | grep -E 'copy-mode|paste-buffer'
-tmux list-keys -T copy-mode-vi | grep -E 'begin-selection|copy-selection|copy-pipe'
-~/bin/clipboard.sh check
-# Expected: prefix C-a and mode-keys vi
-# tmux list-keys -T copy-mode-vi should show v, y, and Y.</code></pre>
-<p>If <code>$TMUX</code> is empty, you are not inside a tmux client; start a session with <code>tmux new -s oscp</code>. If the source command reports an error, fix that configuration line before testing. If <kbd>Ctrl+A</kbd> moves your cursor to the start of a Bash command, the tmux prefix has not been activated in that terminal.</p>
-<p><b>Setup stops here.</b> Before exam day, install tmux/plugins, create scripts, source <code>~/.tmux.conf</code>, verify copy/paste and logging. During the actual exam, open <a href="#ref-exam-tmux-operator-runbook">During Exam → tmux Runbook</a> for commands and shortcuts without scrolling through the install instructions.</p>
+tmux show-options -g status
+tmux list-keys -T copy-mode-vi y
+tmux list-keys -T copy-mode-vi MouseDragEnd1Pane
+tmux list-keys -T root MouseDown2Pane
+tmux show-environment -g DISPLAY
+tmux show-environment -g WAYLAND_DISPLAY
+printf 'oscp-clipboard-test' | ~/bin/clipboard.sh copy
+~/bin/clipboard.sh paste; echo
+# Manual Linux X11 fallback for an existing tmux copy buffer:
+tmux save-buffer - | xclip -selection clipboard</code></pre>
+<p>If system copying fails but internal <kbd>Ctrl+A</kbd> then <kbd>]</kbd> works, check graphical session variables and test from an actual Kali desktop terminal. If launched through SSH, TTY or headless system startup, no desktop clipboard may exist. Do not invent DISPLAY=:0. Your terminal/VM must support host clipboard sharing separately. For during-exam commands, go to <a href="#ref-exam-tmux-operator-runbook">the tmux operator runbook</a>.</p>
 </details>
 <details id="ref-1-4-wordlists-every-important-path">
 <summary>📚 1.4 Wordlists --- Every Important Path</summary>
@@ -570,7 +477,7 @@ grep -rn -B3 -A15 'sudo -l' ~/oscp/logs-clean/
 cp -a ~/oscp ~/oscp-backup-$(date +%F)</code></pre>
 <p><b>Do not mix results:</b> every target has its own <code>~/oscp/&lt;target&gt;/</code> directory. Pipe-pane logs remain named by tmux session and pane ID. Use Nmap's native <code>-oA scans/nmap/…</code> inside the correct target folder for reliable per-host evidence. Never reuse another host's <code>$IP</code> or proof.</p>
 <h3>tmux copy / selection / paste — keyboard and mouse</h3>
-<p><strong>Emergency Linux X11 copy rescue (manual fallback when tmux-yank, Shift+Y or mouse clipboard copying fails):</strong> First copy the selected text into the <em>tmux internal buffer</em>: <kbd>Ctrl+A</kbd>, then <kbd>[</kbd>, press <kbd>v</kbd>, select text, and press lowercase <kbd>y</kbd>. Then run the following in any shell attached to that tmux server.</p>
+<p><strong>Emergency Linux X11 copy rescue (manual fallback if desktop clipboard copying fails):</strong> First copy the selected text into the <em>tmux internal buffer</em>: <kbd>Ctrl+A</kbd>, then <kbd>[</kbd>, press <kbd>v</kbd>, select text, and press lowercase <kbd>y</kbd>. Then run the following in any shell attached to that tmux server.</p>
 <pre class="ref-code"><code class="language-bash"># Check what is in tmux's latest buffer
 tmux show-buffer
 
@@ -591,11 +498,11 @@ tmux save-buffer - | wl-copy</code></pre>
 <li><strong>Begin selection:</strong> press <kbd>v</kbd>. Move to extend the selected text. <kbd>Ctrl+U</kbd> / <kbd>Ctrl+D</kbd> scroll half a page; <kbd>gg</kbd> jumps to the top of tmux history and <kbd>G</kbd> to the bottom.</li>
 <li><strong>Copy reliably inside tmux:</strong> press lowercase <kbd>y</kbd>. This stores the selection in tmux's own buffer and exits copy mode; it works without <code>xclip</code>.</li>
 <li><strong>Paste tmux's internal buffer:</strong> <kbd>Ctrl+A</kbd>, then <kbd>]</kbd>. This works after lowercase <kbd>y</kbd>, even with no desktop clipboard.</li>
-<li><strong>tmux-yank (preferred):</strong> install TPM plugin <code>tmux-plugins/tmux-yank</code>, reload and press <kbd>Ctrl+A</kbd> then capital <kbd>I</kbd> to install plugins. In copy mode, select using <kbd>v</kbd>, press lowercase <kbd>y</kbd> to copy to the desktop clipboard. <b>Shift+Y copies — it does not paste.</b> With tmux-yank, uppercase <kbd>Y</kbd> in copy mode instead means copy and paste to the command line. Paste desktop clipboard using your terminal’s <kbd>Ctrl+Shift+V</kbd>.</li>
-<li><strong>Paste the desktop clipboard into tmux:</strong> outside copy mode, press <kbd>Ctrl+A</kbd>, then capital <kbd>Y</kbd>. This uses <code>wl-paste</code> or <code>xclip</code>; unlike lowercase <kbd>y</kbd>, it is not guaranteed over SSH, remote desktops, or VM boundaries.</li>
+<li><strong>Copy externally without plugins:</strong> the installed mouse config binds lowercase <kbd>y</kbd>, uppercase <kbd>Y</kbd>, and mouse drag to <code>copy-pipe-and-cancel</code> through <code>~/bin/clipboard.sh</code>. They preserve the internal tmux buffer and attempt the Kali graphical clipboard; <kbd>Ctrl+V</kbd> pastes in GUI apps, <kbd>Ctrl+Shift+V</kbd> in terminals.</li>
+<li><strong>Paste into tmux:</strong> use <kbd>Ctrl+A</kbd> then <kbd>]</kbd> to paste the internal buffer. In a terminal, <kbd>Ctrl+Shift+V</kbd> pastes the system clipboard. There is no special Ctrl+A Y paste binding.</li>
 <li><strong>Search scrollback:</strong> in copy mode press <kbd>/</kbd>, enter text, press Enter; use <kbd>n</kbd>/<kbd>N</kbd> to navigate matches. <kbd>Esc</kbd> exits copy mode.</li>
 </ol>
-<p><strong>Mouse note:</strong> With <code>set -g mouse on</code> and the mouse bindings above, <b>dragging across ordinary shell output copies to tmux's buffer</b> when you release the button, and also attempts your desktop clipboard. Hold <kbd>Shift</kbd> while dragging if you want your terminal's native selection instead. Mouse-aware programs such as Vim and htop can intercept the event. <strong>If Shift+Y or mouse copying is broken:</strong> first confirm lowercase <kbd>y</kbd> and <kbd>Ctrl+A</kbd> then <kbd>]</kbd> work. Check <code>tmux list-keys -T copy-mode-vi | grep ' Y '</code>, test the desktop clipboard <em>outside</em> tmux (see below), and reload <code>tmux source-file ~/.tmux.conf</code>. Terminal/SSH/VM shared clipboard support varies; a clipboard working on Kali does not automatically imply clipboard sharing with the Windows host.</p>
+<p><strong>Mouse note:</strong> With <code>set -g mouse on</code> and the mouse bindings above, <b>dragging across ordinary shell output copies to tmux's buffer</b> when you release the button, and also attempts your desktop clipboard. Hold <kbd>Shift</kbd> while dragging if you want your terminal's native selection instead. Mouse-aware programs such as Vim and htop can intercept the event. <strong>If y/Y or mouse system copying is broken:</strong> first confirm lowercase <kbd>y</kbd> and <kbd>Ctrl+A</kbd> then <kbd>]</kbd> work. Check <code>tmux list-keys -T copy-mode-vi | grep ' Y '</code>, test the desktop clipboard <em>outside</em> tmux (see below), and reload <code>tmux source-file ~/.tmux.conf</code>. Terminal/SSH/VM shared clipboard support varies; a clipboard working on Kali does not automatically imply clipboard sharing with the Windows host.</p>
 <h4>Desktop clipboard 30-second diagnosis</h4>
 <pre class="ref-code"><code class="language-bash"># Check environment in the SAME terminal where tmux was started:
 printf 'Wayland=%s X11=%s Session=%s\n' "${WAYLAND_DISPLAY:-unset}" "${DISPLAY:-unset}" "${XDG_SESSION_TYPE:-unset}"
