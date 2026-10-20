@@ -17,6 +17,13 @@ jobs:
           node-version: 22
       - name: Build, test, audit, validate
         run: npm run check
+      - name: OSCP tmux configuration runtime gate
+        run: |
+          if ! command -v tmux >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq tmux
+          fi
+          bash tests/tmux-runtime.sh
       - name: Headless browser render gate
         timeout-minutes: 2
         run: npm run browser-smoke
