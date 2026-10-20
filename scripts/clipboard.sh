@@ -24,7 +24,7 @@ case "${1:-}" in
     ;;
   copy)
     case "$(provider)" in
-      x11) exec xclip -selection clipboard -in;;
+      x11) exec xclip -selection clipboard -in >/dev/null;;
       wayland) exec wl-copy --type text/plain;;
       none)
         # tmux already saved the selection internally. Drain it if no display.
