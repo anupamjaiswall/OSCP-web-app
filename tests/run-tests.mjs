@@ -472,4 +472,28 @@ test('Metasploit handler documents repeat callbacks and preserves OSCP scope saf
   'existing exam rule must not change');
 });
 
+
+test('msfvenom payload vs Meterpreter guidance is searchable, matched and OSCP scoped',()=>{
+ const p=read('src/content/00-preface.html');
+ const e=read('src/content/02-enumeration.html');
+ const a=p.indexOf('<h3>msfvenom -p, normal shell vs Meterpreter');
+ const b=p.indexOf('<h3>Metasploit multi/handler',a);
+ ok(a>0&&b>a,'standalone msfvenom/payload decision section exists');
+ const block=p.slice(a,b);
+ for(const term of [
+  '-p</code> in <code>msfvenom</code> means <strong>payload</strong>',
+  'one machine, not one session',
+  'windows/x64/shell_reverse_tcp',
+  'windows/x64/shell/reverse_tcp',
+  'windows/x64/meterpreter/reverse_tcp',
+  'windows/x64/meterpreter_reverse_tcp',
+  'set PAYLOAD windows/x64/shell_reverse_tcp',
+  'set PAYLOAD windows/x64/meterpreter/reverse_tcp',
+  'set ExitOnSession false','run -j','jobs -l','sessions -l',
+  'no session was created','Command shell session N closed',
+  'Official OSCP+ Exam Guide'
+ ])ok(block.includes(term),'missing msfvenom guidance: '+term);
+ ok(e.includes('msfvenom -p chooses a PAYLOAD')&&e.includes('ONLY ONE selected target'),
+  'MSF quick tips retain payload vs one-target distinction');
+});
 console.log('\n'+passed+' tests passed');

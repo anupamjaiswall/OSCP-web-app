@@ -1780,6 +1780,12 @@ msf&gt; use auxiliary/scanner/mssql/mssql_login
 # if after executing _run_ command you are getting unable to load package, then try _msfdb reinit_ in root shell
 
 # ── TIPS ──────────────────────────────────────────────────────
+# PAYLOAD QUICK RULE: msfvenom -p chooses a PAYLOAD (not automatically Meterpreter).
+# windows/x64/shell_reverse_tcp = normal stageless shell, all targets with msfvenom + multi/handler.
+# windows/x64/meterpreter/reverse_tcp = staged Meterpreter, ONLY ONE selected target.
+# Match the exact handler PAYLOAD to msfvenom -p and match LHOST/LPORT.
+# run -j backgrounds the handler; ExitOnSession false keeps the LISTENER alive, not the session.
+# See "msfvenom -p, normal shell vs Meterpreter" in the exam rules reference above.
 # OSCP RULE: Auxiliary/Exploit/Post modules and Meterpreter are limited to ONE target.
 # Even using a module's `check` on a target locks Metasploit usage to that target.
 # Metasploit cannot be used for pivoting.
