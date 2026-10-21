@@ -19,7 +19,7 @@ export HOME="$tmp"
 export TERM=xterm-256color
 tmux -L "$sock" -f "$tmp/.tmux.conf" new-session -d -s oscp_test
 [[ "$(tmux -L "$sock" show-options -gv prefix)" == "C-a" ]]
-[[ "$(tmux -L "$sock" show-options -sv set-clipboard)" == "off" ]]
+[[ "$(tmux -L "$sock" show-options -sv set-clipboard)" == "on" ]]  # terminal OSC52 fallback enabled
 tmux -L "$sock" show-options -gv status-left | grep -q 'OSCP'
 tmux -L "$sock" show-options -gv pane-active-border-style | grep -q 'colour37'
 tmux -L "$sock" list-keys -T copy-mode-vi y | grep -q 'copy-pipe-and-cancel'
