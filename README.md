@@ -23,14 +23,13 @@ cd OSCP-web-app
 bash install.sh
 bash install.sh --check
 
-# Verify the actual Kali desktop clipboard:
-printf 'oscp-clipboard-test' | ~/bin/clipboard.sh copy
-~/bin/clipboard.sh paste; echo
+# --check performs an actual copy/readback test and restores your previous clipboard.
+# On an already cloned repository: git pull --ff-only && bash install.sh
 ```
 
 The installer installs `~/.tmux.conf`, `~/.tmux-theme.conf` and all the helper scripts under `~/bin/`, creates timestamped backups of existing files, and reloads any running tmux server **without killing exam panes**. Re-running is idempotent. Use `bash install.sh --no-apt --no-plugins` if dependencies and TPM are already handled. The theme uses ordinary fonts and a high-contrast amber/teal palette.
 
-Copy: `Ctrl+A`, `[`, `v`, select, `y`; paste to desktop apps with `Ctrl+V`. Left-drag mouse selection also copies; `Ctrl+A`, `]` pastes inside tmux. The graphical Kali desktop clipboard is not automatically the host clipboard of a virtual machine or SSH client.
+Copy: `Ctrl+A`, `[`, `v`, select, `y` (or `Enter`). Paste into desktop apps with `Ctrl+V`, or GUI terminals with `Ctrl+Shift+V`. Mouse selection copies too; `Ctrl+A`, `]` pastes tmux’s internal buffer. The installer refreshes the attached GUI environment and checks a real clipboard roundtrip, restoring the previous clipboard content. OSC52 supports remote/host clipboard copying only when the outer terminal allows it. For a Kali VM, enable guest clipboard integration if you want to paste into the host system. For Android Termux, install the companion Termux:API app.
 
 ## Most useful exam features
 
@@ -40,7 +39,7 @@ Copy: `Ctrl+A`, `[`, `v`, select, `y`; paste to desktop apps with `Ctrl+V`. Left
 - **Service Router:** turns discovered ports/services into a focused enumeration queue.
 - **Unambiguous split panes:** `Ctrl+A` then `|` makes left/right panes (vertical divider), and `Ctrl+A` then `-` makes top/bottom panes (horizontal divider). [`scripts/tmux-splits.conf`](scripts/tmux-splits.conf) is a last-loaded override if your actual tmux bindings are reversed; examples and checks in Section 1.3.
 - **Installable Night Ops tmux setup:** [install.sh](install.sh) restores the amber/teal status bar, active pane highlights, mouse selection, Ctrl+A split bindings, timestamped pane logs, and an isolated target launcher. Existing configuration files are backed up.
-- **Single clipboard bridge:** [scripts/tmux-mouse.conf](scripts/tmux-mouse.conf) uses y/Y/mouse-drag → [scripts/clipboard.sh](scripts/clipboard.sh) → xclip (X11) or wl-copy (Wayland). No conflicting tmux-yank plugin configuration; copying also retains tmux's own buffer.
+- **Desktop + OSC52 clipboard bridge:** [scripts/tmux-mouse.conf](scripts/tmux-mouse.conf) routes y/Y/Enter/mouse drag to [scripts/clipboard.sh](scripts/clipboard.sh) for xclip/xsel (X11), wl-copy (Wayland), or Termux:API. tmux also attempts OSC52 to reach the outer terminal across SSH. No conflicting tmux-yank plugin configuration; copied text remains in tmux’s own buffer.
 - **Emergency clipboard rescue:** `tmux save-buffer - | xclip -selection clipboard` (X11), or `tmux save-buffer - | wl-copy` (Wayland). This requires a populated tmux buffer and a working local graphical display.
 - **Multi-machine tmux OSCP workflow:** one session and folder per machine (standalone/AD); no global `IP` export. Start at Full Reference → **Start here** for the 60-second launch/verify/scan steps.
 - **Fullscreen Full Reference reader:** unified Light/Dark theme for the entire app, including sidebar, top bar, cards, controls and Full Reference; both theme switches stay synchronized and persist locally without changing text wrapping.
