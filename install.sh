@@ -120,6 +120,7 @@ recover_attached_gui_env() {
         ;;
     esac
   done < "/proc/$pid/environ"
+  return 0
 }
 recover_attached_gui_env
 
