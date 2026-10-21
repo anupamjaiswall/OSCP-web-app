@@ -8,7 +8,7 @@ set -euo pipefail
 read_stdin() {
   local value
   value="$(cat && printf '\036')" || return 1
-  CLIP_TEXT="\${value%$'\036'}"
+  CLIP_TEXT="${value%$'\036'}"
 }
 CLIP_TEXT=''
 READ_TEXT=''
@@ -17,15 +17,15 @@ READ_TEXT=''
 routes() {
   if command -v termux-clipboard-set >/dev/null 2>&1 &&
      command -v termux-clipboard-get >/dev/null 2>&1 &&
-     [[ "\${PREFIX:-}" == *com.termux* || -n "\${TERMUX_VERSION:-}" ]]; then
+     [[ "${PREFIX:-}" == *com.termux* || -n "${TERMUX_VERSION:-}" ]]; then
     printf '%s\n' termux
   fi
-  if [[ -n "\${WAYLAND_DISPLAY:-}" ]]; then
+  if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
     if command -v wl-copy >/dev/null 2>&1 && command -v wl-paste >/dev/null 2>&1; then
       printf '%s\n' wayland
     fi
   fi
-  if [[ -n "\${DISPLAY:-}" ]]; then
+  if [[ -n "${DISPLAY:-}" ]]; then
     if command -v xclip >/dev/null 2>&1; then printf '%s\n' xclip; fi
     if command -v xsel >/dev/null 2>&1; then printf '%s\n' xsel; fi
   fi
@@ -52,7 +52,7 @@ read_route() {
 read_into() {
   local value
   value="$(read_route "$1" && printf '\036')" || return 1
-  READ_TEXT="\${value%$'\036'}"
+  READ_TEXT="${value%$'\036'}"
 }
 # Never echo copied content in logs. Try the next provider if the first one
 # exists but its graphical socket is stale or permission-denied.
@@ -83,8 +83,8 @@ paste() {
 check() {
   local r old probe got restored=0 attempted=0
   printf '[OSCP] Clipboard: DISPLAY=%s WAYLAND_DISPLAY=%s XDG_SESSION_TYPE=%s SSH=%s\n' \
-    "\${DISPLAY:-unset}" "\${WAYLAND_DISPLAY:-unset}" "\${XDG_SESSION_TYPE:-unset}" \
-    "\${SSH_CONNECTION:+yes}"
+    "${DISPLAY:-unset}" "${WAYLAND_DISPLAY:-unset}" "${XDG_SESSION_TYPE:-unset}" \
+    "${SSH_CONNECTION:+yes}"
   while IFS= read -r r; do
     [[ -n "$r" ]] || continue
     attempted=1
@@ -93,7 +93,7 @@ check() {
       continue
     fi
     old="$READ_TEXT"
-    probe="OSCP-clipboard-test-$$-\$(date +%s)"
+    probe="OSCP-clipboard-test-$$-$(date +%s)"
     if ! printf '%s' "$probe" | write_route "$r" 2>/dev/null; then
       echo "[OSCP] $r cannot write the desktop clipboard." >&2
       continue
@@ -114,9 +114,9 @@ check() {
   echo '[OSCP] tmux buffer still works. For remote/VM host clipboard, use a terminal with OSC52 support or enable VM clipboard sharing.' >&2
   return 1
 }
-case "\${1:-}" in
+case "${1:-}" in
   copy) copy ;;
   paste) paste ;;
   check|test) check ;;
-  *) echo "Usage: \${0##*/} copy|paste|check" >&2; exit 2 ;;
+  *) echo "Usage: ${0##*/} copy|paste|check" >&2; exit 2 ;;
 esac
