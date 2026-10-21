@@ -238,6 +238,33 @@ test('real scripts/clipboard.sh matches offline notes, loads as bash and has a f
  const noDisplay=spawnSync('bash',['-c',script+'\n'],{input:'',encoding:'utf8',env:{PATH:'/usr/bin:/bin',HOME:'/tmp',WAYLAND_DISPLAY:'',DISPLAY:''}});
  ok(noDisplay.status===2,'reject missing action');
 });
+test('clipboard helper actually copies, restores the original clipboard, and falls back after Wayland failure',()=>{
+ const script=read('scripts/clipboard.sh');
+ const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'oscp-clipboard-regression-'));
+ try{
+  const bin=path.join(tmp,'bin'),store=path.join(tmp,'system-clipboard');
+  fs.mkdirSync(bin);
+  fs.writeFileSync(store,'previous clipboard\n');
+  const fakeXclip=path.join(bin,'xclip');
+  fs.writeFileSync(fakeXclip,'#!/usr/bin/env bash\nset -euo pipefail\nif [[ " $* " == *" -in "* ]]; then cat > "$OSCP_FAKE_CLIP"; elif [[ " $* " == *" -out "* ]]; then cat "$OSCP_FAKE_CLIP"; else exit 2; fi\n',{mode:0o755});
+  for(const app of ['wl-copy','wl-paste']){
+   fs.writeFileSync(path.join(bin,app),'#!/usr/bin/env bash\nexit 1\n',{mode:0o755});
+  }
+  const env={...process.env,PATH:bin+path.delimiter+process.env.PATH,HOME:tmp,DISPLAY:':123',WAYLAND_DISPLAY:'wayland-0',PREFIX:'/usr',TERMUX_VERSION:'',OSCP_FAKE_CLIP:store};
+  const run=(action,input)=>spawnSync('bash',['scripts/clipboard.sh',action],{cwd:root,env,input,encoding:'utf8',timeout:10000});
+  let a=run('copy','tmux selection\n\n');
+  ok(a.status===0,'xclip must be used when broken wl-copy falls back: '+a.stderr);
+  ok(fs.readFileSync(store,'utf8')==='tmux selection\n\n','copy must preserve trailing newlines');
+  a=run('paste');
+  ok(a.status===0&&a.stdout==='tmux selection\n\n','desktop paste must return copied text');
+  a=run('check');
+  ok(a.status===0&&a.stdout.includes('PASS: xclip'),'real clipboard roundtrip: '+a.stderr);
+  ok(fs.readFileSync(store,'utf8')==='tmux selection\n\n','check must restore prior clipboard');
+  a=spawnSync('bash',['scripts/clipboard.sh','check'],{cwd:root,env:{...env,DISPLAY:'',WAYLAND_DISPLAY:''},encoding:'utf8',timeout:10000});
+  ok(a.status!==0&&a.stderr.includes('No local clipboard provider'),'headless failure must be diagnostic');
+  ok(script.includes('termux-clipboard-set')&&script.includes('termux-clipboard-get'),'Android Termux API fallback available');
+ }finally{fs.rmSync(tmp,{recursive:true,force:true})}
+});
 test('tmux splits use correct visual orientation',()=>{
  const ref=read('src/content/02-enumeration.html'),override=read('scripts/tmux-splits.conf').trimEnd(),main=read('scripts/tmux.conf');
  const anchor='<h4>Standalone split-key override (available offline)</h4>';
@@ -337,7 +364,7 @@ test('browser-safe navigation shortcuts do not conflict with feature handlers',(
 test('tmux Vim copy uses one clipboard bridge and Night Ops colors',()=>{
  const ref=read('src/content/02-enumeration.html'),conf=read('scripts/tmux.conf'),mouse=read('scripts/tmux-mouse.conf'),theme=read('scripts/tmux-theme.conf');
  for(const line of ['bind-key -T prefix [ copy-mode','bind-key -T prefix ] paste-buffer','bind-key -T copy-mode-vi v send-keys -X begin-selection','source-file ~/.tmux-theme.conf','source-file ~/bin/tmux-mouse.conf'])ok(conf.includes(line),line);
- ok(mouse.includes('copy-pipe-and-cancel')&&mouse.includes('set-clipboard off'),'single clipboard bridge, no OSC52 collision');
+ ok(mouse.includes('copy-pipe-and-cancel')&&mouse.includes('set-clipboard on')&&conf.includes('set-clipboard on'),'local GUI + optional OSC52 clipboard bridge');
  ok(!conf.includes("tmux-plugins/tmux-yank"),'do not load competing clipboard plugin');
  for(const line of ['pane-active-border-style','window-status-current-format','status-left','status-right','PREFIX','colour172','colour37'])ok(theme.includes(line),'theme missing '+line);
  ok(ref.includes('tmux source-file ~/.tmux.conf')&&ref.includes('tmux show-options -g prefix'),'reload instructions preserved');
