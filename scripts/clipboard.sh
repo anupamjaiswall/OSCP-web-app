@@ -31,21 +31,30 @@ routes() {
   fi
 }
 
+# Prevent a broken X11/Wayland socket or missing Termux:API Android app from
+# hanging an interactive tmux copy indefinitely. coreutils timeout is optional.
+bounded() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout 7s "$@"
+  else
+    "$@"
+  fi
+}
 write_route() {
   case "$1" in
-    termux) termux-clipboard-set ;;
-    wayland) wl-copy --type text/plain ;;
-    xclip) xclip -selection clipboard -in >/dev/null ;;
-    xsel) xsel --clipboard --input >/dev/null ;;
+    termux) bounded termux-clipboard-set ;;
+    wayland) bounded wl-copy --type text/plain ;;
+    xclip) bounded xclip -selection clipboard -in >/dev/null ;;
+    xsel) bounded xsel --clipboard --input >/dev/null ;;
     *) return 1 ;;
   esac
 }
 read_route() {
   case "$1" in
-    termux) termux-clipboard-get ;;
-    wayland) wl-paste --no-newline ;;
-    xclip) xclip -selection clipboard -out ;;
-    xsel) xsel --clipboard --output ;;
+    termux) bounded termux-clipboard-get ;;
+    wayland) bounded wl-paste --no-newline ;;
+    xclip) bounded xclip -selection clipboard -out ;;
+    xsel) bounded xsel --clipboard --output ;;
     *) return 1 ;;
   esac
 }
