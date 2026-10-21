@@ -29,16 +29,18 @@ if (( CHECK )); then
   if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
     echo "tmux prefix: $(tmux show-options -gv prefix)"
     echo "theme status: $(tmux show-options -gv status)"
+    echo "OSC52 set-clipboard: $(tmux show-options -sv set-clipboard)"
     tmux list-keys -T copy-mode-vi y || true
     tmux list-keys -T copy-mode-vi MouseDragEnd1Pane || true
     tmux show-environment -g DISPLAY || true
     tmux show-environment -g WAYLAND_DISPLAY || true
   fi
-  echo 'Real GUI verification: printf "OSCP-TEST" | ~/bin/clipboard.sh copy; ~/bin/clipboard.sh paste'
+  echo '[OSCP] --check runs a real clipboard roundtrip (restores the previous clipboard).'
+  echo '[OSCP] SSH/VM host clipboard also requires OSC52 terminal support or VM clipboard integration.'
   exit 0
 fi
 
-[[ -f "$ROOT/scripts/tmux.conf" && -f "$ROOT/scripts/tmux-theme.conf" ]] || {
+[[ -f "$ROOT/scripts/tmux.conf" && -f "$ROOT/scripts/tmux-theme.conf" && -f "$ROOT/scripts/clipboard.sh" ]] || {
   echo 'Run install.sh from the full repository (not a standalone raw download).' >&2; exit 1;
 }
 if [[ "$EUID" == 0 && -n "${SUDO_USER:-}" ]]; then
@@ -52,6 +54,9 @@ if (( APT )) && command -v apt-get >/dev/null 2>&1; then
   if ! "${runner[@]}" apt-get install -y tmux xclip wl-clipboard xsel moreutils colorized-logs; then
     echo '[OSCP] Warning: apt dependencies incomplete; finish installation manually before exam.' >&2
   fi
+elif (( APT )) && command -v pkg >/dev/null 2>&1; then
+  echo '[OSCP] Termux detected: installing tmux and termux-api command tools...'
+  pkg install -y tmux termux-api || echo '[OSCP] Warning: install Termux:API Android companion app to access the Android clipboard.' >&2
 fi
 
 mkdir -p "$HOME/bin" "$HOME/oscp/logs" "$HOME/oscp/logs-clean"
@@ -96,6 +101,28 @@ if (( PLUGINS )) && command -v git >/dev/null 2>&1; then
   fi
 fi
 
+# When install.sh runs *inside* tmux, the pane can have stale or missing
+# display variables, while its attached GUI client still has the correct ones.
+# Read only the six trusted clipboard-related keys from our own client process.
+recover_attached_gui_env() {
+  [[ -z "${SSH_CONNECTION:-}" ]] || return 0
+  command -v tmux >/dev/null 2>&1 || return 0
+  [[ -n "${TMUX:-}" ]] || return 0
+  local pid entry key value
+  pid="$(tmux display-message -p -F '#{client_pid}' 2>/dev/null || true)"
+  [[ "$pid" =~ ^[0-9]+$ && -r "/proc/$pid/environ" ]] || return 0
+  while IFS= read -r -d '' entry; do
+    key="${entry%%=*}"
+    value="${entry#*=}"
+    case "$key" in
+      DISPLAY|WAYLAND_DISPLAY|XDG_SESSION_TYPE|XDG_RUNTIME_DIR|XAUTHORITY|DBUS_SESSION_BUS_ADDRESS)
+        [[ -n "$value" ]] && export "$key=$value"
+        ;;
+    esac
+  done < "/proc/$pid/environ"
+}
+recover_attached_gui_env
+
 if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
   # Refresh server-side environment used by copy-pipe subprocesses.
   # Never guess :0 or delete good variables on an SSH-only session.
@@ -104,12 +131,21 @@ if command -v tmux >/dev/null 2>&1 && tmux list-sessions >/dev/null 2>&1; then
     if [[ -n "$value" ]]; then tmux set-environment -g "$key" "$value"; fi
   done
   tmux source-file "$HOME/.tmux.conf"
+  # Set critical bindings and OSC52 immediately even in older client sessions.
+  tmux set-option -g prefix C-a
+  tmux bind-key -T prefix C-a send-prefix
+  tmux set-option -s set-clipboard on
   echo "[OSCP] Active tmux server refreshed; no sessions were killed."
 else
   echo '[OSCP] No active tmux server. New sessions will use the theme and bindings.'
 fi
 
+echo '[OSCP] Testing desktop clipboard copy/paste (previous clipboard will be restored)...'
+if ! "$HOME/bin/clipboard.sh" check; then
+  echo '[OSCP] Clipboard unavailable in this shell: tmux OSC52 can reach a compatible terminal, but an SSH client or VM host may require external clipboard sharing.' >&2
+fi
+
 echo '[OSCP] Installation complete. Ctrl+A [ -> v -> y, then GUI Ctrl+V.'
-echo '[OSCP] Mouse drag also copies. Ctrl+A ] pastes inside tmux.'
+echo '[OSCP] Mouse drag also copies. Ctrl+A ] pastes inside tmux; Ctrl+Shift+V pastes into graphical terminals.'
 echo '[OSCP] Run bash install.sh --check to inspect clipboard and shortcuts.'
 echo '[OSCP] Backups are kept next to existing configs with .backup-TIMESTAMP.'
