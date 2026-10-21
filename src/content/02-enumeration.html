@@ -53,7 +53,7 @@ ip -4 -o addr show dev tun0  # run again after connecting the exam VPN
 </details>
 <details id="ref-1-3-tmux-setup-never-work-without-it">
 <summary>🖥️ 1.3 tmux Setup — Night Ops theme, working desktop clipboard, automatic evidence logging</summary>
-<p><strong>One installer, one clipboard implementation, one readable theme.</strong> The previous manual configuration had conflicting clipboard plugins and no active theme. This updated setup installs all scripts, backs up any existing ~/.tmux.conf and ~/.tmux-theme.conf, preserves active sessions, and refreshes the tmux display environment. Install and test on the graphical Kali desktop <strong>before exam day</strong>.</p>
+<p><strong>One installer, one clipboard implementation, one readable theme.</strong> The previous manual configuration had conflicting clipboard plugins and no active theme. This updated setup installs all scripts, backs up any existing ~/.tmux.conf and ~/.tmux-theme.conf, preserves active sessions, and refreshes the tmux display environment. A working provider is confirmed by copying a test string, reading it back and restoring your clipboard. Install and test on the graphical Kali desktop <strong>before exam day</strong>.</p>
 <h3>One-time installation (Kali)</h3>
 <pre class="ref-code" data-copy-plain="true"><code class="language-bash">git clone https://github.com/anupamjaiswall/OSCP-web-app.git
 cd OSCP-web-app
@@ -62,9 +62,10 @@ bash install.sh --check
 # If dependencies are already installed: bash install.sh --no-apt
 # If Git access is restricted: bash install.sh --no-plugins
 # Reload anytime: tmux source-file ~/.tmux.conf
-# Test a harmless clipboard round trip:
-printf 'oscp-clipboard-test' | ~/bin/clipboard.sh copy
-~/bin/clipboard.sh paste; echo</code></pre>
+# Actual roundtrip test, with previous clipboard restored:
+~/bin/clipboard.sh check
+# Emergency X11 fallback from the tmux buffer:
+tmux save-buffer - | xclip -selection clipboard</code></pre>
 <p><b>What is installed:</b> ~/.tmux.conf, ~/.tmux-theme.conf, and ~/bin/clipboard.sh, tmux-mouse.conf, tmux-splits.conf, tmux-log.sh, tmux-start-log.sh, clean-logs.sh, target.sh, fix-tmux-prefix.sh. The installer keeps timestamped backups. It can update a running tmux server without killing sessions.</p>
 <h3>Visual design — OSCP Night Ops</h3>
 <p>Deep charcoal status bar, warm amber OSCP/session label, teal highlighted active window and active pane borders, visible <b>PREFIX</b> indicator, readable pane command labels, clock and host. Uses tmux 256-colour styles and ordinary fonts (no Nerd Fonts or Powerline required). Source theme LAST, after plugins.</p>
@@ -96,74 +97,271 @@ set -g clock-mode-colour colour172
 set -g display-panes-colour colour172
 set -g display-panes-active-colour colour37
 set -g display-time 2500</code></pre>
-<h3>Copy and paste — same in every session</h3>
+<h3>Copy and paste — Kali GUI, SSH and Termux</h3>
 <p><kbd>Ctrl+A</kbd> then <kbd>[</kbd>, press <kbd>v</kbd>, select and press lowercase <kbd>y</kbd> (or uppercase <kbd>Y</kbd>): copies into BOTH the internal tmux buffer and your Kali graphical clipboard. Paste into GUI apps with <kbd>Ctrl+V</kbd> (or terminal <kbd>Ctrl+Shift+V</kbd>); <kbd>Ctrl+A</kbd> then <kbd>]</kbd> pastes from the tmux buffer. Mouse drag and release copies too. Middle click pastes the tmux buffer, except where interactive apps capture the event; <kbd>Shift+drag</kbd> may use terminal-native selection.</p>
-<p>The direct <code>copy-pipe-and-cancel</code> bridge works without tmux-yank, avoiding competing plugin bindings. OSC52 <code>set-clipboard</code> is disabled intentionally to avoid double-copy. X11 requires a working DISPLAY/xclip; Wayland requires WAYLAND_DISPLAY/wl-clipboard. A Kali VM clipboard will not automatically become your Windows host clipboard without VM guest integration.</p>
+<p>The installer now verifies a real clipboard roundtrip and restores the previous clipboard. For Kali GUI, the helper prefers Wayland then X11; Android Termux can use Termux:API when installed. tmux also enables OSC52 for supported SSH/host terminals. These are separate routes to the same clipboard text. A VM may still require bidirectional guest clipboard integration, and some terminals block OSC52 for security.</p>
 <h4>Script source — scripts/clipboard.sh (offline fallback)</h4>
 <p><a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/clipboard.sh">scripts/clipboard.sh</a> is installed by install.sh. Standalone download if necessary:</p>
-<pre class="ref-code" data-copy-plain="true"><code class="language-bash">mkdir -p ~/bin
-curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/clipboard.sh -o ~/bin/clipboard.sh
-chmod 700 ~/bin/clipboard.sh
-~/bin/clipboard.sh check</code></pre>
 <pre class="ref-code" data-copy-plain="true"><code class="language-bash">#!/usr/bin/env bash
-# Clipboard bridge for tmux copy-pipe. No plugin or OSC52 required for local GUI.
+# OSCP clipboard bridge. For tmux copy-pipe; no secret clipboard data is logged.
+# Supports Kali X11/XWayland, Wayland and Android Termux (with Termux:API).
 set -euo pipefail
-provider() {
-  if [[ "${XDG_SESSION_TYPE:-}" == wayland &amp;&amp; -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp;
-      command -v wl-copy &gt;/dev/null &amp;&amp; command -v wl-paste &gt;/dev/null; then
-    echo wayland
-  elif [[ -n "${DISPLAY:-}" ]] &amp;&amp; command -v xclip &gt;/dev/null; then
-    echo x11
-  elif [[ -n "${WAYLAND_DISPLAY:-}" ]] &amp;&amp;
-      command -v wl-copy &gt;/dev/null &amp;&amp; command -v wl-paste &gt;/dev/null; then
-    echo wayland
-  else
-    echo none
+
+# A command substitution drops terminal newlines. Appending a marker first
+# preserves them (text selection cannot contain a NUL byte in Bash variables).
+read_stdin() {
+  local value
+  value="$(cat &amp;&amp; printf '\036')" || return 1
+  CLIP_TEXT="${value%$'\036'}"
+}
+CLIP_TEXT=''
+READ_TEXT=''
+
+# Try Wayland first when present, then X11 (important for XWayland fallbacks).
+routes() {
+  if command -v termux-clipboard-set &gt;/dev/null 2&gt;&amp;1 &amp;&amp;
+     command -v termux-clipboard-get &gt;/dev/null 2&gt;&amp;1 &amp;&amp;
+     [[ "${PREFIX:-}" == *com.termux* || -n "${TERMUX_VERSION:-}" ]]; then
+    printf '%s\n' termux
+  fi
+  if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+    if command -v wl-copy &gt;/dev/null 2&gt;&amp;1 &amp;&amp; command -v wl-paste &gt;/dev/null 2&gt;&amp;1; then
+      printf '%s\n' wayland
+    fi
+  fi
+  if [[ -n "${DISPLAY:-}" ]]; then
+    if command -v xclip &gt;/dev/null 2&gt;&amp;1; then printf '%s\n' xclip; fi
+    if command -v xsel &gt;/dev/null 2&gt;&amp;1; then printf '%s\n' xsel; fi
   fi
 }
+
+write_route() {
+  case "$1" in
+    termux) termux-clipboard-set ;;
+    wayland) wl-copy --type text/plain ;;
+    xclip) xclip -selection clipboard -in &gt;/dev/null ;;
+    xsel) xsel --clipboard --input &gt;/dev/null ;;
+    *) return 1 ;;
+  esac
+}
+read_route() {
+  case "$1" in
+    termux) termux-clipboard-get ;;
+    wayland) wl-paste --no-newline ;;
+    xclip) xclip -selection clipboard -out ;;
+    xsel) xsel --clipboard --output ;;
+    *) return 1 ;;
+  esac
+}
+read_into() {
+  local value
+  value="$(read_route "$1" &amp;&amp; printf '\036')" || return 1
+  READ_TEXT="${value%$'\036'}"
+}
+# Never echo copied content in logs. Try the next provider if the first one
+# exists but its graphical socket is stale or permission-denied.
+copy() {
+  local r
+  read_stdin
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    if printf '%s' "$CLIP_TEXT" | write_route "$r" 2&gt;/dev/null; then
+      return 0
+    fi
+  done &lt; &lt;(routes)
+  printf '%s\n' '[OSCP] Local clipboard unavailable. tmux buffer is retained; OSC52 may still work in a compatible terminal.' &gt;&amp;2
+  return 1
+}
+paste() {
+  local r
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    if read_route "$r" 2&gt;/dev/null; then return 0; fi
+  done &lt; &lt;(routes)
+  printf '%s\n' '[OSCP] Cannot read local system clipboard. Check DISPLAY/WAYLAND_DISPLAY, XAUTHORITY, Termux:API or your SSH terminal.' &gt;&amp;2
+  return 1
+}
+
+# Perform an ACTUAL roundtrip, then immediately restore the pre-test clipboard.
+# A provider that merely has an installed executable is not counted as working.
+check() {
+  local r old probe got restored=0 attempted=0
+  printf '[OSCP] Clipboard: DISPLAY=%s WAYLAND_DISPLAY=%s XDG_SESSION_TYPE=%s SSH=%s\n' \
+    "${DISPLAY:-unset}" "${WAYLAND_DISPLAY:-unset}" "${XDG_SESSION_TYPE:-unset}" \
+    "${SSH_CONNECTION:+yes}"
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    attempted=1
+    if ! read_into "$r" 2&gt;/dev/null; then
+      echo "[OSCP] $r is present, but cannot read the clipboard/session." &gt;&amp;2
+      continue
+    fi
+    old="$READ_TEXT"
+    probe="OSCP-clipboard-test-$$-$(date +%s)"
+    if ! printf '%s' "$probe" | write_route "$r" 2&gt;/dev/null; then
+      echo "[OSCP] $r cannot write the desktop clipboard." &gt;&amp;2
+      continue
+    fi
+    got=''
+    if read_into "$r" 2&gt;/dev/null; then got="$READ_TEXT"; fi
+    # Restore before printing results, even on an unsuccessful verification.
+    if printf '%s' "$old" | write_route "$r" 2&gt;/dev/null; then restored=1; fi
+    if [[ "$got" == "$probe" ]]; then
+      echo "[OSCP] PASS: $r desktop clipboard roundtrip; original clipboard restored=$restored."
+      return 0
+    fi
+    echo "[OSCP] FAIL: $r wrote but clipboard readback mismatched." &gt;&amp;2
+  done &lt; &lt;(routes)
+  if (( attempted == 0 )); then
+    echo '[OSCP] No local clipboard provider in this session.' &gt;&amp;2
+  fi
+  echo '[OSCP] tmux buffer still works. For remote/VM host clipboard, use a terminal with OSC52 support or enable VM clipboard sharing.' &gt;&amp;2
+  return 1
+}
 case "${1:-}" in
-  check)
-    case "$(provider)" in
-      x11) echo 'X11 clipboard: xclip is installed; verify a real copy/paste.';;
-      wayland) echo 'Wayland clipboard: wl-copy/wl-paste installed; verify real copy/paste.';;
-      none) echo 'No graphical clipboard provider. Internal tmux copy still works.' &gt;&amp;2; exit 1;;
-    esac
-    ;;
-  copy)
-    case "$(provider)" in
-      x11) exec xclip -selection clipboard -in &gt;/dev/null;;
-      wayland) exec wl-copy --type text/plain;;
-      none)
-        # tmux already saved the selection internally. Drain it if no display.
-        cat &gt;/dev/null
-        echo 'No graphical clipboard. Check DISPLAY/WAYLAND_DISPLAY.' &gt;&amp;2
-        exit 1
-        ;;
-    esac
-    ;;
-  paste)
-    case "$(provider)" in
-      x11) exec xclip -selection clipboard -out;;
-      wayland) exec wl-paste --no-newline;;
-      none) echo 'No graphical clipboard; use Ctrl+A then ] in tmux.' &gt;&amp;2; exit 1;;
-    esac
-    ;;
-  *) echo "Usage: ${0##*/} copy|paste|check" &gt;&amp;2; exit 2;;
+  copy) copy ;;
+  paste) paste ;;
+  check|test) check ;;
+  *) echo "Usage: ${0##*/} copy|paste|check" &gt;&amp;2; exit 2 ;;
+esac</code></pre>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash">#!/usr/bin/env bash
+# OSCP clipboard bridge. For tmux copy-pipe; no secret clipboard data is logged.
+# Supports Kali X11/XWayland, Wayland and Android Termux (with Termux:API).
+set -euo pipefail
+
+# A command substitution drops terminal newlines. Appending a marker first
+# preserves them (text selection cannot contain a NUL byte in Bash variables).
+read_stdin() {
+  local value
+  value="$(cat &amp;&amp; printf '\036')" || return 1
+  CLIP_TEXT="${value%$'\036'}"
+}
+CLIP_TEXT=''
+READ_TEXT=''
+
+# Try Wayland first when present, then X11 (important for XWayland fallbacks).
+routes() {
+  if command -v termux-clipboard-set &gt;/dev/null 2&gt;&amp;1 &amp;&amp;
+     command -v termux-clipboard-get &gt;/dev/null 2&gt;&amp;1 &amp;&amp;
+     [[ "${PREFIX:-}" == *com.termux* || -n "${TERMUX_VERSION:-}" ]]; then
+    printf '%s\n' termux
+  fi
+  if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+    if command -v wl-copy &gt;/dev/null 2&gt;&amp;1 &amp;&amp; command -v wl-paste &gt;/dev/null 2&gt;&amp;1; then
+      printf '%s\n' wayland
+    fi
+  fi
+  if [[ -n "${DISPLAY:-}" ]]; then
+    if command -v xclip &gt;/dev/null 2&gt;&amp;1; then printf '%s\n' xclip; fi
+    if command -v xsel &gt;/dev/null 2&gt;&amp;1; then printf '%s\n' xsel; fi
+  fi
+}
+
+write_route() {
+  case "$1" in
+    termux) termux-clipboard-set ;;
+    wayland) wl-copy --type text/plain ;;
+    xclip) xclip -selection clipboard -in &gt;/dev/null ;;
+    xsel) xsel --clipboard --input &gt;/dev/null ;;
+    *) return 1 ;;
+  esac
+}
+read_route() {
+  case "$1" in
+    termux) termux-clipboard-get ;;
+    wayland) wl-paste --no-newline ;;
+    xclip) xclip -selection clipboard -out ;;
+    xsel) xsel --clipboard --output ;;
+    *) return 1 ;;
+  esac
+}
+read_into() {
+  local value
+  value="$(read_route "$1" &amp;&amp; printf '\036')" || return 1
+  READ_TEXT="${value%$'\036'}"
+}
+# Never echo copied content in logs. Try the next provider if the first one
+# exists but its graphical socket is stale or permission-denied.
+copy() {
+  local r
+  read_stdin
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    if printf '%s' "$CLIP_TEXT" | write_route "$r" 2&gt;/dev/null; then
+      return 0
+    fi
+  done &lt; &lt;(routes)
+  printf '%s\n' '[OSCP] Local clipboard unavailable. tmux buffer is retained; OSC52 may still work in a compatible terminal.' &gt;&amp;2
+  return 1
+}
+paste() {
+  local r
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    if read_route "$r" 2&gt;/dev/null; then return 0; fi
+  done &lt; &lt;(routes)
+  printf '%s\n' '[OSCP] Cannot read local system clipboard. Check DISPLAY/WAYLAND_DISPLAY, XAUTHORITY, Termux:API or your SSH terminal.' &gt;&amp;2
+  return 1
+}
+
+# Perform an ACTUAL roundtrip, then immediately restore the pre-test clipboard.
+# A provider that merely has an installed executable is not counted as working.
+check() {
+  local r old probe got restored=0 attempted=0
+  printf '[OSCP] Clipboard: DISPLAY=%s WAYLAND_DISPLAY=%s XDG_SESSION_TYPE=%s SSH=%s\n' \
+    "${DISPLAY:-unset}" "${WAYLAND_DISPLAY:-unset}" "${XDG_SESSION_TYPE:-unset}" \
+    "${SSH_CONNECTION:+yes}"
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    attempted=1
+    if ! read_into "$r" 2&gt;/dev/null; then
+      echo "[OSCP] $r is present, but cannot read the clipboard/session." &gt;&amp;2
+      continue
+    fi
+    old="$READ_TEXT"
+    probe="OSCP-clipboard-test-$$-$(date +%s)"
+    if ! printf '%s' "$probe" | write_route "$r" 2&gt;/dev/null; then
+      echo "[OSCP] $r cannot write the desktop clipboard." &gt;&amp;2
+      continue
+    fi
+    got=''
+    if read_into "$r" 2&gt;/dev/null; then got="$READ_TEXT"; fi
+    # Restore before printing results, even on an unsuccessful verification.
+    if printf '%s' "$old" | write_route "$r" 2&gt;/dev/null; then restored=1; fi
+    if [[ "$got" == "$probe" ]]; then
+      echo "[OSCP] PASS: $r desktop clipboard roundtrip; original clipboard restored=$restored."
+      return 0
+    fi
+    echo "[OSCP] FAIL: $r wrote but clipboard readback mismatched." &gt;&amp;2
+  done &lt; &lt;(routes)
+  if (( attempted == 0 )); then
+    echo '[OSCP] No local clipboard provider in this session.' &gt;&amp;2
+  fi
+  echo '[OSCP] tmux buffer still works. For remote/VM host clipboard, use a terminal with OSC52 support or enable VM clipboard sharing.' &gt;&amp;2
+  return 1
+}
+case "${1:-}" in
+  copy) copy ;;
+  paste) paste ;;
+  check|test) check ;;
+  *) echo "Usage: ${0##*/} copy|paste|check" &gt;&amp;2; exit 2 ;;
 esac</code></pre>
 <h4>Standalone mouse config source (available offline)</h4>
 <p><a href="https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-mouse.conf">Download tmux-mouse.conf</a>; normally install.sh installs this to ~/bin/tmux-mouse.conf.</p>
-<pre class="ref-code" data-copy-plain="true"><code class="language-tmux"># One OSCP clipboard mechanism — no tmux-yank binding collisions.
-# y/Y/left-drag copy BOTH to tmux buffer and to Kali desktop clipboard.
-# Ctrl+A then ] pastes tmux buffer. GUI Ctrl+V pastes desktop clipboard.
+<pre class="ref-code" data-copy-plain="true"><code class="language-tmux"># OSCP clipboard: BOTH local graphical clipboard and compatible client/SSH OSC52.
+# Copy-mode always saves tmux's own buffer even if external clipboard is absent.
+# tmux's OSC52 path also reaches a host OS over SSH if the terminal supports it.
+# Kali local copy-pipe uses ~/bin/clipboard.sh (Wayland, X11 or Termux).
 set-option -g mouse on
 set-window-option -g mode-keys vi
-set-option -s set-clipboard off
+set-option -s set-clipboard on
 bind-key -T copy-mode-vi v send-keys -X begin-selection
 bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
 bind-key -T copy-mode-vi Y send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
+bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
 bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
 bind-key -T copy-mode MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel '"$HOME/bin/clipboard.sh" copy'
-# Middle-click tmux paste except in applications (e.g. Vim) requesting mouse.
+# Middle click pastes the tmux buffer; preserve mouse-aware applications.
 bind-key -n MouseDown2Pane select-pane -t= \; if-shell -F '#{||:#{pane_in_mode},#{mouse_any_flag}}' 'send-keys -M' 'paste-buffer -p -t='</code></pre>
 <h3>Full ~/.tmux.conf — canonical installed configuration</h3>
 <p>All copy bindings and visual styling are sourced after optional plugins. The installed file is authoritative; do not paste older tmux-yank fragments over it.</p>
@@ -180,7 +378,11 @@ set-window-option -g automatic-rename off
 set-window-option -g remain-on-exit on
 set-window-option -g mode-keys vi
 set-option -g renumber-windows on
-set-option -s set-clipboard off
+# OSC52 reaches the terminal/host across SSH when that terminal supports it.
+# Local clipboard copies are additionally piped to ~/bin/clipboard.sh.
+set-option -s set-clipboard on
+# On reattach, import fresh GUI variables instead of keeping the old login's.
+set-option -g update-environment 'DISPLAY SSH_ASKPASS SSH_AUTH_SOCK SSH_AGENT_PID SSH_CONNECTION WINDOWID XAUTHORITY WAYLAND_DISPLAY XDG_SESSION_TYPE XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS'
 
 # Ctrl+A then | = side-by-side; Ctrl+A then - = top/bottom.
 bind-key -T prefix | split-window -h -c '#{pane_current_path}'
