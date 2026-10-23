@@ -1,5 +1,13 @@
 # Changelog
 
+## V34.74.0 — 2026-10-23
+
+### Document tmux copy-mode clipboard diagnosis
+- Added a targeted troubleshooting section to OSCP Reference → Section 1.3 for the case where the clipboard helper works in a tmux pane but copy-mode selection does not reach the desktop clipboard.
+- Recorded the confirmed direct-helper test, the unsuccessful temporary `y` binding experiment, and a diagnostic sequence comparing tmux's internal buffer with `xclip`.
+- Clarified that the temporary binding is not a verified fix; preserve the Night Ops theme and avoid rerunning the installer until the failing stage is isolated.
+
+
 ## V34.73.0 — 2026-10-20
 
 ### Repair Kali tmux installer, system clipboard and Night Ops colors
