@@ -100,6 +100,36 @@ set -g display-time 2500</code></pre>
 <h3>Copy and paste — Kali GUI, SSH and Termux</h3>
 <p><kbd>Ctrl+A</kbd> then <kbd>[</kbd>, press <kbd>v</kbd>, select and press lowercase <kbd>y</kbd> (or uppercase <kbd>Y</kbd>): copies into BOTH the internal tmux buffer and your Kali graphical clipboard. Paste into GUI apps with <kbd>Ctrl+V</kbd> (or terminal <kbd>Ctrl+Shift+V</kbd>); <kbd>Ctrl+A</kbd> then <kbd>]</kbd> pastes from the tmux buffer. Mouse drag and release copies too. Middle click pastes the tmux buffer, except where interactive apps capture the event; <kbd>Shift+drag</kbd> may use terminal-native selection.</p>
 <p>The installer now verifies a real clipboard roundtrip and restores the previous clipboard. For Kali GUI, the helper prefers Wayland then X11; Android Termux can use Termux:API when installed. tmux also enables OSC52 for supported SSH/host terminals. These are separate routes to the same clipboard text. A VM may still require bidirectional guest clipboard integration, and some terminals block OSC52 for security.</p>
+
+<h4>Clipboard troubleshooting — when normal copy works but tmux selection does not</h4>
+<p><strong>Observed diagnostic case (Kali X11 / Windows host):</strong> <code>~/bin/clipboard.sh check</code> passed, and running the helper directly inside a tmux pane returned exit code 0; <code>xclip -selection clipboard -o</code> then printed the test string. This confirms the helper and desktop clipboard work from a pane, but does <em>not</em> prove that tmux copy-mode is invoking the helper correctly. A temporary runtime <code>y</code> binding using <code>bash "$HOME/bin/clipboard.sh" copy</code> did not resolve the issue. Do not treat that temporary binding as a permanent fix, and do not rerun the installer just for this symptom.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash"># Run inside the affected tmux pane; direct bridge test
+printf 'TMUX-DIRECT-TEST-123' | "$HOME/bin/clipboard.sh" copy
+echo "Bridge exit code: $?"
+xclip -selection clipboard -o
+echo
+
+# Inspect the server environment and the actual vi copy-mode table
+tmux show-environment -g DISPLAY 2>&1
+tmux show-environment -g XAUTHORITY 2>&1
+tmux list-keys -T copy-mode-vi
+</code></pre>
+<p>If the direct test prints <code>TMUX-DIRECT-TEST-123</code>, continue by separating buffer capture from desktop clipboard transfer:</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash"># First inspect the current internal buffer (it may be old or empty)
+tmux show-buffer
+
+# Enter copy-mode with Ctrl+A then [, select text using Space and movement,
+# then press y. Back at the prompt, inspect both destinations:
+tmux show-buffer
+xclip -selection clipboard -o
+echo</code></pre>
+<ul>
+<li>If <code>tmux show-buffer</code> contains the new selection but <code>xclip</code> is empty or unchanged, focus on the copy-pipe binding/command and its error output.</li>
+<li>If the tmux buffer is empty or unchanged, focus on entering copy-mode, making a selection, the active key table (<code>copy-mode-vi</code> versus <code>copy-mode</code>), and the binding shown by <code>tmux list-keys</code>.</li>
+<li>If the direct bridge test fails only inside tmux, compare the pane environment and tmux server environment (<code>DISPLAY</code>, <code>XAUTHORITY</code>, and <code>WAYLAND_DISPLAY</code>) before changing configuration.</li>
+</ul>
+<p>Make one targeted change at a time and retest. Keep the Night Ops theme and existing backups intact; only make a persistent config edit after the failing stage is identified.</p>
+
 <h4>Script source — scripts/clipboard.sh (offline fallback)</h4>
 <p><a href="https://github.com/anupamjaiswall/OSCP-web-app/blob/main/scripts/clipboard.sh">scripts/clipboard.sh</a> is installed by install.sh. Standalone download if necessary:</p>
 <pre class="ref-code" data-copy-plain="true"><code class="language-bash">mkdir -p ~/bin
