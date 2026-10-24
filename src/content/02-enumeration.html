@@ -2,6 +2,7 @@
 <div class="refExamQuickstart">
 <h3>60-second multi-machine workflow</h3>
 <p><strong>One target = one tmux session + one folder.</strong> Never use a persistent/global <code>export IP</code> for the entire OSCP exam. Use <code>~/bin/target.sh</code> (installed and tested before the exam) to set per-session variables.</p>
+<p><strong>Launch syntax:</strong> run the script directly from your normal shell, <code>~/bin/target.sh 192.168.132.169</code> (or <code>target.sh 192.168.132.169</code> if <code>~/bin</code> is on <code>PATH</code>). <strong>Do not prefix it with <code>tmux</code>.</strong> The script itself creates the per-target tmux session and attaches/switches to it. Running <code>tmux target.sh 192.168.132.169</code> asks tmux to execute a tmux command named <code>target.sh</code>; it does not launch the shell script and can produce <code>no server running on /tmp/tmux-UID/default</code> when no server exists.</p>
 <pre class="ref-code"><code class="language-bash"># Run ONE command, then detach (Ctrl+A, d) or use another terminal
 ~/bin/target.sh 10.10.10.5 --lport 4444
 ~/bin/target.sh 10.10.10.6 --lport 4445
@@ -530,6 +531,7 @@ rusthound-ce -h 2&gt;/dev/null | head
 <details id="ref-exam-tmux-operator-runbook">
 <summary>🖥️ During exam: target sessions + logs (quick reference)</summary>
 <p><b>Do not reinstall tmux/plugins or rewrite scripts during the exam.</b> Setup and verification belongs in <a href="#ref-1-3-tmux-setup-never-work-without-it">Pre-Engagement → 1.3 tmux Setup</a>. Use the already-tested <code>target.sh</code> and tmux bindings.</p>
+<p><strong>Correct launch command (from an ordinary shell, not by typing <code>tmux target.sh ...</code>):</strong> <code>~/bin/target.sh 192.168.132.169</code>. This script creates its own named session and then attaches to it; you do not need to start a tmux server/session manually first. If you see <code>no server running on /tmp/tmux-1000/default</code> after entering <code>tmux target.sh ...</code>, rerun the script directly as above. If the direct script command still fails, capture its full output and inspect <code>tmux -V</code>, <code>echo "${TMUX:-unset}"</code>, and <code>sed -n '1,200p' ~/bin/target.sh</code> before changing configuration.</p>
 <h3>Multi-machine exam desk — launch one tmux session per target</h3>
 <p><b>Quick path first:</b> use <a href="#ref-0-v5-navigation-note">Start Here</a> for the minimum commands. The following contains optional session-management and logging details. IPs shown are examples from a fictional lab, not exam assignments. <code>target.sh</code> only sets up the workspace: it does not scan or connect to a target.</p>
 <p><b>Important:</b> each <code>target.sh</code> call attaches/switches to a session. Detach with <kbd>Ctrl+A</kbd>, then <kbd>d</kbd>, or use a second terminal <em>before launching the next session</em>; do not paste the entire sequence into a single attached shell.</p>
