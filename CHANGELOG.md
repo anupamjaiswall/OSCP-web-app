@@ -1,3 +1,10 @@
+## V34.75.0 — 2026-10-24
+
+### Clarify target.sh launch and missing tmux server error
+- Added explicit instructions in Start Here and the During Exam tmux runbook to execute `~/bin/target.sh <IP>` directly from a normal shell, without prefixing it with `tmux`.
+- Explained that `target.sh` creates and attaches to its own per-target tmux session, so users do not need to start a tmux server manually first.
+- Added troubleshooting for `no server running on /tmp/tmux-UID/default` when the script is incorrectly invoked as `tmux target.sh ...`, while preserving the per-target session, Night Ops theme, bindings and clipboard setup.
+
 # Changelog
 
 ## V34.74.0 — 2026-10-23
