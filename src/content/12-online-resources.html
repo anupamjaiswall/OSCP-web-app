@@ -103,3 +103,27 @@ THEN test the smallest reversible path</code></pre>
 </ol>
 <p>Then use the tool-specific docs: NetExec, Certipy, BloodHound and Ligolo-ng.</p>
 </details>
+
+<details id="ref-22-10-workflow-toolkits-ad-mindmap">
+<summary>🧭 22.10 Workflow Toolkits &amp; Active Directory Mindmap</summary>
+<p><code>[ONLINE:WORKFLOW] [TOOLS:CHEATSHEET] [AD:MINDMAP] [EXAM:VERIFY]</code></p>
+<p>These resources are useful as <strong>secondary navigation aids</strong>: use their layout and checklists to decide what to test next, then validate the result against evidence from the target and the current exam rules. They complement this app; they do not replace its OSCP-specific decision gates.</p>
+<table class="ref-table"><thead><tr><th>Resource</th><th>Best use</th><th>Link</th></tr></thead><tbody>
+<tr><td><strong>getSH — tool cheatsheet</strong></td><td>Quickly look up a tool's purpose or command syntax. Treat it as a syntax reminder, not proof that a technique fits the target.</td><td><a href="https://lizajose.github.io/getSH/tool-cheatsheet" target="_blank" rel="noopener noreferrer">Open tool cheatsheet ↗</a></td></tr>
+<tr><td><strong>getSH — OSCP notes repository</strong></td><td>Browse the wider notes structure and compare its organization with your own offline notes.</td><td><a href="https://github.com/lizajose/getSH" target="_blank" rel="noopener noreferrer">Open GitHub repository ↗</a></td></tr>
+<tr><td><strong>Aardwolf CTF-Toolkit — web launcher</strong></td><td>Explore a workflow-led toolkit organized around enumeration, service-specific tracks and follow-on actions. Use only features permitted by the current OSCP rules.</td><td><a href="https://aardwolfsecurityltd.github.io/CTF-Toolkit/" target="_blank" rel="noopener noreferrer">Open toolkit ↗</a></td></tr>
+<tr><td><strong>Aardwolf CTF-Toolkit — source repository</strong></td><td>Inspect the toolkit's methodology, offline-first approach and command-reference organization.</td><td><a href="https://github.com/aardwolfsecurityltd/CTF-Toolkit" target="_blank" rel="noopener noreferrer">Open GitHub repository ↗</a></td></tr>
+<tr><td><strong>Orange Cyberdefense — Active Directory mindmap (SVG)</strong></td><td>Visual overview of AD attack-path concepts; use it to spot a branch you have not investigated, then verify prerequisites and the specific edge with your own enumeration.</td><td><a href="https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_dark_classic_2025.03.excalidraw.svg" target="_blank" rel="noopener noreferrer">Open AD mindmap ↗</a></td></tr>
+<tr><td><strong>Orange Cyberdefense — mindmaps repository</strong></td><td>Find related mindmaps and updated source context.</td><td><a href="https://github.com/Orange-Cyberdefense/ocd-mindmaps" target="_blank" rel="noopener noreferrer">Open GitHub repository ↗</a></td></tr>
+</tbody></table>
+<h3>Convert a reference into an OSCP-safe next action</h3>
+<pre class="ref-code"><code class="language-text">1. OBSERVE: record the port, service, identity, permission or exact error.
+2. HYPOTHESIZE: choose one plausible path from the reference.
+3. CHECK PREREQUISITES: versions, rights, reachability, configuration and tool availability.
+4. VALIDATE: run the smallest non-destructive, in-scope check first.
+5. PROVE: capture command/output and the resulting access or privilege.
+6. RE-ENUMERATE: new credential or access? Revisit relevant services and AD edges.
+7. PARK: if prerequisites are absent or the path is speculative, log it and move on.</code></pre>
+<p><strong>AD reminder:</strong> a mindmap is a branch checklist, not a linear exploit recipe. For each candidate edge, record the source principal, target object, required right, evidence, validation command and outcome. Do not assume every branch is available in the exam environment.</p>
+<p><strong>Exam boundary:</strong> pre-exam browsing is for preparing notes. During the exam, follow the current OffSec Exam Guide, FAQ and Control Panel; do not use prohibited automation or AI features, and never upload target secrets or evidence to third-party sites.</p>
+</details>
