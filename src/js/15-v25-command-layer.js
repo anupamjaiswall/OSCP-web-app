@@ -122,8 +122,49 @@
    },true);
  }
 
+
+ function setupVariableBuilder(){
+   const command=$id('guardCommand');if(!command||$id('oscpVariableBuilder'))return;
+   const host=command.closest('.card');if(!host)return;
+   const style=document.createElement('style');style.id='oscpVariableBuilderStyles';
+   style.textContent='#oscpVariableBuilder{margin-top:14px;padding:12px;border:1px solid var(--line,#344052);border-radius:12px;background:var(--panel2,#111722)}#oscpVariableBuilder .ovb-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}#oscpVariableBuilder label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted,#aab4c4)}#oscpVariableBuilder input,#oscpVariableBuilder textarea{width:100%;min-width:0}#oscpVariableBuilder textarea{min-height:88px}#oscpVariableBuilder .ovb-actions{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}#oscpVariableBuilder .ovb-help{font-size:12px;color:var(--muted,#aab4c4);margin-top:6px}@media(max-width:650px){#oscpVariableBuilder .ovb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}';
+   document.head.appendChild(style);
+   const panel=document.createElement('section');panel.id='oscpVariableBuilder';
+   panel.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><strong>⚙️ Context-aware command template</strong><span class="tiny">LOCAL ONLY · NEVER EXECUTES</span></div><p class="ovb-help">Set common non-secret values once for this page session. Use {{RHOST}}, {{LHOST}}, {{LPORT}}, {{DOMAIN}}, {{USER}}, {{URL}}, or {{PORT}} in a command template. Passwords and hashes are intentionally not stored here.</p><div class="ovb-grid"><label>RHOST / target IP<input id="ovbRhost" autocomplete="off" placeholder="Target IP"></label><label>LHOST / callback IP<input id="ovbLhost" autocomplete="off" placeholder="Your VPN IP"></label><label>LPORT<input id="ovbLport" autocomplete="off" value="4444"></label><label>DOMAIN<input id="ovbDomain" autocomplete="off" placeholder="corp.local"></label><label>USER<input id="ovbUser" autocomplete="off" placeholder="username"></label><label>PORT / service port<input id="ovbPort" autocomplete="off" placeholder="445"></label><label style="grid-column:1/-1">URL / base URL<input id="ovbUrl" autocomplete="off" placeholder="http://target/"></label></div><label>Command template<textarea id="ovbTemplate" spellcheck="false" placeholder="Example: nmap -Pn -p {{PORT}} {{RHOST}}"></textarea></label><div class="ovb-actions"><button class="btn" id="ovbFillTarget" type="button">Fill from active target</button><button class="btn primary" id="ovbExpand" type="button">Expand → command linter</button><button class="btn" id="ovbCopy" type="button">Copy expanded command</button></div><div id="ovbStatus" class="ovb-help" role="status" aria-live="polite">Values are kept in memory only and cleared on reload.</div><label>Expanded preview<textarea id="ovbPreview" readonly spellcheck="false" placeholder="Expanded command appears here."></textarea></label>';
+   command.insertAdjacentElement('afterend',panel);
+   const val=id=>$id(id)?.value.trim()||'';
+   const vars=()=>({RHOST:val('ovbRhost'),LHOST:val('ovbLhost'),LPORT:val('ovbLport'),DOMAIN:val('ovbDomain'),USER:val('ovbUser'),URL:val('ovbUrl'),PORT:val('ovbPort')});
+   const expand=()=>{
+     const template=val('ovbTemplate'),v=vars();let unresolved=[];
+     const out=template.replace(/\{\{([A-Z][A-Z0-9_]*)\}\}/g,(whole,key)=>{if(!(key in v)){unresolved.push(key);return whole}if(!v[key]){unresolved.push(key);return whole}return v[key]});
+     $id('ovbPreview').value=out;
+     const missing=[...new Set(unresolved)];
+     $id('ovbStatus').textContent=missing.length?'Unresolved placeholders: '+missing.map(x=>'{{'+x+'}}').join(', ')+'. Fill them before use.':'Expanded locally. Review the exact command and run the normal command linter before use.';
+     return {out,missing};
+   };
+   $id('ovbFillTarget').addEventListener('click',()=>{
+     try{const t=typeof activeTarget==='function'?activeTarget():null;if(t){$id('ovbRhost').value=t.ip||t.host||'';$id('ovbUrl').value=t.host?'http://'+t.host+'/':(t.ip?'http://'+t.ip+'/':'');$id('ovbStatus').textContent='Filled target IP/hostname from the active workspace. Verify scheme, vhost and port manually.'}else{$id('ovbStatus').textContent='No active target found. Open Per-Target Workspace and select a target.'}}catch(_){$id('ovbStatus').textContent='Could not read active target. Fill values manually.'}
+     try{const l=$id('guardLhost')?.value.trim();if(l)$id('ovbLhost').value=l}catch(_){}
+     expand();
+   });
+   $id('guardLhost')?.addEventListener('change',()=>{if(!$id('ovbLhost').value.trim())$id('ovbLhost').value=$id('guardLhost').value.trim()});
+   $id('ovbExpand').addEventListener('click',()=>{
+     const r=expand();if(r.missing.length){if(typeof toast==='function')toast('Fill unresolved placeholders first');return}
+     command.value=r.out;command.dispatchEvent(new Event('input',{bubbles:true}));command.dispatchEvent(new Event('change',{bubbles:true}));
+     $id('guardResults')?.scrollIntoView({block:'nearest',behavior:'smooth'});
+     if(typeof toast==='function')toast('Expanded into command linter — review before use');
+   });
+   $id('ovbCopy').addEventListener('click',async()=>{
+     const r=expand();if(r.missing.length){if(typeof toast==='function')toast('Fill unresolved placeholders first');return}
+     const ok=typeof copyText==='function'?await copyText(r.out):false;
+     if(typeof toast==='function')toast(ok?'Expanded command copied':'Clipboard blocked');
+   });
+   panel.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input',()=>{if(el.id!=='ovbPreview')expand()}));
+   try{if(typeof V16_SELF_TESTS!=='undefined')V16_SELF_TESTS.push(['Context-aware command template',()=>[!!$id('oscpVariableBuilder')&&!!$id('ovbExpand')&&!!$id('ovbPreview'),'session-only variable expansion']])}catch(_){}
+ }
+
  function start(){
-   setupRouter();setupNote();setupSolo();addReaderNoteButton();setupKeys();
+   setupRouter();setupNote();setupSolo();addReaderNoteButton();setupKeys();setupVariableBuilder();
    $id('topTargetContext')?.addEventListener('click',()=>switchView('workspaceView'));
    renderTopContext();setInterval(renderTopContext,2000);
    try{
