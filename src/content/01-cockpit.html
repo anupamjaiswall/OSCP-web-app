@@ -982,3 +982,23 @@ AUTH SUCCESS WITHOUT ADMIN SIGNAL
 <p><strong>Rule:</strong> do not read Layer 2 sequentially during the exam.<br/>
 Search a tag or exact observation, use the relevant deep section, then return to the Cockpit.</p>
 </blockquote>
+
+<hr/>
+<h2 id="ref-c16-reference-driven-next-action-loop">C16. REFERENCE-DRIVEN NEXT-ACTION LOOP</h2>
+<p><code>[WORKFLOW:LOOP] [OUTPUT:TRIAGE] [AD:FLOW] [EXAM:FOCUS]</code></p>
+<p>Use external cheatsheets and mindmaps as <strong>branch finders</strong>, not as scripts to run blindly. The goal is to turn each observation into one testable hypothesis, preserve evidence and avoid spending exam time on branches whose prerequisites are missing.</p>
+<pre class="ref-code"><code class="language-text">OBSERVATION → HYPOTHESIS → PREREQUISITES → SMALLEST VALIDATION
+      ↓                                          ↓
+ record evidence                         success / failure
+      ↓                                          ↓
+new access, credential or privilege? ← re-enumerate relevant surfaces
+      ↓ no
+park with reason → choose next highest-signal check</code></pre>
+<ul>
+<li><strong>Scan/enum result:</strong> map each open service to its own short track; don't run every technique against every port.</li>
+<li><strong>Tool output:</strong> distinguish a confirmed finding from a hint; manually validate high-signal results.</li>
+<li><strong>Active Directory:</strong> treat a mindmap as a list of possible relationships. Confirm principals, rights, target object and prerequisites before following an edge.</li>
+<li><strong>Time control:</strong> if a path has no concrete evidence or cannot be validated quickly, record what is missing and rotate to another service.</li>
+<li><strong>Evidence:</strong> preserve the exact command, meaningful output and proof needed for the report as you go.</li>
+</ul>
+<p>For the linked external toolkits, see <a href="#ref-22-10-workflow-toolkits-ad-mindmap">22.10 Workflow Toolkits &amp; Active Directory Mindmap</a> in the Online Resource Desk.</p>
