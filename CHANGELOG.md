@@ -1,3 +1,9 @@
+## V34.76.0 — 2026-10-25
+
+### Add context-aware command template expansion
+- Added a session-only command template helper to the command linter with target, callback, domain, user, URL and port placeholders.
+- Added active-target autofill and a review-before-use flow into the existing command linter; expansion is local, never executes commands, and deliberately avoids storing passwords or hashes.
+
 ## V34.75.0 — 2026-10-24
 
 ### Clarify target.sh launch and missing tmux server error
