@@ -529,4 +529,14 @@ test('msfvenom payload vs Meterpreter guidance is searchable, matched and OSCP s
  ok(e.includes('msfvenom -p chooses a PAYLOAD')&&e.includes('ONLY ONE selected target'),
   'MSF quick tips retain payload vs one-target distinction');
 });
+test('tmux socket and recovery state are configured outside /tmp',()=>{
+ const conf=read('scripts/tmux.conf'),installer=read('install.sh'),doc=read('src/content/02-enumeration.html');
+ ok(conf.includes("@resurrect-dir '~/.local/share/tmux/resurrect'"));
+ ok(conf.includes("@plugin 'tmux-plugins/tmux-continuum'"));
+ ok(conf.includes("@continuum-restore 'on'")&&conf.includes("@continuum-save-interval '15'"));
+ ok(installer.includes('export TMUX_TMPDIR="$HOME/.local/state/tmux"'));
+ ok(installer.includes('persist_socket_dir="$HOME/.local/state/tmux"'));
+ ok(doc.includes('Persistent tmux socket + reboot recovery')&&doc.includes('cannot keep the server process alive through a reboot'));
+});
+
 console.log('\n'+passed+' tests passed');
