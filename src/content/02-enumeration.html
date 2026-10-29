@@ -330,14 +330,36 @@ set-hook -g after-new-session 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_
 set-hook -g after-new-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
 set-hook -g after-split-window 'run-shell -b "$HOME/bin/tmux-start-log.sh #{pane_id}"'
 
-# Optional session recovery plugin; clipboard is handled directly, never by yank.
+# Persistent recovery data lives under the home directory, not /tmp.
+# The socket path is set by TMUX_TMPDIR before the tmux server starts.
+# Reboot recovery restores supported layout/state, not live processes or VPNs.
+set-option -g @resurrect-dir '~/.local/share/tmux/resurrect'
+set-option -g @continuum-restore 'on'
+set-option -g @continuum-save-interval '15'
+
+# TPM plugins; install with Ctrl+A then Shift+I (capital I).
 set-option -g @plugin 'tmux-plugins/tpm'
 set-option -g @plugin 'tmux-plugins/tmux-resurrect'
+set-option -g @plugin 'tmux-plugins/tmux-continuum'
 if-shell 'test -f "$HOME/.tmux/plugins/tpm/tpm"' 'run-shell "$HOME/.tmux/plugins/tpm/tpm"'
 
 # LAST: keep custom clipboard bindings and styles even when plugins load.
 source-file ~/bin/tmux-mouse.conf
 source-file ~/.tmux-theme.conf</code></pre>
+<h3>Persistent tmux socket + reboot recovery</h3>
+<p><strong>Two separate protections:</strong> <code>TMUX_TMPDIR</code> moves the socket for <em>new tmux servers</em> out of volatile <code>/tmp</code>; tmux-resurrect and tmux-continuum save recoverable session layout/state so it can be restored after reboot. A persistent socket directory alone cannot keep the server process alive through a reboot. The installer sets <code>TMUX_TMPDIR="$HOME/.local/state/tmux"</code> in your Bash/Zsh startup file and the recovery snapshots live at <code>~/.local/share/tmux/resurrect/</code>. Open a new terminal before starting a new tmux server. A running server is not moved or killed by this change.</p>
+<pre class="ref-code" data-copy-plain="true"><code class="language-bash"># Install/update the setup; this creates private persistent directories
+bash install.sh
+# Open a new terminal, then confirm the environment before starting tmux
+printf 'TMUX_TMPDIR=%s\n' "${TMUX_TMPDIR:-unset}"
+mkdir -p ~/.local/state/tmux ~/.local/share/tmux/resurrect
+find ~/.local/share/tmux/resurrect -maxdepth 1 -type f -ls
+
+# Inside tmux: Ctrl+A, then Shift+I to install the listed TPM plugins.
+# Manual save: Ctrl+A, then Ctrl+S (prefix + C-s; hold Ctrl for S).
+# Restore: Ctrl+A, then Ctrl+R (prefix + C-r; hold Ctrl for R).
+# Do not confuse these with plain Ctrl+A then S, which saves pane scrollback.</code></pre>
+<p>Continuum saves every 15 minutes and attempts restoration when tmux starts. Verify that a snapshot file exists before rebooting. Restored panes do not resume live commands, listeners, VPN tunnels, or every application's internal state; keep notes, scan output, and evidence in files under <code>~/oscp/</code>. Never assume a listener or scan is still running after recovery.</p>
 <h3>tmux pane splitting — visual orientation</h3>
 <p><kbd>Ctrl+A</kbd> then <kbd>|</kbd> = <b>VERTICAL divider</b> (left/right panes). <kbd>Ctrl+A</kbd> then <kbd>-</kbd> = <b>HORIZONTAL divider</b> (top/bottom panes). The source LAST override below repairs plugins that swap them.</p>
 <pre class="ref-code" data-copy-plain="true"><code class="language-bash">curl -fL https://raw.githubusercontent.com/anupamjaiswall/OSCP-web-app/main/scripts/tmux-splits.conf -o ~/bin/tmux-splits.conf
