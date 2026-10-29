@@ -31,6 +31,14 @@ The installer installs `~/.tmux.conf`, `~/.tmux-theme.conf` and all the helper s
 
 Copy: `Ctrl+A`, `[`, `v`, select, `y` (or `Enter`). Paste into desktop apps with `Ctrl+V`, or GUI terminals with `Ctrl+Shift+V`. Mouse selection copies too; `Ctrl+A`, `]` pastes tmux’s internal buffer. The installer refreshes the attached GUI environment and checks a real clipboard roundtrip, restoring the previous clipboard content. OSC52 supports remote/host clipboard copying only when the outer terminal allows it. For a Kali VM, enable guest clipboard integration if you want to paste into the host system. For Android Termux, install the companion Termux:API app.
 
+## Persistent tmux sockets and reboot recovery
+
+The installer configures **new tmux servers** to use `~/.local/state/tmux/` instead of `/tmp/tmux-UID/`, and stores recovery snapshots in `~/.local/share/tmux/resurrect/`. It adds `TMUX_TMPDIR="$HOME/.local/state/tmux"` to the user's Bash or Zsh startup file. Open a new terminal (or source the relevant startup file) before starting tmux. A running tmux server cannot have its socket moved in place.
+
+**A persistent socket directory does not keep a tmux server alive through a reboot.** Reboot recovery depends on tmux-resurrect + tmux-continuum. The configuration enables 15-minute automatic snapshots and restore-on-start. Install the plugins from inside tmux with `Ctrl+A`, then capital `I` (Shift+I). Test a manual save with `Ctrl+A`, then `Ctrl+Ctrl+S` (tmux's `prefix + C-s`); restore with `Ctrl+A`, then `Ctrl+Ctrl+R` (`prefix + C-r`). These are Control-key chords after the prefix, not the plain uppercase `S` scrollback-save binding.
+
+Recovery restores supported layout and shell state; it does **not** resume live processes, VPN tunnels, listeners, or every terminal application's state. Keep notes, scan output, and evidence in files under `~/oscp/`. Verify a snapshot exists before relying on reboot recovery.
+
 ## Most useful exam features
 
 - **Global Search:** typo-tolerant search across the app and methodology.
