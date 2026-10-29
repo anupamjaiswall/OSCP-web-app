@@ -18,6 +18,8 @@ done
 
 if (( CHECK )); then
   echo "Clipboard environment: DISPLAY=${DISPLAY:-unset} WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-unset} XDG_SESSION_TYPE=${XDG_SESSION_TYPE:-unset}"
+  echo "tmux socket directory for new servers: ${TMUX_TMPDIR:-/tmp}"
+  echo "tmux recovery directory: $HOME/.local/share/tmux/resurrect"
   for cmd in tmux xclip wl-copy wl-paste ts; do
     if command -v "$cmd" >/dev/null 2>&1; then echo "OK: $cmd"; else echo "Missing (or optional): $cmd"; fi
   done
@@ -62,6 +64,24 @@ fi
 mkdir -p "$HOME/bin" "$HOME/oscp/logs" "$HOME/oscp/logs-clean"
 chmod 700 "$HOME/oscp/logs" "$HOME/oscp/logs-clean"
 stamp="$(date +%Y%m%d-%H%M%S)"
+
+# Keep new tmux server sockets and recovery snapshots out of /tmp.
+# TMUX_TMPDIR affects only servers started after this environment is set.
+persist_socket_dir="$HOME/.local/state/tmux"
+persist_recovery_dir="$HOME/.local/share/tmux/resurrect"
+mkdir -p "$persist_socket_dir" "$persist_recovery_dir"
+chmod 700 "$persist_socket_dir" "$HOME/.local/share/tmux" "$persist_recovery_dir"
+case "$(basename "${SHELL:-/bin/bash}")" in
+  zsh) shell_rc="$HOME/.zshrc" ;;
+  *)   shell_rc="$HOME/.bashrc" ;;
+esac
+touch "$shell_rc"
+if ! grep -Fqx 'export TMUX_TMPDIR="$HOME/.local/state/tmux"' "$shell_rc"; then
+  cp -p "$shell_rc" "$shell_rc.backup-$stamp"
+  printf '\n# OSCP: persistent tmux socket directory for new servers\nexport TMUX_TMPDIR="$HOME/.local/state/tmux"\n' >> "$shell_rc"
+  echo "configured persistent TMUX_TMPDIR in $shell_rc"
+fi
+export TMUX_TMPDIR="$persist_socket_dir"
 install_one() {
   local src="$1" dest="$2" mode="$3"
   [[ -f "$src" ]] || { echo "Missing install source $src" >&2; exit 1; }
