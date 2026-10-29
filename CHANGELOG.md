@@ -1,3 +1,11 @@
+## V34.77.0 — 2026-10-29
+
+### Persist tmux recovery outside /tmp
+- Configure new tmux servers to use `~/.local/state/tmux/` through an idempotent Bash/Zsh startup setting; existing live servers are not moved or killed.
+- Configure tmux-resurrect snapshots under `~/.local/share/tmux/resurrect/`, enable tmux-continuum 15-minute saves and automatic restore, and preserve the Night Ops theme, Ctrl+A prefix, clipboard and logging bindings.
+- Document that a persistent socket directory alone cannot preserve a running tmux server through reboot; recovery depends on installed plugins and cannot resume live processes or VPN tunnels.
+- Add installation diagnostics and reboot-recovery verification guidance.
+
 ## V34.76.0 — 2026-10-25
 
 ### Add context-aware command template expansion
