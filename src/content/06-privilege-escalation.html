@@ -1708,7 +1708,16 @@ Get-ItemProperty HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uni
 <h2 id="ref-13-privilege-escalation-windows-every-vector">13. PRIVILEGE ESCALATION --- WINDOWS (EVERY VECTOR)</h2>
 <details id="ref-13-1-automated-tools-run-these-first-2">
 <summary>⚙ 13.1 Automated Tools --- Run These First</summary>
-<pre class="ref-code"><code class="language-powershell"># ── WINPEAS (BEST for Windows) ────────────────────────────────
+<pre class="ref-code"><code class="language-powershell"># ── QUICK MANUAL CHECK (START HERE) ──────────────────────────
+whoami /priv
+whoami /groups
+net user $env:USERNAME
+net localgroup administrators
+systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10 HotFixID,InstalledOn
+# Older Windows fallback (run from CMD): wmic qfe list brief
+
+# ── WINPEAS (BEST for Windows) ────────────────────────────────
 .\winpeas.exe -a -e
 .\winpeas.exe -a -e  # use the matching build for the target architecture
 .\winpeas.exe -a -e | Tee-Object winpeas.txt
@@ -1726,15 +1735,6 @@ Invoke-AllChecks | Out-File -Encoding ASCII powerup_results.txt
 
 # ── WATSON (patch-based privesc) ──────────────────────────────
 .\Watson.exe    # Shows exploitable missing patches
-
-# ── QUICK MANUAL CHECK ────────────────────────────────────────
-whoami /priv
-whoami /groups
-net user %username%
-net localgroup administrators
-systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
-powershell -NoProfile -Command "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10 HotFixID,InstalledOn"
-REM △ Older Windows fallback: wmic qfe list brief
 </code></pre>
 </details>
 <details id="ref-13-2-service-exploits">
