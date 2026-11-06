@@ -599,7 +599,8 @@ state-changing AD abuse
 → checkpoint + rollback + prerequisite first</pre><p class="tiny">Command Guard adds explicit stability/destructive warnings.</p></div>
 
   <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>Windows post-shell workflow</h3><pre>baseline → filesystem triage
-→ PrivEscCheck / WinPEAS (SAVE + READ)
+→ PrivescCheck report (TXT + HTML) / WinPEAS
+powershell -ep bypass -c ". .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML"
 → credentials → privileges
 → services/tasks/registry
 → local-only listeners/apps
