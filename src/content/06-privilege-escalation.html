@@ -1713,8 +1713,22 @@ whoami /groups
 net user $env:USERNAME
 net localgroup administrators
 systeminfo | findstr /B /C:"OS Name" /C:"OS Version"
+# Exact version/build/architecture (PowerShell):
+Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version,BuildNumber,OSArchitecture
+[System.Environment]::OSVersion.Version
 Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10 HotFixID,InstalledOn
 # Older Windows fallback (run from CMD): wmic qfe list brief
+
+# ── OS VERSION / BUILD → KNOWN EXPLOIT CHECK ───────────────────
+# Use the exact OS edition, version, build, architecture and installed hotfixes.
+# Search for public CVEs/PoCs matching THIS build (not just "Windows").
+# Local Exploit-DB lookup, if searchsploit is available:
+searchsploit "Microsoft Windows <version/build>"
+# Cross-check findings: https://www.exploit-db.com/
+# CVE/vendor advisories: https://msrc.microsoft.com/update-guide
+# Verify affected/fixed builds, required privileges, configuration and patch
+# status. A version match alone does NOT prove the host is exploitable.
+# Do not run a PoC until its prerequisites and impact are understood.
 
 # ── WINPEAS (BEST for Windows) ────────────────────────────────
 .\winpeas.exe -a -e
