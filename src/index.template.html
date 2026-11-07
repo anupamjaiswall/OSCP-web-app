@@ -600,7 +600,7 @@ state-changing AD abuse
 
   <div class="v16SignalCard"><span class="v16Tier v16Core">✓ CORE</span><h3>Windows post-shell workflow</h3><pre>baseline → filesystem triage
 → PrivescCheck report (TXT + HTML) / WinPEAS
-powershell -ep bypass -c ". .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& { . .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML }"
 → credentials → privileges
 → services/tasks/registry
 → local-only listeners/apps
