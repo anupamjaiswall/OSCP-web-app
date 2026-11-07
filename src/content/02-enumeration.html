@@ -860,6 +860,11 @@ ftp&gt; get NECESSARY_FILE  # ONLY if this exact file is necessary to compromise
 ftp&gt; put shell.php       # Upload if writable and justified by your attack path
 ftp&gt; passive             # Toggle passive mode if connection issues
 
+# ── QUICK MANUAL DEFAULT-CREDENTIAL CHECK ─────────────────────
+# Also try admin:admin manually when anonymous access is unavailable.
+# At the FTP prompt: Name: admin  |  Password: admin
+# Example: ftp $IP  →  admin  →  admin
+
 # ── LIST FIRST; DO NOT BULK-MIRROR THE SHARE ─────────────────
 # Current OSCP+ guidance forbids downloading exam files/source locally unless
 # necessary to compromise the machine. Enumerate names first, then retrieve only
