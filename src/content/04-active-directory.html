@@ -935,7 +935,7 @@ schtasks /query /fo LIST /v
 sc query
 </code></pre>
 <p>For PrivescCheck, run the report command below, then run WinPEAS/Seatbelt as appropriate and <strong>read the output carefully</strong>.</p>
-<pre class="ref-code"><code class="language-powershell">powershell -ep bypass -c ". .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML"</code></pre>
+<pre class="ref-code"><code class="language-powershell">powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& { . .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML }"</code></pre>
 <p>Recent 2026 pass feedback repeatedly highlights lost time caused by running tools but overlooking their results.</p>
 <h3>"Kitchen sink" does NOT mean random</h3>
 <p>Automated enumeration is useful only after you have a baseline. Keep a short shortlist:</p>
