@@ -1,3 +1,10 @@
+## V34.78.0 — 2026-11-07
+
+### Add Windows OS version and known-exploit triage
+- Added exact Windows edition/version/build/architecture checks to the manual post-shell workflow.
+- Added a SearchSploit lookup pattern and trusted Exploit-DB / Microsoft Security Response Center references.
+- Emphasized matching the exact build and hotfix state, validating prerequisites, and treating version matches as leads rather than proof.
+
 ## V34.77.0 — 2026-10-29
 
 ### Persist tmux recovery outside /tmp
