@@ -1088,24 +1088,24 @@ ffuf -u "$WEB_URL/FUZZ" \
 
 # ── MANUAL CHECKS (do these by hand!) ────────────────────────
 # Essential paths to always check:
-curl -s "$WEB_URL/robots.txt
-curl -s "$WEB_URL/sitemap.xml
-curl -s "$WEB_URL/.git/HEAD            # Exposed git repo!
-curl -s "$WEB_URL/.git/config
+curl -s "$WEB_URL/robots.txt"
+curl -s "$WEB_URL/sitemap.xml"
+curl -s "$WEB_URL/.git/HEAD"            # Exposed git repo!
+curl -s "$WEB_URL/.git/config"
 # Rule note: do not reconstruct/download exposed source locally unless it is necessary
 # to compromise this target; delete the local copy after the objective.
-curl -s "$WEB_URL/.env                 # Environment vars
-curl -s "$WEB_URL/config.php
-curl -s "$WEB_URL/phpinfo.php
-curl -s "$WEB_URL/wp-config.php
-curl -s "$WEB_URL/web.config
-curl -s "$WEB_URL/.htaccess
-curl -s "$WEB_URL/backup.zip
+curl -s "$WEB_URL/.env"                 # Environment vars
+curl -s "$WEB_URL/config.php"
+curl -s "$WEB_URL/phpinfo.php"
+curl -s "$WEB_URL/wp-config.php"
+curl -s "$WEB_URL/web.config"
+curl -s "$WEB_URL/.htaccess"
+curl -s "$WEB_URL/backup.zip"
 curl -s "$WEB_URL/admin/"
-curl -s "$WEB_URL/api/
-curl -s "$WEB_URL/swagger.json         # API docs
-curl -s "$WEB_URL/api/swagger.json
-curl -s "$WEB_URL/server-status        # Apache status
+curl -s "$WEB_URL/api/"
+curl -s "$WEB_URL/swagger.json"         # API docs
+curl -s "$WEB_URL/api/"swagger.json
+curl -s "$WEB_URL/server-status"        # Apache status
 
 # ── VHOST / SUBDOMAIN DISCOVERY ──────────────────────────────
 # If domain name is known:
