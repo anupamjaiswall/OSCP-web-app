@@ -1395,6 +1395,7 @@ snmpwalk -c public -v2c $IP NET-SNMP-EXTEND-MIB::nsExtendOutputFull
 <summary>🗄️ 4.11 MySQL --- Port 3306</summary>
 <p><code>[PORT:3306] [SERVICE:MYSQL]</code></p>
 <pre class="ref-code"><code class="language-bash"># ── CONNECT ───────────────────────────────────────────────────
+rdesktop $IP                                      # Basic RDP connection (port 3389)
 mysql -h $IP -u root -p
 mysql -h $IP -u root --password=''
 mysql -h $IP -u root --password=root
