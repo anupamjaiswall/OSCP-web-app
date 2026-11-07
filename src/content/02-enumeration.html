@@ -1096,7 +1096,60 @@ curl -s "$WEB_URL/.git/config"
 # to compromise this target; delete the local copy after the objective.
 curl -s "$WEB_URL/.env"                 # Environment vars
 curl -s "$WEB_URL/config.php"
-curl -s "$WEB_URL/phpinfo.php"
+curl -s "$WEB_URL/phpinfo.php"          # PHP configuration / environment disclosure
+
+# ── IF PHPINFO IS EXPOSED: READ THIS CHECKLIST ────────────────
+# VERSION / BUILD
+# [ ] PHP version: search exact version + OS/package revision for CVEs.
+# [ ] Server API: Apache module, CGI/FastCGI, etc. (changes execution context).
+# [ ] Build date, compiler, OS and architecture (32/64-bit).
+# [ ] Confirm vendor/distro backports before treating a version as vulnerable.
+#
+# DANGEROUS / INTERESTING CONFIGURATION
+# [ ] disable_functions: note whether exec, shell_exec, system, passthru,
+#     proc_open, popen, etc. are disabled. Empty does NOT prove RCE;
+#     you still need an executable primitive such as a command injection,
+#     vulnerable upload, or suitable file inclusion.
+# [ ] allow_url_include: On may enable remote URL inclusion in a compatible
+#     include() path. allow_url_fopen: On alone does NOT make LFI become RFI.
+# [ ] open_basedir: note allowed filesystem paths; empty/unset means no
+#     open_basedir restriction (other OS permissions still apply).
+# [ ] display_errors: On may disclose filesystem paths, stack traces and
+#     application internals. expose_php: On may disclose PHP in headers.
+# [ ] register_globals / magic_quotes_gpc: legacy settings (removed in PHP
+#     5.4); relevant only on very old runtimes, not modern PHP.
+#
+# PATHS / FILESYSTEM / INCLUDE CONTEXT
+# [ ] DOCUMENT_ROOT, SCRIPT_FILENAME, PATH_TRANSLATED.
+# [ ] upload_tmp_dir, session.save_path and whether those locations are
+#     writable by the web-server user (do not assume they are).
+# [ ] extension_dir and every custom include_path entry.
+# [ ] Compare discovered paths with LFI parameters and upload locations.
+#
+# MODULES / LIBRARY VERSIONS
+# [ ] Note loaded extensions: mysqli, pdo_mysql, curl, gd, ldap, etc.
+# [ ] Check cURL and OpenSSL sections for linked library versions.
+# [ ] Use exact runtime + linked-library versions for CVE research.
+#
+# ENVIRONMENT / SERVER / SESSION
+# [ ] Inspect Environment and _SERVER values for usernames, hostnames,
+#     internal paths, virtual hosts and interesting HTTP_* values.
+# [ ] Note SERVER_SOFTWARE, HTTP_HOST, DOCUMENT_ROOT and SCRIPT_NAME.
+# [ ] Check session.save_path permissions and session configuration.
+# [ ] session.upload_progress may create temporary session data; it is
+#     NOT an RCE by itself. Consider it only with a proven LFI/read primitive,
+#     writable session storage and a target-specific race/poisoning condition.
+#
+# FOLLOW-UP DECISION PATH
+# [ ] Correlate phpinfo paths/settings with a confirmed LFI, upload or
+#     application include mechanism; test one evidence-backed path at a time.
+# [ ] If PHP version is old, verify exact CVE prerequisites and patch status
+#     before attempting a PoC. Searchsploit can help locate references:
+#       searchsploit php <version>
+# [ ] Treat phpinfo as sensitive information disclosure. Do not leave a
+#     copy or exposed test page behind; report/remove only as authorized.
+# QUICK PRIORITY: PHP version + disable_functions + DOCUMENT_ROOT +
+# upload_tmp_dir + session.save_path + allow_url_include.
 curl -s "$WEB_URL/wp-config.php"
 curl -s "$WEB_URL/web.config"
 curl -s "$WEB_URL/.htaccess"
