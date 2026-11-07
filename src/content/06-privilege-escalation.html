@@ -1014,7 +1014,7 @@ Public reproducer matches target?
 <pre class="ref-code"><code class="language-powershell">.\winpeas.exe -a -e
 .\Seatbelt.exe -group=all
 .\SharpUp.exe audit
-powershell -ep bypass -c ". .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& { . .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML }"
 .\Watson.exe
 
 whoami /all
@@ -1667,7 +1667,7 @@ dir C:\ProgramData /a
 </code></pre>
 <p>Focus on non-default folders, other readable user profiles, application data, custom services, web roots, backup/config files and anything that explains an installed process/listener.</p>
 <h3>Automated pass — output is evidence, not decoration</h3>
-<pre class="ref-code"><code class="language-powershell">powershell -ep bypass -c ". .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML"
+<pre class="ref-code"><code class="language-powershell">powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& { . .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML }"
 .\winpeas.exe -a -e | Tee-Object winpeas.txt
 .\Seatbelt.exe -group=all &gt; seatbelt.txt
 </code></pre>
