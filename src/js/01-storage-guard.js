@@ -53,7 +53,7 @@ let __oscpStorageWriteWarned=false;
 function safeStoreSet(key,value){
  try{localStorage.setItem(key,value);return true}catch(e){
   console.error('[OSCP] Browser storage write failed:',key,e);
-  if(!__oscpStorageWriteWarned){__oscpStorageWriteWarned=true;setTimeout(()=>{if(typeof toast==='function')toast('Browser storage write failed — export an encrypted/session backup now; local state may not persist.');const sw=document.getElementById('v16StorageWarning');if(sw){sw.style.display='block';sw.innerHTML='<b>⚠ Browser storage write failed.</b><div class="tiny">Quota or browser storage restrictions prevented persistence. Export an encrypted/session backup now; current in-tab state may be newer than what is saved.</div>'}},0)}
+  if(!__oscpStorageWriteWarned){__oscpStorageWriteWarned=true;setTimeout(()=>{if(typeof toast==='function')toast('Browser storage write failed — export an encrypted/session backup now; local state may not persist.');const sw=document.getElementById('v16StorageWarning');if(sw){sw.style.display='block';const heading=document.createElement('b');heading.textContent='⚠ Browser storage write failed.';const detail=document.createElement('div');detail.className='tiny';detail.textContent='Quota or browser storage restrictions prevented persistence. Export an encrypted/session backup now; current in-tab state may be newer than what is saved.';sw.replaceChildren(heading,detail)}},0)}
   return false;
  }
 }
