@@ -252,6 +252,47 @@ ldapsearch -x -H "ldap://$DC_IP" -b "$BASE_DN" '(objectClass=user)' sAMAccountNa
 <div class="ref-note"><b>Pattern order:</b> begin with evidence-backed conventions such as <code>first.last</code>, <code>flast</code>, <code>firstl</code>, <code>firstlast</code>, or <code>first</code>. If one known employee maps to one pattern, stop generating unrelated formats and use that convention for the remaining names.</div>
 <div class="ref-warn"><b>20-character option:</b> the app can clamp candidates for a classic <code>sAMAccountName</code> hypothesis. Disable that option when evidence points to a different identifier/UPN convention. Do not assume a generated candidate exists, and do not convert username enumeration into uncontrolled password testing.</div>
 </details>
+
+<details id="ref-9-2b-credspray-targeted-credential-validation">
+<summary>🔑 9.2B CredSpray — Targeted Credential Validation (NetExec)</summary>
+<p><code>[AD:CREDS] [AD:SPRAY] [GUARDED]</code></p>
+<p><strong>Purpose:</strong> CredSpray is a Bash wrapper around NetExec (<code>nxc</code>) for validating known, evidence-derived credentials across selected protocols. It can handle separate user/password/hash files or a combined credential file. Use it only on explicitly in-scope systems and only after checking the domain password/lockout policy.</p>
+<div class="ref-warn"><strong>Exam / lockout guard:</strong> do not run a broad spray or a large password list. Prefer one evidence-backed candidate at a time, keep attempts within the known lockout threshold, and stop on a confirmed credential. CredSpray's default is spray mode (each user against each supplied password); it is not a safe substitute for understanding the policy.</div>
+<h3>Install (Kali)</h3>
+<pre class="ref-code"><code class="language-bash"># NetExec is the required backend
+pipx install netexec
+
+# Install CredSpray
+pipx install credspray
+
+# Verify
+nxc --version
+credspray.sh --help</code></pre>
+<p>If the command is not on PATH after installation, open a new shell and check <code>pipx ensurepath</code>. CredSpray's upstream documentation also lists <code>pip3 install credspray</code> and manual installation options.</p>
+<h3>Common usage</h3>
+<pre class="ref-code"><code class="language-bash"># One evidence-derived password against a validated user list.
+# Select only the protocol(s) that are in scope/reachable when prompted.
+credspray.sh -t "$DC_IP" -u loot/valid-users.txt -p 'EvidenceBasedPassword!' -a domain --spray
+
+# Validate NTLM hashes instead of plaintext passwords:
+credspray.sh -t "$DC_IP" -u loot/valid-users.txt -H loot/ntlm-hashes.txt -a domain --spray
+
+# Combined file: user:password / user:hash entries and supported orphan entries.
+credspray.sh -t "$DC_IP" -u loot/credentials.txt -c loot/credentials.txt -a domain --no-spray
+
+# If testing a proven local account on a specific host, use local auth:
+credspray.sh -t "$TARGET" -u loot/local-users.txt -p loot/local-passwords.txt -a local --spray</code></pre>
+<h3>Options to remember</h3>
+<ul>
+<li><code>-t</code> target IP/hostname; <code>-u</code> username or username file.</li>
+<li><code>-p</code> password/file; <code>-H</code> NTLM hash/file; <code>-c</code> combined credential file.</li>
+<li><code>-a domain</code> for domain authentication; <code>-a local</code> for local accounts; default is both.</li>
+<li><code>--spray</code> tests the supplied users against the supplied credentials (default); <code>--no-spray</code> pairs corresponding credentials rather than testing every combination.</li>
+<li>Protocol selection is interactive; choose only the protocols justified by service discovery and scope.</li>
+</ul>
+<p><strong>Workflow:</strong> enumerate users → check password policy/lockout threshold → derive a tiny candidate set from evidence → validate one candidate → record successful identity and protocol → re-enumerate with that identity. Do not infer admin rights from a successful login; verify permissions separately.</p>
+<p><strong>References:</strong> <a href="https://github.com/strikoder/CredSpray">CredSpray GitHub</a> · <a href="https://pypi.org/project/credspray/">PyPI documentation</a> · <a href="https://www.netexec.wiki/">NetExec documentation</a>.</p>
+</details>
 <details id="ref-9-3-responder-analyze-mode-only">
 <summary>🛡️ 9.3 Responder — Analyze Mode Only</summary>
 <blockquote><p><strong>RULE-SENSITIVE:</strong> Responder may be used only for an action permitted by the current exam guide. Poisoning and spoofing are prohibited.</p></blockquote>
