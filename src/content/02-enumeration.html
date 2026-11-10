@@ -730,9 +730,9 @@ echo "Open TCP: $ports"
 
 # STEP 1B: SANITY RECOVERY — only if results look sparse/inconsistent
 # Stop ferox/gobuster/other noisy work against THIS SAME host while validating.
-sudo nmap -Pn -n -p- --open -T3 --max-retries 3 -oA scans/nmap/tcp-verify "$IP"
-verify_ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' scans/nmap/tcp-verify.nmap | paste -sd, -)
-echo "Verify TCP: $verify_ports"
+# sudo nmap -Pn -n -p- --open -T3 --max-retries 3 -oA scans/nmap/tcp-verify "$IP"
+# verify_ports=$(awk -F/ '/^[0-9]+\/tcp[[:space:]]+open/{print $1}' scans/nmap/tcp-verify.nmap | paste -sd, -)
+# echo "Verify TCP: $verify_ports"
 # If lists differ materially: inspect --reason, packet loss, VPN/pivot path and one known service.
 
 # STEP 2: TARGETED VERSION FINGERPRINT — confirmed opens only
@@ -747,7 +747,7 @@ sudo nmap -Pn -n -sU --top-ports 100 --max-retries 2 -oA scans/nmap/udp-top100 "
 
 # STEP 4: DEFAULT NSE on confirmed open TCP ports
 # -sC = --script=default. Review the default scripts before the exam:
-nmap --script-help default
+# nmap --script-help default
 # Some default scripts are intrusive: run only on authorized in-scope hosts.
 test -n "$ports" &amp;&amp; sudo nmap -Pn -n --script=default -p "$ports" -oA scans/nmap/nse-default "$IP"
 
