@@ -1668,10 +1668,13 @@ dir C:\ProgramData /a
 <p>Focus on non-default folders, other readable user profiles, application data, custom services, web roots, backup/config files and anything that explains an installed process/listener.</p>
 <h3>Automated pass — output is evidence, not decoration</h3>
 <pre class="ref-code"><code class="language-powershell">powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& { . .\PrivescCheck.ps1; Invoke-PrivescCheck -Report TXT,HTML }"
+# PowerUp (PowerSploit) — legacy supplementary checks
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& { . .\PowerUp.ps1; Invoke-AllChecks }" | Tee-Object powerup.txt
 .\winpeas.exe -a -e | Tee-Object winpeas.txt
 .\Seatbelt.exe -group=all &gt; seatbelt.txt
 </code></pre>
 <p>Read saved output in this order: credentials → privileges → services → tasks → registry/installer/autoruns → installed applications/internal listeners → patch/kernel suggestions.</p>
+<p><strong>PowerUp note:</strong> PowerUp is part of the PowerSploit collection. Treat its output as leads, not proof; manually verify service permissions, writable paths, registry settings and trigger conditions before attempting privilege escalation.</p>
 <h3>Credential pass</h3>
 <pre class="ref-code"><code class="language-cmd">cmdkey /list
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
