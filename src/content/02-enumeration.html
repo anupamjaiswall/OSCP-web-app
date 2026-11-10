@@ -940,6 +940,14 @@ python3 /usr/share/exploitdb/exploits/linux/remote/45233.py $IP 22 root
 chmod 600 id_rsa
 ssh -i id_rsa user@$IP
 ssh -i id_rsa user@$IP -p 2222   # Custom port
+
+# ── TMUX / TERMINAL COMPATIBILITY ──────────────────────────────
+# If SSH works outside tmux but fails inside with "Terminal initialization failure":
+# Force a compatible terminal type and allocate a TTY:
+TERM=xterm-256color ssh -tt -i id_rsa user@$IP
+# For a custom port:
+TERM=xterm-256color ssh -tt -i id_rsa -p 2222 user@$IP
+# A post-quantum key-exchange warning is separate; it does not cause this terminal error.
 # If passphrase protected:
 ssh2john id_rsa &gt; id_rsa.hash
 john id_rsa.hash --wordlist=rockyou.txt
