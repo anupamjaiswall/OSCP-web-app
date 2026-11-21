@@ -851,10 +851,9 @@ echo $banner                     # Note version!
 searchsploit $(echo $banner | awk '{print $1,$2}')
 
 # ── ANONYMOUS LOGIN ───────────────────────────────────────────
+mkdir -p loot/ftp
 ftp $IP
 # user: anonymous  pass: (blank) or anonymous@domain.com or press Enter
-ftp&gt; ls -la              # Show hidden files
-ftp&gt; pwd                 # Where are we?
 ftp&gt; ls -la              # Show hidden files
 ftp&gt; pwd                 # Confirm the remote working directory
 ftp&gt; passive             # Toggle passive/active mode if LIST or data transfers hang/fail
