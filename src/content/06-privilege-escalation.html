@@ -1163,6 +1163,38 @@ User/machine/domain context
       ↓
 Decryptable secret
 </code></pre>
+<h3>Practical credential-store triage</h3>
+<pre class="ref-code"><code class="language-cmd">whoami
+whoami /user
+cmdkey /list
+vaultcmd /list
+dir /a "%APPDATA%\\Microsoft\\Credentials"
+dir /a "%APPDATA%\\Microsoft\\Protect"
+dir /a "%LOCALAPPDATA%\\Microsoft\\Credentials"
+</code></pre>
+<p>PowerShell equivalent for the current user's profile:</p>
+<pre class="ref-code"><code class="language-powershell">Get-ChildItem "$env:APPDATA\\Microsoft\\Credentials" -Force -ErrorAction SilentlyContinue
+Get-ChildItem "$env:APPDATA\\Microsoft\\Protect" -Force -ErrorAction SilentlyContinue
+Get-ChildItem "$env:LOCALAPPDATA\\Microsoft\\Credentials" -Force -ErrorAction SilentlyContinue
+</code></pre>
+<p><strong>DPAPI relationship:</strong> credential blobs are commonly protected by a master key associated with the user or machine context. Record the SID from <code>whoami /user</code> and inspect the matching profile's <code>Protect</code> directory. A file's presence does not prove it is decryptable: the required user password, machine context, domain backup key or other prerequisite may be missing. Do not assume that copying a blob and master-key file alone is sufficient.</p>
+<h3>Stored credentials and <code>runas /savecred</code></h3>
+<pre class="ref-code"><code class="language-cmd">cmdkey /list
+runas /?
+</code></pre>
+<p>If a saved credential is listed, identify its target/service and whether the current account is allowed to reuse it. The <code>/savecred</code> option stores credentials supplied during a prior <code>runas</code> operation; it is not a universal way to invoke every credential shown by <code>cmdkey</code>.</p>
+<pre class="ref-code"><code class="language-cmd">runas /user:DOMAIN\\user /savecred "cmd.exe /c whoami"
+</code></pre>
+<p>Use only when the exact account and permitted execution context are established. Verify the resulting identity with <code>whoami</code> and <code>whoami /all</code>; do not infer elevated privileges from a successful process launch. Avoid entering passwords in command-line arguments or saving privileged credentials unnecessarily.</p>
+<h3>Credential escalation decision points</h3>
+<ul>
+<li>[ ] Is the credential store accessible to the current user?</li>
+<li>[ ] Is there a matching DPAPI master key and the required user/machine context?</li>
+<li>[ ] Does the recovered credential belong to a different or more privileged identity?</li>
+<li>[ ] Is the credential scoped to a specific service (RDP, SMB, application) rather than general interactive logon?</li>
+<li>[ ] Can the credential be validated on an in-scope service without broad guessing?</li>
+<li>[ ] Does the new session have different groups, privileges or profile access?</li>
+</ul>
 </details>
 <details id="ref-13-7-windows-privileges-don-t-stop-at-seimpersonate">
 <summary>💾 13.7 Windows Privileges --- Don't Stop at SeImpersonate</summary>
