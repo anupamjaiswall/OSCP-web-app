@@ -855,10 +855,16 @@ ftp $IP
 # user: anonymous  pass: (blank) or anonymous@domain.com or press Enter
 ftp&gt; ls -la              # Show hidden files
 ftp&gt; pwd                 # Where are we?
-ftp&gt; binary              # Set binary mode before an allowed targeted retrieval
-ftp&gt; get NECESSARY_FILE  # ONLY if this exact file is necessary to compromise the target
-ftp&gt; put shell.php       # Upload if writable and justified by your attack path
-ftp&gt; passive             # Toggle passive mode if connection issues
+ftp&gt; ls -la              # Show hidden files
+ftp&gt; pwd                 # Confirm the remote working directory
+ftp&gt; passive             # Toggle passive/active mode if LIST or data transfers hang/fail
+ftp&gt; ls -la              # Retry the listing after changing the mode
+ftp&gt; binary              # Use binary mode before retrieving archives, databases, images or executables
+ftp&gt; get NECESSARY_FILE loot/ftp/TARGET-NECESSARY_FILE  # Retrieve only the exact justified artifact; choose a unique local name
+ftp&gt; put shell.php       # Upload only if writable and justified by the attack path
+# If LIST fails but login works: toggle passive mode, retry LIST, then inspect client status.
+# If a transfer is corrupt: confirm binary mode and retry to a unique local destination.
+# Do not use mget/mirror by default; list first and retrieve only what is necessary.
 
 # ── FTP UPLOAD → WEB-EXECUTED PHP (CHECK THIS PATH) ────────────
 # If the FTP directory is inside / mapped to a web-accessible directory:
