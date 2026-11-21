@@ -219,6 +219,25 @@ ls -la /etc/sudoers.d 2&gt;/dev/null
 <li>[ ] <code>PYTHONPATH</code>, <code>PERL5LIB</code>, <code>RUBYLIB</code></li>
 <li>[ ] Writable scripts/configs invoked by allowed commands</li>
 </ul>
+<h3>Wildcard and argument-boundary review</h3>
+<p>Do not stop after spotting a wildcard in <code>sudo -l</code>. Read the complete command specification and determine whether the wildcard is in the executable path or argument list. Sudoers wildcards in command arguments can match path separators and unexpected path components; a seemingly narrow directory prefix may therefore be weaker than intended.</p>
+<pre class="ref-code"><code class="language-bash">sudo -l
+# Example rule to assess (illustrative; confirm the exact target rule):
+# (root) /bin/nice /notes/*
+# Check whether the allowed utility can execute another program and whether
+# the argument wildcard accepts traversal components.
+# In an authorized lab, validate only when the exact sudo rule matches:
+sudo /bin/nice /notes/../bin/bash
+</code></pre>
+<p><strong>Decision checklist:</strong></p>
+<ul>
+<li>[ ] Does the rule constrain the executable and every argument?</li>
+<li>[ ] Is a wildcard used where an explicit argument/path allowlist is needed?</li>
+<li>[ ] Can the allowed program launch another binary, read a script, load a plugin or interpret user-controlled input?</li>
+<li>[ ] Can path normalization, relative paths, symlinks or <code>..</code> escape the intended directory?</li>
+<li>[ ] Does the exact command match the sudoers rule, and does the resulting shell actually run with the expected identity?</li>
+</ul>
+<p>Prefer identifying the weakness from the rule and program behavior before testing. Do not assume every wildcard rule is exploitable; verify the exact sudoers matching semantics and the command's argument handling.</p>
 <p>GTFOBins: https://gtfobins.github.io/</p>
 <p>Common sudo escape checks when the exact sudo rule permits them:</p>
 <pre class="ref-code"><code class="language-bash">sudo find . -exec /bin/bash \; -quit
