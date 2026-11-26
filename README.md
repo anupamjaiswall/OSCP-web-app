@@ -4,14 +4,14 @@
 **V34.79.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 <!-- build-version:end -->
 
-One self-contained `index.html` designed to be the main reference open during the exam. It has no required CDN, package install, AI service, or runtime network dependency.
+An offline-first OSCP exam workspace designed to be the main reference open during the exam. The main app is generated as `index.html`; the two supplemental Active Directory references are local HTML files under `references/`. There is no required CDN, package install, AI service, or runtime network dependency.
 
 > Live OffSec instructions, the Exam Control Panel, and the proctor always override this offline reference.
 
 ## Open the app
 
 - GitHub Pages: https://anupamjaiswall.github.io/OSCP-web-app/
-- Or download `index.html` and open it locally in a modern browser.
+- For offline use, clone or download the complete repository (including the `references/` folder) and open `index.html` locally in a modern browser. Downloading only `index.html` will not include the two supplemental reference pages.
 
 ## Restore OSCP tmux on Kali
 
