@@ -28,7 +28,7 @@ if(artifactBytes>quality.artifactHardLimitBytes)fail('Generated index.html excee
 if(artifactBytes>quality.artifactSoftLimitBytes)console.warn('WARNING: generated index.html is above the soft size budget: '+artifactBytes+' > '+quality.artifactSoftLimitBytes);
 
 if(/@inject:|__(?:OSCP_VERSION|OSCP_VERSION_LABEL|OSCP_BUILD_DATE)__/.test(html)) fail('Unresolved build marker');
-for(const directive of ["default-src 'none'","connect-src 'none'","object-src 'none'","frame-src 'none'","form-action 'none'","base-uri 'none'"]){
+for(const directive of ["default-src 'none'","connect-src 'none'","object-src 'none'","frame-src 'self'","form-action 'none'","base-uri 'none'"]){
   if(!html.includes(directive))fail('CSP directive missing: '+directive);
 }
 if(/<script\b[^>]*\bsrc\s*=/i.test(html)) fail('Runtime script source detected');
@@ -56,6 +56,19 @@ const jsFiles=fs.readdirSync(path.join(root,'src/js')).filter(x=>x.endsWith('.js
 const js=jsFiles.map(f=>read('src/js/'+f)).join('\n');
 const templateHtml=read('src/index.template.html');
 const callableStatic=templateHtml+'\n'+js;
+
+const embeddedReferences=[
+  ['references/bloodhound-acl-abuse-all-edges.html','bloodhoundAclView'],
+  ['references/ad-commands-quick-reference.html','adCommandsQuickRefView']
+];
+for(const [file,view] of embeddedReferences){
+  const source=read(file);
+  if(!templateHtml.includes('id="'+view+'" class="view"'))fail('Embedded reference view missing: '+view);
+  if(!templateHtml.includes('src="'+file+'"'))fail('Embedded reference iframe missing: '+file);
+  if(/<(?:script|link|img|iframe)\\b[^>]*(?:src|href)=["']https?:\\/\\//i.test(source))fail('Embedded reference has a remote runtime dependency: '+file);
+}
+if(!html.includes("frame-src 'self'"))fail('Same-origin embedded reference frame policy missing');
+
 const viewIds=new Set([...templateHtml.matchAll(/<section\b[^>]*>/gi)].map(m=>{const tag=m[0],id=tag.match(/\bid=["']([^"']+)["']/i)?.[1]||'',cls=tag.match(/\bclass=["']([^"']+)["']/i)?.[1]||'';return /(?:^|\s)view(?:\s|$)/.test(cls)?id:''}).filter(Boolean));
 const literalViewTargets=[...new Set([...callableStatic.matchAll(/\bswitchView\(\s*["']([^"']+)["']/g)].map(m=>m[1]))];
 const brokenViewTargets=literalViewTargets.filter(id=>!viewIds.has(id));
