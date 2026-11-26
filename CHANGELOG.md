@@ -1,3 +1,9 @@
+## V34.79.0 — 2026-11-26
+
+### Add local Active Directory reference pages
+- Copy the BloodHound ACL abuse edge reference and AD commands quick reference into the repository; the sidebar opens local copies, not upstream links.
+- Isolate each standalone document in its own embedded page and remove the AD quick reference's external Google Fonts dependency.
+
 ## V34.78.0 — 2026-11-07
 
 ### Add Windows OS version and known-exploit triage
