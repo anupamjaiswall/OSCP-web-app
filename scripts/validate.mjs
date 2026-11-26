@@ -65,7 +65,7 @@ for(const [file,view] of embeddedReferences){
   const source=read(file);
   if(!templateHtml.includes('id="'+view+'" class="view"'))fail('Embedded reference view missing: '+view);
   if(!templateHtml.includes('src="'+file+'"'))fail('Embedded reference iframe missing: '+file);
-  if(/<(?:script|link|img|iframe)\\b[^>]*(?:src|href)=["']https?:\\/\\//i.test(source))fail('Embedded reference has a remote runtime dependency: '+file);
+  if(/<(?:script|link|img|iframe)\b[^>]*(?:src|href)=["']https?:\/\/[^"']+/i.test(source))fail('Embedded reference has a remote runtime dependency: '+file);
 }
 if(!html.includes("frame-src 'self'"))fail('Same-origin embedded reference frame policy missing');
 
