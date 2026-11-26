@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; media-src 'none'; frame-src 'self'; form-action 'none'; base-uri 'none'">
 <title>OSCP Exam-Only Operating System</title>
 <meta name="theme-color" content="#0b0e14">
 <meta name="application-name" content="OSCP Exam OS">
@@ -166,6 +166,8 @@ Return trigger:"></textarea>
   <button class="navbtn" data-view="linuxStrategyView">WIN Linux</button>
   <button class="navbtn" data-view="windowsStrategyView">WIN Windows</button>
   <button class="navbtn" data-view="adStrategyView">WIN AD</button>
+  <button class="navbtn" data-view="bloodhoundAclView">BloodHound ACL Abuse</button>
+  <button class="navbtn" data-view="adCommandsQuickRefView">AD Commands Quick Reference</button>
 
   <button class="navbtn" data-view="workspaceView">🎯 Target</button>
   <button class="navbtn" data-view="reportsView">📝 Evidence & Report</button>
@@ -1146,6 +1148,15 @@ NO spoofing/poisoning
 NO mass vulnerability scanners
 Metasploit restricted functionality: one selected target; no Metasploit pivoting
 Re-check official OffSec rules immediately before exam day.</pre></div></section>
+
+<section id="bloodhoundAclView" class="view">
+ <div class="hero"><div><h1>BloodHound ACL Abuse — Every Edge</h1><div class="muted">Locally embedded reference. Original HTML is kept separately so its styles and scripts stay isolated from the main application.</div></div></div>
+ <iframe title="BloodHound ACL Abuse reference" src="references/bloodhound-acl-abuse-all-edges.html" loading="lazy" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" style="display:block;width:100%;height:calc(100vh - 220px);min-height:650px;border:1px solid var(--line);border-radius:10px;background:#fff"></iframe>
+</section>
+<section id="adCommandsQuickRefView" class="view">
+ <div class="hero"><div><h1>Active Directory Commands — Quick Reference</h1><div class="muted">Locally embedded reference. External Google Fonts dependency removed; system font fallbacks are used offline.</div></div></div>
+ <iframe title="Active Directory commands quick reference" src="references/ad-commands-quick-reference.html" loading="lazy" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" style="display:block;width:100%;height:calc(100vh - 220px);min-height:650px;border:1px solid var(--line);border-radius:10px;background:#fff"></iframe>
+</section>
 </main>
 </div>
 <div id="multiTabWarning" class="multiTabWarning" role="status" aria-live="assertive" hidden><div><b>Multi-tab edit warning</b><br><span id="multiTabWarningText">Another OSCP Exam OS tab/window is active.</span></div><button class="btn" id="multiTabDismiss" type="button">Dismiss</button></div>
