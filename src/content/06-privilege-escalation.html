@@ -220,6 +220,25 @@ ls -la /etc/sudoers.d 2&gt;/dev/null
 <li>[ ] <code>PYTHONPATH</code>, <code>PERL5LIB</code>, <code>RUBYLIB</code></li>
 <li>[ ] Writable scripts/configs invoked by allowed commands</li>
 </ul>
+<h3>Wildcard and argument-boundary review</h3>
+<p>Do not stop after spotting a wildcard in <code>sudo -l</code>. Read the complete command specification and determine whether the wildcard is in the executable path or argument list. Sudoers wildcards in command arguments can match path separators and unexpected path components; a seemingly narrow directory prefix may therefore be weaker than intended.</p>
+<pre class="ref-code"><code class="language-bash">sudo -l
+# Example rule to assess (illustrative; confirm the exact target rule):
+# (root) /bin/nice /notes/*
+# Check whether the allowed utility can execute another program and whether
+# the argument wildcard accepts traversal components.
+# In an authorized lab, validate only when the exact sudo rule matches:
+sudo /bin/nice /notes/../bin/bash
+</code></pre>
+<p><strong>Decision checklist:</strong></p>
+<ul>
+<li>[ ] Does the rule constrain the executable and every argument?</li>
+<li>[ ] Is a wildcard used where an explicit argument/path allowlist is needed?</li>
+<li>[ ] Can the allowed program launch another binary, read a script, load a plugin or interpret user-controlled input?</li>
+<li>[ ] Can path normalization, relative paths, symlinks or <code>..</code> escape the intended directory?</li>
+<li>[ ] Does the exact command match the sudoers rule, and does the resulting shell actually run with the expected identity?</li>
+</ul>
+<p>Prefer identifying the weakness from the rule and program behavior before testing. Do not assume every wildcard rule is exploitable; verify the exact sudoers matching semantics and the command's argument handling.</p>
 <p>GTFOBins: https://gtfobins.github.io/</p>
 <p>Common sudo escape checks when the exact sudo rule permits them:</p>
 <pre class="ref-code"><code class="language-bash">sudo find . -exec /bin/bash \; -quit
@@ -1164,6 +1183,38 @@ User/machine/domain context
       ↓
 Decryptable secret
 </code></pre>
+<h3>Practical credential-store triage</h3>
+<pre class="ref-code"><code class="language-cmd">whoami
+whoami /user
+cmdkey /list
+vaultcmd /list
+dir /a "%APPDATA%\\Microsoft\\Credentials"
+dir /a "%APPDATA%\\Microsoft\\Protect"
+dir /a "%LOCALAPPDATA%\\Microsoft\\Credentials"
+</code></pre>
+<p>PowerShell equivalent for the current user's profile:</p>
+<pre class="ref-code"><code class="language-powershell">Get-ChildItem "$env:APPDATA\\Microsoft\\Credentials" -Force -ErrorAction SilentlyContinue
+Get-ChildItem "$env:APPDATA\\Microsoft\\Protect" -Force -ErrorAction SilentlyContinue
+Get-ChildItem "$env:LOCALAPPDATA\\Microsoft\\Credentials" -Force -ErrorAction SilentlyContinue
+</code></pre>
+<p><strong>DPAPI relationship:</strong> credential blobs are commonly protected by a master key associated with the user or machine context. Record the SID from <code>whoami /user</code> and inspect the matching profile's <code>Protect</code> directory. A file's presence does not prove it is decryptable: the required user password, machine context, domain backup key or other prerequisite may be missing. Do not assume that copying a blob and master-key file alone is sufficient.</p>
+<h3>Stored credentials and <code>runas /savecred</code></h3>
+<pre class="ref-code"><code class="language-cmd">cmdkey /list
+runas /?
+</code></pre>
+<p>If a saved credential is listed, identify its target/service and whether the current account is allowed to reuse it. The <code>/savecred</code> option stores credentials supplied during a prior <code>runas</code> operation; it is not a universal way to invoke every credential shown by <code>cmdkey</code>.</p>
+<pre class="ref-code"><code class="language-cmd">runas /user:DOMAIN\\user /savecred "cmd.exe /c whoami"
+</code></pre>
+<p>Use only when the exact account and permitted execution context are established. Verify the resulting identity with <code>whoami</code> and <code>whoami /all</code>; do not infer elevated privileges from a successful process launch. Avoid entering passwords in command-line arguments or saving privileged credentials unnecessarily.</p>
+<h3>Credential escalation decision points</h3>
+<ul>
+<li>[ ] Is the credential store accessible to the current user?</li>
+<li>[ ] Is there a matching DPAPI master key and the required user/machine context?</li>
+<li>[ ] Does the recovered credential belong to a different or more privileged identity?</li>
+<li>[ ] Is the credential scoped to a specific service (RDP, SMB, application) rather than general interactive logon?</li>
+<li>[ ] Can the credential be validated on an in-scope service without broad guessing?</li>
+<li>[ ] Does the new session have different groups, privileges or profile access?</li>
+</ul>
 </details>
 <details id="ref-13-7-windows-privileges-don-t-stop-at-seimpersonate">
 <summary>💾 13.7 Windows Privileges --- Don't Stop at SeImpersonate</summary>

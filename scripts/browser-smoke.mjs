@@ -201,7 +201,7 @@ async function main(){
     await evalValue("(()=>{window.switchView('simpleExamView',{history:false});return true})()");
 
     // Real interaction 0: direct reference navigation must work even if hydration is still in progress.
-    const directAnchor='ref-c4-i-have-a-linux-shell-what-now';
+    const directAnchor='ref-12-privilege-escalation-linux-every-vector';
     const directOpenResult=await evalValue("window.openRef('"+directAnchor+"')");
     if(directOpenResult!==true)throw new Error('openRef did not report success in browser: '+String(directOpenResult));
     const directReference=await waitFor(async()=>{

@@ -566,6 +566,49 @@ DPAPI secret
 </code></pre>
 </details>
 
+<details id="ref-9-6b-ad-acl-chaining-and-nested-group-review">
+<summary>🧩 9.6B AD ACL Chaining &amp; Nested Group Review</summary>
+<p><code>[AD:ACL-CHAIN] [AD:GROUPS] [AD:BLOODHOUND]</code></p>
+<blockquote><p><strong>Goal:</strong> follow effective permissions across group membership and object ACLs. A low-privileged user may not have a direct path to a high-value object; the useful edge can be inherited through one or more nested groups. Treat BloodHound edges as hypotheses and verify the exact principal, target, right and direction before acting.</p></blockquote>
+<h3>Review sequence</h3>
+<ol>
+<li>Identify the current user's direct and nested group memberships, including domain-local, global and universal groups where relevant.</li>
+<li>In BloodHound, inspect the user's outgoing object-control edges and expand group membership relationships. Do not rely only on the shortest path to Domain Admin.</li>
+<li>For every edge, record the source principal, target object, right (for example <code>GenericAll</code>, <code>GenericWrite</code>, <code>ForceChangePassword</code>, <code>WriteDACL</code> or <code>WriteOwner</code>) and the next privilege it could expose.</li>
+<li>Check whether the right applies to the target object itself, descendant objects, or group membership; confirm inheritance and object type.</li>
+<li>Before any permitted state change, read and back up the relevant ACL/current value, make the smallest justified change, verify the resulting access, and restore the original state when finished.</li>
+<li>After a new identity, group membership or permission change, authenticate as the effective principal and re-collect/review BloodHound data. Existing sessions do not necessarily refresh group tokens.</li>
+</ol>
+<h3>Common chain patterns to recognize</h3>
+<pre class="ref-code"><code class="language-text">Current user
+  └─ nested member of GROUP_A
+       └─ GenericAll / WriteMembers over GROUP_B
+            └─ GROUP_B has WriteDACL over the domain
+                 └─ ability to grant a narrowly scoped replication right
+                      └─ DCSync becomes possible only after the right is effective
+
+Current user
+  └─ GenericAll over USER_A
+       └─ USER_A can ForceChangePassword over USER_B
+            └─ USER_B has access to another useful resource
+
+Current user
+  └─ GenericWrite over USER_A
+       └─ inspect whether a specific writable attribute enables a valid next step
+</code></pre>
+<h3>Evidence checklist</h3>
+<ul>
+<li>[ ] Exact current principal and its effective nested group memberships</li>
+<li>[ ] Exact BloodHound edge(s), direction and target object</li>
+<li>[ ] Whether the permission is inherited or directly assigned</li>
+<li>[ ] Required protocol, authentication context and target reachability</li>
+<li>[ ] Existing ACL/value backed up before a mutation</li>
+<li>[ ] Resulting identity/permission independently verified</li>
+<li>[ ] Temporary changes restored and graph re-collected</li>
+</ul>
+<div class="ref-note"><strong>DCSync gate:</strong> membership in a group with a promising name is not proof of replication rights. Verify the effective <code>DS-Replication-Get-Changes</code> and <code>DS-Replication-Get-Changes-All</code> rights on the domain naming context before considering a targeted DCSync operation. Do not grant or exercise replication rights unless the exact path and current exam rules justify it.</div>
+</details>
+
 <details id="ref-9-6a-v16-impacket-013-ad-helpers">
 <summary>⚙ 9.6A Impacket 0.13 AD Helpers — ACL, Owner, LAPS, Computers, dMSA</summary>
 <p><span class="v16-ref-tier v16-ref-core">✓ CORE</span> Impacket 0.13.1 added/strengthened helpers that map directly to common BloodHound findings. Use your installed <code>-h</code> output as the syntax authority.</p>
