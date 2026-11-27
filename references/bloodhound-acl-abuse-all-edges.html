@@ -165,6 +165,46 @@
   @media (max-width:640px){nav.toc ol{columns:1;} .wrap{padding:26px 16px 70px;}}
   @media print{.cfg input{border:none;background:none;} .cfg .btnrow{display:none;} .gen .copy{display:none;} nav.toc{display:none;}}
 </style>
+<style id="oscpSharedAppearance">
+/* OSCP Exam OS shared appearance layer — original edge logic and controls remain intact. */
+html[data-app-theme="parchment"]{
+ color-scheme:light;--bg:#f3ecd2;--panel:#fbf4df;--panel2:#eee3c2;--code-bg:#eee4cd;
+ --text:#302916;--muted:#695e40;--border:#d5c6a2;--accent-line:#d5c6a2;
+ --green:#526831;--red:#a33222;--step:#356c78;--fallback:#93620d;--yellow:#93620d;
+ --user:#315f91;--user-dim:#e4edf6;--group:#66528d;--group-dim:#eee8f5;
+ --computer:#9a5435;--computer-dim:#f2e3d8;--domain:#77520e;--domain-dim:#eee3c2;
+ --ou:#526831;--ou-dim:#ece7cc;--gpo:#925276;--gpo-dim:#f1e3ed;--direct:#287c83;--direct-dim:#e1ece8;
+}
+html[data-app-theme="paper"]{
+ color-scheme:light;--bg:#edf2f7;--panel:#fff;--panel2:#f1f5f9;--code-bg:#f0f4f8;
+ --text:#233448;--muted:#596b7d;--border:#cbd7e3;--accent-line:#cbd7e3;
+ --green:#346f51;--red:#a2454e;--step:#287c91;--fallback:#865a18;--yellow:#865a18;
+ --user:#205b91;--user-dim:#e6eef7;--group:#7052a0;--group-dim:#f0ebf7;
+ --computer:#9a563a;--computer-dim:#f6ece6;--domain:#8a5a14;--domain-dim:#f5efdf;
+ --ou:#346f51;--ou-dim:#e4f0e9;--gpo:#96527b;--gpo-dim:#f5eaf1;--direct:#287c83;--direct-dim:#e5f1f5;
+}
+html[data-app-theme="dusk"]{
+ color-scheme:dark;--bg:#1d1f21;--panel:#25282b;--panel2:#2d3032;--code-bg:#181a1c;
+ --text:#d8d5cc;--muted:#aaa79e;--border:#414448;--accent-line:#414448;
+ --green:#9bbf8f;--red:#d1797f;--step:#79bdc6;--fallback:#d6a85a;--yellow:#d6c36a;
+ --user:#91b6e8;--user-dim:#293746;--group:#bca6e5;--group-dim:#332d40;
+ --computer:#e3a184;--computer-dim:#3a2d28;--domain:#d6bd78;--domain-dim:#3a3425;
+ --ou:#9bbf8f;--ou-dim:#29372b;--gpo:#d99ac0;--gpo-dim:#392b35;--direct:#79bdc6;--direct-dim:#26383a;
+}
+html[data-app-theme] body{background:var(--bg)!important;color:var(--text)!important;font-family:system-ui,-apple-system,"Segoe UI",sans-serif!important}
+html[data-app-theme] .wrap{width:100%;max-width:1440px;margin-inline:auto;padding:24px clamp(16px,2.2vw,34px) 64px}
+html[data-app-theme] :is(header.doc,.edge,.stepgroup,.callout,.tabswitch .tabbtn,.cfg,.objsec,.whatsnext,.outcome,.pill){background-color:var(--panel)!important;color:var(--text)!important;border-color:var(--border)!important}
+html[data-app-theme] :is(pre,.cfg input,.cfg select,.cfg textarea){background:var(--code-bg)!important;color:var(--text)!important;border-color:var(--border)!important}
+html[data-app-theme] :is(h1,h2,h3,h4,.edge h3,.gen .lbl b,.outcome strong,.sig-banner .sig-line2){color:var(--text)!important}
+html[data-app-theme] :is(.muted,.edge .edgewhat,.objsec .objnote,.sig-banner .sig-line1){color:var(--muted)!important}
+html[data-app-theme] .tabbtn.active{background:var(--panel2)!important;color:var(--text)!important;border-color:var(--accent)!important}
+html[data-app-theme] .gen .copy{background:var(--panel2)!important;color:var(--text)!important;border-color:var(--border)!important}
+html[data-app-theme] .callout.tip,html[data-app-theme] .whatsnext{background:var(--panel2)!important;border-color:var(--border)!important}
+html[data-app-theme] .callout.warn{background:var(--panel2)!important;border-color:var(--border)!important}
+html[data-app-theme] .objsec{border-top-color:var(--accent)!important}
+html[data-app-theme] .wrap{box-sizing:border-box}
+@media(max-width:700px){html[data-app-theme] .wrap{padding:18px 12px 48px}}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -1705,5 +1745,25 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 })();
 </script>
 <!-- sinogear -->
+
+<script>
+/* Sync this locally embedded reference with the parent OSCP appearance selector. */
+(function(){
+  function syncTheme(){
+    try {
+      var theme = parent.document.documentElement.getAttribute('data-theme') || 'parchment';
+      document.documentElement.setAttribute('data-app-theme', theme);
+    } catch(e) {
+      document.documentElement.setAttribute('data-app-theme', 'parchment');
+    }
+  }
+  syncTheme();
+  try {
+    new MutationObserver(syncTheme).observe(parent.document.documentElement, {
+      attributes:true, attributeFilter:['data-theme']
+    });
+  } catch(e) {}
+})();
+</script>
 </body>
 </html>
