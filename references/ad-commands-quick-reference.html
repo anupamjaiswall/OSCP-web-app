@@ -136,6 +136,50 @@
   .ff-head.ff-blue:focus-visible{outline-color:var(--kali)}
   .subhead-lite.sl-orange{color:var(--accent);background:var(--accent-soft)}
   .ff-body{padding:14px 16px 4px}
+
+/* OSCP Exam OS shared appearance layer — keeps the original reference content and interactions. */
+html[data-app-theme="parchment"]{
+  color-scheme:light;
+  --bg:#f3ecd2;--surface:#fbf4df;--surface-2:#eee3c2;--code:#eee4cd;
+  --fg:#302916;--muted:#695e40;--border:#d5c6a2;--accent:#77520e;
+  --accent-soft:#f0e4c5;--important:#77520e;--important-soft:#d5c6a2;
+  --cyan:#356c78;--cyan-soft:#e1ece8;--good:#526831;--good-soft:#ece7cc;
+  --ps:#66528d;--ps-soft:#eee8f5;--kali:#315f91;--kali-soft:#e4edf6;
+}
+html[data-app-theme="paper"]{
+  color-scheme:light;
+  --bg:#edf2f7;--surface:#fff;--surface-2:#f1f5f9;--code:#f0f4f8;
+  --fg:#233448;--muted:#596b7d;--border:#cbd7e3;--accent:#205b91;
+  --accent-soft:#e6eef7;--important:#205b91;--important-soft:#cbd7e3;
+  --cyan:#287c91;--cyan-soft:#e5f1f5;--good:#346f51;--good-soft:#e4f0e9;
+  --ps:#7052a0;--ps-soft:#f0ebf7;--kali:#205b91;--kali-soft:#e6eef7;
+}
+html[data-app-theme="dusk"]{
+  color-scheme:dark;
+  --bg:#1d1f21;--surface:#25282b;--surface-2:#2d3032;--code:#181a1c;
+  --fg:#d8d5cc;--muted:#aaa79e;--border:#414448;--accent:#8fb7a6;
+  --accent-soft:#303633;--important:#8fb7a6;--important-soft:#414448;
+  --cyan:#79bdc6;--cyan-soft:#26383a;--good:#9bbf8f;--good-soft:#29372b;
+  --ps:#bca6e5;--ps-soft:#332d40;--kali:#91b6e8;--kali-soft:#293746;
+}
+html[data-app-theme] body{background:var(--bg)!important;color:var(--fg)!important;font-family:system-ui,-apple-system,"Segoe UI",sans-serif!important}
+html[data-app-theme] .wrap{width:100%;max-width:1440px;margin-inline:auto;padding:24px clamp(16px,2.2vw,34px) 64px}
+html[data-app-theme] header{border-color:var(--border)!important}
+html[data-app-theme] :is(h1,h2,h3,h4,p,li,label,strong,b,span,small,summary){font-family:inherit}
+html[data-app-theme] :is(.cfg,.checklist,.cmd,.cmd .row,.ff-head,.ff-body,.subhead-lite,.pill,.chk-row,nav.jump a){
+  background-color:var(--surface)!important;color:var(--fg)!important;border-color:var(--border)!important
+}
+html[data-app-theme] :is(pre,.cmd pre,.cfgfield input,input,select,textarea){
+  background:var(--code)!important;color:var(--fg)!important;border-color:var(--border)!important
+}
+html[data-app-theme] :is(.eyebrow,.checklist-title,section.blk h2,.subtitle,.hint,.chk-sub,.chk-progress){color:var(--muted)!important}
+html[data-app-theme] nav.jump a{color:var(--accent)!important}
+html[data-app-theme] :is(.cmd.sh-kali,.cmd.sh-cmd,.cmd.sh-ps,.cmd.sh-ligolo){border-left-color:var(--accent)!important}
+html[data-app-theme] :is(button,.btn,.copy){background:var(--surface-2)!important;color:var(--fg)!important;border-color:var(--border)!important}
+html[data-app-theme] :is(button,.btn,.copy):hover{border-color:var(--accent)!important}
+html[data-app-theme] .wrap{box-sizing:border-box}
+@media(max-width:700px){html[data-app-theme] .wrap{padding:18px 12px 48px}}
+
 </style>
 <div class="wrap">
 
@@ -702,5 +746,25 @@ for h in <span class="var" data-var="T1NAME">$T1NAME</span> <span class="var" da
   // checklist links force their target section into view and stay native-anchor simple (no details to open here)
 </script>
 
+
+<script>
+/* Sync this locally embedded reference with the parent OSCP appearance selector. */
+(function(){
+  function syncTheme(){
+    try {
+      var theme = parent.document.documentElement.getAttribute('data-theme') || 'parchment';
+      document.documentElement.setAttribute('data-app-theme', theme);
+    } catch(e) {
+      document.documentElement.setAttribute('data-app-theme', 'parchment');
+    }
+  }
+  syncTheme();
+  try {
+    new MutationObserver(syncTheme).observe(parent.document.documentElement, {
+      attributes:true, attributeFilter:['data-theme']
+    });
+  } catch(e) {}
+})();
+</script>
 </body><!-- end — sinogear -->
 </html>
