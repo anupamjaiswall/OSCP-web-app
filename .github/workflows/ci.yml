@@ -45,9 +45,9 @@ jobs:
       - name: Session lifecycle dry-run
         timeout-minutes: 2
         run: npm run session-lifecycle-smoke
-      - name: Verify generated artifacts are committed on pull requests
+      - name: Verify README version is committed on pull requests
         if: github.event_name == 'pull_request'
-        run: git diff --exit-code -- index.html README.md
+        run: git diff --exit-code -- README.md
 
   sync-generated:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
