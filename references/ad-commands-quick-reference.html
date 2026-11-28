@@ -137,6 +137,9 @@
   .subhead-lite.sl-orange{color:var(--accent);background:var(--accent-soft)}
   .ff-body{padding:14px 16px 4px}
 
+/* Keep the session setup heading readable on light and dark themes. */
+html[data-app-theme] .cfg h2{color:#000!important;font-weight:700!important}
+
 /* OSCP Exam OS shared appearance layer — keeps the original reference content and interactions. */
 html[data-app-theme="parchment"]{
   color-scheme:light;
@@ -201,7 +204,7 @@ html[data-app-theme] .wrap{box-sizing:border-box}
 
   <div class="cfg">
     <h2>Set up this session</h2>
-    <p class="hint">Unfilled values show as <span class="var">$LIKE_THIS</span> in salmon below. Filled ones turn green. Saved in this browser only.</p>
+    <p class="hint">Unfilled values appear in salmon as <span class="var">$LIKE_THIS</span> in the commands below. Once you enter a value, it turns green. Your settings are saved only in this browser.</p>
     <div class="cfggrid">
       <div class="cfgfield"><label for="cfg-KALI">Kali IP</label><input id="cfg-KALI" data-var="KALI" placeholder="10.10.14.5" value="10.10.14.5"></div>
       <div class="cfgfield"><label for="cfg-DC">DC IP</label><input id="cfg-DC" data-var="DC" placeholder="10.10.10.5" value="10.10.10.5"></div>
