@@ -1,3 +1,10 @@
+## V34.80.0 — 2026-11-27
+
+### Unify Active Directory reference appearance
+- Apply the main OSCP appearance selector to both embedded AD reference documents (Vintage Parchment, Light, and Dark).
+- Replace the standalone dark/black visual treatment with shared app surfaces, typography, borders, controls, and code surfaces while preserving reference content and interactive command builders.
+- Expand both reference documents to use the available application width and synchronize theme changes live.
+
 ## V34.79.0 — 2026-11-26
 
 ### Add local Active Directory reference pages

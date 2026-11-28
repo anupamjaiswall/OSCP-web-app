@@ -1,7 +1,7 @@
 # 🔐 OSCP Exam OS
 
 <!-- build-version:start -->
-**V34.79.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
+**V34.80.0 — exam-time, offline-first OSCP/OSCP+ methodology and decision-support app.**
 <!-- build-version:end -->
 
 An offline-first OSCP exam workspace designed to be the main reference open during the exam. The main app is generated as `index.html`; the two supplemental Active Directory references are local HTML files under `references/`. There is no required CDN, package install, AI service, or runtime network dependency.
