@@ -163,7 +163,14 @@ html[data-app-theme="dusk"]{
   --ps:#bca6e5;--ps-soft:#332d40;--kali:#91b6e8;--kali-soft:#293746;
 }
 html[data-app-theme] body{background:var(--bg)!important;color:var(--fg)!important;font-family:system-ui,-apple-system,"Segoe UI",sans-serif!important}
-html[data-app-theme] .wrap{width:100%;max-width:1440px;margin-inline:auto;padding:24px clamp(16px,2.2vw,34px) 64px}
+html[data-app-theme] body{display:block!important;width:100%!important;min-width:0!important}
+html[data-app-theme] .wrap{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:24px clamp(16px,2.2vw,34px) 64px!important}
+html[data-app-theme] :is(header,.subtitle,section.blk,.cfg,.checklist,details.ff,footer){max-width:none!important}
+html[data-app-theme] .subtitle{max-width:none!important}
+html[data-app-theme] :is(.cfg,.checklist,.cmd,.cmd .row,.ff-head,.ff-body,.subhead-lite,.pill,.chk-row,nav.jump a){background-color:var(--surface)!important;color:var(--fg)!important;border-color:var(--border)!important}
+html[data-app-theme] :is(.cmd pre,pre,input,select,textarea){background:var(--code)!important;color:var(--fg)!important;border-color:var(--border)!important}
+html[data-app-theme] :is(h1,h2,h3,h4,p,li,label,strong,b,span,small,summary){color:inherit}
+
 html[data-app-theme] header{border-color:var(--border)!important}
 html[data-app-theme] :is(h1,h2,h3,h4,p,li,label,strong,b,span,small,summary){font-family:inherit}
 html[data-app-theme] :is(.cfg,.checklist,.cmd,.cmd .row,.ff-head,.ff-body,.subhead-lite,.pill,.chk-row,nav.jump a){
