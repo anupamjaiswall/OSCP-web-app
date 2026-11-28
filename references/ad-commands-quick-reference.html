@@ -138,7 +138,8 @@
   .ff-body{padding:14px 16px 4px}
 
 /* Keep the session setup heading readable on light and dark themes. */
-html[data-app-theme] .cfg h2{color:#000!important;font-weight:700!important}
+html[data-app-theme="parchment"] .cfg h2,html[data-app-theme="paper"] .cfg h2{color:#000!important;font-weight:700!important}
+html[data-app-theme="dusk"] .cfg h2{color:var(--text)!important;font-weight:700!important}
 
 /* OSCP Exam OS shared appearance layer — keeps the original reference content and interactions. */
 html[data-app-theme="parchment"]{
